@@ -17,117 +17,69 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 隔离 184 上旧 metadata 补丁的残留：先查引用，有引用就中止。
-  # 只 mv 到 /opt/_trash_*，不 rm。不动其他文件，不动服务。
+  # 重建 /opt/corex311-cpython-vllm 前的只读准备：
+  # A. bundle 的安装脚本能否指定目标目录
+  # B. base 相对原始 vllm wheel 的完整补丁足迹
+  # C. tokens 补丁的交付来源
+  # 不删除、不安装、不建 venv。
 
   CON=corex5-py311
-  SP=/opt/corex311/lib/python3.11/site-packages
-  TRASH="/opt/_trash_$(date +%Y%m%d-%H%M%S)"
+  BASE=/opt/corex311
+  NEW=/opt/corex311-cpython-vllm
+  SP="$BASE/lib/python3.11/site-packages"
+  BUNDLE=/home/z30059427/corex5-py311-20261009
+  WHEEL="$BUNDLE/vendor/vllm-0.23.0+corex.5.0.0-py3-none-any.whl"
 
-  echo "== 0. 清理前指纹 =="
+  echo "== 1. bundle 安装脚本与清单 =="
+  docker exec "$CON" sh -c "
+B=$BUNDLE
+echo '---- install_corex311.sh'
+cat \$B/install_corex311.sh
+echo '---- README 前 120 行'
+sed -n '1,120p' \$B/README.md
+echo '---- requirements-vendor-py311.txt'
+cat \$B/requirements-vendor-py311.txt
+echo '---- requirements-all.hashed.txt 行数与前 10 行'
+wc -l \$B/requirements-all.hashed.txt
+sed -n '1,10p' \$B/requirements-all.hashed.txt
+echo '---- vendor 目录'
+ls -la \$B/vendor
+"
+
+  echo "== 2. base 相对原始 vllm wheel 的完整 diff =="
   docker exec "$CON" sh -c "
 SP=$SP
-sha256sum \$SP/vllm/v1/worker/gpu_model_runner.py \
-          \$SP/vllm/v1/worker/host_fastpath.py \
-          \$SP/vllm/v1/attention/backends/ilu_flash_attn.py \
-          \$SP/vllm/envs.py \
-          \$SP/vllm/_host_opt_native.abi3.so \
-          \$SP/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so \
-          \$SP/vllm/v1/sample/sampler.py \
-          \$SP/vllm/model_executor/layers/logits_processor.py 2>/dev/null
-" > /tmp/184_pre_hash.txt
-  cat /tmp/184_pre_hash.txt
+W=$WHEEL
+rm -rf /tmp/vllm_wheel_x
+mkdir -p /tmp/vllm_wheel_x
+/opt/corex311/bin/python -m zipfile -e \"\$W\" /tmp/vllm_wheel_x
+echo '-- diff -rq（排除 pycache）--'
+diff -rq /tmp/vllm_wheel_x/vllm \$SP/vllm 2>/dev/null | grep -v __pycache__ | head -120
+echo '-- 新 venv 是否 pristine --'
+diff -rq /tmp/vllm_wheel_x/vllm $NEW/lib/python3.11/site-packages/vllm 2>/dev/null | grep -v __pycache__ | head -40
+"
 
-  echo "== 1. 引用检查（命中则中止，退出码 2）=="
-  docker exec "$CON" sh -c '
-SP=/opt/corex311/lib/python3.11/site-packages
-FOUND=0
-for D in /home/huawei_ts_program/litehost_perf_opt /home/qch/scripts "$SP/vllm"; do
-  [ -d "$D" ] || continue
-  HIT=$(grep -rnE "metadata_optimization|native_input_metadata|native_spec_metadata|vllm\.iluvatar\.input_pipeline|from vllm\.iluvatar import input_pipeline" "$D" \
-        --include="*.py" --include="*.sh" 2>/dev/null \
-        | grep -vE "iluvatar/(metadata_optimization|native_input_metadata|native_spec_metadata|input_pipeline)\.py:")
-  if [ -n "$HIT" ]; then
-    echo "REFERENCES in $D:"
-    echo "$HIT" | head -20
-    FOUND=1
-  fi
-done
-if [ "$FOUND" -eq 1 ]; then
-  echo "ABORT: references found, nothing moved."
-  exit 2
-fi
-echo "no references"
-exit 0
-'
-  REF=$?
-  if [ "$REF" -eq 2 ]; then
-    echo "== 中止：存在引用，未做任何移动 =="
-  else
-    echo "== 2. 隔离残留到 $TRASH =="
-    docker exec -e TRASH="$TRASH" "$CON" sh -c '
-SP=/opt/corex311/lib/python3.11/site-packages
-mkdir -p "$TRASH/iluvatar_orphans"
-if [ -d "$SP/vllm/.corex_metadata_patch" ]; then
-  mv "$SP/vllm/.corex_metadata_patch" "$TRASH/"
-  echo "moved .corex_metadata_patch"
-else
-  echo ".corex_metadata_patch not present"
-fi
-for n in metadata_optimization native_input_metadata native_spec_metadata input_pipeline; do
-  if [ -f "$SP/vllm/iluvatar/$n.py" ]; then
-    mv "$SP/vllm/iluvatar/$n.py" "$TRASH/iluvatar_orphans/"
-    echo "moved $n.py"
-  fi
-  for p in "$SP/vllm/iluvatar/__pycache__/$n".*.pyc; do
-    [ -f "$p" ] && { mv "$p" "$TRASH/iluvatar_orphans/"; echo "moved $(basename "$p")"; }
-  done
-done
-echo "-- 隔离目录内容 --"
-find "$TRASH" -maxdepth 5 -type f -printf "%10s %p\n" 2>/dev/null | sort -k2
-'
-
-    echo "== 3. 残留复查 =="
-    docker exec "$CON" sh -c '
-SP=/opt/corex311/lib/python3.11/site-packages
-echo "-- iluvatar 目录 --"
-ls -la --time-style=long-iso $SP/vllm/iluvatar/ 2>/dev/null
-echo "-- 是否还有旧补丁文件 --"
-for n in metadata_optimization native_input_metadata native_spec_metadata input_pipeline; do
-  [ -f "$SP/vllm/iluvatar/$n.py" ] && echo "STILL PRESENT $n.py" || echo "gone $n.py"
-done
-[ -d "$SP/vllm/.corex_metadata_patch" ] && echo "STILL PRESENT .corex_metadata_patch" || echo "gone .corex_metadata_patch"
-'
-
-    echo "== 4. import 冒烟 =="
-    docker exec -e PYTHONPATH= -e PYTHONHOME= "$CON" /opt/corex311/bin/python -c "
-import vllm
-from vllm.v1.worker import host_fastpath
-print('import ok', vllm.__version__, host_fastpath.HostFastPath.__name__)
-" 2>&1 | tail -5
-
-    echo "== 5. 清理后指纹对比 =="
-    docker exec "$CON" sh -c "
+  echo "== 3. tokens 补丁来源 =="
+  docker exec "$CON" sh -c "
 SP=$SP
-sha256sum \$SP/vllm/v1/worker/gpu_model_runner.py \
-          \$SP/vllm/v1/worker/host_fastpath.py \
-          \$SP/vllm/v1/attention/backends/ilu_flash_attn.py \
-          \$SP/vllm/envs.py \
-          \$SP/vllm/_host_opt_native.abi3.so \
-          \$SP/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so \
-          \$SP/vllm/v1/sample/sampler.py \
-          \$SP/vllm/model_executor/layers/logits_processor.py 2>/dev/null
-" > /tmp/184_post_hash.txt
-    if diff -u /tmp/184_pre_hash.txt /tmp/184_post_hash.txt; then
-      echo "OK: 关键文件指纹未变"
-    else
-      echo "WARN: 指纹发生变化，请检查"
-    fi
-  fi
+echo '-- transfer 下的 wheel/包 --'
+ls -la --time-style=long-iso /home/qch/transfer/*.whl 2>/dev/null
+find /home/qch/transfer -maxdepth 2 -iname '*hotspot*' -printf '%10s %TY-%Tm-%Td %TH:%TM %p\n' 2>/dev/null | head -20
+echo '-- site-packages 里 hotspot 相关 --'
+find \$SP -maxdepth 2 -iname '*hotspot*' 2>/dev/null | head -20
+echo '-- get_top_tokens 定义位置 --'
+grep -rn 'def get_top_tokens' \$SP/vllm --include='*.py' 2>/dev/null | head -5
+"
 
-  echo "== 恢复方法（如需回滚）=="
-  echo "  docker exec $CON mv $TRASH/iluvatar_orphans/*.py  $SP/vllm/iluvatar/"
-  echo "  docker exec $CON mv $TRASH/.corex_metadata_patch    $SP/vllm/"
+  echo "== 4. 新 venv 当前占用与磁盘 =="
+  docker exec "$CON" sh -c "
+for p in /proc/[0-9]*; do
+  e=\$(readlink \"\$p/exe\" 2>/dev/null) || continue
+  case \"\$e\" in *corex311-cpython-vllm*) echo \"\${p#/proc/} \$e\";; esac
+done | head -10
+du -sh $NEW 2>/dev/null
+df -h /opt | tail -1
+"
 
   # ---- 命令结束 ----
 
