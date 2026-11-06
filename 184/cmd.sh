@@ -38,6 +38,8 @@ mkdir -p "$DIR/tmp"
 
   echo "== 2. 交付目录文件树（按路径排序）=="
   find "$PKG" -maxdepth 5 -type f -printf '%10s %TY-%Tm-%Td %TH:%TM %p\n' 2>/dev/null | sort -k4 | head -120
+  echo "-- 交付包自校验 --"
+  ( cd "$PKG" && sha256sum -c SHA256SUMS 2>&1 | tail -10 ) || echo "SHA256SUMS check failed or missing"
 
   echo "== 3. README / BASELINE / install.sh / patches/series =="
   for f in "$PKG"/README* "$PKG"/BASELINE.json "$PKG"/scripts/install.sh "$PKG"/patches/series; do
@@ -54,8 +56,10 @@ mkdir -p "$DIR/tmp"
   done
 
   echo "== 5. 交付包内关键文件 sha256 =="
-  find "$PKG" \( -name 'host_fastpath.py' -o -name 'corex_host_opt.py' -o -name '*.so' -o -name 'BASELINE.json' -o -name '*.patch' \) -type f 2>/dev/null \
-    | sort | xargs -r sha256sum | head -60
+  find "$PKG" \( -name 'host_fastpath.py' -o -name 'corex_host_opt.py' -o -name '*.so' \
+       -o -name 'MANIFEST.json' -o -name 'SHA256SUMS' -o -name 'README.md' \
+       -o -name '*.patch' -o -name 'install.py' -o -name 'verify.py' \) -type f 2>/dev/null \
+    | sort | xargs -r sha256sum | head -80
 
   echo "== 6. corex311 当前补丁形态（两种都查）=="
   docker exec "$CON" sh -c '
@@ -67,6 +71,28 @@ find $SP/corex_host_native -maxdepth 3 -type f 2>/dev/null | head -20 || echo no
 echo "-- 隐藏补丁目录 --"
 ls -d $SP/vllm/.corex* 2>/dev/null || echo none
 find $SP/vllm/.corex_metadata_patch -maxdepth 5 -type f 2>/dev/null | head -20
+echo "-- .corex_metadata_patch/originals 与当前文件对比 --"
+ORIG=$SP/vllm/.corex_metadata_patch/originals
+if [ -d "$ORIG" ]; then
+  find "$ORIG" -type f | while IFS= read -r o; do
+    rel=${o#$ORIG/}
+    cur=$SP/vllm/$rel
+    if [ -f "$cur" ]; then
+      a=$(sha256sum "$o" | cut -d" " -f1)
+      b=$(sha256sum "$cur" | cut -d" " -f1)
+      [ "$a" = "$b" ] && echo "SAME $rel" || echo "DIFF $rel"
+    else
+      echo "GONE $rel"
+    fi
+  done
+else
+  echo "no originals dir"
+fi
+echo "-- install.py 备份/状态目录 --"
+find $SP -maxdepth 2 -iname "*host*opt*" 2>/dev/null | head -20
+echo "-- vllm 根目录 _host_opt_native --"
+ls -la $SP/vllm/_host_opt_native* 2>/dev/null || echo none
+for f in $SP/vllm/_host_opt_native*.so; do [ -f "$f" ] && sha256sum "$f"; done
 echo "-- *.orig / *.rej / *.bak --"
 find $SP/vllm -maxdepth 7 \( -name "*.orig" -o -name "*.rej" -o -name "*.bak" \) 2>/dev/null | head -20
 echo "-- 今天 10:00 后被改动的 vllm 文件（排除 pycache）--"
