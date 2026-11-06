@@ -1,0 +1,448 @@
+### server: 184
+### host:   controller
+### time:   2026-11-06T08:35:54Z
+
++ CON=corex5-py311
++ BASE=/opt/corex311
++ SP=/opt/corex311/lib/python3.11/site-packages
++ PKG=/home/qch/transfer/host-opt-pr-validation-20261103-r3
++ ZIP=/home/qch/transfer/host-opt-two-pr-validation-20261103-r3-arm64-py311-py312.zip
++ echo '== 1. transfer 下的交付包与 zip =='
+== 1. transfer 下的交付包与 zip ==
++ ls -la --time-style=long-iso /home/qch/transfer/host-opt-pr-validation-20261103-r3
+total 64
+drwxr-xr-x. 7 root root 4096 2026-11-06 11:43 .
+drwxrwxr-x+ 7 root root 4096 2026-11-06 12:39 ..
+drwxr-xr-x. 3 root root 4096 2026-11-06 11:43 container
+drwxr-xr-x. 3 root root 4096 2026-11-06 11:43 evidence
+-rw-r--r--. 1 root root 4909 2026-11-06 11:43 MANIFEST.json
+-rw-r--r--. 1 root root 2198 2026-11-06 11:43 PACKAGE_AUDIT.json
+-rw-r--r--. 1 root root 1558 2026-11-06 11:43 PR_LINKS.json
+drwxr-xr-x. 2 root root 4096 2026-11-06 11:43 prs
+-rw-r--r--. 1 root root 4694 2026-11-06 11:43 README.md
+drwxr-xr-x. 2 root root 4096 2026-11-06 11:43 scripts
+-rw-r--r--. 1 root root 5278 2026-11-06 11:43 SHA256SUMS
+drwxr-xr-x. 4 root root 4096 2026-11-06 11:43 source
++ echo '-- zip --'
+-- zip --
++ ls -l --time-style=long-iso /home/qch/transfer/host-opt-two-pr-validation-20261103-r3-arm64-py311-py312.zip
+-rw-r--r--. 1 root root 304018 2026-11-06 11:42 /home/qch/transfer/host-opt-two-pr-validation-20261103-r3-arm64-py311-py312.zip
++ sha256sum /home/qch/transfer/host-opt-two-pr-validation-20261103-r3-arm64-py311-py312.zip
+6148ec8e13f280a69f22655c2e08af609a0383d72306bbaa33548b06b656d198  /home/qch/transfer/host-opt-two-pr-validation-20261103-r3-arm64-py311-py312.zip
++ echo '-- zip 清单 --'
+-- zip 清单 --
++ unzip -l /home/qch/transfer/host-opt-two-pr-validation-20261103-r3-arm64-py311-py312.zip
++ head -80
+Archive:  /home/qch/transfer/host-opt-two-pr-validation-20261103-r3-arm64-py311-py312.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+    44714  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/container/patches/0001-host-paths.patch
+    14117  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/container/patches/0002-ilu-metadata.patch
+     4870  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/AUDIT.json
+    70752  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/binaries/linux-aarch64/cp311/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+    71224  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/binaries/linux-aarch64/cp311/_host_opt_native.abi3.so
+    70752  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/binaries/linux-aarch64/cp312/_host_opt_meta_native.cpython-312-aarch64-linux-gnu.so
+    71224  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/binaries/linux-aarch64/cp312/_host_opt_native.abi3.so
+     7278  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/build311.log
+     7253  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/build312.log
+      646  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/dry-run311.log
+       99  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/INDEPENDENCE.json
+     2462  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/injected-build-failure.log
+      230  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/installed-check311.log
+      231  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/installed-check312.log
+      855  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/pr1-alone.log
+      916  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/pr2-alone.log
+     5874  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/reinstall311.log
+     3416  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/tests311.log
+     3276  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/tests312-cross-abi3.log
+     3111  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/tests312.log
+      230  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/uninstall311.log
+     1864  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/VERIFICATION311.json
+     1866  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/VERIFICATION312.json
+     1866  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/evidence/VERIFICATION312_CROSS_ABI3.json
+     4909  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/MANIFEST.json
+     2198  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/PACKAGE_AUDIT.json
+     1558  11-03-2026 14:21   host-opt-pr-validation-20261103-r3/PR_LINKS.json
+   101111  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/prs/pr1.patch
+     2555  11-03-2026 14:20   host-opt-pr-validation-20261103-r3/prs/PR1_DESCRIPTION.md
+    47708  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/prs/pr2.patch
+     1840  11-03-2026 11:30   host-opt-pr-validation-20261103-r3/prs/PR2_DESCRIPTION.md
+     4694  11-03-2026 14:20   host-opt-pr-validation-20261103-r3/README.md
+    10148  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/scripts/apply_patch.py
+     6597  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/scripts/install.py
+     2639  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/scripts/verify.py
+     5278  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/SHA256SUMS
+    24434  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/source/pr1/cmake/utils.cmake
+    57495  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/source/pr1/CMakeLists.txt
+     9599  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/source/pr1/csrc/host_opt_native.cpp
+     5418  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/source/pr1/csrc/spinloop.cpp
+     9362  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/source/pr1/docs/design/host_fastpath.md
+     9670  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/source/pr1/docs/design/host_fastpath_verification.md
+    45961  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/source/pr1/setup.py
+    20941  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/source/pr1/tests/v1/worker/test_host_fastpath.py
+   102405  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/source/pr1/vllm/envs.py
+   337668  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/source/pr1/vllm/v1/worker/gpu_model_runner.py
+    28938  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/source/pr1/vllm/v1/worker/host_fastpath.py
+     1848  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/source/pr2/CoreX-5.0.0/BASELINE.json
+     3095  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/source/pr2/CoreX-5.0.0/native/CMakeLists.txt
+     9134  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/source/pr2/CoreX-5.0.0/native/native.c
+    14117  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/source/pr2/CoreX-5.0.0/patches/0001-corex-host-opt-metadata-ilu.patch
+     5144  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/source/pr2/CoreX-5.0.0/README.md
+     5018  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/source/pr2/CoreX-5.0.0/tests/test_metadata.py
+     6850  11-03-2026 14:22   host-opt-pr-validation-20261103-r3/source/pr2/CoreX-5.0.0/VERIFICATION.md
+---------                     -------
+  1277458                     54 files
++ echo '-- transfer/SHA256SUMS --'
+-- transfer/SHA256SUMS --
++ cat /home/qch/transfer/SHA256SUMS
+87244f7e9fb80da0467152bc6b82c95e0174a1514fd1ff9e052044381b358972  hotspot_opt-0.5.3-py3-none-any.whl
+9eb6ca36702600d85b754f21e4b812394ead6c09c17dcba1cd007776a84f573b  torch_module_attr_fastpath-0.1.0.dev2-cp311-cp311-linux_aarch64.whl
++ echo '== 2. 交付目录文件树（按路径排序）=='
+== 2. 交付目录文件树（按路径排序）==
++ find /home/qch/transfer/host-opt-pr-validation-20261103-r3 -maxdepth 5 -type f -printf '%10s %TY-%Tm-%Td %TH:%TM %p\n'
++ sort -k4
++ head -120
+     44714 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/container/patches/0001-host-paths.patch
+     14117 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/container/patches/0002-ilu-metadata.patch
+      4870 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/AUDIT.json
+     70752 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/binaries/linux-aarch64/cp311/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+     71224 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/binaries/linux-aarch64/cp311/_host_opt_native.abi3.so
+     70752 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/binaries/linux-aarch64/cp312/_host_opt_meta_native.cpython-312-aarch64-linux-gnu.so
+     71224 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/binaries/linux-aarch64/cp312/_host_opt_native.abi3.so
+      7278 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/build311.log
+      7253 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/build312.log
+       646 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/dry-run311.log
+        99 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/INDEPENDENCE.json
+      2462 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/injected-build-failure.log
+       230 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/installed-check311.log
+       231 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/installed-check312.log
+       855 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/pr1-alone.log
+       916 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/pr2-alone.log
+      5874 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/reinstall311.log
+      3416 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/tests311.log
+      3276 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/tests312-cross-abi3.log
+      3111 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/tests312.log
+       230 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/uninstall311.log
+      1864 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/VERIFICATION311.json
+      1866 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/VERIFICATION312_CROSS_ABI3.json
+      1866 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/VERIFICATION312.json
+      4909 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/MANIFEST.json
+      2198 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/PACKAGE_AUDIT.json
+      1558 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/PR_LINKS.json
+      2555 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/prs/PR1_DESCRIPTION.md
+    101111 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/prs/pr1.patch
+      1840 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/prs/PR2_DESCRIPTION.md
+     47708 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/prs/pr2.patch
+      4694 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/README.md
+     10148 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/scripts/apply_patch.py
+      6597 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/scripts/install.py
+      2639 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/scripts/verify.py
+      5278 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/SHA256SUMS
+     57495 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/source/pr1/CMakeLists.txt
+     24434 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/source/pr1/cmake/utils.cmake
+      9599 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/source/pr1/csrc/host_opt_native.cpp
+      5418 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/source/pr1/csrc/spinloop.cpp
+      9362 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/source/pr1/docs/design/host_fastpath.md
+      9670 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/source/pr1/docs/design/host_fastpath_verification.md
+     45961 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/source/pr1/setup.py
+    102405 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/source/pr1/vllm/envs.py
+      1848 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/source/pr2/CoreX-5.0.0/BASELINE.json
+      3095 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/source/pr2/CoreX-5.0.0/native/CMakeLists.txt
+      9134 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/source/pr2/CoreX-5.0.0/native/native.c
+     14117 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/source/pr2/CoreX-5.0.0/patches/0001-corex-host-opt-metadata-ilu.patch
+      5144 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/source/pr2/CoreX-5.0.0/README.md
+      5018 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/source/pr2/CoreX-5.0.0/tests/test_metadata.py
+      6850 2026-11-06 11:43 /home/qch/transfer/host-opt-pr-validation-20261103-r3/source/pr2/CoreX-5.0.0/VERIFICATION.md
++ echo '-- 交付包自校验 --'
+-- 交付包自校验 --
++ cd /home/qch/transfer/host-opt-pr-validation-20261103-r3
++ sha256sum -c SHA256SUMS
++ tail -10
+source/pr1/vllm/envs.py: OK
+source/pr1/vllm/v1/worker/gpu_model_runner.py: OK
+source/pr1/vllm/v1/worker/host_fastpath.py: OK
+source/pr2/CoreX-5.0.0/BASELINE.json: OK
+source/pr2/CoreX-5.0.0/native/CMakeLists.txt: OK
+source/pr2/CoreX-5.0.0/native/native.c: OK
+source/pr2/CoreX-5.0.0/patches/0001-corex-host-opt-metadata-ilu.patch: OK
+source/pr2/CoreX-5.0.0/README.md: OK
+source/pr2/CoreX-5.0.0/tests/test_metadata.py: OK
+source/pr2/CoreX-5.0.0/VERIFICATION.md: OK
++ echo '== 3. README / BASELINE / install.sh / patches/series =='
+== 3. README / BASELINE / install.sh / patches/series ==
++ for f in "$PKG"/README* "$PKG"/BASELINE.json "$PKG"/scripts/install.sh "$PKG"/patches/series
++ '[' -f /home/qch/transfer/host-opt-pr-validation-20261103-r3/README.md ']'
++ echo '---- /home/qch/transfer/host-opt-pr-validation-20261103-r3/README.md'
+---- /home/qch/transfer/host-opt-pr-validation-20261103-r3/README.md
++ sed -n 1,100p /home/qch/transfer/host-opt-pr-validation-20261103-r3/README.md
+# vLLM Host 优化：两个 PR 的容器验证包
+
+适用环境：Linux ARM64，CoreX 5.0.0 随附的 vLLM
+`0.23.0+corex.5.0.0`、torch `2.10.0+corex.5.0.0`、NumPy `1.26.4`。
+CPython 3.11.6 与 3.12.11 已在隔离目录编译和验证。
+
+两个实现 PR 均面向 `boostkit/vllm-dev:vllm-0.23.0`。链接与准确提交见
+`PR_LINKS.json`、`MANIFEST.json`。本包不包含 RFC 的更新。
+
+| 路径 | 内容 |
+| --- | --- |
+| `prs/pr1.patch`、`prs/pr2.patch` | 相对主仓基线的完整 PR 差异 |
+| `source/pr1/` | inputs、arena、bookkeeping 源码、CMake 接入、文档和测试 |
+| `source/pr2/CoreX-5.0.0/` | 独立 ILU metadata 补丁、C 源码、CMake 和测试 |
+| `container/patches/` | 适配 CoreX 已安装发行版的两个 Python 补丁 |
+| `scripts/install.py` | 基线校验、备份、构建与安装；失败自动还原 |
+| `scripts/verify.py` | 核对实际导入位置与源文件摘要，运行全部 CPU 测试 |
+| `evidence/` | 编译日志、测试日志、回退及独立性检查、原生构建产物 |
+| `SHA256SUMS` | 包内每个文件的摘要，校验后再使用 |
+
+PR 一的支持模块与 C++ 源码、PR 二的 metadata 补丁与 C 源码均直接来自对应
+PR。厂商 runner 与主仓外围代码存在差异，容器补丁按厂商基线落位；不宣称
+两个 runner 全文件相同。`MANIFEST.json` 分别记录源文件与补丁产物摘要。
+
+## 容器内使用
+
+先激活实际 Worker 使用的环境，并在没有模型任务运行时安装。原文件必须与
+`MANIFEST.json` 的基线摘要一致。若之前打过旧版补丁，先通过对应版本的回退
+工具恢复；安装器会拒绝未知修改，不提供强制覆盖选项。
+
+```bash
+source /opt/corex311/bin/activate
+cd /path/to/host-opt-pr-validation-20261103-r3
+sha256sum -c SHA256SUMS
+ROOT=$(python -c 'import importlib.util,pathlib; print(pathlib.Path(next(iter(importlib.util.find_spec("vllm").submodule_search_locations))).parent)')
+
+# 检查基线与补丁，不改文件。
+python scripts/install.py --root "$ROOT" --dry-run
+
+# 构建并安装两个模块和两个补丁，全部功能默认关闭。
+python scripts/install.py --root "$ROOT"
+python scripts/install.py --root "$ROOT" --check
+python scripts/verify.py --root "$ROOT"
+
+# 需要恢复时：连同此次安装的模块一起还原到安装前状态。
+python scripts/install.py --root "$ROOT" --uninstall
+```
+
+使用 Python 3.12 时，把上述 Python 命令换成实际 Worker 的 3.12 解释器。
+metadata 必须按解释器小版本构建；bookkeeping 使用 abi3。包内二进制仅为
+本次 ARM64 构建证据，安装器默认从源码重建，不直接复制预编译文件。
+
+## 功能开关
+
+安装后重启服务，按需显式设置：
+
+```bash
+export VLLM_HOST_FASTPATH_INPUTS=on
+export VLLM_HOST_FASTPATH_ARENA=on
+export VLLM_HOST_FASTPATH_BOOKKEEPING=on
+export VLLM_HOST_FASTPATH_METADATA=on
+export VLLM_HOST_FASTPATH_DIAGNOSTICS=0
+```
+
+四项均支持 `off/on/verify`，总开关 `VLLM_HOST_FASTPATH` 默认 `off`。
+`verify` 用于正确性检查，不用于性能计时。metadata 的运行期 `verify` 只增加
+握手与命中计数，不是逐调用原实现 oracle；包内 CPU 测试另外逐字段比较原
+builder 与快路径。非法开关取值报错，准入不满足时执行原路径。
+
+不要同时启用旧插件与源码补丁，避免同一调用点被改写两次。
+
+## 本次已验证与边界
+
+- 两个原生模块分别在 CPython 3.11.6、3.12.11 中编译、安装和导入成功。
+- 每个解释器 88 项 CPU 测试通过，包括真实 runner 类接入、输入跳过条件、
+  arena 上传与视图、bookkeeping 差分及 metadata 全字段和 dtype 差分。
+- 同一个由 3.11 构建的 bookkeeping abi3 文件，在 3.12 上通过全部 88 项测试。
+- 正常卸载、dry-run、故意触发构建失败后的回滚，以及各 PR 单独运行均有证据。
+- 测试在私有 package root 内进行，既有容器安装文件摘要未改变。
+
+本次没有重启现有模型服务，没有重新进行实卡性能 A/B，也没有签署完整模型
+生成输出一致性、设备流或新代码 Graph 重放验收。PR 文档中的历史性能数据有
+独立基线与适用条件，不能当作这两个新 PR 的单项性能验收。
+
+本轮 PR1 接入 vllm.envs、标准 logger 和 runner 生命周期；arena 复用
+CpuGpuBuffer，bookkeeping reference 为明确方法，构建使用 NO_TORCH 选项。
+PR1 共 57 项，PR2 共 31 项 CPU 测试。旧版验证包另行保留。
+
+r3 统一类名为 `HostFastPath`，修正 native 文件头模块路径，并明确 CPU/XPU runner 的准入边界；运行逻辑与 r2 相同。
++ for f in "$PKG"/README* "$PKG"/BASELINE.json "$PKG"/scripts/install.sh "$PKG"/patches/series
++ '[' -f /home/qch/transfer/host-opt-pr-validation-20261103-r3/BASELINE.json ']'
++ continue
++ for f in "$PKG"/README* "$PKG"/BASELINE.json "$PKG"/scripts/install.sh "$PKG"/patches/series
++ '[' -f /home/qch/transfer/host-opt-pr-validation-20261103-r3/scripts/install.sh ']'
++ continue
++ for f in "$PKG"/README* "$PKG"/BASELINE.json "$PKG"/scripts/install.sh "$PKG"/patches/series
++ '[' -f /home/qch/transfer/host-opt-pr-validation-20261103-r3/patches/series ']'
++ continue
++ echo '== 4. patch 触及的目标文件 =='
+== 4. patch 触及的目标文件 ==
++ for p in "$PKG"/patches/*.patch
++ '[' -f '/home/qch/transfer/host-opt-pr-validation-20261103-r3/patches/*.patch' ']'
++ continue
++ echo '== 5. 交付包内关键文件 sha256 =='
+== 5. 交付包内关键文件 sha256 ==
++ find /home/qch/transfer/host-opt-pr-validation-20261103-r3 '(' -name host_fastpath.py -o -name corex_host_opt.py -o -name '*.so' -o -name MANIFEST.json -o -name SHA256SUMS -o -name README.md -o -name '*.patch' -o -name install.py -o -name verify.py ')' -type f
++ sort
++ xargs -r sha256sum
++ head -80
+a899f681290093244667c1e417b2c0754d0ec2b50bed0ebe0e59d1608c251c73  /home/qch/transfer/host-opt-pr-validation-20261103-r3/container/patches/0001-host-paths.patch
+023ec557cad9dda7e8295f6f8d7dd977a3cdaaccdd84e6b21947eba63779dcb7  /home/qch/transfer/host-opt-pr-validation-20261103-r3/container/patches/0002-ilu-metadata.patch
+7c8686a72759d2e4f75e8157b819039fcdcf69c1b5eba5948e0d956859af1715  /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/binaries/linux-aarch64/cp311/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+6f8774f8c9e6839a3a1de15a763845511f200cb485f55ef10009475e30db8056  /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/binaries/linux-aarch64/cp311/_host_opt_native.abi3.so
+efbd99d8cb7756a60ef94160324689878cd61300edc6d37fb40e374592dda21c  /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/binaries/linux-aarch64/cp312/_host_opt_meta_native.cpython-312-aarch64-linux-gnu.so
+3743c504a7ac200b89543fb139f1e527152518479ad514f93bbfd4f2c99c8e45  /home/qch/transfer/host-opt-pr-validation-20261103-r3/evidence/binaries/linux-aarch64/cp312/_host_opt_native.abi3.so
+6f6a40b4be5bb10f0f5531d806b16b99aaf4ef8ff841b92590f9b0eab559e32e  /home/qch/transfer/host-opt-pr-validation-20261103-r3/MANIFEST.json
+3d9e62281917494aa05c2d79b1ad1a99d6b66882d1e8a8e5ea53b66d02480b79  /home/qch/transfer/host-opt-pr-validation-20261103-r3/prs/pr1.patch
+0db9c6e14193368b450a872531bfaa1c8a4a9f7fa59261db3f61d3b2aeca4539  /home/qch/transfer/host-opt-pr-validation-20261103-r3/prs/pr2.patch
+de7659378ee1018b78a965603010d54a40945a5e07371d25bd6552b7879e61fa  /home/qch/transfer/host-opt-pr-validation-20261103-r3/README.md
+102d9e51b04b46d51b9c4d571d5c4d5ba06ecba04d40b723865bc04a05f912f5  /home/qch/transfer/host-opt-pr-validation-20261103-r3/scripts/install.py
+f00d49802989c5301936e586228e17b5f880ba714910086a4fed1fb01e3d6096  /home/qch/transfer/host-opt-pr-validation-20261103-r3/scripts/verify.py
+53d2100896b981e05f0ab3ad93d114da370a72c3ffdad59cc94b0182c6315140  /home/qch/transfer/host-opt-pr-validation-20261103-r3/SHA256SUMS
+58a9059e4fb98ec7fbbd5d93de61a59f7e61f8cda10c286eff6a19897ab6821b  /home/qch/transfer/host-opt-pr-validation-20261103-r3/source/pr1/vllm/v1/worker/host_fastpath.py
+023ec557cad9dda7e8295f6f8d7dd977a3cdaaccdd84e6b21947eba63779dcb7  /home/qch/transfer/host-opt-pr-validation-20261103-r3/source/pr2/CoreX-5.0.0/patches/0001-corex-host-opt-metadata-ilu.patch
+6008abdd7f70ecb461539a4038193df93419eadca689f7cf18a1adbd7b2a28a6  /home/qch/transfer/host-opt-pr-validation-20261103-r3/source/pr2/CoreX-5.0.0/README.md
++ echo '== 6. corex311 当前补丁形态（两种都查）=='
+== 6. corex311 当前补丁形态（两种都查）==
++ docker exec corex5-py311 sh -c '
+SP=/opt/corex311/lib/python3.11/site-packages
+echo "-- vllm/v1/worker 下 host/corex 相关文件 --"
+ls -la $SP/vllm/v1/worker 2>/dev/null | grep -iE "host_fastpath|corex" || echo none
+echo "-- site-packages/corex_host_native --"
+find $SP/corex_host_native -maxdepth 3 -type f 2>/dev/null | head -20 || echo none
+echo "-- 隐藏补丁目录 --"
+ls -d $SP/vllm/.corex* 2>/dev/null || echo none
+find $SP/vllm/.corex_metadata_patch -maxdepth 5 -type f 2>/dev/null | head -20
+echo "-- .corex_metadata_patch/originals 与当前文件对比 --"
+ORIG=$SP/vllm/.corex_metadata_patch/originals
+if [ -d "$ORIG" ]; then
+  find "$ORIG" -type f | while IFS= read -r o; do
+    rel=${o#$ORIG/}
+    cur=$SP/vllm/$rel
+    if [ -f "$cur" ]; then
+      a=$(sha256sum "$o" | cut -d" " -f1)
+      b=$(sha256sum "$cur" | cut -d" " -f1)
+      [ "$a" = "$b" ] && echo "SAME $rel" || echo "DIFF $rel"
+    else
+      echo "GONE $rel"
+    fi
+  done
+else
+  echo "no originals dir"
+fi
+echo "-- install.py 备份/状态目录 --"
+find $SP -maxdepth 2 -iname "*host*opt*" 2>/dev/null | head -20
+echo "-- vllm 根目录 _host_opt_native --"
+ls -la $SP/vllm/_host_opt_native* 2>/dev/null || echo none
+for f in $SP/vllm/_host_opt_native*.so; do [ -f "$f" ] && sha256sum "$f"; done
+echo "-- *.orig / *.rej / *.bak --"
+find $SP/vllm -maxdepth 7 \( -name "*.orig" -o -name "*.rej" -o -name "*.bak" \) 2>/dev/null | head -20
+echo "-- 今天 10:00 后被改动的 vllm 文件（排除 pycache）--"
+find $SP/vllm -newermt "2026-11-06 10:00" -type f ! -path "*__pycache__*" -printf "%TY-%Tm-%Td %TH:%TM %10s %p\n" 2>/dev/null | sort | head -100
+echo "-- 关键文件 sha256 --"
+for f in vllm/v1/worker/gpu_model_runner.py \
+         vllm/v1/worker/host_fastpath.py \
+         vllm/v1/worker/corex_host_opt.py \
+         vllm/v1/attention/backends/ilu_flash_attn.py \
+         vllm/envs.py \
+         vllm/_host_opt_native.abi3.so \
+         vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so ; do
+  [ -f "$SP/$f" ] && sha256sum "$SP/$f" || echo "MISSING $f"
+done
+echo "-- 原生扩展 .so 及其 sha256 --"
+find $SP/vllm -maxdepth 1 -name "_host_opt*.so" -type f -exec sha256sum {} \; 2>/dev/null | head -20
+find $SP/corex_host_native -name "*.so" -type f -exec sha256sum {} \; 2>/dev/null | head -20
+echo "-- install.py 备份状态 --"
+cat $SP/.host-opt-pr-backup/STATE.json 2>/dev/null
+find $SP/.host-opt-pr-backup -maxdepth 4 -type f 2>/dev/null | head -20
+'
+-- vllm/v1/worker 下 host/corex 相关文件 --
+-rw-r--r--.  1 root root  28938 Nov  6 11:44 host_fastpath.py
+-- site-packages/corex_host_native --
+-- 隐藏补丁目录 --
+/opt/corex311/lib/python3.11/site-packages/vllm/.corex_metadata_patch
+/opt/corex311/lib/python3.11/site-packages/vllm/.corex_metadata_patch/1e2ed049a1723b51.rolled_back.json
+/opt/corex311/lib/python3.11/site-packages/vllm/.corex_metadata_patch/23c63d60db5a9a6c.rolled_back.json
+/opt/corex311/lib/python3.11/site-packages/vllm/.corex_metadata_patch/56bf1bb20b821d64.rolled_back.json
+/opt/corex311/lib/python3.11/site-packages/vllm/.corex_metadata_patch/originals/v1/worker/block_table.py
+/opt/corex311/lib/python3.11/site-packages/vllm/.corex_metadata_patch/originals/v1/worker/gpu_model_runner.py
+/opt/corex311/lib/python3.11/site-packages/vllm/.corex_metadata_patch/originals/v1/attention/backends/ilu_flash_attn.py
+/opt/corex311/lib/python3.11/site-packages/vllm/.corex_metadata_patch/state.json
+/opt/corex311/lib/python3.11/site-packages/vllm/.corex_metadata_patch/lock
+-- .corex_metadata_patch/originals 与当前文件对比 --
+SAME v1/worker/block_table.py
+DIFF v1/worker/gpu_model_runner.py
+DIFF v1/attention/backends/ilu_flash_attn.py
+-- install.py 备份/状态目录 --
+/opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
+/opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+/opt/corex311/lib/python3.11/site-packages/.host-opt-pr-build
+/opt/corex311/lib/python3.11/site-packages/.host-opt-pr-backup
+-- vllm 根目录 _host_opt_native --
+-rw-r--r--. 1 root root 71224 Nov  6 11:44 /opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
+6f8774f8c9e6839a3a1de15a763845511f200cb485f55ef10009475e30db8056  /opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
+-- *.orig / *.rej / *.bak --
+-- 今天 10:00 后被改动的 vllm 文件（排除 pycache）--
+2026-11-06 11:44     100032 /opt/corex311/lib/python3.11/site-packages/vllm/envs.py
+2026-11-06 11:44      28938 /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py
+2026-11-06 11:44      65672 /opt/corex311/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py
+2026-11-06 11:44      70752 /opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+2026-11-06 11:44      71224 /opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
+2026-11-06 13:38      17994 /opt/corex311/lib/python3.11/site-packages/vllm/v1/sample/sampler.py
+2026-11-06 14:26     351604 /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+-- 关键文件 sha256 --
+c2716da90e2cd6103c0d36702476fd5531a45a09449379d582ac9b0c4d473866  /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+58a9059e4fb98ec7fbbd5d93de61a59f7e61f8cda10c286eff6a19897ab6821b  /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py
+MISSING vllm/v1/worker/corex_host_opt.py
+b6cc7b45d20cd9548bf7e8abec73e61809871aba668fce5c86cbaa8286625b43  /opt/corex311/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py
+271952836bad0b9c9eba49f1f22186c6b486a574e39bf8465becf67e85556938  /opt/corex311/lib/python3.11/site-packages/vllm/envs.py
+6f8774f8c9e6839a3a1de15a763845511f200cb485f55ef10009475e30db8056  /opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
+7c8686a72759d2e4f75e8157b819039fcdcf69c1b5eba5948e0d956859af1715  /opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+-- 原生扩展 .so 及其 sha256 --
+6f8774f8c9e6839a3a1de15a763845511f200cb485f55ef10009475e30db8056  /opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
+7c8686a72759d2e4f75e8157b819039fcdcf69c1b5eba5948e0d956859af1715  /opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+-- install.py 备份状态 --
+{
+  "vllm/v1/worker/gpu_model_runner.py": true,
+  "vllm/v1/attention/backends/ilu_flash_attn.py": true,
+  "vllm/envs.py": true,
+  "vllm/v1/worker/host_fastpath.py": false,
+  "vllm/_host_opt_native.cpython-311-aarch64-linux-gnu.so": false,
+  "vllm/_host_opt_native.abi3.so": false,
+  "vllm/_host_opt_native.so": false,
+  "vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so": false,
+  "vllm/_host_opt_meta_native.abi3.so": false,
+  "vllm/_host_opt_meta_native.so": false
+}
+/opt/corex311/lib/python3.11/site-packages/.host-opt-pr-backup/STATE.json
+/opt/corex311/lib/python3.11/site-packages/.host-opt-pr-backup/vllm/envs.py
+/opt/corex311/lib/python3.11/site-packages/.host-opt-pr-backup/vllm/v1/worker/gpu_model_runner.py
++ echo '== 7. 交付包若带 vllm 源码树，与已安装树直接 diff =='
+== 7. 交付包若带 vllm 源码树，与已安装树直接 diff ==
++ docker exec corex5-py311 sh -c '
+PKG=/home/qch/transfer/host-opt-pr-validation-20261103-r3
+SP=/opt/corex311/lib/python3.11/site-packages
+if [ -d "$PKG/vllm" ]; then
+  echo "-- diff -rq $PKG/vllm vs $SP/vllm --"
+  diff -rq "$PKG/vllm" "$SP/vllm" 2>/dev/null | grep -v __pycache__ | head -60
+else
+  echo "no $PKG/vllm tree"
+fi
+'
+no /home/qch/transfer/host-opt-pr-validation-20261103-r3/vllm tree
++ echo '== 8. 正在运行的 vLLM 用的是哪套（进程环境 + 启动时间）=='
+== 8. 正在运行的 vLLM 用的是哪套（进程环境 + 启动时间）==
++ docker exec corex5-py311 sh -c '
+ps -eo pid,lstart,args | grep -E "vllm.entrypoints.openai.api_server" | grep -v grep | head -5
+for p in $(pgrep -f "vllm.entrypoints.openai.api_server" 2>/dev/null); do
+  echo "-- PID $p --"
+  tr "\0" "\n" < /proc/$p/environ 2>/dev/null | grep -E "VLLM_HOST_FASTPATH|COREX_HOST|TORCH_MODULE_ATTR|PYTHONPATH|HOTSPOT" | sort
+  echo -n "  python: "; readlink /proc/$p/exe
+done
+'
+-- PID 1686241 --
+  python: /usr/bin/docker
+-- PID 1686264 --
+PYTHONPATH=/usr/local/lib/python3.12/site-packages
+  python: /usr/bin/dash
++ set +x
+
+### exit: 0
