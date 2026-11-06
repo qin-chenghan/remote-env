@@ -1,0 +1,157 @@
+### server: 184
+### host:   controller
+### time:   2026-11-06T07:10:51Z
+
++ echo '== 1. transfer 目录 / wheel 是否已上传 =='
+== 1. transfer 目录 / wheel 是否已上传 ==
++ ls -l /home/qch/transfer
++ tail -20
+-rw-r--r--.  1 root root 18591656 Oct 31 16:19 184opt.zip1
+-rw-rw-r--+  1 root root     1246 Oct 21 13:56 cpu主频.md
+-rw-rw-r--+  1 root root 50073922 Oct 27 10:58 cpython-vllm-v1-delivery-1.0.2.tar.gz
+drwxr-xr-x.  7 root root     4096 Nov  6 11:43 host-opt-pr-validation-20261103-r3
+-rw-r--r--.  1 root root   304018 Nov  6 11:42 host-opt-two-pr-validation-20261103-r3-arm64-py311-py312.zip
+-rw-r--r--.  1 root root      128 Nov  6 11:42 host-opt-two-pr-validation-20261103-r3-arm64-py311-py312.zip.sha256
+-rw-rw-r--+  1 root root    41854 Oct 19 16:39 huawei_ts_program_vllmbench_align.patch
+drwxrwxr-x+  5 root root     4096 Oct 13 18:52 litehost_perf_bak
+-rw-rw-r--+  1 root root    73094 Oct 14 14:55 litehost_perf.zip
+-rw-rw-r--+  1 root root  6497129 Aug  3 16:22 partial_install_cuda_header.tar.gz
+drwxrwxr-x+  2 root root     4096 Sep 24 11:18 scripts
+-rw-r--r--.  1 root root      235 Nov  6 12:39 SHA256SUMS
+-rw-rw-r--+  1 root root    11955 Sep 30 10:16 timeline2
+-rw-r--r--.  1 root root    30734 Nov  6 12:39 torch_module_attr_fastpath-0.1.0.dev2-cp311-cp311-linux_aarch64.whl
+drwxrwxr-x. 17 root root     4096 Nov  3 14:21 vllm-dev-host-opt-validation-r3-arm64-py311-py312-20261103
+-rw-r--r--.  1 root root 36538634 Nov  6 11:36 vllm-dev-host-opt-validation-r3-arm64-py311-py312-20261103.tar.gz
+-rw-rw-r--+  1 root root  9724475 Oct 29 10:59 软件栈工具使用指南_V4.3.pdf
+-rw-rw-r--+  1 root root     2343 Oct 13 14:11 验收 copy.md
+-rw-rw-r--+  1 root root     2198 Oct 13 15:17 验收.md
+-rw-rw-r--+  1 root root   310509 Sep 30 14:01 鲲鹏与海光LLM推理吞吐性能对比测试报告.docx
++ WHL=/home/qch/transfer/hotspot_opt-0.5.3-py3-none-any.whl
++ '[' -f /home/qch/transfer/hotspot_opt-0.5.3-py3-none-any.whl ']'
++ echo 'wheel not uploaded yet: /home/qch/transfer/hotspot_opt-0.5.3-py3-none-any.whl'
+wheel not uploaded yet: /home/qch/transfer/hotspot_opt-0.5.3-py3-none-any.whl
++ echo '== 2. torch fastpath 安装记录 =='
+== 2. torch fastpath 安装记录 ==
++ docker exec corex5-py311 /opt/corex311/bin/pip show torch-module-attr-fastpath
++ head -6
+Name: torch-module-attr-fastpath
+Version: 0.1.0.dev2
+Summary: Experimental CPython 3.11 native attribute lookup for torch.nn.Module
+Home-page: 
+Author: 
+Author-email: 
++ echo '== 3. torch fastpath 状态（venv 干净 sys.path）=='
+== 3. torch fastpath 状态（venv 干净 sys.path）==
++ docker exec -e PYTHONPATH= -e TORCH_MODULE_ATTR_FASTPATH=slot_native corex5-py311 /opt/corex311/bin/python3 -c 'import torch, torch_module_attr_fastpath as m; print('\''torch:'\'', torch.__version__, torch.__file__); print(m.status())'
+torch: 2.10.0 /opt/corex311/lib/python3.11/site-packages/torch/__init__.py
+{'enabled': True, 'mode': 'slot_native', 'patched_types': 355, 'tracks_new_types': True, 'scope': 'process', 'version': '0.1.0.dev2'}
++ echo '== 4. 容器默认 PYTHONPATH 对照（预期加载 3.12 的 torch 并失败）=='
+== 4. 容器默认 PYTHONPATH 对照（预期加载 3.12 的 torch 并失败）==
++ docker exec -e TORCH_MODULE_ATTR_FASTPATH=slot_native corex5-py311 /opt/corex311/bin/python3 -c 'import torch; print(torch.__file__)'
++ tail -4
+
+    This error can generally be solved using the `develop` workflow
+        $ python -m pip install --no-build-isolation -v -e . && python -c "import torch"  # This should succeed
+    or by running Python from a different directory.
++ echo '== 5. 容器默认 env =='
+== 5. 容器默认 env ==
++ docker exec corex5-py311 sh -c 'echo PYTHONPATH=${PYTHONPATH:-<empty>}; echo LD_PRELOAD=${LD_PRELOAD:-<empty>}'
+PYTHONPATH=/usr/local/lib/python3.12/site-packages
+LD_PRELOAD=<empty>
++ echo '== 6. 当前 vLLM 进程环境 =='
+== 6. 当前 vLLM 进程环境 ==
+++ pgrep -f vllm.entrypoints.openai.api_server
++ for p in $(pgrep -f vllm.entrypoints.openai.api_server 2>/dev/null)
++ echo '-- PID 1157980 --'
+-- PID 1157980 --
++ tr '\0' '\n'
++ grep -E 'PYTHONPATH|TORCH_MODULE_ATTR_FASTPATH|VLLM_HOST_FASTPATH|HOTSPOT_OPT'
+VLLM_HOST_FASTPATH=on
+TORCH_MODULE_ATTR_FASTPATH=slot_native
+PYTHONPATH=/home/huawei_ts_program/litehost_perf_opt
++ echo '== 7. 压测/服务进程 =='
+== 7. 压测/服务进程 ==
++ pgrep -af 'vllmBench_lite_opt.sh|bench_driver.py'
++ head -10
+1154055 bash vllmBench_lite_opt.sh
+1252083 /opt/corex311/bin/python3 /home/huawei_ts_program/litehost_perf_opt/bench_driver.py --backend vllm --num_prompts 100 --num-warmups 16 --max-concurrency 8 --dataset_name random --random_input_len 1024 --random_output_len 1024 --host 127.0.0.1 --port 8848 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --ignore_eos --top_p 1 --top_k -1 --temperature 0 --seed 42 --save-result --result-dir /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706 --result_filename bs8_in1024_out1024.json
++ echo '== 8. rebase / PGO 状态 =='
+== 8. rebase / PGO 状态 ==
++ docker exec corex5-py311 sh -c 'ls -la /root/.local/state/cpython-vllm-rebase 2>/dev/null | head -8 || echo "no rebase state"'
+total 163516
+drwx------+ 76 root root   20480 Nov  6 14:28 .
+drwxrwxr-x+  3 root root    4096 Oct 27 15:02 ..
+drwx------+  4 root root    4096 Oct 27 15:09 20261027T070257Z_6240821c
+-rw-------+  1 root root 2784069 Oct 27 15:04 20261027T070257Z_6240821c.report.tar.gz
+drwx------+  4 root root    4096 Oct 27 19:32 20261027T070937Z_c4895113
+-rw-------+  1 root root 2783877 Oct 27 19:27 20261027T070937Z_c4895113.report.tar.gz
+drwx------+  4 root root    4096 Oct 28 09:56 20261027T113214Z_2ce5bfa8
++ docker exec corex5-py311 sh -c '/opt/corex311/bin/python3 -c "import sysconfig; print(sysconfig.get_config_var(\"CONFIG_ARGS\"))"'
+'--prefix=/opt/cpython-vllm/v1' '--enable-shared' '--enable-optimizations' '--with-lto' '--with-ensurepip=install' 'CC=/usr/bin/gcc' 'CXX=/usr/bin/g++' 'AR=/usr/bin/gcc-ar' 'RANLIB=/usr/bin/gcc-ranlib' 'LDFLAGS=-Wl,-rpath,/opt/cpython-vllm/v1/lib'
++ echo '== 9. /opt 可写性、磁盘、已有安装 =='
+== 9. /opt 可写性、磁盘、已有安装 ==
++ docker exec corex5-py311 sh -c 'test -w /opt && echo "/opt writable" || echo "/opt NOT writable"; df -h /opt /home | tail -3'
+/opt writable
+Filesystem      Size  Used Avail Use% Mounted on
+overlay         6.9T  3.5T  3.1T  54% /
+/dev/nvme0n1p6  6.9T  3.5T  3.1T  54% /home
++ docker exec corex5-py311 sh -c 'ls -d /opt/hotspot_site 2>/dev/null || echo "no /opt/hotspot_site"; /opt/corex311/bin/pip show hotspot-opt 2>/dev/null | head -3 || echo "hotspot-opt not in venv"'
+no /opt/hotspot_site
++ echo '== 10. vLLM API 兼容性（tokens patch 依赖）=='
+== 10. vLLM API 兼容性（tokens patch 依赖）==
++ docker exec -e PYTHONPATH= corex5-py311 /opt/corex311/bin/python3 -c '
+import inspect
+import vllm
+from vllm.model_executor.layers.logits_processor import LogitsProcessor
+from vllm.v1.worker.gpu_model_runner import GPUModelRunner
+
+print("vllm", vllm.__version__)
+print("has_get_top_tokens", hasattr(LogitsProcessor, "get_top_tokens"))
+print("forward_params", list(inspect.signature(LogitsProcessor.forward).parameters))
+print("_sample_calls_sampler", "self.sampler(" in inspect.getsource(GPUModelRunner._sample))
+print("_sample_file", GPUModelRunner._sample.__code__.co_filename)
+'
+INFO 11-06 15:10:59 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-06 15:10:59 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-06 15:10:59 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-06 15:10:59 [__init__.py:238] Platform plugin iluvatar is activated
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+/opt/corex311/lib/python3.11/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+vllm 0.23.0
+has_get_top_tokens True
+forward_params ['self', 'lm_head', 'hidden_states', 'embedding_bias']
+_sample_calls_sampler True
+_sample_file /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ echo '== 11. 启动脚本的 PYTHONPATH / 环境注入位置 =='
+== 11. 启动脚本的 PYTHONPATH / 环境注入位置 ==
++ for f in /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh /home/qch/scripts/vllmBench_lite_on.sh
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh ']'
++ echo '-- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh --'
+-- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh --
++ grep -n 'PYTHONPATH\|HOST_FASTPATH\|TORCH_MODULE_ATTR\|export ' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ head -25
+27:    VLLM_HOST_FASTPATH=on
+28:    TORCH_MODULE_ATTR_FASTPATH=slot_native
+78:    "${CLEAN_ENV[@]}" -u PYTHONPATH -u PYTHONHOME "$PYTHON_BIN" -c \
+112:    out=$(env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+129:    env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+137:    out=$(env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+149:            env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+253:        env_args+=(PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}"
++ for f in /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh /home/qch/scripts/vllmBench_lite_on.sh
++ '[' -f /home/qch/scripts/vllmBench_lite_on.sh ']'
++ echo '-- /home/qch/scripts/vllmBench_lite_on.sh --'
+-- /home/qch/scripts/vllmBench_lite_on.sh --
++ grep -n 'PYTHONPATH\|HOST_FASTPATH\|TORCH_MODULE_ATTR\|export ' /home/qch/scripts/vllmBench_lite_on.sh
++ head -25
+23:#                 * 注入 sitecustomize + PYTHONPATH 加载插件并 register()
+180:    # 统一组装 PYTHONPATH,避免多次 PYTHONPATH= 互相覆盖(后者胜)。
+183:    local merge_py="${PYTHONPATH:-}"
+197:    [[ -n "$merge_py" ]] && env_args+=(PYTHONPATH="$merge_py")
+222:        log "❌ 未检测到插件 hook,检查 PYTHONPATH/sitecustomize 注入"
++ set +x
+
+### exit: 0
