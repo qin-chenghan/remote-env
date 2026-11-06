@@ -17,61 +17,86 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 重建 /opt/corex311-cpython-vllm 前的只读准备：
-  # A. bundle 的安装脚本能否指定目标目录
-  # B. base 相对原始 vllm wheel 的完整补丁足迹
-  # C. tokens 补丁的交付来源
+  # 重建干净 PGO venv 前的只读准备：只关心“怎样才能装出和 base 一样的包集合”。
   # 不删除、不安装、不建 venv。
 
   CON=corex5-py311
   BASE=/opt/corex311
   NEW=/opt/corex311-cpython-vllm
-  SP="$BASE/lib/python3.11/site-packages"
   BUNDLE=/home/z30059427/corex5-py311-20261009
-  WHEEL="$BUNDLE/vendor/vllm-0.23.0+corex.5.0.0-py3-none-any.whl"
 
-  echo "== 1. bundle 安装脚本与清单 =="
+  echo "== 1. install_corex311.sh 全文 =="
+  docker exec "$CON" sh -c "cat $BUNDLE/install_corex311.sh"
+
+  echo "== 2. README（离线安装/来源相关）=="
+  docker exec "$CON" sh -c "sed -n '1,160p' $BUNDLE/README.md"
+
+  echo "== 3. hashed 清单与 base 已装包集合是否对应 =="
+  docker exec -i -e PYTHONPATH= -e PYTHONHOME= "$CON" "$BASE/bin/python" - <<'PY'
+import re, subprocess, sys
+
+REQ = "/home/z30059427/corex5-py311-20261009/requirements-all.hashed.txt"
+
+def parse_req(path):
+    d = {}
+    for line in open(path):
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if " --hash=" in line:
+            line = line.split(" --hash=", 1)[0].strip()
+        m = re.match(r"^([A-Za-z0-9_.\-]+)==([^\s;]+)", line)
+        if m:
+            d[m.group(1).lower()] = m.group(2)
+        elif " @ " in line:
+            name = line.split(" @ ", 1)[0].strip().lower()
+            d[name] = "url"
+    return d
+
+freeze = subprocess.run([sys.executable, "-m", "pip", "freeze", "--all"],
+                        capture_output=True, text=True).stdout
+inst = {}
+for line in freeze.splitlines():
+    line = line.strip()
+    if not line or line.startswith("#") or line.startswith("-e "):
+        continue
+    if "==" in line:
+        n, v = line.split("==", 1)
+        inst[n.lower()] = v
+req = parse_req(REQ)
+
+skip = {"pip", "setuptools", "wheel"}
+only_req = sorted(k for k in set(req) - set(inst))
+only_inst = sorted(k for k in set(inst) - set(req) - skip)
+mismatch = sorted(k for k in set(req) & set(inst) if req[k] != inst[k])
+print(f"requirements={len(req)} installed={len(inst)} covered={len(set(req) & set(inst)) - len(mismatch)}")
+print(f"in_requirements_not_installed={len(only_req)}")
+print(f"installed_not_in_requirements(excl pip/setuptools/wheel)={len(only_inst)}")
+print(f"version_mismatch={len(mismatch)}")
+print("--- in requirements, not installed ---")
+for k in only_req:
+    print(f"{k}=={req[k]}")
+print("--- installed, not in requirements ---")
+for k in only_inst:
+    print(f"{k}=={inst[k]}")
+print("--- version mismatch ---")
+for k in mismatch:
+    print(f"{k} | req {req[k]} -> inst {inst[k]}")
+PY
+
+  echo "== 4. vendor 目录与 wheel 来源 =="
   docker exec "$CON" sh -c "
-B=$BUNDLE
-echo '---- install_corex311.sh'
-cat \$B/install_corex311.sh
-echo '---- README 前 120 行'
-sed -n '1,120p' \$B/README.md
-echo '---- requirements-vendor-py311.txt'
-cat \$B/requirements-vendor-py311.txt
-echo '---- requirements-all.hashed.txt 行数与前 10 行'
-wc -l \$B/requirements-all.hashed.txt
-sed -n '1,10p' \$B/requirements-all.hashed.txt
-echo '---- vendor 目录'
-ls -la \$B/vendor
+ls -la $BUNDLE/vendor
+echo '-- 安装脚本里与来源相关的行 --'
+grep -nE 'find-links|no-index|index-url|pip download|wheelhouse|vendor|network|offline' $BUNDLE/install_corex311.sh $BUNDLE/README.md | head -40
+echo '-- 机器上的 wheelhouse --'
+find /home/z30059427 -maxdepth 4 -type d -iname '*wheelhouse*' 2>/dev/null | head -10
 "
 
-  echo "== 2. base 相对原始 vllm wheel 的完整 diff =="
-  docker exec "$CON" sh -c "
-SP=$SP
-W=$WHEEL
-rm -rf /tmp/vllm_wheel_x
-mkdir -p /tmp/vllm_wheel_x
-/opt/corex311/bin/python -m zipfile -e \"\$W\" /tmp/vllm_wheel_x
-echo '-- diff -rq（排除 pycache）--'
-diff -rq /tmp/vllm_wheel_x/vllm \$SP/vllm 2>/dev/null | grep -v __pycache__ | head -120
-echo '-- 新 venv 是否 pristine --'
-diff -rq /tmp/vllm_wheel_x/vllm $NEW/lib/python3.11/site-packages/vllm 2>/dev/null | grep -v __pycache__ | head -40
-"
+  echo "== 5. verify_corex311.py 用法 =="
+  docker exec "$CON" sh -c "sed -n '1,80p' $BUNDLE/verify_corex311.py"
 
-  echo "== 3. tokens 补丁来源 =="
-  docker exec "$CON" sh -c "
-SP=$SP
-echo '-- transfer 下的 wheel/包 --'
-ls -la --time-style=long-iso /home/qch/transfer/*.whl 2>/dev/null
-find /home/qch/transfer -maxdepth 2 -iname '*hotspot*' -printf '%10s %TY-%Tm-%Td %TH:%TM %p\n' 2>/dev/null | head -20
-echo '-- site-packages 里 hotspot 相关 --'
-find \$SP -maxdepth 2 -iname '*hotspot*' 2>/dev/null | head -20
-echo '-- get_top_tokens 定义位置 --'
-grep -rn 'def get_top_tokens' \$SP/vllm --include='*.py' 2>/dev/null | head -5
-"
-
-  echo "== 4. 新 venv 当前占用与磁盘 =="
+  echo "== 6. 新 venv 占用/磁盘 =="
   docker exec "$CON" sh -c "
 for p in /proc/[0-9]*; do
   e=\$(readlink \"\$p/exe\" 2>/dev/null) || continue
