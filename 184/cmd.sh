@@ -17,39 +17,29 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 第五批：fastpath 六个文件已与 32 完全一致，这里补查两个遗留点。
+  # 第六批：确认旧 metadata 补丁新增的 4 个辅助文件是否残留、是否被引用。
   # 严格只读。
 
   CON=corex5-py311
-  BASE=/opt/corex311
-  SP="$BASE/lib/python3.11/site-packages"
+  SP=/opt/corex311/lib/python3.11/site-packages
 
-  echo "== 1. tokens 相关文件与 32 对照 =="
   docker exec "$CON" sh -c '
 SP=/opt/corex311/lib/python3.11/site-packages
-sha256sum $SP/vllm/v1/sample/sampler.py \
-          $SP/vllm/model_executor/layers/logits_processor.py 2>/dev/null
-for f in vllm/v1/sample/sampler.py \
-         vllm/model_executor/layers/logits_processor.py \
-         vllm/v1/worker/gpu_model_runner.py ; do
-  echo -n "$f get_top_tokens="
-  grep -c get_top_tokens $SP/$f 2>/dev/null || true
+echo "== 1. vllm/iluvatar 列表 =="
+ls -la --time-style=long-iso $SP/vllm/iluvatar/ 2>/dev/null
+
+echo "== 2. 旧补丁新增的 4 个辅助文件 =="
+for f in metadata_optimization.py native_input_metadata.py native_spec_metadata.py input_pipeline.py; do
+  if [ -f "$SP/vllm/iluvatar/$f" ]; then sha256sum "$SP/vllm/iluvatar/$f"; else echo "MISSING $f"; fi
 done
-echo "-- hotspot-opt 发行版 --"
-/opt/corex311/bin/pip show hotspot-opt 2>/dev/null | head -3 || echo "not installed as distribution"
-'
 
-  echo "== 2. 旧 metadata 补丁残留的状态 =="
-  docker exec "$CON" sh -c '
-SP=/opt/corex311/lib/python3.11/site-packages
-D=$SP/vllm/.corex_metadata_patch
-ls -la --time-style=long-iso $D 2>/dev/null
-echo "-- state.json --"
-cat $D/state.json 2>/dev/null
-echo "-- 一个 rolled_back 记录 --"
-for f in $D/*.rolled_back.json; do [ -f "$f" ] && { echo "---- $f"; cat "$f"; break; }; done
-echo "-- originals 摘要（对照 MANIFEST 基线）--"
-find $D/originals -type f -exec sha256sum {} \; 2>/dev/null
+echo "== 3. 谁引用这些模块 =="
+grep -rn "metadata_optimization\|native_input_metadata\|native_spec_metadata\|input_pipeline" $SP/vllm --include="*.py" 2>/dev/null \
+  | grep -vE "iluvatar/(metadata_optimization|native_input_metadata|native_spec_metadata|input_pipeline)\.py:" \
+  | head -30
+
+echo "== 4. 其他 metadata fastpath 残留 =="
+find $SP -maxdepth 2 \( -name "*metadata*fastpath*" -o -name "corex_metadata*" \) 2>/dev/null | head -20
 '
 
   # ---- 命令结束 ----
