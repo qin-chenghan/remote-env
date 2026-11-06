@@ -1,0 +1,206 @@
+### server: 184
+### host:   controller
+### time:   2026-11-06T06:49:17Z
+
++ echo '== main container corex5-py311 =='
+== main container corex5-py311 ==
++ docker exec corex5-py311 bash -lc '
+    echo "python311: $(/opt/corex311/bin/python -V 2>&1)"
+    echo "cpython-vllm: $(/opt/corex311-cpython-vllm/bin/python -V 2>&1)"
+    echo "-- corex311 --"
+    /opt/corex311/bin/pip list 2>/dev/null | grep -iE "^(vllm|torch|ixsys|triton|transformers)"
+    echo "-- cpython-vllm --"
+    /opt/corex311-cpython-vllm/bin/pip list 2>/dev/null | grep -iE "^(vllm|torch|ixsys|triton|transformers)"
+    echo "LD_PRELOAD=${LD_PRELOAD:-<empty>}"
+    ls /opt
+  '
++ head -50
+python311: Python 3.11.6
+cpython-vllm: Python 3.11.6
+-- corex311 --
+torch                                    2.10.0+corex.5.0.0
+torch_cluster                            1.6.0+corex.5.0.0
+torch-module-attr-fastpath               0.1.0.dev2
+torch_quiver                             0.1.0+corex.5.0.0
+torch_scatter                            2.1.0+corex.5.0.0
+torch_sparse                             0.6.16+corex.5.0.0
+torchaudio                               2.10.0+corex.5.0.0
+torchdebug                               5.0.0+corex.5.0.0
+torchvision                              0.25.0+corex.5.0.0
+transformers                             5.16.1
+triton                                   3.2.0+corex.5.0.0
+vllm                                     0.23.0+corex.5.0.0
+vllm-corex-metadata                      0.2.0
+-- cpython-vllm --
+LD_PRELOAD=<empty>
+build-python311.gRsumA
+build-python311.I7fDpq
+corex311
+corex311-cpython-vllm
+corex311.report.tar.gz
+corex-host
+cpython-vllm
+pip
+python-3.11.6
+use-corex311.sh
++ echo '== vllm full cmdline / env =='
+== vllm full cmdline / env ==
+++ pgrep -f vllm.entrypoints.openai.api_server
++ for p in $(pgrep -f vllm.entrypoints.openai.api_server 2>/dev/null)
++ echo 'PID 1157980:'
+PID 1157980:
++ tr '\0' ' '
+/opt/corex311/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8848 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --dtype auto --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1 --tensor_parallel_size 4 --data_parallel_size 1 --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto --enable_chunked_prefill --compilation-config {"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0} --async-scheduling --no-enable-prefix-caching --worker-cls light_host_worker.LightHostWorker + echo
+
++ tr '\0' '\n'
++ grep -iE 'corex|itr_|LD_|VLLM'
++ head -15
+COREX_VERSION=5.0.0
+VIRTUAL_ENV=/opt/corex311
+VIRTUAL_ENV_PROMPT=(corex311) 
+LD_LIBRARY_PATH=/opt/corex-host:/usr/local/corex/lib64:/usr/local/openmpi/lib:/usr/local/lib
+PATH=/opt/corex311/bin:/usr/local/corex/bin:/usr/local/lib/python3.12/site-packages/bin:/usr/local/openmpi/bin:/usr/local/openmpi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+VLLM_ENFORCE_CUDA_GRAPH=1
+VLLM_USE_V1=1
+VLLM_HOST_FASTPATH=on
+LD_PRELOAD=/home/huawei_ts_program/litehost_perf_opt/liblitehost.so:/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so
+LIGHTHOST_SESSION=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/session.json
++ echo
+
++ echo '== bench script =='
+== bench script ==
+++ pgrep -f vllmBench_lite_opt.sh
+++ head -1
++ P=1154055
++ '[' -n 1154055 ']'
+++ readlink /proc/1154055/cwd
++ D=/home/huawei_ts_program/litehost_perf_opt
++ echo 'cwd: /home/huawei_ts_program/litehost_perf_opt'
+cwd: /home/huawei_ts_program/litehost_perf_opt
++ tr '\0' ' '
+bash vllmBench_lite_opt.sh + echo
+
++ sed -n 1,120p /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+#!/usr/bin/env bash
+# Adapted from the uploaded vllmBench_lite.sh. Keep one server for all cases.
+# Defaults retained: warmups=16, cache OFF, CPUs 192-255 (NUMA node 3), backend=vllm.
+# Requires the matching files in this slim folder (included in the ZIP).
+set -uo pipefail
+
+MODEL_PATH="${MODEL_PATH:-/home/model/ts/Qwen3-32B-W8A8}"
+TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
+PREFIX="${PREFIX:-/opt/corex311}"
+PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+GPU_LIST="${GPU_LIST:-0,1,2,3}"
+GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+PORT="${PORT:-8848}"
+NUM_PROMPTS="${NUM_PROMPTS:-100}"
+NUM_WARMUPS="${NUM_WARMUPS:-16}"
+MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+CASE_INTERVAL="${CASE_INTERVAL:-60}"
+CPU_RANGE="${CPU_RANGE-192-255}"
+HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
+HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
+HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
+HOST_MAX_SCOPES="${HOST_MAX_SCOPES:-200000}"
+HOST_DRY_RUN="${HOST_DRY_RUN:-0}"
+SERVER_EXTRA_ENV=(
+    UMD_MAXCOMMANDBUFFERNUMBER=256
+    UMD_MAXCOMMANDBUFFERSIZE=16384
+    VLLM_HOST_FASTPATH=on
+    TORCH_MODULE_ATTR_FASTPATH=slot_native
+)
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# Do not use an inherited OLD LIGHTHOST_HOME silently.
+if [[ -f "$SCRIPT_DIR/lhctl.py" ]]; then
+    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR}"
+else
+    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR/litehost_compat_slim}"
+fi
+HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 解压完整 litehost_compat_slim_v041.zip 或设置 HOST_TOOLKIT' >&2; exit 2; }
+[[ -x "$PYTHON_BIN" && -f "$HOST_TOOLKIT/lhctl.py" ]] || { echo 'ERROR: Python 或配套文件缺失' >&2; exit 2; }
+[[ "$HOST_MEASURE" == lite || "$HOST_MEASURE" == off ]] || { echo 'ERROR: HOST_MEASURE=lite|off' >&2; exit 2; }
+[[ "$GPUS_PER_INSTANCE" == 4 ]] || { echo 'ERROR: 此版要求四卡 TP=4, PP=1, DP=1' >&2; exit 2; }
+[[ "$TEST_ID" =~ ^[A-Za-z0-9_.-]+$ && "$TEST_ID" != . && "$TEST_ID" != .. ]] || { echo 'ERROR: TEST_ID 不能包含路径分隔符' >&2; exit 2; }
+
+BASE_DIR="$(pwd)"
+RUN_DIR="${BASE_DIR}/vllmBench/${TEST_ID}"
+LOG_DIR="${RUN_DIR}/logs"
+SERVER_LOG="${LOG_DIR}/server.log"
+SUMMARY_CSV="${RUN_DIR}/summary.csv"
+SESSION_FILE="${RUN_DIR}/session.json"
+PID_FILE="${RUN_DIR}/server.pid"
+SERVER_PID=""; BENCH_PID=""; CLEANED=0; INIT_DONE=0; PGO_RESTORE=0
+
+# Original case matrix: only 128/128 enabled; uncomment the others as before.
+CASES=(
+  "128 128"
+  "128 1024"
+  "128 2048"
+  "1024 128"
+  "1024 1024"
+  "1024 2048"
+  "2048 128"
+  "2048 1024"
+  "2048 2048"
+)
+# Optional text file, one 'input output' case per nonblank/non-comment line.
+if [[ -n "${CASES_FILE:-}" ]]; then
+    [[ -f "$CASES_FILE" ]] || { echo "ERROR: 找不到 CASES_FILE=$CASES_FILE" >&2; exit 2; }
+    mapfile -t CASES < <(grep -Ev '^[[:space:]]*(#|$)' "$CASES_FILE")
+fi
+log() { printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"; }
+# Child processes only: drop old measurement/audit injection; keep CoreX library paths.
+CLEAN_ENV=(env -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+    -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+# ---- PGO guard: autofix two known-safe block causes, verify rollback --------
+PGO_VENV=/opt/corex311
+PGO_STATE=/root/.local/state/cpython-vllm-rebase
+
+pgo_runtime() {
+    "${CLEAN_ENV[@]}" -u PYTHONPATH -u PYTHONHOME "$PYTHON_BIN" -c \
+        'import sysconfig; print(sysconfig.get_config_var("CONFIG_ARGS") or "")' 2>/dev/null || true
+}
+
+pgo_is_on() {
+    local args
+    args=$(pgo_runtime)
+    [[ "$args" == *"--prefix=/opt/cpython-vllm/v1"* && "$args" == *"--with-lto"* ]]
+}
+
+pgo_fix_perms() {
+    local dir mode
+    for dir in "$PGO_VENV" "$PGO_VENV/bin" "$PGO_VENV/lib" "$PGO_VENV/lib/python3.11" \
+               "$PGO_VENV/lib/python3.11/site-packages"; do
+        [[ -d "$dir" ]] || continue
+        mode=$(stat -c %a "$dir" 2>/dev/null) || continue
+        if (( (8#$mode & 8#022) != 0 )); then
+            chmod g-w,o-w "$dir" && log "autofix: chmod g-w,o-w $dir"
+        fi
+    done
+}
+
+pgo_fix_index() {
+    local idx
+    idx=$(ls -1 "$PGO_STATE"/venv-*.json 2>/dev/null | head -1)
+    [[ -n "$idx" ]] || { log "autofix: 未找到索引文件，跳过"; return 1; }
+    mv -- "$idx" "$idx.stale-$(date +%Y%m%d_%H%M%S)" \
+        && log "autofix: 旧索引已挪开 -> $(basename "$idx").stale-*"
+}
+
+# Only called when the venv is NOT already on PGO. Retries once after a
+# known-safe autofix; anything else is reported unchanged to the caller.
+pgo_switch() {
+    local out rc
+    out=$(env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+        cpython-vllm-rebase switch --venv "$PGO_VENV" --ack-services-stopped 2>&1); rc=$?
+    if (( rc == 0 )); then
+        printf '%s\n' "$out"
+        return 0
+    fi
+    log "rebase switch 失败: $(printf '%s' "$out" | tr '\n' ' ' | tail -c 220)"
+    case "$out" in
+        *VENV_DIRECTORY_GROUP_OR_WORLD_WRITABLE*)
++ set +x
+
+### exit: 0
