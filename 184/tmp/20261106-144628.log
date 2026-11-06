@@ -1,0 +1,133 @@
+### server: 184
+### host:   controller
+### time:   2026-11-06T06:46:28Z
+
++ echo '== gpu numa =='
+== gpu numa ==
++ for b in 0000:45:00.0 0000:48:00.0 0000:af:00.0 0000:b2:00.0
+++ cat /sys/bus/pci/devices/0000:45:00.0/numa_node
++ printf '%s numa_node=%s\n' 0000:45:00.0 1
+0000:45:00.0 numa_node=1
++ for b in 0000:45:00.0 0000:48:00.0 0000:af:00.0 0000:b2:00.0
+++ cat /sys/bus/pci/devices/0000:48:00.0/numa_node
++ printf '%s numa_node=%s\n' 0000:48:00.0 1
+0000:48:00.0 numa_node=1
++ for b in 0000:45:00.0 0000:48:00.0 0000:af:00.0 0000:b2:00.0
+++ cat /sys/bus/pci/devices/0000:af:00.0/numa_node
++ printf '%s numa_node=%s\n' 0000:af:00.0 3
+0000:af:00.0 numa_node=3
++ for b in 0000:45:00.0 0000:48:00.0 0000:af:00.0 0000:b2:00.0
+++ cat /sys/bus/pci/devices/0000:b2:00.0/numa_node
++ printf '%s numa_node=%s\n' 0000:b2:00.0 3
+0000:b2:00.0 numa_node=3
++ command -v ixsmi
++ ixsmi topo -m
++ head -30
+        [4mGPU0[0m    [4mGPU1[0m    [4mGPU2[0m    [4mGPU3[0m    [4mNIC0[0m    [4mNIC1[0m    [4mNIC2[0m    [4mNIC3[0m    [4mCPU Affinity[0m     [4mNUMA Affinity[0m    
+GPU0     X      INTE    SYS     SYS     NODE    NODE    NODE    NODE    80-159           1
+GPU1    INTE     X      SYS     SYS     NODE    NODE    NODE    NODE    80-159           1
+GPU2    SYS     SYS      X      INTE    SYS     SYS     SYS     SYS     240-319          3
+GPU3    SYS     SYS     INTE     X      SYS     SYS     SYS     SYS     240-319          3
+NIC0    NODE    NODE    SYS     SYS      X      PIX     PIX     PIX     
+NIC1    NODE    NODE    SYS     SYS     PIX      X      PIX     PIX     
+NIC2    NODE    NODE    SYS     SYS     PIX     PIX      X      PIX     
+NIC3    NODE    NODE    SYS     SYS     PIX     PIX     PIX      X      
+
+Legend:
+  X    = Self
+  SYS  = Connection traversing PCIe as well as the SMP interconnect between NUMA nodes (e.g., QPI/UPI)
+  NODE = Connection traversing PCIe as well as the interconnect between PCIe Host Bridges within a NUMA node
+  PHB  = Connection traversing PCIe as well as a PCIe Host Bridge (typically the CPU)
+  PXB  = Connection traversing multiple PCIe bridges (without traversing the PCIe Host Bridge)
+  PIX  = Connection traversing at most a single PCIe bridge
+  INTE = Connection traversing at most a single on-board PCIe bridge
+  IX#  = Connection traversing a bonded set of # IXLinks
+NIC Legend:
+  NIC0: roceo1
+  NIC1: roceo2
+  NIC2: roceo3
+  NIC3: roceo4
+
++ echo '== vllm processes =='
+== vllm processes ==
++ ps -eo pid,ppid,args
++ grep -iE vllm
++ grep -v grep
++ cut -c1-300
++ head -8
+1154055   34912 bash vllmBench_lite_opt.sh
+1157980 1154055 /opt/corex311/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8848 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --dtype auto --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1 --tensor_parallel_size 4 --data_parallel_
+1158392 1157980 VLLM::EngineCore
+1158662 1158392 VLLM::Worker_TP0
+1158663 1158392 VLLM::Worker_TP1
+1158664 1158392 VLLM::Worker_TP2
+1158665 1158392 VLLM::Worker_TP3
+1195142 1154055 /opt/corex311/bin/python3 /home/huawei_ts_program/litehost_perf_opt/bench_driver.py --backend vllm --num_prompts 100 --num-warmups 16 --max-concurrency 8 --dataset_name random --random_input_len 128 --random_output_len 2048 --host 127.0.0.1 --port 8848 --model /home/model/Qwen3-32B-W
++ echo '== containers =='
+== containers ==
++ for r in docker podman nerdctl
++ command -v docker
++ echo 'runtime: docker'
+runtime: docker
++ docker ps -a --format '{{.Names}}\t{{.Image}}\t{{.Status}}'
++ head -10
+corex5-py311-s00965207	corex5-py311-s00965207:latest	Exited (137) 40 hours ago
+minio	pgsty/silo:RELEASE.2026-09-16T00-00-00Z	Exited (0) 3 days ago
+corex5-py311-csz	corex5-py311-csz:latest	Exited (255) 4 days ago
+corex5-v0.23.0	corex:5.0.0	Exited (137) 42 hours ago
+corex5-py311-lzy	corex5-py311-lzy:latest	Exited (137) 9 days ago
+corex5-py311-ssh_tst1	corex5-py311-ssh_tst1:latest	Up 3 hours
+corex5-py311-ssh_tst_new	corex5-py311-ssh_tst_new:latest	Exited (137) 2 weeks ago
+corex5-py311-ssh_tst	corex5-py311-ssh_tst:latest	Exited (137) 2 weeks ago
+corex5-py311-g30061491	corex5-py311-1014-commit:v1	Exited (137) 9 days ago
+corex5-py311	corex5-py311:with-python311	Up 5 hours
++ for r in docker podman nerdctl
++ command -v podman
++ continue
++ for r in docker podman nerdctl
++ command -v nerdctl
++ continue
++ echo '== inside container =='
+== inside container ==
++ RT=
++ C=
++ for r in docker podman nerdctl
++ command -v docker
++ '[' -z '' ']'
++ RT=docker
++ '[' -z '' ']'
+++ docker ps --format '{{.Names}}'
+++ grep -iE 'corex|311'
+++ head -1
++ C=corex5-py311-ssh_tst1
++ for r in docker podman nerdctl
++ command -v podman
++ continue
++ for r in docker podman nerdctl
++ command -v nerdctl
++ continue
++ echo 'runtime: docker  container: corex5-py311-ssh_tst1'
+runtime: docker  container: corex5-py311-ssh_tst1
++ '[' -n docker ']'
++ '[' -n corex5-py311-ssh_tst1 ']'
++ docker exec corex5-py311-ssh_tst1 bash -lc '
+      echo "python311: $(/opt/corex311/bin/python -V 2>&1)"
+      echo "cpython-vllm: $(/opt/corex311-cpython-vllm/bin/python -V 2>&1)"
+      /opt/corex311-cpython-vllm/bin/pip list 2>/dev/null | grep -iE "^(vllm|torch|ixsys|triton|transformers)"
+      echo "LD_PRELOAD=${LD_PRELOAD:-<empty>}"
+      ls /opt 2>/dev/null
+    '
++ head -40
+python311: Python 3.11.6
+cpython-vllm: bash: line 3: /opt/corex311-cpython-vllm/bin/python: No such file or directory
+LD_PRELOAD=<empty>
+build-python311.gRsumA
+build-python311.I7fDpq
+corex311
+corex-host
+pip
+python-3.11.6
+use-corex311.sh
++ set +x
+
+### exit: 0
