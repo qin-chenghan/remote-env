@@ -17,14 +17,69 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 第二批：仍然严格只读。不安装、不建 venv、不动服务。
-  # 目标：把上轮发现的“包集合漂移”量化，并定位真实 bundle 与 host fastpath 补丁来源。
+  # 第三批：仍然严格只读。不删除、不安装、不建 venv、不动服务。
+  # A. /opt 全量盘点与“是否被使用”的证据
+  # B. 上批未执行的：包集合漂移量化、host fastpath 模块定位、bundle/补丁来源
 
   CON=corex5-py311
   BASE=/opt/corex311
   NEW=/opt/corex311-cpython-vllm
 
-  echo "== 1. 包集合漂移量化（复用上轮 /tmp 文件，不存在则重建）=="
+  echo "== 1. /opt 顶层内容与时间 =="
+  docker exec "$CON" sh -c 'ls -la --time-style=long-iso /opt'
+  echo "-- 各目录大小（timeout 180）--"
+  timeout 180 docker exec "$CON" sh -c 'du -sh /opt/* 2>/dev/null | sort -h'
+  docker exec "$CON" sh -c 'df -h /opt | tail -1'
+
+  echo "== 2. /opt 下所有 venv 清单（pyvenv.cfg 为准）=="
+  timeout 180 docker exec "$CON" sh -c '
+find /opt -maxdepth 3 -name pyvenv.cfg -print 2>/dev/null | while IFS= read -r cfg; do
+  V=$(dirname "$cfg")
+  echo "---- $V"
+  ls -ld --time-style=long-iso "$V"
+  du -sh "$V" 2>/dev/null
+  grep -E "^(home|version|executable|command|include-system)" "$cfg"
+  echo -n "  bin/python -> "; readlink "$V/bin/python" 2>/dev/null || echo missing
+  if [ -x "$V/bin/python" ]; then
+    PYTHONPATH= PYTHONHOME= timeout 20 "$V/bin/python" -c "import sys;print(\"  prefix\",sys.prefix);print(\"  base\",sys.base_prefix)" 2>&1 | tail -2
+  else
+    echo "  bin/python missing or not executable"
+  fi
+  echo -n "  bin entries: "; ls "$V/bin" 2>/dev/null | wc -l
+done
+'
+
+  echo "== 3. 是否有进程正在使用 /opt 下的解释器（容器内视角）=="
+  docker exec "$CON" sh -c '
+echo "-- ps 中的 /opt/*/bin/python --"
+ps -eo pid,args 2>/dev/null | grep -E "/opt/[^ ]*/bin/python" | grep -v grep | head -20
+echo "-- /proc/*/exe 指向 /opt 的进程 --"
+for p in /proc/[0-9]*; do
+  e=$(readlink "$p/exe" 2>/dev/null) || continue
+  case "$e" in /opt/*) echo "${p#/proc/} $e";; esac
+done | head -30
+echo "-- 进程环境里的 VIRTUAL_ENV --"
+for p in /proc/[0-9]*; do
+  ve=$(tr "\0" "\n" < "$p/environ" 2>/dev/null | sed -n "s/^VIRTUAL_ENV=//p")
+  [ -n "$ve" ] && echo "${p#/proc/} $ve"
+done | sort -u -k2 | head -20
+'
+
+  echo "== 4. 脚本/配置里对 /opt/corex311* 的引用 =="
+  timeout 90 docker exec "$CON" sh -c '
+for D in /home/qch/scripts /home/qch/tools /home/huawei_ts_program/litehost_perf_opt /home/huawei_ts_program; do
+  [ -d "$D" ] || continue
+  echo "-- $D --"
+  grep -RIn --include="*.sh" --include="*.py" --include="*.json" --include="*.txt" "/opt/corex311" "$D" 2>/dev/null | grep -v "/site-packages/" | head -25
+done
+'
+
+  echo "== 5. 容器与挂载关系（判断 /opt 是否容器独有）=="
+  docker ps --format '{{.Names}}	{{.Image}}	{{.Status}}'
+  docker inspect "$CON" --format '{{range .Mounts}}{{.Type}} {{.Source}} -> {{.Destination}}{{println}}{{end}}'
+  docker exec "$CON" sh -c 'findmnt -T /opt -o TARGET,SOURCE,FSTYPE,OPTIONS 2>/dev/null || mount | grep " /opt "'
+
+  echo "== 6. 包集合漂移量化（复用上轮 /tmp 文件，不存在则重建）=="
   if [ ! -f /tmp/freeze-base.txt ] || [ ! -f /tmp/freeze-new.txt ]; then
     docker exec -e PYTHONPATH= -e PYTHONHOME= -e PIP_DISABLE_PIP_VERSION_CHECK=1 \
       "$CON" "$BASE/bin/python" -m pip freeze --all 2>/dev/null | sort > /tmp/freeze-base.txt
@@ -74,7 +129,7 @@ for n in only_new:
     print(new[n])
 PY
 
-  echo "== 2. host fastpath 模块的真实位置（find_spec，不 import vllm 本体）=="
+  echo "== 7. host fastpath 模块的真实位置（find_spec）=="
   for V in "$BASE" "$NEW"; do
     echo "-- $V --"
     timeout 120 docker exec -e PYTHONPATH= -e PYTHONHOME= "$CON" "$V/bin/python" -c '
@@ -96,19 +151,18 @@ for m in ("vllm.v1.worker.host_fastpath",
 ' 2>&1 | grep -v '^INFO' | tail -10
   done
 
-  echo "== 3. base 里被 patch 的文件长什么样（只看 import 行与文件位置）=="
+  echo "== 8. base 被 patch 文件的引用行与相关目录 =="
   docker exec "$CON" sh -c '
 SP=/opt/corex311/lib/python3.11/site-packages
-echo "-- host_fastpath 引用行 --"
+echo "-- gpu_model_runner 中的 host_fastpath/corex 引用 --"
 grep -n "host_fastpath\|corex_host" $SP/vllm/v1/worker/gpu_model_runner.py | head -25
 echo "-- ilu_flash_attn 真实路径 --"
-find $SP/vllm -name "ilu_flash_attn.py" -o -name "*ilu*attn*.py" 2>/dev/null | head
-echo "-- corex 相关顶层目录/文件 --"
-ls -d $SP/corex* 2>/dev/null
+find $SP/vllm -name "ilu_flash_attn.py" 2>/dev/null | head
+echo "-- site-packages 下 corex/host 相关条目 --"
 ls $SP | grep -iE "corex|host" | head -20
 '
 
-  echo "== 4. 两个 venv 的“本地 wheel 来源”清单对比 =="
+  echo "== 9. 两个 venv 的本地 wheel 来源对比 =="
   for V in "$BASE" "$NEW"; do
     echo "-- $V --"
     docker exec "$CON" sh -c "
@@ -119,7 +173,7 @@ done
 "
   done
 
-  echo "== 5. vllm 声明的 transformers / tvm 约束 =="
+  echo "== 10. vllm 声明的关键依赖约束 =="
   for V in "$BASE" "$NEW"; do
     echo "-- $V --"
     timeout 120 docker exec -e PYTHONPATH= -e PYTHONHOME= "$CON" "$V/bin/python" -c '
@@ -134,7 +188,7 @@ for r in reqs:
 ' 2>&1 | tail -12
   done
 
-  echo "== 6. 定位真实安装 bundle 与 hashed 清单 =="
+  echo "== 11. 真实安装 bundle / hashed 清单 / 补丁目录 =="
   docker exec "$CON" sh -c '
 echo "-- /home/z30059427/corex5-py311-20261009 --"
 ls -la /home/z30059427/corex5-py311-20261009 2>/dev/null | head -15
@@ -142,32 +196,15 @@ echo "-- requirements 文件 --"
 find /home/z30059427/corex5-py311-20261009 -maxdepth 3 -name "requirements*" 2>/dev/null | head -15
 echo "-- verify 脚本 --"
 find /home/z30059427/corex5-py311-20261009 -maxdepth 3 -name "verify_corex311.py" 2>/dev/null | head -3
-echo "-- huawei_ts_program 下的 setup 目录 --"
+echo "-- huawei_ts_program 下 setup 目录 --"
 ls -d /home/huawei_ts_program/corex5_py311_setup_* 2>/dev/null
 '
-  echo "-- host fastpath 补丁交付目录（只找标志文件）--"
+  echo "-- host fastpath 交付目录 --"
   timeout 90 docker exec "$CON" sh -c '
 for D in /home/z30059427 /home/qch /home/huawei_ts_program; do
   find $D -maxdepth 5 \( -name "BASELINE.json" -o -name "corex_host_opt.py" -o -name "corex_host_native" \) 2>/dev/null | head -10
 done
 '
-
-  echo "== 7. 新 venv 里已装的“非 PyPI 来源”与编译扩展抽查 =="
-  docker exec "$CON" sh -c '
-SP=/opt/corex311-cpython-vllm/lib/python3.11/site-packages
-echo "-- apache-tvm-ffi / ixformer 的安装形态 --"
-ls -d $SP/apache_tvm_ffi* $SP/ixformer* 2>/dev/null
-for d in $SP/apache_tvm_ffi*.dist-info $SP/ixformer*.dist-info; do
-  [ -d "$d" ] && echo "[$d]" && ls "$d" | head -5 && { [ -f "$d/direct_url.json" ] && cat "$d/direct_url.json"; }
-done
-echo "-- 顶层 .so 数量（新 vs base）--"
-echo -n "new : "; find $SP -maxdepth 2 -name "*.so" | wc -l
-echo -n "base: "; find /opt/corex311/lib/python3.11/site-packages -maxdepth 2 -name "*.so" | wc -l
-'
-
-  echo "== 8. 现场确认（服务仍在跑，不打扰）=="
-  pgrep -af 'vllm.entrypoints|bench_driver' 2>/dev/null | head -5 || true
-  docker exec "$CON" sh -c 'df -h /opt | tail -1'
 
   # ---- 命令结束 ----
 
