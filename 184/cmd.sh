@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Agent: 每次覆盖本文件。改 SERVER，命令写进下方的标记区间。
+# Agent: 每次覆盖本文件，命令写进下方的标记区间。
 set -uo pipefail
 
-SERVER="184"
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SERVER="$(basename "$DIR")"
 TS="$(date +%Y%m%d-%H%M%S)"
-OUT="$ROOT/$SERVER/tmp/$TS.log"
-mkdir -p "$(dirname "$OUT")"
+OUT="$DIR/tmp/$TS.log"
+mkdir -p "$DIR/tmp"
 
 {
   echo "### server: $SERVER"
