@@ -18,39 +18,35 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
 
-  echo "== gpu numa =="
-  for b in 0000:45:00.0 0000:48:00.0 0000:af:00.0 0000:b2:00.0; do
-    printf '%s numa_node=%s\n' "$b" "$(cat "/sys/bus/pci/devices/$b/numa_node" 2>/dev/null || echo n/a)"
-  done
-  command -v ixsmi >/dev/null && ixsmi topo -m 2>&1 | head -30
+  echo "== main container corex5-py311 =="
+  docker exec corex5-py311 bash -lc '
+    echo "python311: $(/opt/corex311/bin/python -V 2>&1)"
+    echo "cpython-vllm: $(/opt/corex311-cpython-vllm/bin/python -V 2>&1)"
+    echo "-- corex311 --"
+    /opt/corex311/bin/pip list 2>/dev/null | grep -iE "^(vllm|torch|ixsys|triton|transformers)"
+    echo "-- cpython-vllm --"
+    /opt/corex311-cpython-vllm/bin/pip list 2>/dev/null | grep -iE "^(vllm|torch|ixsys|triton|transformers)"
+    echo "LD_PRELOAD=${LD_PRELOAD:-<empty>}"
+    ls /opt
+  ' 2>&1 | head -50
 
-  echo "== vllm processes =="
-  ps -eo pid,ppid,args 2>/dev/null | grep -iE 'vllm' | grep -v grep | cut -c1-300 | head -8
-
-  echo "== containers =="
-  for r in docker podman nerdctl; do
-    command -v "$r" >/dev/null || continue
-    echo "runtime: $r"
-    "$r" ps -a --format '{{.Names}}\t{{.Image}}\t{{.Status}}' 2>&1 | head -10
+  echo "== vllm full cmdline / env =="
+  for p in $(pgrep -f vllm.entrypoints.openai.api_server 2>/dev/null); do
+    echo "PID $p:"
+    tr '\0' ' ' < "/proc/$p/cmdline" 2>/dev/null; echo
+    tr '\0' '\n' < "/proc/$p/environ" 2>/dev/null | grep -iE 'corex|itr_|LD_|VLLM' | head -15
+    echo
   done
 
-  echo "== inside container =="
-  RT=""
-  C=""
-  for r in docker podman nerdctl; do
-    command -v "$r" >/dev/null || continue
-    [ -z "$RT" ] && RT="$r"
-    [ -z "$C" ] && C=$("$r" ps --format '{{.Names}}' 2>/dev/null | grep -iE 'corex|311' | head -1)
-  done
-  echo "runtime: ${RT:-<none>}  container: ${C:-<not found>}"
-  if [ -n "$RT" ] && [ -n "$C" ]; then
-    "$RT" exec "$C" bash -lc '
-      echo "python311: $(/opt/corex311/bin/python -V 2>&1)"
-      echo "cpython-vllm: $(/opt/corex311-cpython-vllm/bin/python -V 2>&1)"
-      /opt/corex311-cpython-vllm/bin/pip list 2>/dev/null | grep -iE "^(vllm|torch|ixsys|triton|transformers)"
-      echo "LD_PRELOAD=${LD_PRELOAD:-<empty>}"
-      ls /opt 2>/dev/null
-    ' 2>&1 | head -40
+  echo "== bench script =="
+  P=$(pgrep -f vllmBench_lite_opt.sh 2>/dev/null | head -1)
+  if [ -n "$P" ]; then
+    D=$(readlink "/proc/$P/cwd" 2>/dev/null)
+    echo "cwd: $D"
+    tr '\0' ' ' < "/proc/$P/cmdline"; echo
+    sed -n '1,120p' "$D/vllmBench_lite_opt.sh" 2>&1
+  else
+    echo "not running"
   fi
 
   # ---- 命令结束 ----
