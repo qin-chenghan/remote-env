@@ -44,14 +44,33 @@ mkdir -p "$DIR/tmp"
   echo "== 6. 压测/服务进程 =="
   pgrep -af 'vllmBench_lite_opt.sh|bench_driver.py' 2>/dev/null | head -10 || true
 
-  echo "== 7. transfer 目录（看 hotspot wheel 是否已上传）=="
+  echo "== 7. transfer 目录 =="
   ls -l /home/qch/transfer 2>/dev/null | tail -20
 
-  echo "== 8. r3 host fastpath 安装自检 =="
-  if [ -d /home/qch/transfer/vllm-dev-host-opt-validation-r3-arm64-py311-py312-20261103 ]; then
-    docker exec corex5-py311 bash -lc 'ls /opt/corex311/lib/python3.11/site-packages | grep -i host_opt || true'
+  echo "== 8. rebase 状态 =="
+  docker exec corex5-py311 sh -c \
+    'ls -la /root/.local/state/cpython-vllm-rebase 2>/dev/null | head -5 || echo "no rebase state"'
+
+  echo "== 9. hotspot wheel: 校验 + 外挂安装（不动 /opt/corex311）=="
+  WHL=/home/qch/transfer/hotspot_opt-0.5.3-py3-none-any.whl
+  if [ -f "$WHL" ]; then
+    sha256sum "$WHL"
+    docker cp "$WHL" corex5-py311:/tmp/hotspot_opt-0.5.3-py3-none-any.whl
+    docker exec corex5-py311 /opt/corex311/bin/python3 -m pip install --no-deps --upgrade \
+      --no-warn-script-location --target /opt/hotspot_site \
+      /tmp/hotspot_opt-0.5.3-py3-none-any.whl
+    echo "-- installed tree --"
+    docker exec corex5-py311 sh -c 'ls /opt/hotspot_site; ls /opt/hotspot_site/hotspot_opt'
+
+    echo "== 10. 插件加载自检（只开 tokens）=="
+    docker exec -e PYTHONPATH=/opt/hotspot_site \
+      -e HOTSPOT_OPT=1 -e HOTSPOT_OPT_AG=0 -e HOTSPOT_OPT_SAMPLER=0 \
+      -e HOTSPOT_OPT_INPUTS=0 \
+      corex5-py311 /opt/corex311/bin/python3 -c \
+      "from vllm.plugins import load_general_plugins; load_general_plugins(); print('plugin load ok')" \
+      2>&1 | tail -6
   else
-    echo "r3 目录不在 /home/qch/transfer（可能已移走，跳过）"
+    echo "wheel not found: $WHL （跳过 9-10）"
   fi
 
   # ---- 命令结束 ----
