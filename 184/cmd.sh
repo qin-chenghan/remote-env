@@ -102,11 +102,17 @@ for f in vllm/v1/worker/gpu_model_runner.py \
          vllm/v1/worker/host_fastpath.py \
          vllm/v1/worker/corex_host_opt.py \
          vllm/v1/attention/backends/ilu_flash_attn.py \
-         vllm/model_executor/models/ilu_flash_attn.py ; do
+         vllm/envs.py \
+         vllm/_host_opt_native.abi3.so \
+         vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so ; do
   [ -f "$SP/$f" ] && sha256sum "$SP/$f" || echo "MISSING $f"
 done
 echo "-- 原生扩展 .so 及其 sha256 --"
+find $SP/vllm -maxdepth 1 -name "_host_opt*.so" -type f -exec sha256sum {} \; 2>/dev/null | head -20
 find $SP/corex_host_native -name "*.so" -type f -exec sha256sum {} \; 2>/dev/null | head -20
+echo "-- install.py 备份状态 --"
+cat $SP/.host-opt-pr-backup/STATE.json 2>/dev/null
+find $SP/.host-opt-pr-backup -maxdepth 4 -type f 2>/dev/null | head -20
 '
 
   echo "== 7. 交付包若带 vllm 源码树，与已安装树直接 diff =="
