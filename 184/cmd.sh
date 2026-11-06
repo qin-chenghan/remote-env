@@ -18,47 +18,40 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
 
-  echo "== os =="
-  uname -a
-  head -3 /etc/os-release 2>/dev/null
+  echo "== gpu numa =="
+  for b in 0000:45:00.0 0000:48:00.0 0000:af:00.0 0000:b2:00.0; do
+    printf '%s numa_node=%s\n' "$b" "$(cat "/sys/bus/pci/devices/$b/numa_node" 2>/dev/null || echo n/a)"
+  done
+  command -v ixsmi >/dev/null && ixsmi topo -m 2>&1 | head -30
 
-  echo "== container =="
-  cat /proc/1/cgroup 2>/dev/null | head -5
-  ls -d /opt/* 2>/dev/null
+  echo "== vllm processes =="
+  ps -eo pid,ppid,args 2>/dev/null | grep -iE 'vllm' | grep -v grep | cut -c1-300 | head -8
 
-  echo "== python/venv =="
-  /opt/corex311/bin/python -V 2>&1
-  /opt/corex311-cpython-vllm/bin/python -V 2>&1
-  /opt/corex311-cpython-vllm/bin/pip list 2>/dev/null | grep -iE '^(vllm|torch|ixsys|triton)' | head
-
-  echo "== gpu =="
-  for c in ixsmi ix-smi nvidia-smi; do
-    command -v "$c" >/dev/null && { echo "found: $c"; "$c" 2>&1 | head -40; break; }
+  echo "== containers =="
+  for r in docker podman nerdctl; do
+    command -v "$r" >/dev/null || continue
+    echo "runtime: $r"
+    "$r" ps -a --format '{{.Names}}\t{{.Image}}\t{{.Status}}' 2>&1 | head -10
   done
 
-  echo "== topo =="
-  command -v nvidia-smi >/dev/null && nvidia-smi topo -m 2>&1 | head -30
-
-  echo "== cpu/numa =="
-  lscpu 2>/dev/null | head -30
-  command -v numactl >/dev/null && numactl -H 2>&1 | head -30
-
-  echo "== mem/disk =="
-  free -g 2>/dev/null
-  df -h /home /opt 2>/dev/null
-
-  echo "== env =="
-  echo "LD_PRELOAD=${LD_PRELOAD:-<empty>}"
-  echo "VIRTUAL_ENV=${VIRTUAL_ENV:-<empty>}"
-  echo "PATH=$(echo "$PATH" | tr ':' '\n' | head -15)"
-
-  echo "== repo =="
-  ls -la /home/qch/tools/remote-env 2>&1 | head
-  git -C /home/qch/tools/remote-env log --oneline -3 2>&1
-  git -C /home/qch/tools/remote-env status --short 2>&1 | head
-
-  echo "== perf-opt =="
-  ls -la /home/huawei_ts_program/litehost_perf_opt 2>&1 | head -20
+  echo "== inside container =="
+  RT=""
+  C=""
+  for r in docker podman nerdctl; do
+    command -v "$r" >/dev/null || continue
+    [ -z "$RT" ] && RT="$r"
+    [ -z "$C" ] && C=$("$r" ps --format '{{.Names}}' 2>/dev/null | grep -iE 'corex|311' | head -1)
+  done
+  echo "runtime: ${RT:-<none>}  container: ${C:-<not found>}"
+  if [ -n "$RT" ] && [ -n "$C" ]; then
+    "$RT" exec "$C" bash -lc '
+      echo "python311: $(/opt/corex311/bin/python -V 2>&1)"
+      echo "cpython-vllm: $(/opt/corex311-cpython-vllm/bin/python -V 2>&1)"
+      /opt/corex311-cpython-vllm/bin/pip list 2>/dev/null | grep -iE "^(vllm|torch|ixsys|triton|transformers)"
+      echo "LD_PRELOAD=${LD_PRELOAD:-<empty>}"
+      ls /opt 2>/dev/null
+    ' 2>&1 | head -40
+  fi
 
   # ---- 命令结束 ----
 
