@@ -1,0 +1,121 @@
+### server: 184
+### host:   controller
+### time:   2026-11-06T08:38:51Z
+
++ CON=corex5-py311
++ BASE=/opt/corex311
++ SP=/opt/corex311/lib/python3.11/site-packages
++ echo '== 1. tokens 相关文件与 32 对照 =='
+== 1. tokens 相关文件与 32 对照 ==
++ docker exec corex5-py311 sh -c '
+SP=/opt/corex311/lib/python3.11/site-packages
+sha256sum $SP/vllm/v1/sample/sampler.py \
+          $SP/vllm/model_executor/layers/logits_processor.py 2>/dev/null
+for f in vllm/v1/sample/sampler.py \
+         vllm/model_executor/layers/logits_processor.py \
+         vllm/v1/worker/gpu_model_runner.py ; do
+  echo -n "$f get_top_tokens="
+  grep -c get_top_tokens $SP/$f 2>/dev/null || true
+done
+echo "-- hotspot-opt 发行版 --"
+/opt/corex311/bin/pip show hotspot-opt 2>/dev/null | head -3 || echo "not installed as distribution"
+'
+9ca3253163a1698764c599386c68e71962d2654427d0c50bc5c519384347b465  /opt/corex311/lib/python3.11/site-packages/vllm/v1/sample/sampler.py
+d6dfec7287020d587f4a4d475ce113c383b2eb55afe5ae9b0e037df2e2d13310  /opt/corex311/lib/python3.11/site-packages/vllm/model_executor/layers/logits_processor.py
+vllm/v1/sample/sampler.py get_top_tokens=0
+vllm/model_executor/layers/logits_processor.py get_top_tokens=1
+vllm/v1/worker/gpu_model_runner.py get_top_tokens=0
+-- hotspot-opt 发行版 --
++ echo '== 2. 旧 metadata 补丁残留的状态 =='
+== 2. 旧 metadata 补丁残留的状态 ==
++ docker exec corex5-py311 sh -c '
+SP=/opt/corex311/lib/python3.11/site-packages
+D=$SP/vllm/.corex_metadata_patch
+ls -la --time-style=long-iso $D 2>/dev/null
+echo "-- state.json --"
+cat $D/state.json 2>/dev/null
+echo "-- 一个 rolled_back 记录 --"
+for f in $D/*.rolled_back.json; do [ -f "$f" ] && { echo "---- $f"; cat "$f"; break; }; done
+echo "-- originals 摘要（对照 MANIFEST 基线）--"
+find $D/originals -type f -exec sha256sum {} \; 2>/dev/null
+'
+total 60
+drwxrwxr-x+  3 root root 4096 2026-10-21 14:10 .
+drwxrwxr-x+ 39 root root 4096 2026-11-06 11:44 ..
+-rw-rw-r--+  1 root root  541 2026-10-20 15:13 1e2ed049a1723b51.rolled_back.json
+-rw-rw-r--+  1 root root 1610 2026-10-21 09:38 23c63d60db5a9a6c.rolled_back.json
+-rw-rw-r--+  1 root root 1172 2026-10-21 08:58 56bf1bb20b821d64.rolled_back.json
+-rw-rw-r--+  1 root root    0 2026-10-19 19:54 lock
+drwxrwxr-x+  3 root root 4096 2026-10-19 19:54 originals
+-rw-rw-r--+  1 root root 1606 2026-10-21 14:10 state.json
+-- state.json --
+{
+  "patch_id": "23c63d60db5a9a6c",
+  "status": "applied",
+  "files": [
+    {
+      "path": "v1/attention/backends/ilu_flash_attn.py",
+      "before_sha256": "469e7198cfeb81135a7e043fa7ad885d8433571c7a629f30bd3057eff16e36cd",
+      "after_sha256": "058342cd8cdd5e0c07926f299fb1962aa3203b7f25bd7442e9939bad5701b7ec",
+      "original_mode": 420
+    },
+    {
+      "path": "v1/worker/gpu_model_runner.py",
+      "before_sha256": "ff9f2df42976347b85fbd6e12623b217e1beda6d5248a5662b3cf397eacaef59",
+      "after_sha256": "cb28aab7c7873f5a575f25b8b0cd7df05964761ab029378cab0e3cb152cfbb28",
+      "original_mode": 420
+    },
+    {
+      "path": "iluvatar/metadata_optimization.py",
+      "before_sha256": null,
+      "after_sha256": "dd6c02efca835cd729de90092161f310e9679ad791051c51a2370863a18ff39c"
+    },
+    {
+      "path": "iluvatar/native_input_metadata.py",
+      "before_sha256": null,
+      "after_sha256": "472d6b54cb3b4db2962efa3006d814826ca6da105d26eedf7f5a9e32b41c1f2f"
+    },
+    {
+      "path": "iluvatar/native_spec_metadata.py",
+      "before_sha256": null,
+      "after_sha256": "933134bc1f61ed53277ce750f0135484bbe604859042ed5ad91bb19c19f4e660"
+    },
+    {
+      "path": "v1/worker/block_table.py",
+      "before_sha256": "b3a6649b968fba0b48c333d7ac96e65cc713a86133cc7eef0a8399f5339ec600",
+      "after_sha256": "efd73d7b60200623ee4fd2328524ec200a995d7f4b4b80e629a95ce361a09343",
+      "original_mode": 420
+    },
+    {
+      "path": "iluvatar/input_pipeline.py",
+      "before_sha256": null,
+      "after_sha256": "5714cf4ff13132f93906fd714dfbcc58a5f6c1d870b624a81a728fe3dd6173ad"
+    }
+  ]
+}
+-- 一个 rolled_back 记录 --
+---- /opt/corex311/lib/python3.11/site-packages/vllm/.corex_metadata_patch/1e2ed049a1723b51.rolled_back.json
+{
+  "patch_id": "1e2ed049a1723b51",
+  "status": "rolled_back",
+  "files": [
+    {
+      "path": "v1/attention/backends/ilu_flash_attn.py",
+      "before_sha256": "469e7198cfeb81135a7e043fa7ad885d8433571c7a629f30bd3057eff16e36cd",
+      "after_sha256": "15e138c3b7c3e4f48003a901773721c46f0fd1e03fd51a163348938c1cccf710",
+      "original_mode": 420
+    },
+    {
+      "path": "iluvatar/metadata_optimization.py",
+      "before_sha256": null,
+      "after_sha256": "22c7d2ab3265a7aea8d09d1900174c61653e4dec26717fe138f27678575650b0"
+    }
+  ]
+}
+-- originals 摘要（对照 MANIFEST 基线）--
+b3a6649b968fba0b48c333d7ac96e65cc713a86133cc7eef0a8399f5339ec600  /opt/corex311/lib/python3.11/site-packages/vllm/.corex_metadata_patch/originals/v1/worker/block_table.py
+ff9f2df42976347b85fbd6e12623b217e1beda6d5248a5662b3cf397eacaef59  /opt/corex311/lib/python3.11/site-packages/vllm/.corex_metadata_patch/originals/v1/worker/gpu_model_runner.py
+469e7198cfeb81135a7e043fa7ad885d8433571c7a629f30bd3057eff16e36cd  /opt/corex311/lib/python3.11/site-packages/vllm/.corex_metadata_patch/originals/v1/attention/backends/ilu_flash_attn.py
++ set +x
+
+### exit: 0
