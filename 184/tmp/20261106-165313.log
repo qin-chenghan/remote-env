@@ -1,0 +1,162 @@
+### server: 184
+### host:   controller
+### time:   2026-11-06T08:53:13Z
+
++ CON=corex5-py311
++ SP=/opt/corex311/lib/python3.11/site-packages
+++ date +%Y%m%d-%H%M%S
++ TRASH=/opt/_trash_20261106-165313
++ echo '== 0. 清理前指纹 =='
+== 0. 清理前指纹 ==
++ docker exec corex5-py311 sh -c '
+SP=/opt/corex311/lib/python3.11/site-packages
+sha256sum $SP/vllm/v1/worker/gpu_model_runner.py           $SP/vllm/v1/worker/host_fastpath.py           $SP/vllm/v1/attention/backends/ilu_flash_attn.py           $SP/vllm/envs.py           $SP/vllm/_host_opt_native.abi3.so           $SP/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so           $SP/vllm/v1/sample/sampler.py           $SP/vllm/model_executor/layers/logits_processor.py 2>/dev/null
+'
++ cat /tmp/184_pre_hash.txt
+c2716da90e2cd6103c0d36702476fd5531a45a09449379d582ac9b0c4d473866  /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+58a9059e4fb98ec7fbbd5d93de61a59f7e61f8cda10c286eff6a19897ab6821b  /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py
+b6cc7b45d20cd9548bf7e8abec73e61809871aba668fce5c86cbaa8286625b43  /opt/corex311/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py
+271952836bad0b9c9eba49f1f22186c6b486a574e39bf8465becf67e85556938  /opt/corex311/lib/python3.11/site-packages/vllm/envs.py
+6f8774f8c9e6839a3a1de15a763845511f200cb485f55ef10009475e30db8056  /opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
+7c8686a72759d2e4f75e8157b819039fcdcf69c1b5eba5948e0d956859af1715  /opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+9ca3253163a1698764c599386c68e71962d2654427d0c50bc5c519384347b465  /opt/corex311/lib/python3.11/site-packages/vllm/v1/sample/sampler.py
+d6dfec7287020d587f4a4d475ce113c383b2eb55afe5ae9b0e037df2e2d13310  /opt/corex311/lib/python3.11/site-packages/vllm/model_executor/layers/logits_processor.py
++ echo '== 1. 引用检查（命中则中止，退出码 2）=='
+== 1. 引用检查（命中则中止，退出码 2）==
++ docker exec corex5-py311 sh -c '
+SP=/opt/corex311/lib/python3.11/site-packages
+FOUND=0
+for D in /home/huawei_ts_program/litehost_perf_opt /home/qch/scripts "$SP/vllm"; do
+  [ -d "$D" ] || continue
+  HIT=$(grep -rnE "metadata_optimization|native_input_metadata|native_spec_metadata|vllm\.iluvatar\.input_pipeline|from vllm\.iluvatar import input_pipeline" "$D" \
+        --include="*.py" --include="*.sh" 2>/dev/null \
+        | grep -vE "iluvatar/(metadata_optimization|native_input_metadata|native_spec_metadata|input_pipeline)\.py:")
+  if [ -n "$HIT" ]; then
+    echo "REFERENCES in $D:"
+    echo "$HIT" | head -20
+    FOUND=1
+  fi
+done
+if [ "$FOUND" -eq 1 ]; then
+  echo "ABORT: references found, nothing moved."
+  exit 2
+fi
+echo "no references"
+exit 0
+'
+no references
++ REF=0
++ '[' 0 -eq 2 ']'
++ echo '== 2. 隔离残留到 /opt/_trash_20261106-165313 =='
+== 2. 隔离残留到 /opt/_trash_20261106-165313 ==
++ docker exec -e TRASH=/opt/_trash_20261106-165313 corex5-py311 sh -c '
+SP=/opt/corex311/lib/python3.11/site-packages
+mkdir -p "$TRASH/iluvatar_orphans"
+if [ -d "$SP/vllm/.corex_metadata_patch" ]; then
+  mv "$SP/vllm/.corex_metadata_patch" "$TRASH/"
+  echo "moved .corex_metadata_patch"
+else
+  echo ".corex_metadata_patch not present"
+fi
+for n in metadata_optimization native_input_metadata native_spec_metadata input_pipeline; do
+  if [ -f "$SP/vllm/iluvatar/$n.py" ]; then
+    mv "$SP/vllm/iluvatar/$n.py" "$TRASH/iluvatar_orphans/"
+    echo "moved $n.py"
+  fi
+  for p in "$SP/vllm/iluvatar/__pycache__/$n".*.pyc; do
+    [ -f "$p" ] && { mv "$p" "$TRASH/iluvatar_orphans/"; echo "moved $(basename "$p")"; }
+  done
+done
+echo "-- 隔离目录内容 --"
+find "$TRASH" -maxdepth 5 -type f -printf "%10s %p\n" 2>/dev/null | sort -k2
+'
+moved .corex_metadata_patch
+moved metadata_optimization.py
+moved metadata_optimization.cpython-311.pyc
+moved native_input_metadata.py
+moved native_input_metadata.cpython-311.pyc
+moved native_spec_metadata.py
+moved native_spec_metadata.cpython-311.pyc
+moved input_pipeline.py
+moved input_pipeline.cpython-311.pyc
+-- 隔离目录内容 --
+       541 /opt/_trash_20261106-165313/.corex_metadata_patch/1e2ed049a1723b51.rolled_back.json
+      1610 /opt/_trash_20261106-165313/.corex_metadata_patch/23c63d60db5a9a6c.rolled_back.json
+      1172 /opt/_trash_20261106-165313/.corex_metadata_patch/56bf1bb20b821d64.rolled_back.json
+         0 /opt/_trash_20261106-165313/.corex_metadata_patch/lock
+     14201 /opt/_trash_20261106-165313/.corex_metadata_patch/originals/v1/worker/block_table.py
+    348672 /opt/_trash_20261106-165313/.corex_metadata_patch/originals/v1/worker/gpu_model_runner.py
+      1606 /opt/_trash_20261106-165313/.corex_metadata_patch/state.json
+     10465 /opt/_trash_20261106-165313/iluvatar_orphans/input_pipeline.cpython-311.pyc
+      6797 /opt/_trash_20261106-165313/iluvatar_orphans/input_pipeline.py
+      9060 /opt/_trash_20261106-165313/iluvatar_orphans/metadata_optimization.cpython-311.pyc
+      5692 /opt/_trash_20261106-165313/iluvatar_orphans/metadata_optimization.py
+      8231 /opt/_trash_20261106-165313/iluvatar_orphans/native_input_metadata.cpython-311.pyc
+      4748 /opt/_trash_20261106-165313/iluvatar_orphans/native_input_metadata.py
+     16289 /opt/_trash_20261106-165313/iluvatar_orphans/native_spec_metadata.cpython-311.pyc
+     12295 /opt/_trash_20261106-165313/iluvatar_orphans/native_spec_metadata.py
++ echo '== 3. 残留复查 =='
+== 3. 残留复查 ==
++ docker exec corex5-py311 sh -c '
+SP=/opt/corex311/lib/python3.11/site-packages
+echo "-- iluvatar 目录 --"
+ls -la --time-style=long-iso $SP/vllm/iluvatar/ 2>/dev/null
+echo "-- 是否还有旧补丁文件 --"
+for n in metadata_optimization native_input_metadata native_spec_metadata input_pipeline; do
+  [ -f "$SP/vllm/iluvatar/$n.py" ] && echo "STILL PRESENT $n.py" || echo "gone $n.py"
+done
+[ -d "$SP/vllm/.corex_metadata_patch" ] && echo "STILL PRESENT .corex_metadata_patch" || echo "gone .corex_metadata_patch"
+'
+-- iluvatar 目录 --
+total 124
+drwxrwxr-x+  6 root root 4096 2026-11-06 16:53 .
+drwxrwxr-x+ 38 root root 4096 2026-11-06 16:53 ..
+drwxrwxr-x+  4 root root 4096 2026-10-29 15:31 distributed
+-rw-rw-r--+  1 root root 2382 2026-10-29 15:31 _ilu_adapt.py
+-rw-rw-r--+  1 root root 5254 2026-10-29 15:31 _ilu_bootstrap.py
+-rw-rw-r--+  1 root root 7131 2026-10-29 15:31 ilu_envs.py
+-rw-rw-r--+  1 root root 4288 2026-10-29 15:31 _ilu_import_hook.py
+-rw-rw-r--+  1 root root  986 2026-10-29 15:31 _ilu_patches_general.py
+-rw-rw-r--+  1 root root 1047 2026-10-29 15:31 _ilu_patches_import.py
+-rw-rw-r--+  1 root root 3914 2026-10-29 15:31 _ilu_utils.py
+-rw-rw-r--+  1 root root  122 2026-10-29 15:31 __init__.py
+drwxrwxr-x+  3 root root 4096 2026-10-29 15:31 patch
+drwxrwxr-x+  3 root root 4096 2026-10-29 15:31 platforms
+drwxrwxr-x+  2 root root 4096 2026-11-06 16:53 __pycache__
+-- 是否还有旧补丁文件 --
+gone metadata_optimization.py
+gone native_input_metadata.py
+gone native_spec_metadata.py
+gone input_pipeline.py
+gone .corex_metadata_patch
++ echo '== 4. import 冒烟 =='
+== 4. import 冒烟 ==
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -c '
+import vllm
+from vllm.v1.worker import host_fastpath
+print('\''import ok'\'', vllm.__version__, host_fastpath.HostFastPath.__name__)
+'
++ tail -5
+INFO 11-06 16:53:17 [__init__.py:238] Platform plugin iluvatar is activated
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+import ok 0.23.0 HostFastPath
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ echo '== 5. 清理后指纹对比 =='
+== 5. 清理后指纹对比 ==
++ docker exec corex5-py311 sh -c '
+SP=/opt/corex311/lib/python3.11/site-packages
+sha256sum $SP/vllm/v1/worker/gpu_model_runner.py           $SP/vllm/v1/worker/host_fastpath.py           $SP/vllm/v1/attention/backends/ilu_flash_attn.py           $SP/vllm/envs.py           $SP/vllm/_host_opt_native.abi3.so           $SP/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so           $SP/vllm/v1/sample/sampler.py           $SP/vllm/model_executor/layers/logits_processor.py 2>/dev/null
+'
++ diff -u /tmp/184_pre_hash.txt /tmp/184_post_hash.txt
++ echo 'OK: 关键文件指纹未变'
+OK: 关键文件指纹未变
++ echo '== 恢复方法（如需回滚）=='
+== 恢复方法（如需回滚）==
++ echo '  docker exec corex5-py311 mv /opt/_trash_20261106-165313/iluvatar_orphans/*.py  /opt/corex311/lib/python3.11/site-packages/vllm/iluvatar/'
+  docker exec corex5-py311 mv /opt/_trash_20261106-165313/iluvatar_orphans/*.py  /opt/corex311/lib/python3.11/site-packages/vllm/iluvatar/
++ echo '  docker exec corex5-py311 mv /opt/_trash_20261106-165313/.corex_metadata_patch    /opt/corex311/lib/python3.11/site-packages/vllm/'
+  docker exec corex5-py311 mv /opt/_trash_20261106-165313/.corex_metadata_patch    /opt/corex311/lib/python3.11/site-packages/vllm/
++ set +x
+
+### exit: 0
