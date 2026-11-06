@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
+# 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -22,5 +23,6 @@ mkdir -p "$DIR/tmp"
   set +x
 } 2>&1 | tee "$OUT"
 
-echo
+STATUS=${PIPESTATUS[0]}
+printf '\n### exit: %s\n' "$STATUS" | tee -a "$OUT"
 echo "结果已写入: $OUT"
