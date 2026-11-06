@@ -1,0 +1,574 @@
+### server: 184
+### host:   controller
+### time:   2026-11-06T08:00:05Z
+
++ CON=corex5-py311
++ BASE=/opt/corex311
++ NEW=/opt/corex311-cpython-vllm
++ echo '== 1. 两个 venv 的壳子与解释器 =='
+== 1. 两个 venv 的壳子与解释器 ==
++ docker exec corex5-py311 sh -c 'ls -ld /opt/corex311 /opt/corex311-cpython-vllm 2>&1; echo ---; du -sh /opt/corex311 /opt/corex311-cpython-vllm 2>&1'
+drwxr-xr-x+ 1 root root 4096 Nov  6 14:27 /opt/corex311
+drwxr-xr-x. 6 root root 4096 Nov  6 10:38 /opt/corex311-cpython-vllm
+---
+3.9G	/opt/corex311
+3.5G	/opt/corex311-cpython-vllm
++ docker exec corex5-py311 sh -c 'echo '\''[base pyvenv.cfg]'\''; cat /opt/corex311/pyvenv.cfg 2>&1; echo; echo '\''[new pyvenv.cfg]'\''; cat /opt/corex311-cpython-vllm/pyvenv.cfg 2>&1'
+[base pyvenv.cfg]
+home = /opt/cpython-vllm/v1/bin
+include-system-site-packages = false
+version = 3.11.6
+executable = /opt/cpython-vllm/v1/bin/python3.11
+command = /opt/python-3.11.6/bin/python3.11 -m venv /opt/corex311
+# rebased by cpython-vllm-venv-tools/1.0.2; transaction=20261106T062707Z_ebec8153; command above is creation history
+
+[new pyvenv.cfg]
+home = /opt/cpython-vllm/v1/bin
+include-system-site-packages = false
+version = 3.11.6
+executable = /opt/cpython-vllm/v1/bin/python3.11
+command = /opt/cpython-vllm/v1/bin/python3.11 -m venv /opt/corex311-cpython-vllm
++ for V in "$BASE" "$NEW"
++ echo '-- /opt/corex311 --'
+-- /opt/corex311 --
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -c '
+import sys, sysconfig
+print("version      ", sys.version.split()[0])
+print("sys.prefix   ", sys.prefix)
+print("sys.base_prefix", sys.base_prefix)
+print("executable   ", sys.executable)
+args = sysconfig.get_config_var("CONFIG_ARGS") or ""
+print("pgo          ", "--prefix=/opt/cpython-vllm/v1" in args)
+print("config_args  ", args[:160])
+'
++ tail -8
+version       3.11.6
+sys.prefix    /opt/corex311
+sys.base_prefix /opt/cpython-vllm/v1
+executable    /opt/corex311/bin/python
+pgo           True
+config_args   '--prefix=/opt/cpython-vllm/v1' '--enable-shared' '--enable-optimizations' '--with-lto' '--with-ensurepip=install' 'CC=/usr/bin/gcc' 'CXX=/usr/bin/g++' 'AR=/usr
++ for V in "$BASE" "$NEW"
++ echo '-- /opt/corex311-cpython-vllm --'
+-- /opt/corex311-cpython-vllm --
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -c '
+import sys, sysconfig
+print("version      ", sys.version.split()[0])
+print("sys.prefix   ", sys.prefix)
+print("sys.base_prefix", sys.base_prefix)
+print("executable   ", sys.executable)
+args = sysconfig.get_config_var("CONFIG_ARGS") or ""
+print("pgo          ", "--prefix=/opt/cpython-vllm/v1" in args)
+print("config_args  ", args[:160])
+'
++ tail -8
+version       3.11.6
+sys.prefix    /opt/corex311-cpython-vllm
+sys.base_prefix /opt/cpython-vllm/v1
+executable    /opt/corex311-cpython-vllm/bin/python
+pgo           True
+config_args   '--prefix=/opt/cpython-vllm/v1' '--enable-shared' '--enable-optimizations' '--with-lto' '--with-ensurepip=install' 'CC=/usr/bin/gcc' 'CXX=/usr/bin/g++' 'AR=/usr
++ echo '== 2. 包集合 diff（freeze --all，已剔除 pip 警告）=='
+== 2. 包集合 diff（freeze --all，已剔除 pip 警告）==
++ docker exec -e PYTHONPATH= -e PYTHONHOME= -e PIP_DISABLE_PIP_VERSION_CHECK=1 corex5-py311 /opt/corex311/bin/python -m pip freeze --all
++ sort
++ sort
++ docker exec -e PYTHONPATH= -e PYTHONHOME= -e PIP_DISABLE_PIP_VERSION_CHECK=1 corex5-py311 /opt/corex311-cpython-vllm/bin/python -m pip freeze --all
+++ wc -l
++ echo 'base 包数: 172'
+base 包数: 172
+++ wc -l
++ echo 'new  包数: 157'
+new  包数: 157
++ echo '-- 明细 diff（< 只在 base，> 只在 new）--'
+-- 明细 diff（< 只在 base，> 只在 new）--
++ diff -u /tmp/freeze-base.txt /tmp/freeze-new.txt
++ head -160
+--- /tmp/freeze-base.txt	2026-11-06 16:00:06.497530100 +0800
++++ /tmp/freeze-new.txt	2026-11-06 16:00:06.817530100 +0800
+@@ -1,21 +1,21 @@
+ agent-detector==2.0.0
+-aiohappyeyeballs==2.6.1
+-aiohttp==3.13.3
++aiohappyeyeballs==2.7.1
++aiohttp==3.14.5
+ aiosignal==1.4.0
+-annotated-doc==0.0.4
+-annotated-types==0.7.0
+-anthropic==0.71.0
+-anyio==4.12.1
+-apache-tvm-ffi @ file:///home/z30059427/corex5-py311-20261009/vendor/apache_tvm_ffi-0.1.11%2Bcorex.5.0.0-cp311-cp311-linux_aarch64.whl#sha256=f10d28bb2e7f6730cf27d25aad5561a9ca4d3b3d01ffc0490c241a084a6a13de
++annotated-doc==0.0.5
++annotated-types==0.8.0
++anthropic==2.6.0
++anyio==4.16.0
++apache-tvm-ffi==0.1.15.post2
+ astor==0.8.1
+-attrs==25.4.0
+-blake3==1.0.8
+-cachetools==7.0.1
+-cbor2==5.8.0
+-certifi==2026.1.4
+-cffi==2.0.0
+-charset-normalizer==3.4.4
+-click==8.2.1
++attrs==26.1.0
++blake3==1.0.11
++cachetools==7.2.8
++cbor2==6.2.0.post2
++certifi==2026.10.23
++cffi==2.1.1
++charset-normalizer==3.5.2
++click==8.5.0
+ cloudpickle==3.1.2
+ compressed-tensors==0.17.0
+ cryptography==50.0.2
+@@ -23,150 +23,135 @@
+ detect-installer==0.2.1
+ dill==0.4.1
+ diskcache==5.6.3
+-distro==1.9.0
+-dnspython==2.8.0
++dnspython==2.9.2
+ docstring_parser==0.18.0
+-einops==0.6.1
++einops==0.8.2
+ email-validator==2.3.0
+-et_xmlfile==2.0.0
+-exceptiongroup==1.3.1
+-fastapi==0.129.0
+-fastapi-cli==0.0.21
++fastapi==0.162.0
++fastapi-cli==0.0.32
+ fastapi-cloud-cli==0.26.0
+ fastar==0.12.0
+-fastrlock==0.8.3
+-filelock==3.23.0
++filelock==4.2.9
+ frozenlist==1.8.0
+-fsspec==2025.10.0
+-genson==1.4.0
+-gguf==0.17.1
+-googleapis-common-protos==1.75.5
+-grpcio==1.84.0
++fsspec==2026.9.0
++googleapis-common-protos==1.76.0
++grpcio==1.85.1
+ h11==0.16.0
+-hf_transfer==0.1.9
+-hf-xet==1.2.0
++hf-xet==1.8.0
+ httpcore==1.0.9
+-httptools==0.7.1
++httpcore2==2.16.0
++httptools==0.9.0
+ httpx==0.28.1
+-httpx-sse==0.4.3
+-huggingface_hub==1.5.0
+-idna==3.11
+-ijson==3.5.1
++httpx2==2.16.0
++huggingface_hub==2.4.0
++idna==3.20
++ijson==3.6.0
+ iniconfig==2.3.1
+ interegular==0.3.3
+ ixformer @ file:///home/z30059427/corex5-py311-20261009/vendor/ixformer-0.7.0%2Bcorex.5.0.0-cp311-cp311-linux_aarch64.whl#sha256=47f607cdcfd592b6ef67fc61ecee707c8f7ebee27e82488b459a53206857a4f7
+ Jinja2==3.1.6
+-jiter==0.13.0
++jiter==0.18.0
+ jmespath==1.1.0
+-jsonpath-ng==1.9.1
+ jsonschema==4.26.0
+ jsonschema-specifications==2025.9.1
+ lark==1.2.2
+-llguidance==1.7.0
++llguidance==1.7.6
+ llvmlite==0.47.0
+ lm-format-enforcer==0.11.3
+ loguru==0.7.3
+ markdown-it-py==4.2.0
+-MarkupSafe==3.0.3
+-mcp==1.30.0
++MarkupSafe==3.0.4
++mcp==2.3.0
++mcp-types==2.3.0
+ mdurl==0.1.2
+-mistral_common==1.11.3
+-model-hosting-container-standards==0.1.14
+-mpi4py==4.1.1
++mistral_common==1.13.1
++model-hosting-container-standards==0.1.16
++mpi4py==4.1.2
+ mpmath==1.3.0
+-msgpack==1.1.2
+-msgspec==0.20.0
+-multidict==6.7.1
+-networkx==3.4.2
+-ninja==1.13.0
++msgspec==0.22.0
++multidict==7.2.1
++networkx==3.6.1
++ninja==1.13.2
+ numba==0.65.0
+ numpy==1.26.4
+-openai==2.21.0
++openai==3.46.0
+ openai-harmony==0.0.8
+ opencv-python-headless==4.11.0.86
+-openpyxl==3.1.5
+-opentelemetry-api==1.45.1
+-opentelemetry-exporter-http-transport==0.66b1
+-opentelemetry-exporter-otlp==1.45.1
+-opentelemetry-exporter-otlp-common==0.66b1
+-opentelemetry-exporter-otlp-proto-common==1.45.1
+-opentelemetry-exporter-otlp-proto-grpc==1.45.1
+-opentelemetry-exporter-otlp-proto-http==1.45.1
+-opentelemetry-proto==1.45.1
+-opentelemetry-sdk==1.45.1
+-opentelemetry-semantic-conventions==0.66b1
++opentelemetry-api==1.45.2
++opentelemetry-exporter-http-transport==0.66b2
++opentelemetry-exporter-otlp==1.45.2
++opentelemetry-exporter-otlp-common==0.66b2
++opentelemetry-exporter-otlp-proto-common==1.45.2
++opentelemetry-exporter-otlp-proto-grpc==1.45.2
++opentelemetry-exporter-otlp-proto-http==1.45.2
++opentelemetry-proto==1.45.2
++opentelemetry-sdk==1.45.2
++opentelemetry-semantic-conventions==0.66b2
+ opentelemetry-semantic-conventions-ai==0.5.1
+-orjson==3.11.7
+-outlines==1.2.12
+ outlines_core==0.2.14
+-packaging==26.0
+-pandas==2.3.2
++packaging==26.3
++ echo '== 3. pip check（依赖一致性）=='
+== 3. pip check（依赖一致性）==
++ echo '-- base --'
+-- base --
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -m pip check
++ head -20
+No broken requirements found.
++ echo '-- new --'
+-- new --
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -m pip check
++ head -20
+No broken requirements found.
++ echo '== 4. 关键包版本（base / new 对照）=='
+== 4. 关键包版本（base / new 对照）==
++ for pkg in torch vllm triton transformers compressed-tensors numpy vllm-corex-metadata torch-module-attr-fastpath corex-host-fastpath hotspot-opt
++ echo '-- torch --'
+-- torch --
++ printf '  base: '
+  base: + docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -m pip show torch
++ awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
+Name=torch Version=2.10.0+corex.5.0.0 Location=/opt/corex311/lib/python3.11/site-packages 
++ printf '  new : '
+  new : + awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -m pip show torch
+Name=torch Version=2.10.0+corex.5.0.0 Location=/opt/corex311-cpython-vllm/lib/python3.11/site-packages 
++ for pkg in torch vllm triton transformers compressed-tensors numpy vllm-corex-metadata torch-module-attr-fastpath corex-host-fastpath hotspot-opt
++ echo '-- vllm --'
+-- vllm --
++ printf '  base: '
+  base: + docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -m pip show vllm
++ awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
+Name=vllm Version=0.23.0+corex.5.0.0 Location=/opt/corex311/lib/python3.11/site-packages 
++ printf '  new : '
+  new : + awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -m pip show vllm
+Name=vllm Version=0.23.0+corex.5.0.0 Location=/opt/corex311-cpython-vllm/lib/python3.11/site-packages 
++ for pkg in torch vllm triton transformers compressed-tensors numpy vllm-corex-metadata torch-module-attr-fastpath corex-host-fastpath hotspot-opt
++ echo '-- triton --'
+-- triton --
++ printf '  base: '
+  base: + docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -m pip show triton
++ awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
+Name=triton Version=3.2.0+corex.5.0.0 Location=/opt/corex311/lib/python3.11/site-packages 
++ printf '  new : '
+  new : + docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -m pip show triton
++ awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
+Name=triton Version=3.2.0+corex.5.0.0 Location=/opt/corex311-cpython-vllm/lib/python3.11/site-packages 
++ for pkg in torch vllm triton transformers compressed-tensors numpy vllm-corex-metadata torch-module-attr-fastpath corex-host-fastpath hotspot-opt
++ echo '-- transformers --'
+-- transformers --
++ printf '  base: '
+  base: + docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -m pip show transformers
++ awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
+Name=transformers Version=5.5.3 Location=/opt/corex311/lib/python3.11/site-packages 
++ printf '  new : '
+  new : + docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -m pip show transformers
++ awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
+Name=transformers Version=5.22.1 Location=/opt/corex311-cpython-vllm/lib/python3.11/site-packages 
++ for pkg in torch vllm triton transformers compressed-tensors numpy vllm-corex-metadata torch-module-attr-fastpath corex-host-fastpath hotspot-opt
++ echo '-- compressed-tensors --'
+-- compressed-tensors --
++ printf '  base: '
+  base: + docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -m pip show compressed-tensors
++ awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
+Name=compressed-tensors Version=0.17.0 Location=/opt/corex311/lib/python3.11/site-packages 
++ printf '  new : '
+  new : + docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -m pip show compressed-tensors
++ awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
+Name=compressed-tensors Version=0.17.0 Location=/opt/corex311-cpython-vllm/lib/python3.11/site-packages 
++ for pkg in torch vllm triton transformers compressed-tensors numpy vllm-corex-metadata torch-module-attr-fastpath corex-host-fastpath hotspot-opt
++ echo '-- numpy --'
+-- numpy --
++ printf '  base: '
+  base: + awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -m pip show numpy
+Name=numpy Version=1.26.4 Name=lapack-lite Name=tempita Name=dragon4 Name=libdivide Name=Meson Name=spin Name=lapack-lite Name=tempita Name=dragon4 Name=libdivide Name=Meson Name=spin Name=OpenBLAS Name=LAPACK Name=GCC runtime library Version 3.1, 31 March 2009= Name=libquadmath Location=/opt/corex311/lib/python3.11/site-packages 
++ printf '  new : '
+  new : + docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -m pip show numpy
++ awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
+Name=numpy Version=1.26.4 Name=lapack-lite Name=tempita Name=dragon4 Name=libdivide Name=Meson Name=spin Name=lapack-lite Name=tempita Name=dragon4 Name=libdivide Name=Meson Name=spin Name=OpenBLAS Name=LAPACK Name=GCC runtime library Version 3.1, 31 March 2009= Name=libquadmath Location=/opt/corex311-cpython-vllm/lib/python3.11/site-packages 
++ for pkg in torch vllm triton transformers compressed-tensors numpy vllm-corex-metadata torch-module-attr-fastpath corex-host-fastpath hotspot-opt
++ echo '-- vllm-corex-metadata --'
+-- vllm-corex-metadata --
++ printf '  base: '
+  base: + docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -m pip show vllm-corex-metadata
++ awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
+
++ printf '  new : '
+  new : + docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -m pip show vllm-corex-metadata
++ awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
+
++ for pkg in torch vllm triton transformers compressed-tensors numpy vllm-corex-metadata torch-module-attr-fastpath corex-host-fastpath hotspot-opt
++ echo '-- torch-module-attr-fastpath --'
+-- torch-module-attr-fastpath --
++ printf '  base: '
+  base: + docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -m pip show torch-module-attr-fastpath
++ awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
+Name=torch-module-attr-fastpath Version=0.1.0.dev2 Location=/opt/corex311/lib/python3.11/site-packages 
++ printf '  new : '
+  new : + docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -m pip show torch-module-attr-fastpath
++ awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
+
++ for pkg in torch vllm triton transformers compressed-tensors numpy vllm-corex-metadata torch-module-attr-fastpath corex-host-fastpath hotspot-opt
++ echo '-- corex-host-fastpath --'
+-- corex-host-fastpath --
++ printf '  base: '
+  base: + docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -m pip show corex-host-fastpath
++ awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
+
++ printf '  new : '
+  new : + docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -m pip show corex-host-fastpath
++ awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
+
++ for pkg in torch vllm triton transformers compressed-tensors numpy vllm-corex-metadata torch-module-attr-fastpath corex-host-fastpath hotspot-opt
++ echo '-- hotspot-opt --'
+-- hotspot-opt --
++ printf '  base: '
+  base: + docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -m pip show hotspot-opt
++ awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
+
++ printf '  new : '
+  new : + docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -m pip show hotspot-opt
++ awk '-F: ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
+
++ echo '== 5. site-packages 里的 .pth / direct_url（看注入方式与 wheel 来源）=='
+== 5. site-packages 里的 .pth / direct_url（看注入方式与 wheel 来源）==
++ docker exec corex5-py311 sh -c '
+for V in /opt/corex311 /opt/corex311-cpython-vllm; do
+  echo "-- $V --"
+  ls -l $V/lib/python3.11/site-packages/*.pth 2>/dev/null || echo "no .pth"
+  for f in $V/lib/python3.11/site-packages/*.pth; do
+    [ -f "$f" ] && echo "  [$f]" && sed -n "1,3p" "$f"
+  done
+  for d in $V/lib/python3.11/site-packages/vllm-*.dist-info $V/lib/python3.11/site-packages/torch-*.dist-info; do
+    [ -f "$d/direct_url.json" ] && echo "  $d/direct_url.json:" && cat "$d/direct_url.json"
+  done
+done
+'
+-- /opt/corex311 --
+-rw-rw-r--+ 1 root root 151 Oct  9 14:52 /opt/corex311/lib/python3.11/site-packages/distutils-precedence.pth
+-rw-r--r--. 1 root root  90 Nov  6 12:41 /opt/corex311/lib/python3.11/site-packages/torch_module_attr_fastpath.pth
+  [/opt/corex311/lib/python3.11/site-packages/distutils-precedence.pth]
+import os; var = 'SETUPTOOLS_USE_DISTUTILS'; enabled = os.environ.get(var, 'local') == 'local'; enabled and __import__('_distutils_hack').add_shim(); 
+  [/opt/corex311/lib/python3.11/site-packages/torch_module_attr_fastpath.pth]
+import torch_module_attr_fastpath_bootstrap; torch_module_attr_fastpath_bootstrap.start()
+  /opt/corex311/lib/python3.11/site-packages/vllm-0.23.0+corex.5.0.0.dist-info/direct_url.json:
+{"archive_info": {"hash": "sha256=37bf95e66069fcfef7e0e339f806ddfc1a29741d210d888c3fa3673060ecab05", "hashes": {"sha256": "37bf95e66069fcfef7e0e339f806ddfc1a29741d210d888c3fa3673060ecab05"}}, "url": "file:///home/z30059427/corex5-py311-20261009/vendor/vllm-0.23.0%2Bcorex.5.0.0-py3-none-any.whl"}  /opt/corex311/lib/python3.11/site-packages/torch-2.10.0+corex.5.0.0.dist-info/direct_url.json:
+{"archive_info": {"hash": "sha256=33f6da11e903fc1147389f0e8131b8ecc7b16ab77116a3718440e02dfbc81b9c", "hashes": {"sha256": "33f6da11e903fc1147389f0e8131b8ecc7b16ab77116a3718440e02dfbc81b9c"}}, "url": "file:///home/z30059427/corex5-py311-20261009/vendor/torch-2.10.0%2Bcorex.5.0.0-cp311-cp311-linux_aarch64.whl"}-- /opt/corex311-cpython-vllm --
+-rw-r--r--. 1 root root 151 Nov  6 10:18 /opt/corex311-cpython-vllm/lib/python3.11/site-packages/distutils-precedence.pth
+  [/opt/corex311-cpython-vllm/lib/python3.11/site-packages/distutils-precedence.pth]
+import os; var = 'SETUPTOOLS_USE_DISTUTILS'; enabled = os.environ.get(var, 'local') == 'local'; enabled and __import__('_distutils_hack').add_shim(); 
+  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm-0.23.0+corex.5.0.0.dist-info/direct_url.json:
+{"archive_info": {"hash": "sha256=37bf95e66069fcfef7e0e339f806ddfc1a29741d210d888c3fa3673060ecab05", "hashes": {"sha256": "37bf95e66069fcfef7e0e339f806ddfc1a29741d210d888c3fa3673060ecab05"}}, "url": "file:///home/z30059427/corex5-py311-20261009/vendor/vllm-0.23.0%2Bcorex.5.0.0-py3-none-any.whl"}  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch-2.10.0+corex.5.0.0.dist-info/direct_url.json:
+{"archive_info": {"hash": "sha256=33f6da11e903fc1147389f0e8131b8ecc7b16ab77116a3718440e02dfbc81b9c", "hashes": {"sha256": "33f6da11e903fc1147389f0e8131b8ecc7b16ab77116a3718440e02dfbc81b9c"}}, "url": "file:///home/z30059427/corex5-py311-20261009/vendor/torch-2.10.0%2Bcorex.5.0.0-cp311-cp311-linux_aarch64.whl"}+ echo '== 6. host fastpath 交付形态（这是关键分歧点）=='
+== 6. host fastpath 交付形态（这是关键分歧点）==
++ docker exec corex5-py311 sh -c '
+for V in /opt/corex311 /opt/corex311-cpython-vllm; do
+  SP=$V/lib/python3.11/site-packages
+  echo "-- $V --"
+  if [ -d $SP/vllm/v1/worker/host_fastpath ]; then
+    echo "  host_fastpath dir: yes"
+    ls -l $SP/vllm/v1/worker/host_fastpath
+  else
+    echo "  host_fastpath dir: no"
+  fi
+  if [ -f $SP/vllm/v1/worker/corex_host_opt.py ]; then
+    echo "  corex_host_opt.py: yes ($(wc -c < $SP/vllm/v1/worker/corex_host_opt.py) bytes)"
+  else
+    echo "  corex_host_opt.py: no"
+  fi
+  if [ -d $SP/corex_host_native ]; then
+    echo "  corex_host_native: yes"
+    find $SP/corex_host_native -maxdepth 2 -type f | head -10
+  else
+    echo "  corex_host_native: no"
+  fi
+  echo -n "  gpu_model_runner host_fastpath 命中行数: "
+  grep -c "host_fastpath" $SP/vllm/v1/worker/gpu_model_runner.py 2>/dev/null || echo 0
+  sha256sum $SP/vllm/v1/worker/gpu_model_runner.py 2>/dev/null
+  sha256sum $SP/vllm/model_executor/models/ilu_flash_attn.py 2>/dev/null
+done
+'
+-- /opt/corex311 --
+  host_fastpath dir: no
+  corex_host_opt.py: no
+  corex_host_native: no
+  gpu_model_runner host_fastpath 命中行数: 15
+c2716da90e2cd6103c0d36702476fd5531a45a09449379d582ac9b0c4d473866  /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+-- /opt/corex311-cpython-vllm --
+  host_fastpath dir: no
+  corex_host_opt.py: no
+  corex_host_native: no
+  gpu_model_runner host_fastpath 命中行数: 0
+0
+ff9f2df42976347b85fbd6e12623b217e1beda6d5248a5662b3cf397eacaef59  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
++ echo '-- 两类 venv 中关键文件是否一致 --'
+-- 两类 venv 中关键文件是否一致 --
++ for f in vllm/v1/worker/gpu_model_runner.py vllm/model_executor/models/ilu_flash_attn.py
+++ docker exec corex5-py311 sha256sum /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+++ awk '{print $1}'
++ A=c2716da90e2cd6103c0d36702476fd5531a45a09449379d582ac9b0c4d473866
+++ docker exec corex5-py311 sha256sum /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+++ awk '{print $1}'
++ B=ff9f2df42976347b85fbd6e12623b217e1beda6d5248a5662b3cf397eacaef59
++ echo vllm/v1/worker/gpu_model_runner.py
+vllm/v1/worker/gpu_model_runner.py
++ echo '  base=c2716da90e2cd6103c0d36702476fd5531a45a09449379d582ac9b0c4d473866'
+  base=c2716da90e2cd6103c0d36702476fd5531a45a09449379d582ac9b0c4d473866
++ echo '  new =ff9f2df42976347b85fbd6e12623b217e1beda6d5248a5662b3cf397eacaef59'
+  new =ff9f2df42976347b85fbd6e12623b217e1beda6d5248a5662b3cf397eacaef59
++ for f in vllm/v1/worker/gpu_model_runner.py vllm/model_executor/models/ilu_flash_attn.py
+++ docker exec corex5-py311 sha256sum /opt/corex311/lib/python3.11/site-packages/vllm/model_executor/models/ilu_flash_attn.py
+++ awk '{print $1}'
++ A=
+++ docker exec corex5-py311 sha256sum /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/model_executor/models/ilu_flash_attn.py
+++ awk '{print $1}'
++ B=
++ echo vllm/model_executor/models/ilu_flash_attn.py
+vllm/model_executor/models/ilu_flash_attn.py
++ echo '  base='
+  base=
++ echo '  new ='
+  new =
++ echo '== 7. 容器级干扰项：PYTHONPATH / sitecustomize =='
+== 7. 容器级干扰项：PYTHONPATH / sitecustomize ==
++ docker exec corex5-py311 sh -c 'echo PYTHONPATH=${PYTHONPATH:-<empty>}; echo PYTHONHOME=${PYTHONHOME:-<empty>}'
+PYTHONPATH=/usr/local/lib/python3.12/site-packages
+PYTHONHOME=<empty>
++ docker exec corex5-py311 sh -c '
+ls -l /home/huawei_ts_program/litehost_perf_opt/sitecustomize.py 2>/dev/null || echo "no litehost sitecustomize"
+grep -n "HOST_FASTPATH\|torch_module_attr\|corex" /home/huawei_ts_program/litehost_perf_opt/sitecustomize.py 2>/dev/null | head -12
+for V in /opt/corex311 /opt/corex311-cpython-vllm; do
+  echo -n "$V sitecustomize: "; ls -l $V/lib/python3.11/site-packages/sitecustomize.py 2>/dev/null || echo none
+done
+'
+no litehost sitecustomize
+/opt/corex311 sitecustomize: none
+/opt/corex311-cpython-vllm sitecustomize: none
++ echo '== 8. import smoke（干净 PYTHONPATH，不占卡）=='
+== 8. import smoke（干净 PYTHONPATH，不占卡）==
++ echo '-- new venv --'
+-- new venv --
++ timeout 180 docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -c '
+import sys, sysconfig
+print("prefix/base", sys.prefix, sys.base_prefix)
+import torch
+print("torch", torch.__version__, torch.__file__)
+import vllm
+print("vllm", vllm.__version__, vllm.__file__)
+import transformers, compressed_tensors
+print("transformers", transformers.__version__)
+print("compressed_tensors", compressed_tensors.__version__)
+print("pgo", "--prefix=/opt/cpython-vllm/v1" in (sysconfig.get_config_var("CONFIG_ARGS") or ""))
+'
++ grep -vE '^(INFO|WARNING|DeprecationWarning)'
++ tail -12
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+prefix/base /opt/corex311-cpython-vllm /opt/cpython-vllm/v1
+torch 2.10.0 /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/__init__.py
+vllm 0.23.0 /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/__init__.py
+transformers 5.22.1
+compressed_tensors 0.17.0
+pgo True
++ echo '-- new venv: torch fastpath status --'
+-- new venv: torch fastpath status --
++ timeout 120 docker exec -e PYTHONPATH= -e PYTHONHOME= -e TORCH_MODULE_ATTR_FASTPATH=slot_native corex5-py311 /opt/corex311-cpython-vllm/bin/python -c 'import torch, torch_module_attr_fastpath as m; print(m.status())'
++ tail -3
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+ModuleNotFoundError: No module named 'torch_module_attr_fastpath'
++ echo '-- base venv 对照 --'
+-- base venv 对照 --
++ timeout 120 docker exec -e PYTHONPATH= -e PYTHONHOME= -e TORCH_MODULE_ATTR_FASTPATH=slot_native corex5-py311 /opt/corex311/bin/python -c 'import torch, torch_module_attr_fastpath as m; print(torch.__version__); print(m.status())'
++ tail -3
+2.10.0
+{'enabled': True, 'mode': 'slot_native', 'patched_types': 355, 'tracks_new_types': True, 'scope': 'process', 'version': '0.1.0.dev2'}
++ echo '== 9. 厂商 bundle / hashed 清单 / 校验器 =='
+== 9. 厂商 bundle / hashed 清单 / 校验器 ==
++ docker exec corex5-py311 sh -c '
+B=/home/huawei_ts_program/corex5_py311_setup_20261029/assets/corex5-py311-20261009
+echo "bundle: $B"
+ls -l $B 2>/dev/null | head -10
+echo -n "requirements-all.hashed.txt 行数: "; wc -l < $B/requirements-all.hashed.txt 2>/dev/null || echo missing
+sed -n "1,4p" $B/requirements-all.hashed.txt 2>/dev/null
+echo -n "wheels 数量: "; ls $B/wheels 2>/dev/null | wc -l
+echo -n "vendor 数量: "; ls $B/vendor 2>/dev/null | wc -l
+ls -l /home/huawei_ts_program/corex5_py311_setup_20261029/verify_corex311.py 2>/dev/null || echo "verify_corex311.py not at bundle parent"
+'
+bundle: /home/huawei_ts_program/corex5_py311_setup_20261029/assets/corex5-py311-20261009
+requirements-all.hashed.txt 行数: missing
+sh: 5: cannot open /home/huawei_ts_program/corex5_py311_setup_20261029/assets/corex5-py311-20261009/requirements-all.hashed.txt: No such file
+wheels 数量: 0
+vendor 数量: 0
+verify_corex311.py not at bundle parent
++ echo '== 10. 当前运行进程 / rebase 状态 / 磁盘（只读）=='
+== 10. 当前运行进程 / rebase 状态 / 磁盘（只读）==
++ pgrep -af 'vllm.entrypoints|bench_driver|vllmBench'
++ head -10
+1154055 bash vllmBench_lite_opt.sh
+1157980 /opt/corex311/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8848 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --dtype auto --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1 --tensor_parallel_size 4 --data_parallel_size 1 --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto --enable_chunked_prefill --compilation-config {"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0} --async-scheduling --no-enable-prefix-caching --worker-cls light_host_worker.LightHostWorker
+1521230 /opt/corex311/bin/python3 /home/huawei_ts_program/litehost_perf_opt/bench_driver.py --backend vllm --num_prompts 100 --num-warmups 16 --max-concurrency 8 --dataset_name random --random_input_len 2048 --random_output_len 2048 --host 127.0.0.1 --port 8848 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --ignore_eos --top_p 1 --top_k -1 --temperature 0 --seed 42 --save-result --result-dir /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706 --result_filename bs8_in2048_out2048.json
+++ pgrep -f vllm.entrypoints.openai.api_server
++ for p in $(pgrep -f 'vllm.entrypoints.openai.api_server' 2>/dev/null)
+++ readlink -f /proc/1157980/exe
++ echo '-- PID 1157980 exe:  --'
+-- PID 1157980 exe:  --
++ tr '\0' '\n'
++ grep -E 'PYTHONPATH|VIRTUAL_ENV|VLLM_HOST_FASTPATH|TORCH_MODULE_ATTR'
+VIRTUAL_ENV=/opt/corex311
+VIRTUAL_ENV_PROMPT=(corex311) 
+VLLM_HOST_FASTPATH=on
+TORCH_MODULE_ATTR_FASTPATH=slot_native
+PYTHONPATH=/home/huawei_ts_program/litehost_perf_opt
++ docker exec corex5-py311 sh -c 'ls -lt /root/.local/state/cpython-vllm-rebase 2>/dev/null | head -6'
+total 163480
+-rw-r--r--. 1 root root 2881714 Nov  6 14:28 20261106T062707Z_ebec8153.report.tar.gz
+drwx------. 4 root root    4096 Nov  6 14:28 20261106T062707Z_ebec8153
+-rw-------. 1 root root     231 Nov  6 14:27 venv-846d7beac5dcf2dd486260d933f7b57779f32caf47cfb57de1724c7435b95581.json
+-rw-r--r--. 1 root root     988 Nov  6 14:15 20261106T061503Z_b4640934.report.tar.gz
+drwx------. 2 root root    4096 Nov  6 14:15 20261106T061503Z_b4640934
++ docker exec corex5-py311 sh -c 'df -h /opt /home | tail -3'
+Filesystem      Size  Used Avail Use% Mounted on
+overlay         6.9T  3.4T  3.2T  52% /
+/dev/nvme0n1p6  6.9T  3.4T  3.2T  52% /home
++ set +x
+
+### exit: 0
