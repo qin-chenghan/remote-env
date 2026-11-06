@@ -1,0 +1,54 @@
+### server: 184
+### host:   controller
+### time:   2026-11-06T08:40:22Z
+
++ CON=corex5-py311
++ SP=/opt/corex311/lib/python3.11/site-packages
++ docker exec corex5-py311 sh -c '
+SP=/opt/corex311/lib/python3.11/site-packages
+echo "== 1. vllm/iluvatar 列表 =="
+ls -la --time-style=long-iso $SP/vllm/iluvatar/ 2>/dev/null
+
+echo "== 2. 旧补丁新增的 4 个辅助文件 =="
+for f in metadata_optimization.py native_input_metadata.py native_spec_metadata.py input_pipeline.py; do
+  if [ -f "$SP/vllm/iluvatar/$f" ]; then sha256sum "$SP/vllm/iluvatar/$f"; else echo "MISSING $f"; fi
+done
+
+echo "== 3. 谁引用这些模块 =="
+grep -rn "metadata_optimization\|native_input_metadata\|native_spec_metadata\|input_pipeline" $SP/vllm --include="*.py" 2>/dev/null \
+  | grep -vE "iluvatar/(metadata_optimization|native_input_metadata|native_spec_metadata|input_pipeline)\.py:" \
+  | head -30
+
+echo "== 4. 其他 metadata fastpath 残留 =="
+find $SP -maxdepth 2 \( -name "*metadata*fastpath*" -o -name "corex_metadata*" \) 2>/dev/null | head -20
+'
+== 1. vllm/iluvatar 列表 ==
+total 180
+drwxrwxr-x+  6 root root  4096 2026-10-29 15:31 .
+drwxrwxr-x+ 39 root root  4096 2026-11-06 11:44 ..
+drwxrwxr-x+  4 root root  4096 2026-10-29 15:31 distributed
+-rw-rw-r--+  1 root root  2382 2026-10-29 15:31 _ilu_adapt.py
+-rw-rw-r--+  1 root root  5254 2026-10-29 15:31 _ilu_bootstrap.py
+-rw-rw-r--+  1 root root  7131 2026-10-29 15:31 ilu_envs.py
+-rw-rw-r--+  1 root root  4288 2026-10-29 15:31 _ilu_import_hook.py
+-rw-rw-r--+  1 root root   986 2026-10-29 15:31 _ilu_patches_general.py
+-rw-rw-r--+  1 root root  1047 2026-10-29 15:31 _ilu_patches_import.py
+-rw-rw-r--+  1 root root  3914 2026-10-29 15:31 _ilu_utils.py
+-rw-rw-r--+  1 root root   122 2026-10-29 15:31 __init__.py
+-rw-rw-r--+  1 root root  6797 2026-10-21 14:10 input_pipeline.py
+-rw-rw-r--+  1 root root  5692 2026-10-21 14:10 metadata_optimization.py
+-rw-rw-r--+  1 root root  4748 2026-10-21 14:10 native_input_metadata.py
+-rw-rw-r--+  1 root root 12295 2026-10-21 14:10 native_spec_metadata.py
+drwxrwxr-x+  3 root root  4096 2026-10-29 15:31 patch
+drwxrwxr-x+  3 root root  4096 2026-10-29 15:31 platforms
+drwxrwxr-x+  2 root root  4096 2026-10-29 15:31 __pycache__
+== 2. 旧补丁新增的 4 个辅助文件 ==
+dd6c02efca835cd729de90092161f310e9679ad791051c51a2370863a18ff39c  /opt/corex311/lib/python3.11/site-packages/vllm/iluvatar/metadata_optimization.py
+472d6b54cb3b4db2962efa3006d814826ca6da105d26eedf7f5a9e32b41c1f2f  /opt/corex311/lib/python3.11/site-packages/vllm/iluvatar/native_input_metadata.py
+933134bc1f61ed53277ce750f0135484bbe604859042ed5ad91bb19c19f4e660  /opt/corex311/lib/python3.11/site-packages/vllm/iluvatar/native_spec_metadata.py
+5714cf4ff13132f93906fd714dfbcc58a5f6c1d870b624a81a728fe3dd6173ad  /opt/corex311/lib/python3.11/site-packages/vllm/iluvatar/input_pipeline.py
+== 3. 谁引用这些模块 ==
+== 4. 其他 metadata fastpath 残留 ==
++ set +x
+
+### exit: 0
