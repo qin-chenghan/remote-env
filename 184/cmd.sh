@@ -17,158 +17,157 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 本轮严格只读：不安装、不创建/修改 venv、不动运行中的服务。
-  # 仅在本机 /tmp 写两个 pip freeze 临时文件用于 diff。
+  # 第二批：仍然严格只读。不安装、不建 venv、不动服务。
+  # 目标：把上轮发现的“包集合漂移”量化，并定位真实 bundle 与 host fastpath 补丁来源。
 
   CON=corex5-py311
   BASE=/opt/corex311
   NEW=/opt/corex311-cpython-vllm
 
-  echo "== 1. 两个 venv 的壳子与解释器 =="
-  docker exec "$CON" sh -c "ls -ld $BASE $NEW 2>&1; echo ---; du -sh $BASE $NEW 2>&1"
-  docker exec "$CON" sh -c "echo '[base pyvenv.cfg]'; cat $BASE/pyvenv.cfg 2>&1; echo; echo '[new pyvenv.cfg]'; cat $NEW/pyvenv.cfg 2>&1"
+  echo "== 1. 包集合漂移量化（复用上轮 /tmp 文件，不存在则重建）=="
+  if [ ! -f /tmp/freeze-base.txt ] || [ ! -f /tmp/freeze-new.txt ]; then
+    docker exec -e PYTHONPATH= -e PYTHONHOME= -e PIP_DISABLE_PIP_VERSION_CHECK=1 \
+      "$CON" "$BASE/bin/python" -m pip freeze --all 2>/dev/null | sort > /tmp/freeze-base.txt
+    docker exec -e PYTHONPATH= -e PYTHONHOME= -e PIP_DISABLE_PIP_VERSION_CHECK=1 \
+      "$CON" "$NEW/bin/python" -m pip freeze --all 2>/dev/null | sort > /tmp/freeze-new.txt
+  fi
+  python3 - <<'PY'
+def parse(path):
+    d = {}
+    for line in open(path):
+        line = line.strip()
+        if not line:
+            continue
+        if '==' in line and ' @ ' not in line:
+            name = line.split('==', 1)[0]
+        elif ' @ ' in line:
+            name = line.split(' @ ', 1)[0]
+        else:
+            name = line
+        d[name.lower()] = line
+    return d
+
+base = parse('/tmp/freeze-base.txt')
+new = parse('/tmp/freeze-new.txt')
+only_base = sorted(set(base) - set(new))
+only_new = sorted(set(new) - set(base))
+mismatch = sorted(n for n in set(base) & set(new) if base[n] != new[n])
+
+print(f"base={len(base)} new={len(new)} same={len(set(base)&set(new)) - len(mismatch)} "
+      f"version_mismatch={len(mismatch)} only_base={len(only_base)} only_new={len(only_new)}")
+print("--- 版本不同（name | base -> new）---")
+for n in mismatch:
+    b = base[n]
+    m = new[n]
+    if ' @ ' in b or ' @ ' in m:
+        b = b[:110] + ('...' if len(b) > 110 else '')
+        m = m[:110] + ('...' if len(m) > 110 else '')
+    else:
+        b = b.split('==', 1)[-1]
+        m = m.split('==', 1)[-1]
+    print(f"{n} | {b} -> {m}")
+print("--- 只在 base（新 venv 缺）---")
+for n in only_base:
+    print(base[n])
+print("--- 只在 new（base 没有）---")
+for n in only_new:
+    print(new[n])
+PY
+
+  echo "== 2. host fastpath 模块的真实位置（find_spec，不 import vllm 本体）=="
   for V in "$BASE" "$NEW"; do
     echo "-- $V --"
-    docker exec -e PYTHONPATH= -e PYTHONHOME= "$CON" "$V/bin/python" -c '
-import sys, sysconfig
-print("version      ", sys.version.split()[0])
-print("sys.prefix   ", sys.prefix)
-print("sys.base_prefix", sys.base_prefix)
-print("executable   ", sys.executable)
-args = sysconfig.get_config_var("CONFIG_ARGS") or ""
-print("pgo          ", "--prefix=/opt/cpython-vllm/v1" in args)
-print("config_args  ", args[:160])
-' 2>&1 | tail -8
+    timeout 120 docker exec -e PYTHONPATH= -e PYTHONHOME= "$CON" "$V/bin/python" -c '
+import importlib.util as u
+for m in ("vllm.v1.worker.host_fastpath",
+          "vllm.v1.worker.corex_host_opt",
+          "corex_host_opt",
+          "corex_host_native",
+          "corex_host_native.inputs",
+          "corex_host_native.bookkeeping",
+          "corex_host_native.metadata"):
+    try:
+        s = u.find_spec(m)
+    except Exception as e:
+        print(f"{m:45s} ERR {type(e).__name__}: {e}")
+        continue
+    origin = getattr(s, "origin", None) if s else None
+    print(f"{m:45s} {origin}")
+' 2>&1 | grep -v '^INFO' | tail -10
   done
 
-  echo "== 2. 包集合 diff（freeze --all，已剔除 pip 警告）=="
-  docker exec -e PYTHONPATH= -e PYTHONHOME= -e PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    "$CON" "$BASE/bin/python" -m pip freeze --all 2>/dev/null | sort > /tmp/freeze-base.txt
-  docker exec -e PYTHONPATH= -e PYTHONHOME= -e PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    "$CON" "$NEW/bin/python" -m pip freeze --all 2>/dev/null | sort > /tmp/freeze-new.txt
-  echo "base 包数: $(wc -l < /tmp/freeze-base.txt)"
-  echo "new  包数: $(wc -l < /tmp/freeze-new.txt)"
-  echo "-- 明细 diff（< 只在 base，> 只在 new）--"
-  diff -u /tmp/freeze-base.txt /tmp/freeze-new.txt | head -160
-
-  echo "== 3. pip check（依赖一致性）=="
-  echo "-- base --"
-  docker exec -e PYTHONPATH= -e PYTHONHOME= "$CON" "$BASE/bin/python" -m pip check 2>&1 | head -20
-  echo "-- new --"
-  docker exec -e PYTHONPATH= -e PYTHONHOME= "$CON" "$NEW/bin/python" -m pip check 2>&1 | head -20
-
-  echo "== 4. 关键包版本（base / new 对照）=="
-  for pkg in torch vllm triton transformers compressed-tensors numpy \
-             vllm-corex-metadata torch-module-attr-fastpath corex-host-fastpath hotspot-opt; do
-    echo "-- $pkg --"
-    printf '  base: '
-    docker exec -e PYTHONPATH= -e PYTHONHOME= "$CON" "$BASE/bin/python" -m pip show "$pkg" 2>/dev/null \
-      | awk -F': ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
-    printf '  new : '
-    docker exec -e PYTHONPATH= -e PYTHONHOME= "$CON" "$NEW/bin/python" -m pip show "$pkg" 2>/dev/null \
-      | awk -F': ' '/^(Name|Version|Location)/{printf "%s=%s ", $1, $2} END{print ""}'
-  done
-
-  echo "== 5. site-packages 里的 .pth / direct_url（看注入方式与 wheel 来源）=="
+  echo "== 3. base 里被 patch 的文件长什么样（只看 import 行与文件位置）=="
   docker exec "$CON" sh -c '
-for V in /opt/corex311 /opt/corex311-cpython-vllm; do
-  echo "-- $V --"
-  ls -l $V/lib/python3.11/site-packages/*.pth 2>/dev/null || echo "no .pth"
-  for f in $V/lib/python3.11/site-packages/*.pth; do
-    [ -f "$f" ] && echo "  [$f]" && sed -n "1,3p" "$f"
+SP=/opt/corex311/lib/python3.11/site-packages
+echo "-- host_fastpath 引用行 --"
+grep -n "host_fastpath\|corex_host" $SP/vllm/v1/worker/gpu_model_runner.py | head -25
+echo "-- ilu_flash_attn 真实路径 --"
+find $SP/vllm -name "ilu_flash_attn.py" -o -name "*ilu*attn*.py" 2>/dev/null | head
+echo "-- corex 相关顶层目录/文件 --"
+ls -d $SP/corex* 2>/dev/null
+ls $SP | grep -iE "corex|host" | head -20
+'
+
+  echo "== 4. 两个 venv 的“本地 wheel 来源”清单对比 =="
+  for V in "$BASE" "$NEW"; do
+    echo "-- $V --"
+    docker exec "$CON" sh -c "
+for f in $V/lib/python3.11/site-packages/*.dist-info/direct_url.json; do
+  url=\$(sed -n 's/.*\"url\": \"\\([^\"]*\\)\".*/\\1/p' \"\$f\")
+  [ -n \"\$url\" ] && echo \"\$(basename \$f) -> \$url\"
+done
+"
   done
-  for d in $V/lib/python3.11/site-packages/vllm-*.dist-info $V/lib/python3.11/site-packages/torch-*.dist-info; do
-    [ -f "$d/direct_url.json" ] && echo "  $d/direct_url.json:" && cat "$d/direct_url.json"
+
+  echo "== 5. vllm 声明的 transformers / tvm 约束 =="
+  for V in "$BASE" "$NEW"; do
+    echo "-- $V --"
+    timeout 120 docker exec -e PYTHONPATH= -e PYTHONHOME= "$CON" "$V/bin/python" -c '
+import importlib.metadata as m
+try:
+    reqs = m.requires("vllm") or []
+except Exception as e:
+    print("ERR", e); reqs = []
+for r in reqs:
+    if any(k in r.lower() for k in ("transformers", "tvm", "torch", "numpy", "compressed")):
+        print(r)
+' 2>&1 | tail -12
   done
+
+  echo "== 6. 定位真实安装 bundle 与 hashed 清单 =="
+  docker exec "$CON" sh -c '
+echo "-- /home/z30059427/corex5-py311-20261009 --"
+ls -la /home/z30059427/corex5-py311-20261009 2>/dev/null | head -15
+echo "-- requirements 文件 --"
+find /home/z30059427/corex5-py311-20261009 -maxdepth 3 -name "requirements*" 2>/dev/null | head -15
+echo "-- verify 脚本 --"
+find /home/z30059427/corex5-py311-20261009 -maxdepth 3 -name "verify_corex311.py" 2>/dev/null | head -3
+echo "-- huawei_ts_program 下的 setup 目录 --"
+ls -d /home/huawei_ts_program/corex5_py311_setup_* 2>/dev/null
+'
+  echo "-- host fastpath 补丁交付目录（只找标志文件）--"
+  timeout 90 docker exec "$CON" sh -c '
+for D in /home/z30059427 /home/qch /home/huawei_ts_program; do
+  find $D -maxdepth 5 \( -name "BASELINE.json" -o -name "corex_host_opt.py" -o -name "corex_host_native" \) 2>/dev/null | head -10
 done
 '
 
-  echo "== 6. host fastpath 交付形态（这是关键分歧点）=="
+  echo "== 7. 新 venv 里已装的“非 PyPI 来源”与编译扩展抽查 =="
   docker exec "$CON" sh -c '
-for V in /opt/corex311 /opt/corex311-cpython-vllm; do
-  SP=$V/lib/python3.11/site-packages
-  echo "-- $V --"
-  if [ -d $SP/vllm/v1/worker/host_fastpath ]; then
-    echo "  host_fastpath dir: yes"
-    ls -l $SP/vllm/v1/worker/host_fastpath
-  else
-    echo "  host_fastpath dir: no"
-  fi
-  if [ -f $SP/vllm/v1/worker/corex_host_opt.py ]; then
-    echo "  corex_host_opt.py: yes ($(wc -c < $SP/vllm/v1/worker/corex_host_opt.py) bytes)"
-  else
-    echo "  corex_host_opt.py: no"
-  fi
-  if [ -d $SP/corex_host_native ]; then
-    echo "  corex_host_native: yes"
-    find $SP/corex_host_native -maxdepth 2 -type f | head -10
-  else
-    echo "  corex_host_native: no"
-  fi
-  echo -n "  gpu_model_runner host_fastpath 命中行数: "
-  grep -c "host_fastpath" $SP/vllm/v1/worker/gpu_model_runner.py 2>/dev/null || echo 0
-  sha256sum $SP/vllm/v1/worker/gpu_model_runner.py 2>/dev/null
-  sha256sum $SP/vllm/model_executor/models/ilu_flash_attn.py 2>/dev/null
+SP=/opt/corex311-cpython-vllm/lib/python3.11/site-packages
+echo "-- apache-tvm-ffi / ixformer 的安装形态 --"
+ls -d $SP/apache_tvm_ffi* $SP/ixformer* 2>/dev/null
+for d in $SP/apache_tvm_ffi*.dist-info $SP/ixformer*.dist-info; do
+  [ -d "$d" ] && echo "[$d]" && ls "$d" | head -5 && { [ -f "$d/direct_url.json" ] && cat "$d/direct_url.json"; }
 done
-'
-  echo "-- 两类 venv 中关键文件是否一致 --"
-  for f in vllm/v1/worker/gpu_model_runner.py vllm/model_executor/models/ilu_flash_attn.py; do
-    A=$(docker exec "$CON" sha256sum "$BASE/lib/python3.11/site-packages/$f" 2>/dev/null | awk '{print $1}')
-    B=$(docker exec "$CON" sha256sum "$NEW/lib/python3.11/site-packages/$f" 2>/dev/null | awk '{print $1}')
-    echo "$f"; echo "  base=$A"; echo "  new =$B"
-  done
-
-  echo "== 7. 容器级干扰项：PYTHONPATH / sitecustomize =="
-  docker exec "$CON" sh -c 'echo PYTHONPATH=${PYTHONPATH:-<empty>}; echo PYTHONHOME=${PYTHONHOME:-<empty>}'
-  docker exec "$CON" sh -c '
-ls -l /home/huawei_ts_program/litehost_perf_opt/sitecustomize.py 2>/dev/null || echo "no litehost sitecustomize"
-grep -n "HOST_FASTPATH\|torch_module_attr\|corex" /home/huawei_ts_program/litehost_perf_opt/sitecustomize.py 2>/dev/null | head -12
-for V in /opt/corex311 /opt/corex311-cpython-vllm; do
-  echo -n "$V sitecustomize: "; ls -l $V/lib/python3.11/site-packages/sitecustomize.py 2>/dev/null || echo none
-done
+echo "-- 顶层 .so 数量（新 vs base）--"
+echo -n "new : "; find $SP -maxdepth 2 -name "*.so" | wc -l
+echo -n "base: "; find /opt/corex311/lib/python3.11/site-packages -maxdepth 2 -name "*.so" | wc -l
 '
 
-  echo "== 8. import smoke（干净 PYTHONPATH，不占卡）=="
-  echo "-- new venv --"
-  timeout 180 docker exec -e PYTHONPATH= -e PYTHONHOME= "$CON" "$NEW/bin/python" -c '
-import sys, sysconfig
-print("prefix/base", sys.prefix, sys.base_prefix)
-import torch
-print("torch", torch.__version__, torch.__file__)
-import vllm
-print("vllm", vllm.__version__, vllm.__file__)
-import transformers, compressed_tensors
-print("transformers", transformers.__version__)
-print("compressed_tensors", compressed_tensors.__version__)
-print("pgo", "--prefix=/opt/cpython-vllm/v1" in (sysconfig.get_config_var("CONFIG_ARGS") or ""))
-' 2>&1 | grep -vE '^(INFO|WARNING|DeprecationWarning)' | tail -12
-  echo "-- new venv: torch fastpath status --"
-  timeout 120 docker exec -e PYTHONPATH= -e PYTHONHOME= -e TORCH_MODULE_ATTR_FASTPATH=slot_native \
-    "$CON" "$NEW/bin/python" -c 'import torch, torch_module_attr_fastpath as m; print(m.status())' 2>&1 | tail -3
-  echo "-- base venv 对照 --"
-  timeout 120 docker exec -e PYTHONPATH= -e PYTHONHOME= -e TORCH_MODULE_ATTR_FASTPATH=slot_native \
-    "$CON" "$BASE/bin/python" -c 'import torch, torch_module_attr_fastpath as m; print(torch.__version__); print(m.status())' 2>&1 | tail -3
-
-  echo "== 9. 厂商 bundle / hashed 清单 / 校验器 =="
-  docker exec "$CON" sh -c '
-B=/home/huawei_ts_program/corex5_py311_setup_20261029/assets/corex5-py311-20261009
-echo "bundle: $B"
-ls -l $B 2>/dev/null | head -10
-echo -n "requirements-all.hashed.txt 行数: "; wc -l < $B/requirements-all.hashed.txt 2>/dev/null || echo missing
-sed -n "1,4p" $B/requirements-all.hashed.txt 2>/dev/null
-echo -n "wheels 数量: "; ls $B/wheels 2>/dev/null | wc -l
-echo -n "vendor 数量: "; ls $B/vendor 2>/dev/null | wc -l
-ls -l /home/huawei_ts_program/corex5_py311_setup_20261029/verify_corex311.py 2>/dev/null || echo "verify_corex311.py not at bundle parent"
-'
-
-  echo "== 10. 当前运行进程 / rebase 状态 / 磁盘（只读）=="
-  pgrep -af 'vllm.entrypoints|bench_driver|vllmBench' 2>/dev/null | head -10 || true
-  for p in $(pgrep -f 'vllm.entrypoints.openai.api_server' 2>/dev/null); do
-    echo "-- PID $p exe: $(readlink -f /proc/$p/exe 2>/dev/null) --"
-    tr '\0' '\n' < /proc/$p/environ 2>/dev/null | grep -E 'PYTHONPATH|VIRTUAL_ENV|VLLM_HOST_FASTPATH|TORCH_MODULE_ATTR' || true
-  done
-  docker exec "$CON" sh -c 'ls -lt /root/.local/state/cpython-vllm-rebase 2>/dev/null | head -6'
-  docker exec "$CON" sh -c 'df -h /opt /home | tail -3'
+  echo "== 8. 现场确认（服务仍在跑，不打扰）=="
+  pgrep -af 'vllm.entrypoints|bench_driver' 2>/dev/null | head -5 || true
+  docker exec "$CON" sh -c 'df -h /opt | tail -1'
 
   # ---- 命令结束 ----
 
