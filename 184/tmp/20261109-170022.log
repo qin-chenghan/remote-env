@@ -1,0 +1,28 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T09:00:22Z
+
++ echo '== 清理前 =='
+== 清理前 ==
++ ls -ld /tmp/184-venv-check
+drwxr-xr-x. 2 root root 260 Nov  9 15:45 /tmp/184-venv-check
++ ls -l /tmp/freeze-base.txt /tmp/freeze-new.txt /tmp/184_pre_hash.txt /tmp/184_post_hash.txt
++ echo 'no hash txt'
+no hash txt
++ echo '== 清理 =='
+== 清理 ==
++ rm -rf /tmp/184-venv-check
++ rm -f /tmp/freeze-base.txt /tmp/freeze-new.txt /tmp/184_pre_hash.txt /tmp/184_post_hash.txt
++ echo cleaned
+cleaned
++ echo '== 清理后 =='
+== 清理后 ==
++ ls -ld /tmp/184-venv-check
++ echo '184-venv-check gone'
+184-venv-check gone
++ ls /tmp
++ grep -E '184|freeze'
+184-new-venv-backup
++ set +x
+
+### exit: 0
