@@ -1,0 +1,326 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T02:54:12Z
+
++ D=/home/huawei_ts_program/litehost_perf_opt
++ echo '== 0. 占用检查（有则中止）=='
+== 0. 占用检查（有则中止）==
+++ pgrep -af 'vllmBench|bench_driver|vllm.entrypoints|api_server'
+++ grep -v 'pgrep\|cmd.sh'
+++ true
++ BUSY=
++ '[' -n '' ']'
++ echo '无 bench/vllm 进程'
+无 bench/vllm 进程
++ echo '-- 快速看 GPU --'
+-- 快速看 GPU --
++ docker exec corex5-py311 sh -c 'ixsmi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader 2>/dev/null | head -8 || echo ixsmi-unavailable'
+0, 62 MiB, 0 %
+1, 62 MiB, 0 %
+2, 62 MiB, 0 %
+3, 62 MiB, 0 %
++ echo '== 1. 备份并修改 =='
+== 1. 备份并修改 ==
++ python3 -
+PATCHED /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh (backup /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh.bak-20261109-105413, 17012 -> 13685 bytes)
+PATCHED /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh (backup /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-20261109-105413, 17128 -> 14006 bytes)
++ echo '== 2. 语法检查 =='
+== 2. 语法检查 ==
++ for f in "$D/vllmBench_lite_base.sh" "$D/vllmBench_lite_opt.sh"
++ bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
++ echo 'OK /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh'
+OK /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
++ for f in "$D/vllmBench_lite_base.sh" "$D/vllmBench_lite_opt.sh"
++ bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ echo 'OK /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh'
+OK /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ echo '== 3. diff（旧 -> 新）=='
+== 3. diff（旧 -> 新）==
++ for f in "$D/vllmBench_lite_base.sh" "$D/vllmBench_lite_opt.sh"
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
++ diff -u /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh.bak-20261109-105413 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
++ head -120
+--- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh.bak-20261109-105413	2026-11-09 08:59:41.513949440 +0800
++++ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh	2026-11-09 10:54:13.165949440 +0800
+@@ -46,7 +46,7 @@
+ SUMMARY_CSV="${RUN_DIR}/summary.csv"
+ SESSION_FILE="${RUN_DIR}/session.json"
+ PID_FILE="${RUN_DIR}/server.pid"
+-SERVER_PID=""; BENCH_PID=""; CLEANED=0; INIT_DONE=0; PGO_RESTORE=0
++SERVER_PID=""; BENCH_PID=""; CLEANED=0; INIT_DONE=0
+ 
+ # Original case matrix: only 128/128 enabled; uncomment the others as before.
+ CASES=(
+@@ -69,9 +69,7 @@
+ # Child processes only: drop old measurement/audit injection; keep CoreX library paths.
+ CLEAN_ENV=(env -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+     -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+-# ---- PGO guard: autofix two known-safe block causes, verify rollback --------
+-PGO_VENV=/opt/corex311
+-PGO_STATE=/root/.local/state/cpython-vllm-rebase
++# ---- runtime check: read-only; PGO state is selected by the venv PREFIX points to ----
+ 
+ pgo_runtime() {
+     "${CLEAN_ENV[@]}" -u PYTHONPATH -u PYTHONHOME "$PYTHON_BIN" -c \
+@@ -84,75 +82,6 @@
+     [[ "$args" == *"--prefix=/opt/cpython-vllm/v1"* && "$args" == *"--with-lto"* ]]
+ }
+ 
+-pgo_fix_perms() {
+-    local dir mode
+-    for dir in "$PGO_VENV" "$PGO_VENV/bin" "$PGO_VENV/lib" "$PGO_VENV/lib/python3.11" \
+-               "$PGO_VENV/lib/python3.11/site-packages"; do
+-        [[ -d "$dir" ]] || continue
+-        mode=$(stat -c %a "$dir" 2>/dev/null) || continue
+-        if (( (8#$mode & 8#022) != 0 )); then
+-            chmod g-w,o-w "$dir" && log "autofix: chmod g-w,o-w $dir"
+-        fi
+-    done
+-}
+-
+-pgo_fix_index() {
+-    local idx
+-    idx=$(ls -1 "$PGO_STATE"/venv-*.json 2>/dev/null | head -1)
+-    [[ -n "$idx" ]] || { log "autofix: 未找到索引文件，跳过"; return 1; }
+-    mv -- "$idx" "$idx.stale-$(date +%Y%m%d_%H%M%S)" \
+-        && log "autofix: 旧索引已挪开 -> $(basename "$idx").stale-*"
+-}
+-
+-# Switch back to PGO; retries once after a known-safe autofix.
+-pgo_switch() {
+-    local out rc
+-    out=$(env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+-        cpython-vllm-rebase switch --venv "$PGO_VENV" --ack-services-stopped 2>&1); rc=$?
+-    if (( rc == 0 )); then
+-        printf '%s\n' "$out"
+-        return 0
+-    fi
+-    log "rebase switch 失败: $(printf '%s' "$out" | tr '\n' ' ' | tail -c 220)"
+-    case "$out" in
+-        *VENV_DIRECTORY_GROUP_OR_WORLD_WRITABLE*)
+-            log "autofix: venv 目录带组/其他用户写权限，修正后重试"
+-            pgo_fix_perms ;;
+-        *PACKAGE_METADATA_CHANGED*)
+-            log "autofix: 包清单与旧事务记录不一致，挪开索引后重试"
+-            pgo_fix_index || return "$rc" ;;
+-        *)
+-            return "$rc" ;;
+-    esac
+-    env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+-        cpython-vllm-rebase switch --venv "$PGO_VENV" --ack-services-stopped
+-}
+-
+-# Rollback; if the index record is gone, fall back to the newest APPLIED
+-# transaction (this is the NO_MANAGED_TRANSACTION_... case).
+-pgo_rollback() {
+-    local out rc txn
+-    out=$(env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+-        cpython-vllm-rebase rollback --venv "$PGO_VENV" --ack-services-stopped 2>&1); rc=$?
+-    if (( rc == 0 )); then
+-        printf '%s\n' "$out"
+-        return 0
+-    fi
+-    log "rebase rollback 失败: $(printf '%s' "$out" | tr '\n' ' ' | tail -c 220)"
+-    if [[ "$out" == *NO_MANAGED_TRANSACTION* ]]; then
+-        txn=$(grep -l '"APPLIED_VERIFIED"' "$PGO_STATE"/20*/state.json 2>/dev/null \
+-              | sed 's|/state.json$||' | sort | tail -1)
+-        if [[ -n "$txn" ]]; then
+-            log "autofix: 索引缺失，改用 --transaction $(basename "$txn")"
+-            env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+-                cpython-vllm-rebase rollback --transaction "$txn" --ack-services-stopped
+-            return $?
+-        fi
+-        log "autofix: 未找到可回滚的 APPLIED 事务"
+-    fi
+-    return "$rc"
+-}
+-
+ SERVER_PREFIX=()
+ [[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+ SERVER_ARGS=(
+@@ -183,40 +112,18 @@
+     if [[ "$INIT_DONE" == 1 ]]; then
+         "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" cleanup-control --session "$SESSION_FILE" || true
+     fi
+-    if [[ "$PGO_RESTORE" == 1 ]]; then
+-        log "恢复跑之前的 PGO 运行时"
+-        if pgo_switch; then
+-            :
+-        elif pgo_is_on; then
+-            log "NOTE: switch 报校验提示，但运行时已是 PGO（已知的 payload 变更情况，无需处理）"
+-        else
+-            log "WARNING: 未能恢复到 PGO 运行时"
+-            log "         下一步: /opt/corex311/bin/python3 /home/qch/scripts/pgo-doctor.py on"
+-            [[ -d "$RUN_DIR" ]] && date > "$RUN_DIR/PGO_RESTORE_FAILED.txt"
+-        fi
+-        PGO_RESTORE=0
+-    fi
+ }
+ trap cleanup EXIT
+ trap 'exit 130' INT
+ trap 'exit 143' TERM
+ 
++ for f in "$D/vllmBench_lite_base.sh" "$D/vllmBench_lite_opt.sh"
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ diff -u /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-20261109-105413 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ head -120
+--- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-20261109-105413	2026-11-06 14:26:57.133530100 +0800
++++ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh	2026-11-09 10:54:13.165949440 +0800
+@@ -6,7 +6,7 @@
+ 
+ MODEL_PATH="${MODEL_PATH:-/home/model/ts/Qwen3-32B-W8A8}"
+ TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
+-PREFIX="${PREFIX:-/opt/corex311}"
++PREFIX="${PREFIX:-/opt/corex311-cpython-vllm}"
+ PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+ GPU_LIST="${GPU_LIST:-0,1,2,3}"
+ GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+@@ -47,7 +47,7 @@
+ SUMMARY_CSV="${RUN_DIR}/summary.csv"
+ SESSION_FILE="${RUN_DIR}/session.json"
+ PID_FILE="${RUN_DIR}/server.pid"
+-SERVER_PID=""; BENCH_PID=""; CLEANED=0; INIT_DONE=0; PGO_RESTORE=0
++SERVER_PID=""; BENCH_PID=""; CLEANED=0; INIT_DONE=0
+ 
+ # Original case matrix: only 128/128 enabled; uncomment the others as before.
+ CASES=(
+@@ -70,9 +70,7 @@
+ # Child processes only: drop old measurement/audit injection; keep CoreX library paths.
+ CLEAN_ENV=(env -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+     -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+-# ---- PGO guard: autofix two known-safe block causes, verify rollback --------
+-PGO_VENV=/opt/corex311
+-PGO_STATE=/root/.local/state/cpython-vllm-rebase
++# ---- runtime check: read-only; PGO state is selected by the venv PREFIX points to ----
+ 
+ pgo_runtime() {
+     "${CLEAN_ENV[@]}" -u PYTHONPATH -u PYTHONHOME "$PYTHON_BIN" -c \
+@@ -85,76 +83,6 @@
+     [[ "$args" == *"--prefix=/opt/cpython-vllm/v1"* && "$args" == *"--with-lto"* ]]
+ }
+ 
+-pgo_fix_perms() {
+-    local dir mode
+-    for dir in "$PGO_VENV" "$PGO_VENV/bin" "$PGO_VENV/lib" "$PGO_VENV/lib/python3.11" \
+-               "$PGO_VENV/lib/python3.11/site-packages"; do
+-        [[ -d "$dir" ]] || continue
+-        mode=$(stat -c %a "$dir" 2>/dev/null) || continue
+-        if (( (8#$mode & 8#022) != 0 )); then
+-            chmod g-w,o-w "$dir" && log "autofix: chmod g-w,o-w $dir"
+-        fi
+-    done
+-}
+-
+-pgo_fix_index() {
+-    local idx
+-    idx=$(ls -1 "$PGO_STATE"/venv-*.json 2>/dev/null | head -1)
+-    [[ -n "$idx" ]] || { log "autofix: 未找到索引文件，跳过"; return 1; }
+-    mv -- "$idx" "$idx.stale-$(date +%Y%m%d_%H%M%S)" \
+-        && log "autofix: 旧索引已挪开 -> $(basename "$idx").stale-*"
+-}
+-
+-# Only called when the venv is NOT already on PGO. Retries once after a
+-# known-safe autofix; anything else is reported unchanged to the caller.
+-pgo_switch() {
+-    local out rc
+-    out=$(env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+-        cpython-vllm-rebase switch --venv "$PGO_VENV" --ack-services-stopped 2>&1); rc=$?
+-    if (( rc == 0 )); then
+-        printf '%s\n' "$out"
+-        return 0
+-    fi
+-    log "rebase switch 失败: $(printf '%s' "$out" | tr '\n' ' ' | tail -c 220)"
+-    case "$out" in
+-        *VENV_DIRECTORY_GROUP_OR_WORLD_WRITABLE*)
+-            log "autofix: venv 目录带组/其他用户写权限，修正后重试"
+-            pgo_fix_perms ;;
+-        *PACKAGE_METADATA_CHANGED*)
+-            log "autofix: 包清单与旧事务记录不一致，挪开索引后重试"
+-            pgo_fix_index || return "$rc" ;;
+-        *)
+-            return "$rc" ;;
+-    esac
+-    env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+-        cpython-vllm-rebase switch --venv "$PGO_VENV" --ack-services-stopped
+-}
+-
+-# Rollback; if the index record is gone, fall back to the newest APPLIED
+-# transaction (this is the NO_MANAGED_TRANSACTION_... case).
+-pgo_rollback() {
+-    local out rc txn
+-    out=$(env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+-        cpython-vllm-rebase rollback --venv "$PGO_VENV" --ack-services-stopped 2>&1); rc=$?
+-    if (( rc == 0 )); then
+-        printf '%s\n' "$out"
+-        return 0
+-    fi
+-    log "rebase rollback 失败: $(printf '%s' "$out" | tr '\n' ' ' | tail -c 220)"
+-    if [[ "$out" == *NO_MANAGED_TRANSACTION* ]]; then
+-        txn=$(grep -l '"APPLIED_VERIFIED"' "$PGO_STATE"/20*/state.json 2>/dev/null \
+-              | sed 's|/state.json$||' | sort | tail -1)
+-        if [[ -n "$txn" ]]; then
+-            log "autofix: 索引缺失，改用 --transaction $(basename "$txn")"
+-            env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+-                cpython-vllm-rebase rollback --transaction "$txn" --ack-services-stopped
+-            return $?
+-        fi
+-        log "autofix: 未找到可回滚的 APPLIED 事务"
+-    fi
+-    return "$rc"
+-}
+-
+ SERVER_PREFIX=()
+ [[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+ SERVER_ARGS=(
+@@ -185,36 +113,22 @@
+     if [[ "$INIT_DONE" == 1 ]]; then
+         "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" cleanup-control --session "$SESSION_FILE" || true
+     fi
+-    if [[ "$PGO_RESTORE" == 1 ]]; then
+-        log "回滚 $PGO_VENV 到原 base"
+-        if pgo_rollback; then
+-            :
+-        elif pgo_is_on; then
+-            log "WARNING: rollback 未完成，venv 仍停在 PGO"
+-            log "         下一步: /opt/corex311/bin/python3 /home/qch/scripts/pgo-doctor.py off"
+-            [[ -d "$RUN_DIR" ]] && date > "$RUN_DIR/PGO_ROLLBACK_FAILED.txt"
++ echo '== 4. 修改后仍引用的 pgo 相关行 =='
+== 4. 修改后仍引用的 pgo 相关行 ==
++ grep -n 'pgo_is_on\|pgo_runtime\|PGO' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:72:# ---- runtime check: read-only; PGO state is selected by the venv PREFIX points to ----
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:74:pgo_runtime() {
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:79:pgo_is_on() {
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:81:    args=$(pgo_runtime)
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:120:# base 需要非 PGO 运行时；PGO 状态由 PREFIX 指向的 venv 决定，脚本不再自动切换。
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:121:if pgo_is_on; then
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:122:    log "ERROR: base 需要非 PGO 运行时，但 $PREFIX 当前是 PGO"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:126:log "runtime: base（非 PGO），PREFIX=$PREFIX"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:232:    echo "pgo=$(pgo_is_on && echo on || echo off)"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:73:# ---- runtime check: read-only; PGO state is selected by the venv PREFIX points to ----
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:75:pgo_runtime() {
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:80:pgo_is_on() {
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:82:    args=$(pgo_runtime)
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:121:# opt 需要 PGO 运行时；PGO 状态由 PREFIX 指向的 venv 决定，脚本不再自动切换。
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:122:if ! pgo_is_on; then
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:123:    log "ERROR: opt 需要 PGO 运行时，但 $PREFIX 不是 PGO"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:131:log "runtime: opt（PGO + host fastpath），PREFIX=$PREFIX"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:239:    echo "pgo=$(pgo_is_on && echo on || echo off)"
++ echo '== 5. 关键默认值 =='
+== 5. 关键默认值 ==
++ grep -n 'PREFIX=\|VLLM_DISABLE_DECODE_FASTPATH\|VLLM_HOST_FASTPATH\|TORCH_MODULE_ATTR' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:9:PREFIX="${PREFIX:-/opt/corex311}"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:27:    VLLM_DISABLE_DECODE_FASTPATH=1
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:85:SERVER_PREFIX=()
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:86:[[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:126:log "runtime: base（非 PGO），PREFIX=$PREFIX"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:9:PREFIX="${PREFIX:-/opt/corex311-cpython-vllm}"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:27:    VLLM_HOST_FASTPATH=on
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:28:    TORCH_MODULE_ATTR_FASTPATH=slot_native
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:86:SERVER_PREFIX=()
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:87:[[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:131:log "runtime: opt（PGO + host fastpath），PREFIX=$PREFIX"
++ set +x
+
+### exit: 0
