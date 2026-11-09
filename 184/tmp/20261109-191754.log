@@ -1,0 +1,67 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T11:17:54Z
+
++ echo '== 1. 宿主设备与 GPU 数 =='
+== 1. 宿主设备与 GPU 数 ==
++ wc -l
++ ls /dev/iluvatar0 /dev/iluvatar1 /dev/iluvatar2 /dev/iluvatar3
+4
++ head -10
++ ls -l /dev/iluvatar0 /dev/iluvatar1 /dev/iluvatar2 /dev/iluvatar3
+crw-rw-rw-. 1 root root 236, 0 Nov  9 19:16 /dev/iluvatar0
+crw-rw-rw-. 1 root root 236, 1 Nov  9 19:16 /dev/iluvatar1
+crw-rw-rw-. 1 root root 236, 2 Nov  9 19:16 /dev/iluvatar2
+crw-rw-rw-. 1 root root 236, 3 Nov  9 19:16 /dev/iluvatar3
++ timeout 20 /usr/local/corex-5.0.0/bin/ixsmi
++ grep -c BI-V150
+4
++ echo '== 2. 启动容器 =='
+== 2. 启动容器 ==
++ docker start corex5-py311
+corex5-py311
++ echo 'start rc=0'
+start rc=0
++ docker ps --filter name=corex5-py311 --format '{{.Names}} {{.Status}}'
+corex5-py311 Up 3 hours
++ sleep 3
++ echo '== 3. 容器内设备/GPU =='
+== 3. 容器内设备/GPU ==
++ docker exec corex5-py311 sh -c 'echo -n "devices: "; ls /dev/iluvatar* 2>/dev/null | wc -l; echo -n "gpus: "; ixsmi 2>/dev/null | grep -c "BI-V150" || echo ixsmi-fail'
+devices: 4
+gpus: 4
++ echo '== 4. corex311 状态 =='
+== 4. corex311 状态 ==
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -c 'import sys,sysconfig;print("prefix",sys.prefix);print("base_prefix",sys.base_prefix);print("pgo","--prefix=/opt/cpython-vllm/v1" in (sysconfig.get_config_var("CONFIG_ARGS") or ""))'
++ tail -3
+prefix /opt/corex311
+base_prefix /opt/python-3.11.6
+pgo False
++ echo '== 5. 新 venv 状态 =='
+== 5. 新 venv 状态 ==
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -c 'import sys,sysconfig;print("base_prefix",sys.base_prefix);print("pgo","--prefix=/opt/cpython-vllm/v1" in (sysconfig.get_config_var("CONFIG_ARGS") or ""))'
++ tail -2
+base_prefix /opt/cpython-vllm/v1
+pgo True
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -m pip check
+No broken requirements found.
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -c 'import vllm,torch;print("vllm",vllm.__version__,"torch",torch.__version__)'
++ tail -2
+vllm 0.23.0 torch 2.10.0
++ echo '== 6. 新 venv 源码状态（旧 fastpath 变体）=='
+== 6. 新 venv 源码状态（旧 fastpath 变体）==
++ docker exec corex5-py311 sh -c '
+SP=/opt/corex311-cpython-vllm/lib/python3.11/site-packages
+for f in vllm/v1/worker/gpu_model_runner.py vllm/envs.py vllm/v1/attention/backends/ilu_flash_attn.py vllm/v1/worker/host_fastpath.py; do
+  [ -f "$SP/$f" ] && sha256sum "$SP/$f" || echo "MISSING $f"
+done
+ls $SP/vllm/_host_opt_native*.so 2>/dev/null || echo "no native so"
+'
+b869bfb1e34bb48b6fe9333a734bb96d97585bd2017bef5ab21a4e36b5370fbe  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+271952836bad0b9c9eba49f1f22186c6b486a574e39bf8465becf67e85556938  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py
+b6cc7b45d20cd9548bf7e8abec73e61809871aba668fce5c86cbaa8286625b43  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py
+58a9059e4fb98ec7fbbd5d93de61a59f7e61f8cda10c286eff6a19897ab6821b  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
++ set +x
+
+### exit: 0
