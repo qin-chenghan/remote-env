@@ -17,28 +17,31 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 6.6 内核没有 CONFIG_VFIO_MDEV：先把 DKMS 的 VGPU_ENABLE 改 0，再重编/安装/加载。
-  # 只动当前内核的模块；不重装用户态、不重启、不动旧内核模块。失败即停。
+  # 修正：DKMS 从源目录 /usr/src/corex-5.0.0 拷贝 dkms.conf，改源目录那份。
+  # 关闭 vGPU（6.6 无 CONFIG_VFIO_MDEV）-> 重编 -> 安装 -> 加载 -> 验证。
 
   K=$(uname -r)
-  CONF=/var/lib/dkms/corex/5.0.0/build/dkms.conf
+  SRC=/usr/src/corex-5.0.0
+  CONF=$SRC/dkms.conf
 
-  echo "== 0. 当前内核与 DKMS 参数 =="
-  echo "kernel=$K"
-  grep -n "VGPU_ENABLE\|_BUILDOPT\|MAKE\[0\]" "$CONF" 2>/dev/null || { echo "dkms.conf missing"; exit 1; }
+  echo "== 0. 源 dkms.conf 现状 =="
+  grep -n "_BUILDOPT\|VGPU_ENABLE" "$CONF" 2>/dev/null || { echo "missing $CONF"; exit 1; }
 
-  echo "== 1. 关闭 vGPU 构建（备份 dkms.conf）=="
+  echo "== 1. 改源目录 dkms.conf =="
   cp -a "$CONF" "$CONF.bak-$(date +%Y%m%d-%H%M%S)"
   if grep -q "VGPU_ENABLE=1" "$CONF"; then
     sed -i 's/VGPU_ENABLE=1/VGPU_ENABLE=0/g' "$CONF"
-    echo "VGPU_ENABLE set to 0"
+    echo "VGPU_ENABLE set to 0 (source)"
     grep -n "VGPU_ENABLE" "$CONF"
   else
-    echo "VGPU_ENABLE=1 not found; abort"
+    echo "VGPU_ENABLE=1 not found in source conf; abort"
     exit 1
   fi
 
-  echo "== 2. dkms build =="
+  echo "== 2. Kbuild 里 vGPU 检查的开关条件 =="
+  grep -n -B10 -A6 "vgpu_kvm_sanity_check" "$SRC/itr/Kbuild" 2>/dev/null | head -40
+
+  echo "== 3. dkms build =="
   dkms build corex/5.0.0 -k "$K" 2>&1 | tail -30
   RC=${PIPESTATUS[0]}
   echo "build rc=$RC"
@@ -48,7 +51,7 @@ mkdir -p "$DIR/tmp"
     exit 1
   fi
 
-  echo "== 3. dkms install =="
+  echo "== 4. dkms install =="
   dkms install corex/5.0.0 -k "$K" 2>&1 | tail -20
   RC=${PIPESTATUS[0]}
   echo "install rc=$RC"
@@ -56,14 +59,14 @@ mkdir -p "$DIR/tmp"
     exit 1
   fi
 
-  echo "== 4. depmod + modprobe =="
+  echo "== 5. depmod + modprobe =="
   depmod -a
   modprobe iluvatar 2>&1
   echo "modprobe rc=$?"
   lsmod | grep iluvatar || echo "iluvatar NOT loaded"
   ls -l /dev/iluvatar* 2>&1 | head -10
 
-  echo "== 5. 验证 =="
+  echo "== 6. 验证 =="
   dmesg | tail -20
   timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | head -20
   dkms status
