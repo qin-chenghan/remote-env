@@ -1,0 +1,994 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T01:23:13Z
+
++ CON=corex5-py311
++ D=/home/huawei_ts_program/litehost_perf_opt
++ docker exec corex5-py311 sh -c '
+D=/home/huawei_ts_program/litehost_perf_opt
+echo '\''== 1. 目录下的 bench 脚本 =='\''
+ls -la --time-style=long-iso $D/*.sh 2>/dev/null
+
+echo '\''== 2. base 脚本全文 =='\''
+nl -ba $D/vllmBench_lite_base.sh
+
+echo '\''== 3. opt 脚本全文 =='\''
+nl -ba $D/vllmBench_lite_opt.sh
+
+echo '\''== 4. 两脚本差异 =='\''
+diff -u $D/vllmBench_lite_base.sh $D/vllmBench_lite_opt.sh | head -200
+
+echo '\''== 5. PGO/rebase 关键行 =='\''
+grep -nE '\''PGO|pgo|rebase|PREFIX|PYTHON_BIN'\'' $D/vllmBench_lite_base.sh $D/vllmBench_lite_opt.sh | head -80
+'
+== 1. 目录下的 bench 脚本 ==
+-rwxr-xr-x. 1 root root 14001 2026-11-04 18:59 /home/huawei_ts_program/litehost_perf_opt/lqqvllmBench_lite_base.sh
+-rw-r--r--. 1 root root     0 2026-11-04 22:53 /home/huawei_ts_program/litehost_perf_opt/timeline.sh
+-rwxr-xr-x. 1 root root 17940 2026-11-09 08:59 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
+-rwxr-xr-x. 1 root root 17970 2026-11-06 14:26 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+== 2. base 脚本全文 ==
+     1	#!/usr/bin/env bash
+     2	# Adapted from the uploaded vllmBench_lite.sh. Keep one server for all cases.
+     3	# Defaults retained: warmups=16, cache OFF, CPUs 192-255 (NUMA node 3), backend=vllm.
+     4	# Requires the matching files in this slim folder (included in the ZIP).
+     5	set -uo pipefail
+     6	
+     7	MODEL_PATH="${MODEL_PATH:-/home/model/ts/Qwen3-32B-W8A8}"
+     8	TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
+     9	PREFIX="${PREFIX:-/opt/corex311}"
+    10	PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+    11	GPU_LIST="${GPU_LIST:-0,1,2,3}"
+    12	GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+    13	PORT="${PORT:-8848}"
+    14	NUM_PROMPTS="${NUM_PROMPTS:-100}"
+    15	NUM_WARMUPS="${NUM_WARMUPS:-16}"
+    16	MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+    17	CASE_INTERVAL="${CASE_INTERVAL:-60}"
+    18	CPU_RANGE="${CPU_RANGE-192-255}"
+    19	HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
+    20	HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
+    21	HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
+    22	HOST_MAX_SCOPES="${HOST_MAX_SCOPES:-200000}"
+    23	HOST_DRY_RUN="${HOST_DRY_RUN:-0}"
+    24	SERVER_EXTRA_ENV=(
+    25	    UMD_MAXCOMMANDBUFFERNUMBER=256
+    26	    UMD_MAXCOMMANDBUFFERSIZE=16384
+    27	    VLLM_DISABLE_DECODE_FASTPATH=1
+    28	)
+    29	SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    30	# Do not use an inherited OLD LIGHTHOST_HOME silently.
+    31	if [[ -f "$SCRIPT_DIR/lhctl.py" ]]; then
+    32	    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR}"
+    33	else
+    34	    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR/litehost_compat_slim}"
+    35	fi
+    36	HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 解压完整 litehost_compat_slim_v041.zip 或设置 HOST_TOOLKIT' >&2; exit 2; }
+    37	[[ -x "$PYTHON_BIN" && -f "$HOST_TOOLKIT/lhctl.py" ]] || { echo 'ERROR: Python 或配套文件缺失' >&2; exit 2; }
+    38	[[ "$HOST_MEASURE" == lite || "$HOST_MEASURE" == off ]] || { echo 'ERROR: HOST_MEASURE=lite|off' >&2; exit 2; }
+    39	[[ "$GPUS_PER_INSTANCE" == 4 ]] || { echo 'ERROR: 此版要求四卡 TP=4, PP=1, DP=1' >&2; exit 2; }
+    40	[[ "$TEST_ID" =~ ^[A-Za-z0-9_.-]+$ && "$TEST_ID" != . && "$TEST_ID" != .. ]] || { echo 'ERROR: TEST_ID 不能包含路径分隔符' >&2; exit 2; }
+    41	
+    42	BASE_DIR="$(pwd)"
+    43	RUN_DIR="${BASE_DIR}/vllmBench/${TEST_ID}"
+    44	LOG_DIR="${RUN_DIR}/logs"
+    45	SERVER_LOG="${LOG_DIR}/server.log"
+    46	SUMMARY_CSV="${RUN_DIR}/summary.csv"
+    47	SESSION_FILE="${RUN_DIR}/session.json"
+    48	PID_FILE="${RUN_DIR}/server.pid"
+    49	SERVER_PID=""; BENCH_PID=""; CLEANED=0; INIT_DONE=0; PGO_RESTORE=0
+    50	
+    51	# Original case matrix: only 128/128 enabled; uncomment the others as before.
+    52	CASES=(
+    53	    "128 128"
+    54	#   "128 1024"
+    55	#   "128 2048"
+    56	#   "1024 128"
+    57	#   "1024 1024"
+    58	#   "1024 2048"
+    59	#   "2048 128"
+    60	#   "2048 1024"
+    61	#   "2048 2048"
+    62	)
+    63	# Optional text file, one 'input output' case per nonblank/non-comment line.
+    64	if [[ -n "${CASES_FILE:-}" ]]; then
+    65	    [[ -f "$CASES_FILE" ]] || { echo "ERROR: 找不到 CASES_FILE=$CASES_FILE" >&2; exit 2; }
+    66	    mapfile -t CASES < <(grep -Ev '^[[:space:]]*(#|$)' "$CASES_FILE")
+    67	fi
+    68	log() { printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"; }
+    69	# Child processes only: drop old measurement/audit injection; keep CoreX library paths.
+    70	CLEAN_ENV=(env -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+    71	    -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+    72	# ---- PGO guard: autofix two known-safe block causes, verify rollback --------
+    73	PGO_VENV=/opt/corex311
+    74	PGO_STATE=/root/.local/state/cpython-vllm-rebase
+    75	
+    76	pgo_runtime() {
+    77	    "${CLEAN_ENV[@]}" -u PYTHONPATH -u PYTHONHOME "$PYTHON_BIN" -c \
+    78	        'import sysconfig; print(sysconfig.get_config_var("CONFIG_ARGS") or "")' 2>/dev/null || true
+    79	}
+    80	
+    81	pgo_is_on() {
+    82	    local args
+    83	    args=$(pgo_runtime)
+    84	    [[ "$args" == *"--prefix=/opt/cpython-vllm/v1"* && "$args" == *"--with-lto"* ]]
+    85	}
+    86	
+    87	pgo_fix_perms() {
+    88	    local dir mode
+    89	    for dir in "$PGO_VENV" "$PGO_VENV/bin" "$PGO_VENV/lib" "$PGO_VENV/lib/python3.11" \
+    90	               "$PGO_VENV/lib/python3.11/site-packages"; do
+    91	        [[ -d "$dir" ]] || continue
+    92	        mode=$(stat -c %a "$dir" 2>/dev/null) || continue
+    93	        if (( (8#$mode & 8#022) != 0 )); then
+    94	            chmod g-w,o-w "$dir" && log "autofix: chmod g-w,o-w $dir"
+    95	        fi
+    96	    done
+    97	}
+    98	
+    99	pgo_fix_index() {
+   100	    local idx
+   101	    idx=$(ls -1 "$PGO_STATE"/venv-*.json 2>/dev/null | head -1)
+   102	    [[ -n "$idx" ]] || { log "autofix: 未找到索引文件，跳过"; return 1; }
+   103	    mv -- "$idx" "$idx.stale-$(date +%Y%m%d_%H%M%S)" \
+   104	        && log "autofix: 旧索引已挪开 -> $(basename "$idx").stale-*"
+   105	}
+   106	
+   107	# Switch back to PGO; retries once after a known-safe autofix.
+   108	pgo_switch() {
+   109	    local out rc
+   110	    out=$(env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+   111	        cpython-vllm-rebase switch --venv "$PGO_VENV" --ack-services-stopped 2>&1); rc=$?
+   112	    if (( rc == 0 )); then
+   113	        printf '%s\n' "$out"
+   114	        return 0
+   115	    fi
+   116	    log "rebase switch 失败: $(printf '%s' "$out" | tr '\n' ' ' | tail -c 220)"
+   117	    case "$out" in
+   118	        *VENV_DIRECTORY_GROUP_OR_WORLD_WRITABLE*)
+   119	            log "autofix: venv 目录带组/其他用户写权限，修正后重试"
+   120	            pgo_fix_perms ;;
+   121	        *PACKAGE_METADATA_CHANGED*)
+   122	            log "autofix: 包清单与旧事务记录不一致，挪开索引后重试"
+   123	            pgo_fix_index || return "$rc" ;;
+   124	        *)
+   125	            return "$rc" ;;
+   126	    esac
+   127	    env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+   128	        cpython-vllm-rebase switch --venv "$PGO_VENV" --ack-services-stopped
+   129	}
+   130	
+   131	# Rollback; if the index record is gone, fall back to the newest APPLIED
+   132	# transaction (this is the NO_MANAGED_TRANSACTION_... case).
+   133	pgo_rollback() {
+   134	    local out rc txn
+   135	    out=$(env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+   136	        cpython-vllm-rebase rollback --venv "$PGO_VENV" --ack-services-stopped 2>&1); rc=$?
+   137	    if (( rc == 0 )); then
+   138	        printf '%s\n' "$out"
+   139	        return 0
+   140	    fi
+   141	    log "rebase rollback 失败: $(printf '%s' "$out" | tr '\n' ' ' | tail -c 220)"
+   142	    if [[ "$out" == *NO_MANAGED_TRANSACTION* ]]; then
+   143	        txn=$(grep -l '"APPLIED_VERIFIED"' "$PGO_STATE"/20*/state.json 2>/dev/null \
+   144	              | sed 's|/state.json$||' | sort | tail -1)
+   145	        if [[ -n "$txn" ]]; then
+   146	            log "autofix: 索引缺失，改用 --transaction $(basename "$txn")"
+   147	            env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+   148	                cpython-vllm-rebase rollback --transaction "$txn" --ack-services-stopped
+   149	            return $?
+   150	        fi
+   151	        log "autofix: 未找到可回滚的 APPLIED 事务"
+   152	    fi
+   153	    return "$rc"
+   154	}
+   155	
+   156	SERVER_PREFIX=()
+   157	[[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+   158	SERVER_ARGS=(
+   159	    -m vllm.entrypoints.openai.api_server
+   160	    --host 127.0.0.1 --port "$PORT" --model "$MODEL_PATH" --trust_remote_code --dtype auto
+   161	    --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1
+   162	    --tensor_parallel_size "$GPUS_PER_INSTANCE" --data_parallel_size 1
+   163	    --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto
+   164	    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}'
+   165	    --async-scheduling --no-enable-prefix-caching
+   166	)
+   167	[[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
+   168	
+   169	cleanup() {
+   170	    if [[ "$CLEANED" == 1 ]]; then return; fi
+   171	    CLEANED=1
+   172	    if [[ -n "$BENCH_PID" ]]; then
+   173	        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/bench.process.json" || true
+   174	        wait "$BENCH_PID" 2>/dev/null || true
+   175	        BENCH_PID=""
+   176	    fi
+   177	    if [[ -n "$SERVER_PID" ]]; then
+   178	        log "停止本次服务 PID=$SERVER_PID（不使用全局 pkill）"
+   179	        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
+   180	        wait "$SERVER_PID" 2>/dev/null || true
+   181	        SERVER_PID=""; rm -f -- "$PID_FILE"
+   182	    fi
+   183	    if [[ "$INIT_DONE" == 1 ]]; then
+   184	        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" cleanup-control --session "$SESSION_FILE" || true
+   185	    fi
+   186	    if [[ "$PGO_RESTORE" == 1 ]]; then
+   187	        log "恢复跑之前的 PGO 运行时"
+   188	        if pgo_switch; then
+   189	            :
+   190	        elif pgo_is_on; then
+   191	            log "NOTE: switch 报校验提示，但运行时已是 PGO（已知的 payload 变更情况，无需处理）"
+   192	        else
+   193	            log "WARNING: 未能恢复到 PGO 运行时"
+   194	            log "         下一步: /opt/corex311/bin/python3 /home/qch/scripts/pgo-doctor.py on"
+   195	            [[ -d "$RUN_DIR" ]] && date > "$RUN_DIR/PGO_RESTORE_FAILED.txt"
+   196	        fi
+   197	        PGO_RESTORE=0
+   198	    fi
+   199	}
+   200	trap cleanup EXIT
+   201	trap 'exit 130' INT
+   202	trap 'exit 143' TERM
+   203	
+   204	if pgo_is_on; then
+   205	    log "当前是 PGO 运行时，回滚到原 base"
+   206	    if pgo_rollback; then
+   207	        PGO_RESTORE=1
+   208	        log "已回滚到原 base（结束后恢复 PGO）"
+   209	    elif pgo_is_on; then
+   210	        log "ERROR: rebase rollback 失败，无法保证在非 PGO 环境运行"
+   211	        log "       诊断: /opt/corex311/bin/python3 /home/qch/scripts/pgo-doctor.py"
+   212	        exit 3
+   213	    else
+   214	        PGO_RESTORE=1
+   215	        log "已回滚到原 base（rollback 报校验提示，但运行时已是 base；结束后恢复 PGO）"
+   216	    fi
+   217	else
+   218	    log "PGO 运行时未启用，继续使用原 base"
+   219	fi
+   220	
+   221	check_gpu_memory() {
+   222	    local gpu free_mib
+   223	    local -a gpus=()
+   224	    IFS=',' read -r -a gpus <<< "$GPU_LIST"
+   225	    if ! command -v ixsmi >/dev/null; then log 'WARNING: ixsmi 不可用，跳过显存预检'; return; fi
+   226	    for gpu in "${gpus[@]}"; do
+   227	        free_mib=$(ixsmi --query-gpu=memory.free --format=csv,noheader,nounits -i "$gpu" 2>/dev/null | tr -d ' ')
+   228	        if [[ "$free_mib" =~ ^[0-9]+$ ]]; then
+   229	            log "GPU $gpu: free=${free_mib} MiB（原预检阈值 20480 MiB）"
+   230	            (( free_mib >= 20480 )) || log "WARNING: GPU $gpu 显存偏低，请确认测试卡已预留"
+   231	        else log "WARNING: 无法读取 GPU $gpu 显存"; fi
+   232	    done
+   233	    return 0
+   234	}
+   235	wait_for_server() {
+   236	    local elapsed=0 code
+   237	    while (( elapsed < 600 )); do
+   238	        kill -0 "$SERVER_PID" 2>/dev/null || { log "ERROR: 服务已退出，查看 $SERVER_LOG"; return 1; }
+   239	        code=$(curl --noproxy '*' -s -o /dev/null -w '%{http_code}' --max-time 2 "http://127.0.0.1:${PORT}/health" 2>/dev/null || true)
+   240	        [[ "$code" == 200 ]] && { log "服务就绪 (${elapsed}s)"; return 0; }
+   241	        sleep 5; elapsed=$((elapsed+5))
+   242	    done
+   243	    log 'ERROR: 服务启动超时'; return 1
+   244	}
+   245	start_server() {
+   246	    # Refuse an occupied port. Never kill an unrelated service by name/port.
+   247	    "${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$PORT" <<'PY' || return 1
+   248	import socket,sys
+   249	with socket.socket() as s:s.bind(('127.0.0.1',int(sys.argv[1])))
+   250	PY
+   251	    check_gpu_memory "$GPU_LIST"
+   252	    local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1
+   253	        "${SERVER_EXTRA_ENV[@]}")
+   254	    if [[ "$HOST_MEASURE" == lite ]]; then
+   255	        env_args+=(PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}"
+   256	            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so"
+   257	            LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+   258	    fi
+   259	    "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/server.process.json" -- \
+   260	        "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}" >> "$SERVER_LOG" 2>&1 &
+   261	    SERVER_PID=$!; echo "$SERVER_PID" > "$PID_FILE"
+   262	    log "服务 PID=$SERVER_PID；所有 case 复用；日志=$SERVER_LOG"
+   263	    wait_for_server
+   264	}
+   265	run_case() {
+   266	    local input_len="$1" output_len="$2"
+   267	    local case_id="bs${MAX_CONCURRENCY}_in${input_len}_out${output_len}"
+   268	    local case_log="${LOG_DIR}/bench_${case_id}.log" case_dir="${RUN_DIR}/litehost/${case_id}"
+   269	    local -a client env_args
+   270	    env_args=()
+   271	    if [[ "$HOST_MEASURE" == lite ]]; then
+   272	        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" prepare --session "$SESSION_FILE" \
+   273	            --case-id "$case_id" --num-prompts "$NUM_PROMPTS" --input-len "$input_len" --output-len "$output_len" || return 1
+   274	        client=("$HOST_TOOLKIT/bench_driver.py")
+   275	        env_args=(LIGHTHOST_SESSION="$SESSION_FILE" LIGHTHOST_CASE_DIR="$case_dir")
+   276	    else
+   277	        client=(-m vllm.entrypoints.cli.main bench serve)
+   278	    fi
+   279	    log "==== $case_id | mode=$HOST_MEASURE | warmup=$NUM_WARMUPS | 同一服务 ===="
+   280	    "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/bench.process.json" -- \
+   281	        "$PYTHON_BIN" "${client[@]}" \
+   282	        --backend vllm \
+   283	        --num_prompts "$NUM_PROMPTS" --num-warmups "$NUM_WARMUPS" --max-concurrency "$MAX_CONCURRENCY" \
+   284	        --dataset_name random --random_input_len "$input_len" --random_output_len "$output_len" \
+   285	        --host 127.0.0.1 --port "$PORT" --model "$MODEL_PATH" --trust_remote_code \
+   286	        --ignore_eos --top_p 1 --top_k -1 --temperature 0 --seed 42 \
+   287	        --save-result --result-dir "$RUN_DIR" --result_filename "${case_id}.json" > "$case_log" 2>&1 &
+   288	    BENCH_PID=$!
+   289	    local rc=0
+   290	    wait "$BENCH_PID" || rc=$?
+   291	    BENCH_PID=""
+   292	    if (( rc != 0 )); then log "ERROR: case 失败 rc=$rc；查看 $case_log"; return "$rc"; fi
+   293	    if [[ "$HOST_MEASURE" == lite ]]; then
+   294	        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" finish "$case_dir" \
+   295	            --link-percent "$HOST_LINK_PERCENT" || return 1
+   296	    fi
+   297	    log "完成 $case_id → ${RUN_DIR}/${case_id}.json"
+   298	}
+   299	
+   300	# Validate cheap inputs before model initialization.
+   301	"${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$GPU_LIST" "$NUM_PROMPTS" "$NUM_WARMUPS" "$MAX_CONCURRENCY" "$HOST_LINK_PERCENT" "$CASE_INTERVAL" "${CASES[@]}" <<'PY' || exit 2
+   302	import math,sys
+   303	ids,n,w,c,p,interval,*cases=sys.argv[1:]
+   304	if len(ids.split(','))!=4 or len(set(ids.split(',')))!=4:raise ValueError('需要四张不同 GPU')
+   305	if int(n)<=0 or int(w)<0 or int(c)<=0:raise ValueError('请求/预热/并发参数无效')
+   306	if not math.isfinite(float(p)) or not 0<=float(p)<=100 or float(interval)<0:raise ValueError('系数或间隔无效')
+   307	if not cases or len(cases)!=len(set(cases)):raise ValueError('case 列表为空或重复')
+   308	for x in cases:
+   309	    parts=x.split()
+   310	    if len(parts)!=2 or min(map(int,parts))<=0 or sum(map(int,parts))>4096:raise ValueError('case 需要两个正整数且总长 <= 4096')
+   311	PY
+   312	log "TEST_ID=$TEST_ID | MODE=$HOST_MEASURE | WARMUP=$NUM_WARMUPS | CPU_RANGE=$CPU_RANGE"
+   313	log "prefix cache=OFF | backend=vllm | 同一服务运行 ${#CASES[@]} 个 case | RUN_DIR=$RUN_DIR"
+   314	if [[ "$HOST_DRY_RUN" == 1 ]]; then
+   315	    printf 'SERVER: '; printf '%q ' "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}"; printf '\n'
+   316	    printf 'CASES: '; printf '%s; ' "${CASES[@]}"; printf '\n'
+   317	    exit 0
+   318	fi
+   319	[[ -d "$MODEL_PATH" ]] || { log 'ERROR: MODEL_PATH 不是本地目录'; exit 2; }
+   320	if [[ -e "$RUN_DIR" ]]; then log 'ERROR: RUN_DIR 已存在，请换一个 TEST_ID，避免混入旧文件'; exit 2; fi
+   321	mkdir -p "$LOG_DIR"
+   322	{
+   323	    echo "test_id=$TEST_ID"
+   324	    echo "started=$(date -Is)"
+   325	    echo "pgo=$(pgo_is_on && echo on || echo off)"
+   326	    echo "multi_engine=$(cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>/dev/null || echo unknown)"
+   327	    echo "cpu_range=$CPU_RANGE"
+   328	    echo "hotspot_opt=${HOTSPOT_OPT:-unset}"
+   329	    echo "model_path=$MODEL_PATH"
+   330	    echo "gpus=$GPU_LIST tp=$GPUS_PER_INSTANCE"
+   331	    echo "prompts=$NUM_PROMPTS concurrency=$MAX_CONCURRENCY warmups=$NUM_WARMUPS"
+   332	} > "$RUN_DIR/config.txt" 2>/dev/null || true
+   333	if [[ "$HOST_MEASURE" == lite ]]; then
+   334	    "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" init --run-dir "$RUN_DIR" \
+   335	        --timeout "$HOST_TIMEOUT" --max-scopes "$HOST_MAX_SCOPES" > "$LOG_DIR/preflight.log" 2>&1 || { cat "$LOG_DIR/preflight.log"; exit 2; }
+   336	    INIT_DONE=1
+   337	fi
+   338	if ! start_server; then log 'FATAL: 启动失败'; exit 1; fi
+   339	FAILED=0
+   340	for idx in "${!CASES[@]}"; do
+   341	    read -r input_len output_len <<< "${CASES[$idx]}"
+   342	    if ! run_case "$input_len" "$output_len"; then
+   343	        FAILED=1; log '停止后续 case，避免未完成请求或测量状态污染下一轮'; break
+   344	    fi
+   345	    if (( idx < ${#CASES[@]}-1 )); then log "等待 ${CASE_INTERVAL}s"; sleep "$CASE_INTERVAL"; fi
+   346	done
+   347	# Intermediate case results have already been validated and saved by
+   348	# lhctl.py finish (quietly). Build all-case CSV + Host report SILENTLY;
+   349	# print both result summaries only ONCE, after all cases and server cleanup.
+   350	if ! "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" summary "$RUN_DIR" \
+   351	        > "$LOG_DIR/summary_build.log"; then
+   352	    FAILED=1
+   353	fi
+   354	if [[ "$HOST_MEASURE" == lite && "$FAILED" == 0 ]]; then
+   355	    "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/analyze_litehost.py" "$RUN_DIR/litehost" \
+   356	        --link-percent "$HOST_LINK_PERCENT" --out "$RUN_DIR/host_summary" --quiet || FAILED=1
+   357	fi
+   358	cleanup
+   359	(( FAILED == 0 )) || { log "部分失败，保留诊断：$RUN_DIR"; exit 2; }
+   360	
+   361	log "========== 所有 case 最终结果（仅此处打印一次） =========="
+   362	"${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$SUMMARY_CSV" "$MAX_CONCURRENCY" "${CASES[@]}" <<'PY' || exit 2
+   363	import csv,sys
+   364	from pathlib import Path
+   365	path=Path(sys.argv[1]);bs=sys.argv[2]
+   366	with path.open(newline='') as f:
+   367	    rows={r['case']:r for r in csv.DictReader(f)}
+   368	print('===== Benchmark：吞吐与延迟（全部 case）=====')
+   369	for spec in sys.argv[3:]:
+   370	    in_len,out_len=spec.split()
+   371	    case=f'bs{bs}_in{in_len}_out{out_len}'
+   372	    if case not in rows:raise SystemExit(f'ERROR: summary.csv 缺少 {case}')
+   373	    r=rows[case]
+   374	    def fmt(key):
+   375	        val=r.get(key,'')
+   376	        try:return f'{float(val):.3f}'
+   377	        except (TypeError,ValueError):return 'N/A'
+   378	    print(f'{case}: output_tok/s={fmt("output_token_throughput_tok_s")} '
+   379	          f'TTFT_mean={fmt("mean_ttft_ms")}ms '
+   380	          f'TPOT_mean={fmt("mean_tpot_ms")}ms ITL_mean={fmt("mean_itl_ms")}ms')
+   381	PY
+   382	if [[ "$HOST_MEASURE" == lite ]]; then
+   383	    echo '===== LiteHost：四 rank、所有 case 的 H 与 H+G ====='
+   384	    cat "$RUN_DIR/host_summary/report.txt"
+   385	fi
+   386	log "全部完成 | benchmark=$SUMMARY_CSV | host=$([[ "$HOST_MEASURE" == lite ]] && echo "$RUN_DIR/host_summary/report.txt" || echo 'OFF/未采集')"
+== 3. opt 脚本全文 ==
+     1	#!/usr/bin/env bash
+     2	# Adapted from the uploaded vllmBench_lite.sh. Keep one server for all cases.
+     3	# Defaults retained: warmups=16, cache OFF, CPUs 192-255 (NUMA node 3), backend=vllm.
+     4	# Requires the matching files in this slim folder (included in the ZIP).
+     5	set -uo pipefail
+     6	
+     7	MODEL_PATH="${MODEL_PATH:-/home/model/ts/Qwen3-32B-W8A8}"
+     8	TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
+     9	PREFIX="${PREFIX:-/opt/corex311}"
+    10	PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+    11	GPU_LIST="${GPU_LIST:-0,1,2,3}"
+    12	GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+    13	PORT="${PORT:-8848}"
+    14	NUM_PROMPTS="${NUM_PROMPTS:-100}"
+    15	NUM_WARMUPS="${NUM_WARMUPS:-16}"
+    16	MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+    17	CASE_INTERVAL="${CASE_INTERVAL:-60}"
+    18	CPU_RANGE="${CPU_RANGE-192-255}"
+    19	HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
+    20	HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
+    21	HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
+    22	HOST_MAX_SCOPES="${HOST_MAX_SCOPES:-200000}"
+    23	HOST_DRY_RUN="${HOST_DRY_RUN:-0}"
+    24	SERVER_EXTRA_ENV=(
+    25	    UMD_MAXCOMMANDBUFFERNUMBER=256
+    26	    UMD_MAXCOMMANDBUFFERSIZE=16384
+    27	    VLLM_HOST_FASTPATH=on
+    28	    TORCH_MODULE_ATTR_FASTPATH=slot_native
+    29	)
+    30	SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    31	# Do not use an inherited OLD LIGHTHOST_HOME silently.
+    32	if [[ -f "$SCRIPT_DIR/lhctl.py" ]]; then
+    33	    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR}"
+    34	else
+    35	    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR/litehost_compat_slim}"
+    36	fi
+    37	HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 解压完整 litehost_compat_slim_v041.zip 或设置 HOST_TOOLKIT' >&2; exit 2; }
+    38	[[ -x "$PYTHON_BIN" && -f "$HOST_TOOLKIT/lhctl.py" ]] || { echo 'ERROR: Python 或配套文件缺失' >&2; exit 2; }
+    39	[[ "$HOST_MEASURE" == lite || "$HOST_MEASURE" == off ]] || { echo 'ERROR: HOST_MEASURE=lite|off' >&2; exit 2; }
+    40	[[ "$GPUS_PER_INSTANCE" == 4 ]] || { echo 'ERROR: 此版要求四卡 TP=4, PP=1, DP=1' >&2; exit 2; }
+    41	[[ "$TEST_ID" =~ ^[A-Za-z0-9_.-]+$ && "$TEST_ID" != . && "$TEST_ID" != .. ]] || { echo 'ERROR: TEST_ID 不能包含路径分隔符' >&2; exit 2; }
+    42	
+    43	BASE_DIR="$(pwd)"
+    44	RUN_DIR="${BASE_DIR}/vllmBench/${TEST_ID}"
+    45	LOG_DIR="${RUN_DIR}/logs"
+    46	SERVER_LOG="${LOG_DIR}/server.log"
+    47	SUMMARY_CSV="${RUN_DIR}/summary.csv"
+    48	SESSION_FILE="${RUN_DIR}/session.json"
+    49	PID_FILE="${RUN_DIR}/server.pid"
+    50	SERVER_PID=""; BENCH_PID=""; CLEANED=0; INIT_DONE=0; PGO_RESTORE=0
+    51	
+    52	# Original case matrix: only 128/128 enabled; uncomment the others as before.
+    53	CASES=(
+    54	  "128 128"
+    55	  "128 1024"
+    56	  "128 2048"
+    57	  "1024 128"
+    58	  "1024 1024"
+    59	  "1024 2048"
+    60	  "2048 128"
+    61	  "2048 1024"
+    62	  "2048 2048"
+    63	)
+    64	# Optional text file, one 'input output' case per nonblank/non-comment line.
+    65	if [[ -n "${CASES_FILE:-}" ]]; then
+    66	    [[ -f "$CASES_FILE" ]] || { echo "ERROR: 找不到 CASES_FILE=$CASES_FILE" >&2; exit 2; }
+    67	    mapfile -t CASES < <(grep -Ev '^[[:space:]]*(#|$)' "$CASES_FILE")
+    68	fi
+    69	log() { printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"; }
+    70	# Child processes only: drop old measurement/audit injection; keep CoreX library paths.
+    71	CLEAN_ENV=(env -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+    72	    -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+    73	# ---- PGO guard: autofix two known-safe block causes, verify rollback --------
+    74	PGO_VENV=/opt/corex311
+    75	PGO_STATE=/root/.local/state/cpython-vllm-rebase
+    76	
+    77	pgo_runtime() {
+    78	    "${CLEAN_ENV[@]}" -u PYTHONPATH -u PYTHONHOME "$PYTHON_BIN" -c \
+    79	        'import sysconfig; print(sysconfig.get_config_var("CONFIG_ARGS") or "")' 2>/dev/null || true
+    80	}
+    81	
+    82	pgo_is_on() {
+    83	    local args
+    84	    args=$(pgo_runtime)
+    85	    [[ "$args" == *"--prefix=/opt/cpython-vllm/v1"* && "$args" == *"--with-lto"* ]]
+    86	}
+    87	
+    88	pgo_fix_perms() {
+    89	    local dir mode
+    90	    for dir in "$PGO_VENV" "$PGO_VENV/bin" "$PGO_VENV/lib" "$PGO_VENV/lib/python3.11" \
+    91	               "$PGO_VENV/lib/python3.11/site-packages"; do
+    92	        [[ -d "$dir" ]] || continue
+    93	        mode=$(stat -c %a "$dir" 2>/dev/null) || continue
+    94	        if (( (8#$mode & 8#022) != 0 )); then
+    95	            chmod g-w,o-w "$dir" && log "autofix: chmod g-w,o-w $dir"
+    96	        fi
+    97	    done
+    98	}
+    99	
+   100	pgo_fix_index() {
+   101	    local idx
+   102	    idx=$(ls -1 "$PGO_STATE"/venv-*.json 2>/dev/null | head -1)
+   103	    [[ -n "$idx" ]] || { log "autofix: 未找到索引文件，跳过"; return 1; }
+   104	    mv -- "$idx" "$idx.stale-$(date +%Y%m%d_%H%M%S)" \
+   105	        && log "autofix: 旧索引已挪开 -> $(basename "$idx").stale-*"
+   106	}
+   107	
+   108	# Only called when the venv is NOT already on PGO. Retries once after a
+   109	# known-safe autofix; anything else is reported unchanged to the caller.
+   110	pgo_switch() {
+   111	    local out rc
+   112	    out=$(env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+   113	        cpython-vllm-rebase switch --venv "$PGO_VENV" --ack-services-stopped 2>&1); rc=$?
+   114	    if (( rc == 0 )); then
+   115	        printf '%s\n' "$out"
+   116	        return 0
+   117	    fi
+   118	    log "rebase switch 失败: $(printf '%s' "$out" | tr '\n' ' ' | tail -c 220)"
+   119	    case "$out" in
+   120	        *VENV_DIRECTORY_GROUP_OR_WORLD_WRITABLE*)
+   121	            log "autofix: venv 目录带组/其他用户写权限，修正后重试"
+   122	            pgo_fix_perms ;;
+   123	        *PACKAGE_METADATA_CHANGED*)
+   124	            log "autofix: 包清单与旧事务记录不一致，挪开索引后重试"
+   125	            pgo_fix_index || return "$rc" ;;
+   126	        *)
+   127	            return "$rc" ;;
+   128	    esac
+   129	    env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+   130	        cpython-vllm-rebase switch --venv "$PGO_VENV" --ack-services-stopped
+   131	}
+   132	
+   133	# Rollback; if the index record is gone, fall back to the newest APPLIED
+   134	# transaction (this is the NO_MANAGED_TRANSACTION_... case).
+   135	pgo_rollback() {
+   136	    local out rc txn
+   137	    out=$(env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+   138	        cpython-vllm-rebase rollback --venv "$PGO_VENV" --ack-services-stopped 2>&1); rc=$?
+   139	    if (( rc == 0 )); then
+   140	        printf '%s\n' "$out"
+   141	        return 0
+   142	    fi
+   143	    log "rebase rollback 失败: $(printf '%s' "$out" | tr '\n' ' ' | tail -c 220)"
+   144	    if [[ "$out" == *NO_MANAGED_TRANSACTION* ]]; then
+   145	        txn=$(grep -l '"APPLIED_VERIFIED"' "$PGO_STATE"/20*/state.json 2>/dev/null \
+   146	              | sed 's|/state.json$||' | sort | tail -1)
+   147	        if [[ -n "$txn" ]]; then
+   148	            log "autofix: 索引缺失，改用 --transaction $(basename "$txn")"
+   149	            env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+   150	                cpython-vllm-rebase rollback --transaction "$txn" --ack-services-stopped
+   151	            return $?
+   152	        fi
+   153	        log "autofix: 未找到可回滚的 APPLIED 事务"
+   154	    fi
+   155	    return "$rc"
+   156	}
+   157	
+   158	SERVER_PREFIX=()
+   159	[[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+   160	SERVER_ARGS=(
+   161	    -m vllm.entrypoints.openai.api_server
+   162	    --host 127.0.0.1 --port "$PORT" --model "$MODEL_PATH" --trust_remote_code --dtype auto
+   163	    --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1
+   164	    --tensor_parallel_size "$GPUS_PER_INSTANCE" --data_parallel_size 1
+   165	    --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto
+   166	    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}'
+   167	    --async-scheduling --no-enable-prefix-caching
+   168	)
+   169	[[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
+   170	
+   171	cleanup() {
+   172	    if [[ "$CLEANED" == 1 ]]; then return; fi
+   173	    CLEANED=1
+   174	    if [[ -n "$BENCH_PID" ]]; then
+   175	        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/bench.process.json" || true
+   176	        wait "$BENCH_PID" 2>/dev/null || true
+   177	        BENCH_PID=""
+   178	    fi
+   179	    if [[ -n "$SERVER_PID" ]]; then
+   180	        log "停止本次服务 PID=$SERVER_PID（不使用全局 pkill）"
+   181	        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
+   182	        wait "$SERVER_PID" 2>/dev/null || true
+   183	        SERVER_PID=""; rm -f -- "$PID_FILE"
+   184	    fi
+   185	    if [[ "$INIT_DONE" == 1 ]]; then
+   186	        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" cleanup-control --session "$SESSION_FILE" || true
+   187	    fi
+   188	    if [[ "$PGO_RESTORE" == 1 ]]; then
+   189	        log "回滚 $PGO_VENV 到原 base"
+   190	        if pgo_rollback; then
+   191	            :
+   192	        elif pgo_is_on; then
+   193	            log "WARNING: rollback 未完成，venv 仍停在 PGO"
+   194	            log "         下一步: /opt/corex311/bin/python3 /home/qch/scripts/pgo-doctor.py off"
+   195	            [[ -d "$RUN_DIR" ]] && date > "$RUN_DIR/PGO_ROLLBACK_FAILED.txt"
+   196	        else
+   197	            log "NOTE: rollback 报校验提示，但运行时已回到 base（已知的 payload 变更情况，无需处理）"
+   198	        fi
+   199	        PGO_RESTORE=0
+   200	    fi
+   201	}
+   202	trap cleanup EXIT
+   203	trap 'exit 130' INT
+   204	trap 'exit 143' TERM
+   205	
+   206	if pgo_is_on; then
+   207	    log "PGO 运行时已启用，跳过 switch"
+   208	else
+   209	    if pgo_switch; then
+   210	        PGO_RESTORE=1
+   211	        log "已切换到 PGO 运行时（结束时回滚）"
+   212	    else
+   213	        log "ERROR: rebase switch 失败，无法保证在 PGO 环境运行"
+   214	        log "       诊断: /opt/corex311/bin/python3 /home/qch/scripts/pgo-doctor.py"
+   215	        exit 3
+   216	    fi
+   217	fi
+   218	
+   219	check_gpu_memory() {
+   220	    local gpu free_mib
+   221	    local -a gpus=()
+   222	    IFS=',' read -r -a gpus <<< "$GPU_LIST"
+   223	    if ! command -v ixsmi >/dev/null; then log 'WARNING: ixsmi 不可用，跳过显存预检'; return; fi
+   224	    for gpu in "${gpus[@]}"; do
+   225	        free_mib=$(ixsmi --query-gpu=memory.free --format=csv,noheader,nounits -i "$gpu" 2>/dev/null | tr -d ' ')
+   226	        if [[ "$free_mib" =~ ^[0-9]+$ ]]; then
+   227	            log "GPU $gpu: free=${free_mib} MiB（原预检阈值 20480 MiB）"
+   228	            (( free_mib >= 20480 )) || log "WARNING: GPU $gpu 显存偏低，请确认测试卡已预留"
+   229	        else log "WARNING: 无法读取 GPU $gpu 显存"; fi
+   230	    done
+   231	    return 0
+   232	}
+   233	wait_for_server() {
+   234	    local elapsed=0 code
+   235	    while (( elapsed < 600 )); do
+   236	        kill -0 "$SERVER_PID" 2>/dev/null || { log "ERROR: 服务已退出，查看 $SERVER_LOG"; return 1; }
+   237	        code=$(curl --noproxy '*' -s -o /dev/null -w '%{http_code}' --max-time 2 "http://127.0.0.1:${PORT}/health" 2>/dev/null || true)
+   238	        [[ "$code" == 200 ]] && { log "服务就绪 (${elapsed}s)"; return 0; }
+   239	        sleep 5; elapsed=$((elapsed+5))
+   240	    done
+   241	    log 'ERROR: 服务启动超时'; return 1
+   242	}
+   243	start_server() {
+   244	    # Refuse an occupied port. Never kill an unrelated service by name/port.
+   245	    "${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$PORT" <<'PY' || return 1
+   246	import socket,sys
+   247	with socket.socket() as s:s.bind(('127.0.0.1',int(sys.argv[1])))
+   248	PY
+   249	    check_gpu_memory "$GPU_LIST"
+   250	    local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1
+   251	        "${SERVER_EXTRA_ENV[@]}")
+   252	    if [[ "$HOST_MEASURE" == lite ]]; then
+   253	        env_args+=(PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}"
+   254	            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so"
+   255	            TCMALLOC_MAX_TOTAL_THREAD_CACHE_BYTES=536870912
+   256	            MALLOCSTATS=1
+   257	            LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+   258	    fi
+   259	    "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/server.process.json" -- \
+   260	        "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}" >> "$SERVER_LOG" 2>&1 &
+   261	    SERVER_PID=$!; echo "$SERVER_PID" > "$PID_FILE"
+   262	    log "服务 PID=$SERVER_PID；所有 case 复用；日志=$SERVER_LOG"
+   263	    wait_for_server
+   264	}
+   265	run_case() {
+   266	    local input_len="$1" output_len="$2"
+   267	    local case_id="bs${MAX_CONCURRENCY}_in${input_len}_out${output_len}"
+   268	    local case_log="${LOG_DIR}/bench_${case_id}.log" case_dir="${RUN_DIR}/litehost/${case_id}"
+   269	    local -a client env_args
+   270	    env_args=()
+   271	    if [[ "$HOST_MEASURE" == lite ]]; then
+   272	        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" prepare --session "$SESSION_FILE" \
+   273	            --case-id "$case_id" --num-prompts "$NUM_PROMPTS" --input-len "$input_len" --output-len "$output_len" || return 1
+   274	        client=("$HOST_TOOLKIT/bench_driver.py")
+   275	        env_args=(LIGHTHOST_SESSION="$SESSION_FILE" LIGHTHOST_CASE_DIR="$case_dir")
+   276	    else
+   277	        client=(-m vllm.entrypoints.cli.main bench serve)
+   278	    fi
+   279	    log "==== $case_id | mode=$HOST_MEASURE | warmup=$NUM_WARMUPS | 同一服务 ===="
+   280	    "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/bench.process.json" -- \
+   281	        "$PYTHON_BIN" "${client[@]}" \
+   282	        --backend vllm \
+   283	        --num_prompts "$NUM_PROMPTS" --num-warmups "$NUM_WARMUPS" --max-concurrency "$MAX_CONCURRENCY" \
+   284	        --dataset_name random --random_input_len "$input_len" --random_output_len "$output_len" \
+   285	        --host 127.0.0.1 --port "$PORT" --model "$MODEL_PATH" --trust_remote_code \
+   286	        --ignore_eos --top_p 1 --top_k -1 --temperature 0 --seed 42 \
+   287	        --save-result --result-dir "$RUN_DIR" --result_filename "${case_id}.json" > "$case_log" 2>&1 &
+   288	    BENCH_PID=$!
+   289	    local rc=0
+   290	    wait "$BENCH_PID" || rc=$?
+   291	    BENCH_PID=""
+   292	    if (( rc != 0 )); then log "ERROR: case 失败 rc=$rc；查看 $case_log"; return "$rc"; fi
+   293	    if [[ "$HOST_MEASURE" == lite ]]; then
+   294	        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" finish "$case_dir" \
+   295	            --link-percent "$HOST_LINK_PERCENT" || return 1
+   296	    fi
+   297	    log "完成 $case_id → ${RUN_DIR}/${case_id}.json"
+   298	}
+   299	
+   300	# Validate cheap inputs before model initialization.
+   301	"${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$GPU_LIST" "$NUM_PROMPTS" "$NUM_WARMUPS" "$MAX_CONCURRENCY" "$HOST_LINK_PERCENT" "$CASE_INTERVAL" "${CASES[@]}" <<'PY' || exit 2
+   302	import math,sys
+   303	ids,n,w,c,p,interval,*cases=sys.argv[1:]
+   304	if len(ids.split(','))!=4 or len(set(ids.split(',')))!=4:raise ValueError('需要四张不同 GPU')
+   305	if int(n)<=0 or int(w)<0 or int(c)<=0:raise ValueError('请求/预热/并发参数无效')
+   306	if not math.isfinite(float(p)) or not 0<=float(p)<=100 or float(interval)<0:raise ValueError('系数或间隔无效')
+   307	if not cases or len(cases)!=len(set(cases)):raise ValueError('case 列表为空或重复')
+   308	for x in cases:
+   309	    parts=x.split()
+   310	    if len(parts)!=2 or min(map(int,parts))<=0 or sum(map(int,parts))>4096:raise ValueError('case 需要两个正整数且总长 <= 4096')
+   311	PY
+   312	log "TEST_ID=$TEST_ID | MODE=$HOST_MEASURE | WARMUP=$NUM_WARMUPS | CPU_RANGE=$CPU_RANGE"
+   313	log "prefix cache=OFF | backend=vllm | 同一服务运行 ${#CASES[@]} 个 case | RUN_DIR=$RUN_DIR"
+   314	if [[ "$HOST_DRY_RUN" == 1 ]]; then
+   315	    printf 'SERVER: '; printf '%q ' "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}"; printf '\n'
+   316	    printf 'CASES: '; printf '%s; ' "${CASES[@]}"; printf '\n'
+   317	    exit 0
+   318	fi
+   319	[[ -d "$MODEL_PATH" ]] || { log 'ERROR: MODEL_PATH 不是本地目录'; exit 2; }
+   320	if [[ -e "$RUN_DIR" ]]; then log 'ERROR: RUN_DIR 已存在，请换一个 TEST_ID，避免混入旧文件'; exit 2; fi
+   321	mkdir -p "$LOG_DIR"
+   322	{
+   323	    echo "test_id=$TEST_ID"
+   324	    echo "started=$(date -Is)"
+   325	    echo "pgo=$(pgo_is_on && echo on || echo off)"
+   326	    echo "multi_engine=$(cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>/dev/null || echo unknown)"
+   327	    echo "cpu_range=$CPU_RANGE"
+   328	    echo "hotspot_opt=${HOTSPOT_OPT:-unset}"
+   329	    echo "model_path=$MODEL_PATH"
+   330	    echo "gpus=$GPU_LIST tp=$GPUS_PER_INSTANCE"
+   331	    echo "prompts=$NUM_PROMPTS concurrency=$MAX_CONCURRENCY warmups=$NUM_WARMUPS"
+   332	} > "$RUN_DIR/config.txt" 2>/dev/null || true
+   333	if [[ "$HOST_MEASURE" == lite ]]; then
+   334	    "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" init --run-dir "$RUN_DIR" \
+   335	        --timeout "$HOST_TIMEOUT" --max-scopes "$HOST_MAX_SCOPES" > "$LOG_DIR/preflight.log" 2>&1 || { cat "$LOG_DIR/preflight.log"; exit 2; }
+   336	    INIT_DONE=1
+   337	fi
+   338	if ! start_server; then log 'FATAL: 启动失败'; exit 1; fi
+   339	FAILED=0
+   340	for idx in "${!CASES[@]}"; do
+   341	    read -r input_len output_len <<< "${CASES[$idx]}"
+   342	    if ! run_case "$input_len" "$output_len"; then
+   343	        FAILED=1; log '停止后续 case，避免未完成请求或测量状态污染下一轮'; break
+   344	    fi
+   345	    if (( idx < ${#CASES[@]}-1 )); then log "等待 ${CASE_INTERVAL}s"; sleep "$CASE_INTERVAL"; fi
+   346	done
+   347	# Intermediate case results have already been validated and saved by
+   348	# lhctl.py finish (quietly). Build all-case CSV + Host report SILENTLY;
+   349	# print both result summaries only ONCE, after all cases and server cleanup.
+   350	if ! "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" summary "$RUN_DIR" \
+   351	        > "$LOG_DIR/summary_build.log"; then
+   352	    FAILED=1
+   353	fi
+   354	if [[ "$HOST_MEASURE" == lite && "$FAILED" == 0 ]]; then
+   355	    "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/analyze_litehost.py" "$RUN_DIR/litehost" \
+   356	        --link-percent "$HOST_LINK_PERCENT" --out "$RUN_DIR/host_summary" --quiet || FAILED=1
+   357	fi
+   358	cleanup
+   359	(( FAILED == 0 )) || { log "部分失败，保留诊断：$RUN_DIR"; exit 2; }
+   360	
+   361	log "========== 所有 case 最终结果（仅此处打印一次） =========="
+   362	"${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$SUMMARY_CSV" "$MAX_CONCURRENCY" "${CASES[@]}" <<'PY' || exit 2
+   363	import csv,sys
+   364	from pathlib import Path
+   365	path=Path(sys.argv[1]);bs=sys.argv[2]
+   366	with path.open(newline='') as f:
+   367	    rows={r['case']:r for r in csv.DictReader(f)}
+   368	print('===== Benchmark：吞吐与延迟（全部 case）=====')
+   369	for spec in sys.argv[3:]:
+   370	    in_len,out_len=spec.split()
+   371	    case=f'bs{bs}_in{in_len}_out{out_len}'
+   372	    if case not in rows:raise SystemExit(f'ERROR: summary.csv 缺少 {case}')
+   373	    r=rows[case]
+   374	    def fmt(key):
+   375	        val=r.get(key,'')
+   376	        try:return f'{float(val):.3f}'
+   377	        except (TypeError,ValueError):return 'N/A'
+   378	    print(f'{case}: output_tok/s={fmt("output_token_throughput_tok_s")} '
+   379	          f'TTFT_mean={fmt("mean_ttft_ms")}ms '
+   380	          f'TPOT_mean={fmt("mean_tpot_ms")}ms ITL_mean={fmt("mean_itl_ms")}ms')
+   381	PY
+   382	if [[ "$HOST_MEASURE" == lite ]]; then
+   383	    echo '===== LiteHost：四 rank、所有 case 的 H 与 H+G ====='
+   384	    cat "$RUN_DIR/host_summary/report.txt"
+   385	fi
+   386	log "全部完成 | benchmark=$SUMMARY_CSV | host=$([[ "$HOST_MEASURE" == lite ]] && echo "$RUN_DIR/host_summary/report.txt" || echo 'OFF/未采集')"
+== 4. 两脚本差异 ==
+--- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh	2026-11-09 08:59:41.513949440 +0800
++++ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh	2026-11-06 14:26:57.133530100 +0800
+@@ -24,7 +24,8 @@
+ SERVER_EXTRA_ENV=(
+     UMD_MAXCOMMANDBUFFERNUMBER=256
+     UMD_MAXCOMMANDBUFFERSIZE=16384
+-    VLLM_DISABLE_DECODE_FASTPATH=1
++    VLLM_HOST_FASTPATH=on
++    TORCH_MODULE_ATTR_FASTPATH=slot_native
+ )
+ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ # Do not use an inherited OLD LIGHTHOST_HOME silently.
+@@ -50,15 +51,15 @@
+ 
+ # Original case matrix: only 128/128 enabled; uncomment the others as before.
+ CASES=(
+-    "128 128"
+-#   "128 1024"
+-#   "128 2048"
+-#   "1024 128"
+-#   "1024 1024"
+-#   "1024 2048"
+-#   "2048 128"
+-#   "2048 1024"
+-#   "2048 2048"
++  "128 128"
++  "128 1024"
++  "128 2048"
++  "1024 128"
++  "1024 1024"
++  "1024 2048"
++  "2048 128"
++  "2048 1024"
++  "2048 2048"
+ )
+ # Optional text file, one 'input output' case per nonblank/non-comment line.
+ if [[ -n "${CASES_FILE:-}" ]]; then
+@@ -104,7 +105,8 @@
+         && log "autofix: 旧索引已挪开 -> $(basename "$idx").stale-*"
+ }
+ 
+-# Switch back to PGO; retries once after a known-safe autofix.
++# Only called when the venv is NOT already on PGO. Retries once after a
++# known-safe autofix; anything else is reported unchanged to the caller.
+ pgo_switch() {
+     local out rc
+     out=$(env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
+@@ -184,15 +186,15 @@
+         "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" cleanup-control --session "$SESSION_FILE" || true
+     fi
+     if [[ "$PGO_RESTORE" == 1 ]]; then
+-        log "恢复跑之前的 PGO 运行时"
+-        if pgo_switch; then
++        log "回滚 $PGO_VENV 到原 base"
++        if pgo_rollback; then
+             :
+         elif pgo_is_on; then
+-            log "NOTE: switch 报校验提示，但运行时已是 PGO（已知的 payload 变更情况，无需处理）"
++            log "WARNING: rollback 未完成，venv 仍停在 PGO"
++            log "         下一步: /opt/corex311/bin/python3 /home/qch/scripts/pgo-doctor.py off"
++            [[ -d "$RUN_DIR" ]] && date > "$RUN_DIR/PGO_ROLLBACK_FAILED.txt"
+         else
+-            log "WARNING: 未能恢复到 PGO 运行时"
+-            log "         下一步: /opt/corex311/bin/python3 /home/qch/scripts/pgo-doctor.py on"
+-            [[ -d "$RUN_DIR" ]] && date > "$RUN_DIR/PGO_RESTORE_FAILED.txt"
++            log "NOTE: rollback 报校验提示，但运行时已回到 base（已知的 payload 变更情况，无需处理）"
+         fi
+         PGO_RESTORE=0
+     fi
+@@ -202,20 +204,16 @@
+ trap 'exit 143' TERM
+ 
+ if pgo_is_on; then
+-    log "当前是 PGO 运行时，回滚到原 base"
+-    if pgo_rollback; then
++    log "PGO 运行时已启用，跳过 switch"
++else
++    if pgo_switch; then
+         PGO_RESTORE=1
+-        log "已回滚到原 base（结束后恢复 PGO）"
+-    elif pgo_is_on; then
+-        log "ERROR: rebase rollback 失败，无法保证在非 PGO 环境运行"
++        log "已切换到 PGO 运行时（结束时回滚）"
++    else
++        log "ERROR: rebase switch 失败，无法保证在 PGO 环境运行"
+         log "       诊断: /opt/corex311/bin/python3 /home/qch/scripts/pgo-doctor.py"
+         exit 3
+-    else
+-        PGO_RESTORE=1
+-        log "已回滚到原 base（rollback 报校验提示，但运行时已是 base；结束后恢复 PGO）"
+     fi
+-else
+-    log "PGO 运行时未启用，继续使用原 base"
+ fi
+ 
+ check_gpu_memory() {
+@@ -253,7 +251,9 @@
+         "${SERVER_EXTRA_ENV[@]}")
+     if [[ "$HOST_MEASURE" == lite ]]; then
+         env_args+=(PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}"
+-            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so"
++            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so"
++            TCMALLOC_MAX_TOTAL_THREAD_CACHE_BYTES=536870912
++            MALLOCSTATS=1
+             LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+     fi
+     "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/server.process.json" -- \
+== 5. PGO/rebase 关键行 ==
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:9:PREFIX="${PREFIX:-/opt/corex311}"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:10:PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:37:[[ -x "$PYTHON_BIN" && -f "$HOST_TOOLKIT/lhctl.py" ]] || { echo 'ERROR: Python 或配套文件缺失' >&2; exit 2; }
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:49:SERVER_PID=""; BENCH_PID=""; CLEANED=0; INIT_DONE=0; PGO_RESTORE=0
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:72:# ---- PGO guard: autofix two known-safe block causes, verify rollback --------
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:73:PGO_VENV=/opt/corex311
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:74:PGO_STATE=/root/.local/state/cpython-vllm-rebase
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:76:pgo_runtime() {
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:77:    "${CLEAN_ENV[@]}" -u PYTHONPATH -u PYTHONHOME "$PYTHON_BIN" -c \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:81:pgo_is_on() {
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:83:    args=$(pgo_runtime)
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:87:pgo_fix_perms() {
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:89:    for dir in "$PGO_VENV" "$PGO_VENV/bin" "$PGO_VENV/lib" "$PGO_VENV/lib/python3.11" \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:90:               "$PGO_VENV/lib/python3.11/site-packages"; do
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:99:pgo_fix_index() {
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:101:    idx=$(ls -1 "$PGO_STATE"/venv-*.json 2>/dev/null | head -1)
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:107:# Switch back to PGO; retries once after a known-safe autofix.
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:108:pgo_switch() {
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:111:        cpython-vllm-rebase switch --venv "$PGO_VENV" --ack-services-stopped 2>&1); rc=$?
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:116:    log "rebase switch 失败: $(printf '%s' "$out" | tr '\n' ' ' | tail -c 220)"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:120:            pgo_fix_perms ;;
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:123:            pgo_fix_index || return "$rc" ;;
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:128:        cpython-vllm-rebase switch --venv "$PGO_VENV" --ack-services-stopped
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:133:pgo_rollback() {
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:136:        cpython-vllm-rebase rollback --venv "$PGO_VENV" --ack-services-stopped 2>&1); rc=$?
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:141:    log "rebase rollback 失败: $(printf '%s' "$out" | tr '\n' ' ' | tail -c 220)"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:143:        txn=$(grep -l '"APPLIED_VERIFIED"' "$PGO_STATE"/20*/state.json 2>/dev/null \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:148:                cpython-vllm-rebase rollback --transaction "$txn" --ack-services-stopped
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:156:SERVER_PREFIX=()
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:157:[[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:173:        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/bench.process.json" || true
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:179:        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:184:        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" cleanup-control --session "$SESSION_FILE" || true
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:186:    if [[ "$PGO_RESTORE" == 1 ]]; then
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:187:        log "恢复跑之前的 PGO 运行时"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:188:        if pgo_switch; then
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:190:        elif pgo_is_on; then
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:191:            log "NOTE: switch 报校验提示，但运行时已是 PGO（已知的 payload 变更情况，无需处理）"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:193:            log "WARNING: 未能恢复到 PGO 运行时"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:194:            log "         下一步: /opt/corex311/bin/python3 /home/qch/scripts/pgo-doctor.py on"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:195:            [[ -d "$RUN_DIR" ]] && date > "$RUN_DIR/PGO_RESTORE_FAILED.txt"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:197:        PGO_RESTORE=0
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:204:if pgo_is_on; then
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:205:    log "当前是 PGO 运行时，回滚到原 base"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:206:    if pgo_rollback; then
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:207:        PGO_RESTORE=1
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:208:        log "已回滚到原 base（结束后恢复 PGO）"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:209:    elif pgo_is_on; then
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:210:        log "ERROR: rebase rollback 失败，无法保证在非 PGO 环境运行"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:211:        log "       诊断: /opt/corex311/bin/python3 /home/qch/scripts/pgo-doctor.py"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:214:        PGO_RESTORE=1
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:215:        log "已回滚到原 base（rollback 报校验提示，但运行时已是 base；结束后恢复 PGO）"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:218:    log "PGO 运行时未启用，继续使用原 base"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:247:    "${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$PORT" <<'PY' || return 1
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:259:    "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/server.process.json" -- \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:260:        "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}" >> "$SERVER_LOG" 2>&1 &
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:272:        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" prepare --session "$SESSION_FILE" \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:280:    "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/bench.process.json" -- \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:281:        "$PYTHON_BIN" "${client[@]}" \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:294:        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" finish "$case_dir" \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:301:"${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$GPU_LIST" "$NUM_PROMPTS" "$NUM_WARMUPS" "$MAX_CONCURRENCY" "$HOST_LINK_PERCENT" "$CASE_INTERVAL" "${CASES[@]}" <<'PY' || exit 2
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:315:    printf 'SERVER: '; printf '%q ' "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}"; printf '\n'
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:325:    echo "pgo=$(pgo_is_on && echo on || echo off)"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:334:    "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" init --run-dir "$RUN_DIR" \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:350:if ! "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" summary "$RUN_DIR" \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:355:    "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/analyze_litehost.py" "$RUN_DIR/litehost" \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:362:"${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$SUMMARY_CSV" "$MAX_CONCURRENCY" "${CASES[@]}" <<'PY' || exit 2
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:9:PREFIX="${PREFIX:-/opt/corex311}"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:10:PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:38:[[ -x "$PYTHON_BIN" && -f "$HOST_TOOLKIT/lhctl.py" ]] || { echo 'ERROR: Python 或配套文件缺失' >&2; exit 2; }
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:50:SERVER_PID=""; BENCH_PID=""; CLEANED=0; INIT_DONE=0; PGO_RESTORE=0
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:73:# ---- PGO guard: autofix two known-safe block causes, verify rollback --------
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:74:PGO_VENV=/opt/corex311
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:75:PGO_STATE=/root/.local/state/cpython-vllm-rebase
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:77:pgo_runtime() {
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:78:    "${CLEAN_ENV[@]}" -u PYTHONPATH -u PYTHONHOME "$PYTHON_BIN" -c \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:82:pgo_is_on() {
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:84:    args=$(pgo_runtime)
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:88:pgo_fix_perms() {
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:90:    for dir in "$PGO_VENV" "$PGO_VENV/bin" "$PGO_VENV/lib" "$PGO_VENV/lib/python3.11" \
++ set +x
+
+### exit: 0
