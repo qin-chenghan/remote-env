@@ -1,0 +1,118 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T11:29:55Z
+
++ D=/home/huawei_ts_program/litehost_perf_opt
++ CASES=/home/qch/transfer/cases_r10_smoke_184.txt
++ printf '128 128\n'
++ echo '== 0. 占用检查 =='
+== 0. 占用检查 ==
+++ pgrep -af 'vllmBench|bench_driver|vllm.entrypoints|api_server'
+++ grep -v 'pgrep\|cmd.sh'
+++ true
++ BUSY=
++ '[' -n '' ']'
++ echo 无任务
+无任务
++ echo '== 1. 模型路径 =='
+== 1. 模型路径 ==
++ MP=/home/model/ts/Qwen3-32B-W8A8
++ '[' -d /home/model/ts/Qwen3-32B-W8A8 ']'
++ MP=/home/model/Qwen3-32B-W8A8
++ echo MODEL_PATH=/home/model/Qwen3-32B-W8A8
+MODEL_PATH=/home/model/Qwen3-32B-W8A8
++ echo '== 2. 冒烟前 GPU =='
+== 2. 冒烟前 GPU ==
++ timeout 15 /usr/local/corex-5.0.0/bin/ixsmi
++ grep -E 'MiB / 32768'
++ head -4
+| N/A  38C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  38C   P0       101W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  36C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  37C   P0       100W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
++ echo '== 3. 运行 opt 冒烟 =='
+== 3. 运行 opt 冒烟 ==
++ docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= corex5-py311 bash -c 'cd /home/huawei_ts_program/litehost_perf_opt && CASES_FILE=/home/qch/transfer/cases_r10_smoke_184.txt NUM_PROMPTS=20 NUM_WARMUPS=4 TEST_ID=r10_smoke_184 PORT=8848 MODEL_PATH=/home/model/Qwen3-32B-W8A8 bash vllmBench_lite_opt.sh'
+[2026-11-09 19:29:56] PREFIX=/opt/corex311-cpython-vllm
+[2026-11-09 19:29:56] TEST_ID=r10_smoke_184 | MODE=lite | WARMUP=4 | CPU_RANGE=192-255
+[2026-11-09 19:29:56] prefix cache=OFF | backend=vllm | 同一服务运行 1 个 case | RUN_DIR=/home/huawei_ts_program/litehost_perf_opt/vllmBench/r10_smoke_184
+[2026-11-09 19:29:56] GPU 0: free=32702 MiB（原预检阈值 20480 MiB）
+[2026-11-09 19:29:56] GPU 1: free=32702 MiB（原预检阈值 20480 MiB）
+[2026-11-09 19:29:56] GPU 2: free=32702 MiB（原预检阈值 20480 MiB）
+[2026-11-09 19:29:56] GPU 3: free=32702 MiB（原预检阈值 20480 MiB）
+[2026-11-09 19:29:56] 服务 PID=1090847；所有 case 复用；日志=/home/huawei_ts_program/litehost_perf_opt/vllmBench/r10_smoke_184/logs/server.log
+[2026-11-09 19:31:11] 服务就绪 (75s)
+PREPARED: /home/huawei_ts_program/litehost_perf_opt/vllmBench/r10_smoke_184/litehost/bs8_in128_out128
+[2026-11-09 19:31:11] ==== bs8_in128_out128 | mode=lite | warmup=4 | 同一服务 ====
+[2026-11-09 19:31:42] 完成 bs8_in128_out128 → /home/huawei_ts_program/litehost_perf_opt/vllmBench/r10_smoke_184/bs8_in128_out128.json
+[2026-11-09 19:31:42] 停止本次服务 PID=1090847（不使用全局 pkill）
+[2026-11-09 19:31:46] ========== 所有 case 最终结果（仅此处打印一次） ==========
+===== Benchmark：吞吐与延迟（全部 case）=====
+bs8_in128_out128: output_tok/s=180.424 TTFT_mean=213.298ms TPOT_mean=35.793ms ITL_mean=35.793ms
+===== LiteHost：四 rank、所有 case 的 H 与 H+G =====
+H = T - S + S * 0/100. Formal scopes only. Unit = SECONDS.
+G = sum(start_next - end_current) across adjacent formal scopes on EACH rank.
+H+G = H_total + G_total (gap wall time included; sync/idle within G NOT removed).
+Primary H remains unchanged; four-rank means are TOTAL seconds, NOT per iteration or instance latency.
+
+CASE: bs8_in128_out128  run_id=685edbc8d19644368ba43968fefd5eb1
+  rank0 pid=1092006 formal=392 warmup_excluded=132 T_total=13.931037s S_total=13.035260s H_total=0.895777s G_total=0.245780s H+G=1.141557s
+  rank1 pid=1092007 formal=392 warmup_excluded=132 T_total=13.895765s S_total=13.045768s H_total=0.849997s G_total=0.281002s H+G=1.130999s
+  rank2 pid=1092008 formal=392 warmup_excluded=132 T_total=13.895202s S_total=13.074524s H_total=0.820678s G_total=0.281576s H+G=1.102253s
+  rank3 pid=1092009 formal=392 warmup_excluded=132 T_total=13.880761s S_total=13.036499s H_total=0.844262s G_total=0.296003s H+G=1.140265s
+  all_formal       four_rank_mean_total_H_s=0.852678
+  graph_formal     four_rank_mean_total_H_s=0.494543
+  no_graph_formal  four_rank_mean_total_H_s=0.358136
+FINAL [bs8_in128_out128]: four_rank_mean_total_H_s = 0.852678 s G_total=0.276090s H+G=1.128769s (all_formal, no warmup, gap sync NOT subtracted)
+
+[2026-11-09 19:31:46] 全部完成 | benchmark=/home/huawei_ts_program/litehost_perf_opt/vllmBench/r10_smoke_184/summary.csv | host=/home/huawei_ts_program/litehost_perf_opt/vllmBench/r10_smoke_184/host_summary/report.txt
++ RC=0
++ echo 'smoke rc=0'
+smoke rc=0
++ echo '== 4. 结果与 r10 证据 =='
+== 4. 结果与 r10 证据 ==
++ RUN_DIR=/home/huawei_ts_program/litehost_perf_opt/vllmBench/r10_smoke_184
++ ls -la /home/huawei_ts_program/litehost_perf_opt/vllmBench/r10_smoke_184
++ head -10
+total 48
+drwxr-xr-x.  6 root root 4096 Nov  9 19:31 .
+drwxr-xr-x. 28 root root 4096 Nov  9 19:29 ..
+-rw-------.  1 root root   84 Nov  9 19:31 bench.process.json
+-rw-r--r--.  1 root root 1028 Nov  9 19:31 bs8_in128_out128.json
+-rw-r--r--.  1 root root  232 Nov  9 19:29 config.txt
+drwxr-xr-x.  2 root root 4096 Nov  9 19:30 control
+drwxr-xr-x.  2 root root 4096 Nov  9 19:31 host_summary
+drwxr-xr-x.  3 root root 4096 Nov  9 19:31 litehost
+drwxr-xr-x.  2 root root 4096 Nov  9 19:31 logs
++ echo '-- server.log 证据 --'
+-- server.log 证据 --
++ grep -iE 'VLLM_HOST_OPT|VLLM_HOST_FASTPATH|HOST_OPT|host_opt|compact_greedy|Sample logits|metadata|COREX_HOST' /home/huawei_ts_program/litehost_perf_opt/vllmBench/r10_smoke_184/logs/server.log
++ head -20
+(APIServer pid=1090847) WARNING 11-09 19:30:02 [envs.py:2051] Unknown vLLM environment variable detected: VLLM_HOST_OPT_METADATA
+(APIServer pid=1090847) INFO 11-09 19:30:14 [compilation.py:1162] Sample logits cudagraph on: capture sizes [1, 2, 3, 4, 5, 6, 7, 8], budget 67108864 bytes
+(Worker pid=1092007) INFO 11-09 19:30:35 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True}, fallback reasons={}
+(Worker pid=1092008) INFO 11-09 19:30:35 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True}, fallback reasons={}
+(Worker pid=1092009) INFO 11-09 19:30:35 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True}, fallback reasons={}
+(Worker pid=1092006) INFO 11-09 19:30:35 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True}, fallback reasons={}
+(Worker_TP1 pid=1092007) INFO 11-09 19:30:53 [compact_greedy.py:164] Compact greedy mode=on, active=True, reason=
+(Worker_TP0 pid=1092006) INFO 11-09 19:30:53 [compact_greedy.py:164] Compact greedy mode=on, active=True, reason=
+(Worker_TP2 pid=1092008) INFO 11-09 19:30:53 [compact_greedy.py:164] Compact greedy mode=on, active=True, reason=
+(Worker_TP3 pid=1092009) INFO 11-09 19:30:53 [compact_greedy.py:164] Compact greedy mode=on, active=True, reason=
+(Worker_TP1 pid=1092007) INFO 11-09 19:30:55 [compact_greedy.py:525] Sample logits graph kind=token_ids, status=ready, keys=[1, 2, 3, 4, 5, 6, 7, 8], retained=50700288 bytes, reason=
+(Worker_TP3 pid=1092009) INFO 11-09 19:30:55 [compact_greedy.py:525] Sample logits graph kind=token_ids, status=ready, keys=[1, 2, 3, 4, 5, 6, 7, 8], retained=52797440 bytes, reason=
+(Worker_TP2 pid=1092008) INFO 11-09 19:30:55 [compact_greedy.py:525] Sample logits graph kind=token_ids, status=ready, keys=[1, 2, 3, 4, 5, 6, 7, 8], retained=50700288 bytes, reason=
+(Worker_TP0 pid=1092006) INFO 11-09 19:30:55 [compact_greedy.py:525] Sample logits graph kind=token_ids, status=ready, keys=[1, 2, 3, 4, 5, 6, 7, 8], retained=50700288 bytes, reason=
+(EngineCore pid=1091713) INFO 11-09 19:31:06 [compilation.py:1162] Sample logits cudagraph on: capture sizes [1, 2, 3, 4, 5, 6, 7, 8], budget 67108864 bytes
++ echo '-- 结果 json --'
+-- 结果 json --
++ cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/r10_smoke_184/bs8_in128_out128.json
++ head -5
+{"date": "20261109-193139", "endpoint_type": "vllm", "backend": "vllm", "label": null, "model_id": "/home/model/Qwen3-32B-W8A8", "tokenizer_id": "/home/model/Qwen3-32B-W8A8", "num_prompts": 20, "request_rate": "inf", "burstiness": 1.0, "max_concurrency": 8, "duration": 14.18876187999922, "completed": 20, "failed": 0, "total_input_tokens": 2560, "total_output_tokens": 2560, "request_throughput": 1.409566258786288, "request_goodput": null, "output_throughput": 180.42448112464487, "total_token_throughput": 360.84896224928974, "max_output_tokens_per_s": 224.0, "max_concurrent_requests": 16, "rtfx": 0.0, "mean_ttft_ms": 213.2975490001627, "median_ttft_ms": 259.62571000036405, "std_ttft_ms": 75.53523847781004, "p99_ttft_ms": 285.59930319943305, "mean_tpot_ms": 35.79253018503844, "median_tpot_ms": 35.756310000006195, "std_tpot_ms": 0.6549874617238001, "p99_tpot_ms": 36.92876737874145, "mean_itl_ms": 35.79253120866112, "median_itl_ms": 35.594660000242584, "std_itl_ms": 5.556304509194772, "p99_itl_ms": 40.818677700044645}+ echo '-- summary --'
+-- summary --
++ cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/r10_smoke_184/summary.csv
++ head -4
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+r10_smoke_184,bs8_in128_out128,20,14.18876187999922,1.409566258786288,180.42448112464487,360.84896224928974,213.2975490001627,259.62571000036405,285.59930319943305,35.79253018503844,35.756310000006195,36.92876737874145,35.79253120866112,35.594660000242584,40.818677700044645
++ set +x
+
+### exit: 0
