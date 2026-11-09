@@ -1,0 +1,281 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T07:34:10Z
+
++ D=/home/huawei_ts_program/litehost_perf_opt
++ echo '== 1. 目录与备份 =='
+== 1. 目录与备份 ==
++ ls -lt --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh.bak-20261109-105413 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-20261109-105413
++ head -20
+-rwxr-xr-x. 1 root root 14128 2026-11-09 15:22 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+-rwxr-xr-x. 1 root root 13957 2026-11-09 15:22 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
+-rwxr-xr-x. 1 root root 17940 2026-11-09 08:59 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh.bak-20261109-105413
+-rwxr-xr-x. 1 root root 17970 2026-11-06 14:26 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-20261109-105413
++ echo '== 2. 语法检查 =='
+== 2. 语法检查 ==
++ bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
++ echo 'OK base'
+OK base
++ bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ echo 'OK opt'
+OK opt
++ echo '== 3. 残留的 pgo/rebase 引用 =='
+== 3. 残留的 pgo/rebase 引用 ==
++ grep -in 'pgo\|rebase' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:72:# ---- runtime check: read-only; PGO state is selected by the venv PREFIX points to ----
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:74:pgo_runtime() {
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:79:pgo_is_on() {
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:81:    args=$(pgo_runtime)
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:224:    echo "pgo=$(pgo_is_on && echo on || echo off)"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:73:# ---- runtime check: read-only; PGO state is selected by the venv PREFIX points to ----
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:75:pgo_runtime() {
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:80:pgo_is_on() {
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:82:    args=$(pgo_runtime)
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:227:    echo "pgo=$(pgo_is_on && echo on || echo off)"
++ echo '== 4. base 头部与 PGO 区域 =='
+== 4. base 头部与 PGO 区域 ==
++ sed -n 1,35p /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
+#!/usr/bin/env bash
+# Adapted from the uploaded vllmBench_lite.sh. Keep one server for all cases.
+# Defaults retained: warmups=16, cache OFF, CPUs 192-255 (NUMA node 3), backend=vllm.
+# Requires the matching files in this slim folder (included in the ZIP).
+set -uo pipefail
+
+MODEL_PATH="${MODEL_PATH:-/home/model/ts/Qwen3-32B-W8A8}"
+TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
+PREFIX="${PREFIX:-/opt/corex311}"
+PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+GPU_LIST="${GPU_LIST:-0,1,2,3}"
+GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+PORT="${PORT:-8848}"
+NUM_PROMPTS="${NUM_PROMPTS:-100}"
+NUM_WARMUPS="${NUM_WARMUPS:-16}"
+MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+CASE_INTERVAL="${CASE_INTERVAL:-60}"
+CPU_RANGE="${CPU_RANGE-192-255}"
+HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
+HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
+HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
+HOST_MAX_SCOPES="${HOST_MAX_SCOPES:-200000}"
+HOST_DRY_RUN="${HOST_DRY_RUN:-0}"
+SERVER_EXTRA_ENV=(
+    UMD_MAXCOMMANDBUFFERNUMBER=256
+    UMD_MAXCOMMANDBUFFERSIZE=16384
+    VLLM_DISABLE_DECODE_FASTPATH=1
+)
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# Do not use an inherited OLD LIGHTHOST_HOME silently.
+if [[ -f "$SCRIPT_DIR/lhctl.py" ]]; then
+    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR}"
+else
+    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR/litehost_compat_slim}"
+fi
++ echo '---- 60-140 ----'
+---- 60-140 ----
++ sed -n 60,140p /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
+#   "2048 1024"
+#   "2048 2048"
+)
+# Optional text file, one 'input output' case per nonblank/non-comment line.
+if [[ -n "${CASES_FILE:-}" ]]; then
+    [[ -f "$CASES_FILE" ]] || { echo "ERROR: 找不到 CASES_FILE=$CASES_FILE" >&2; exit 2; }
+    mapfile -t CASES < <(grep -Ev '^[[:space:]]*(#|$)' "$CASES_FILE")
+fi
+log() { printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"; }
+# Child processes only: drop old measurement/audit injection; keep CoreX library paths.
+CLEAN_ENV=(env -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+    -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+# ---- runtime check: read-only; PGO state is selected by the venv PREFIX points to ----
+
+pgo_runtime() {
+    "${CLEAN_ENV[@]}" -u PYTHONPATH -u PYTHONHOME "$PYTHON_BIN" -c \
+        'import sysconfig; print(sysconfig.get_config_var("CONFIG_ARGS") or "")' 2>/dev/null || true
+}
+
+pgo_is_on() {
+    local args
+    args=$(pgo_runtime)
+    [[ "$args" == *"--prefix=/opt/cpython-vllm/v1"* && "$args" == *"--with-lto"* ]]
+}
+
+SERVER_PREFIX=()
+[[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+SERVER_ARGS=(
+    -m vllm.entrypoints.openai.api_server
+    --host 127.0.0.1 --port "$PORT" --model "$MODEL_PATH" --trust_remote_code --dtype auto
+    --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1
+    --tensor_parallel_size "$GPUS_PER_INSTANCE" --data_parallel_size 1
+    --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto
+    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}'
+    --async-scheduling --no-enable-prefix-caching
+)
+[[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
+
+cleanup() {
+    if [[ "$CLEANED" == 1 ]]; then return; fi
+    CLEANED=1
+    if [[ -n "$BENCH_PID" ]]; then
+        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/bench.process.json" || true
+        wait "$BENCH_PID" 2>/dev/null || true
+        BENCH_PID=""
+    fi
+    if [[ -n "$SERVER_PID" ]]; then
+        log "停止本次服务 PID=$SERVER_PID（不使用全局 pkill）"
+        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
+        wait "$SERVER_PID" 2>/dev/null || true
+        SERVER_PID=""; rm -f -- "$PID_FILE"
+    fi
+    if [[ "$INIT_DONE" == 1 ]]; then
+        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" cleanup-control --session "$SESSION_FILE" || true
+    fi
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+check_gpu_memory() {
+    local gpu free_mib
+    local -a gpus=()
+    IFS=',' read -r -a gpus <<< "$GPU_LIST"
+    if ! command -v ixsmi >/dev/null; then log 'WARNING: ixsmi 不可用，跳过显存预检'; return; fi
+    for gpu in "${gpus[@]}"; do
+        free_mib=$(ixsmi --query-gpu=memory.free --format=csv,noheader,nounits -i "$gpu" 2>/dev/null | tr -d ' ')
+        if [[ "$free_mib" =~ ^[0-9]+$ ]]; then
+            log "GPU $gpu: free=${free_mib} MiB（原预检阈值 20480 MiB）"
+            (( free_mib >= 20480 )) || log "WARNING: GPU $gpu 显存偏低，请确认测试卡已预留"
+        else log "WARNING: 无法读取 GPU $gpu 显存"; fi
+    done
+    return 0
+}
+wait_for_server() {
+    local elapsed=0 code
+    while (( elapsed < 600 )); do
+        kill -0 "$SERVER_PID" 2>/dev/null || { log "ERROR: 服务已退出，查看 $SERVER_LOG"; return 1; }
+        code=$(curl --noproxy '*' -s -o /dev/null -w '%{http_code}' --max-time 2 "http://127.0.0.1:${PORT}/health" 2>/dev/null || true)
+        [[ "$code" == 200 ]] && { log "服务就绪 (${elapsed}s)"; return 0; }
+        sleep 5; elapsed=$((elapsed+5))
++ echo '== 5. opt 头部与 PGO 区域 =='
+== 5. opt 头部与 PGO 区域 ==
++ sed -n 1,35p /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+#!/usr/bin/env bash
+# Adapted from the uploaded vllmBench_lite.sh. Keep one server for all cases.
+# Defaults retained: warmups=16, cache OFF, CPUs 192-255 (NUMA node 3), backend=vllm.
+# Requires the matching files in this slim folder (included in the ZIP).
+set -uo pipefail
+
+MODEL_PATH="${MODEL_PATH:-/home/model/ts/Qwen3-32B-W8A8}"
+TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
+PREFIX="${PREFIX:-/opt/corex311-cpython-vllm}"
+PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+GPU_LIST="${GPU_LIST:-0,1,2,3}"
+GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+PORT="${PORT:-8848}"
+NUM_PROMPTS="${NUM_PROMPTS:-100}"
+NUM_WARMUPS="${NUM_WARMUPS:-16}"
+MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+CASE_INTERVAL="${CASE_INTERVAL:-60}"
+CPU_RANGE="${CPU_RANGE-192-255}"
+HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
+HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
+HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
+HOST_MAX_SCOPES="${HOST_MAX_SCOPES:-200000}"
+HOST_DRY_RUN="${HOST_DRY_RUN:-0}"
+SERVER_EXTRA_ENV=(
+    UMD_MAXCOMMANDBUFFERNUMBER=256
+    UMD_MAXCOMMANDBUFFERSIZE=16384
+    VLLM_HOST_FASTPATH=on
+    TORCH_MODULE_ATTR_FASTPATH=slot_native
+)
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# Do not use an inherited OLD LIGHTHOST_HOME silently.
+if [[ -f "$SCRIPT_DIR/lhctl.py" ]]; then
+    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR}"
+else
+    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR/litehost_compat_slim}"
++ echo '---- 60-140 ----'
+---- 60-140 ----
++ sed -n 60,140p /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+  "2048 128"
+  "2048 1024"
+  "2048 2048"
+)
+# Optional text file, one 'input output' case per nonblank/non-comment line.
+if [[ -n "${CASES_FILE:-}" ]]; then
+    [[ -f "$CASES_FILE" ]] || { echo "ERROR: 找不到 CASES_FILE=$CASES_FILE" >&2; exit 2; }
+    mapfile -t CASES < <(grep -Ev '^[[:space:]]*(#|$)' "$CASES_FILE")
+fi
+log() { printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"; }
+# Child processes only: drop old measurement/audit injection; keep CoreX library paths.
+CLEAN_ENV=(env -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+    -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+# ---- runtime check: read-only; PGO state is selected by the venv PREFIX points to ----
+
+pgo_runtime() {
+    "${CLEAN_ENV[@]}" -u PYTHONPATH -u PYTHONHOME "$PYTHON_BIN" -c \
+        'import sysconfig; print(sysconfig.get_config_var("CONFIG_ARGS") or "")' 2>/dev/null || true
+}
+
+pgo_is_on() {
+    local args
+    args=$(pgo_runtime)
+    [[ "$args" == *"--prefix=/opt/cpython-vllm/v1"* && "$args" == *"--with-lto"* ]]
+}
+
+SERVER_PREFIX=()
+[[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+SERVER_ARGS=(
+    -m vllm.entrypoints.openai.api_server
+    --host 127.0.0.1 --port "$PORT" --model "$MODEL_PATH" --trust_remote_code --dtype auto
+    --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1
+    --tensor_parallel_size "$GPUS_PER_INSTANCE" --data_parallel_size 1
+    --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto
+    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}'
+    --async-scheduling --no-enable-prefix-caching
+)
+[[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
+
+cleanup() {
+    if [[ "$CLEANED" == 1 ]]; then return; fi
+    CLEANED=1
+    if [[ -n "$BENCH_PID" ]]; then
+        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/bench.process.json" || true
+        wait "$BENCH_PID" 2>/dev/null || true
+        BENCH_PID=""
+    fi
+    if [[ -n "$SERVER_PID" ]]; then
+        log "停止本次服务 PID=$SERVER_PID（不使用全局 pkill）"
+        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
+        wait "$SERVER_PID" 2>/dev/null || true
+        SERVER_PID=""; rm -f -- "$PID_FILE"
+    fi
+    if [[ "$INIT_DONE" == 1 ]]; then
+        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" cleanup-control --session "$SESSION_FILE" || true
+    fi
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+check_gpu_memory() {
+    local gpu free_mib
+    local -a gpus=()
+    IFS=',' read -r -a gpus <<< "$GPU_LIST"
+    if ! command -v ixsmi >/dev/null; then log 'WARNING: ixsmi 不可用，跳过显存预检'; return; fi
+    for gpu in "${gpus[@]}"; do
+        free_mib=$(ixsmi --query-gpu=memory.free --format=csv,noheader,nounits -i "$gpu" 2>/dev/null | tr -d ' ')
+        if [[ "$free_mib" =~ ^[0-9]+$ ]]; then
+            log "GPU $gpu: free=${free_mib} MiB（原预检阈值 20480 MiB）"
+            (( free_mib >= 20480 )) || log "WARNING: GPU $gpu 显存偏低，请确认测试卡已预留"
+        else log "WARNING: 无法读取 GPU $gpu 显存"; fi
+    done
+    return 0
+}
+wait_for_server() {
+    local elapsed=0 code
+    while (( elapsed < 600 )); do
+        kill -0 "$SERVER_PID" 2>/dev/null || { log "ERROR: 服务已退出，查看 $SERVER_LOG"; return 1; }
+        code=$(curl --noproxy '*' -s -o /dev/null -w '%{http_code}' --max-time 2 "http://127.0.0.1:${PORT}/health" 2>/dev/null || true)
+        [[ "$code" == 200 ]] && { log "服务就绪 (${elapsed}s)"; return 0; }
++ set +x
+
+### exit: 0
