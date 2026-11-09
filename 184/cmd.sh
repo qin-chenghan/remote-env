@@ -17,79 +17,64 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 修正版：pristine 文件用 docker cp 送进容器，恢复/删除/校验都在容器内执行。
-  # 然后 dry-run -> install -> check -> verify。corex311 不动。
+  # 184 的 opt 脚本切到 r10 开关：VLLM_HOST_OPT* + compact greedy + sample logits 配置。
+  # 备份、语法检查、容器内 dry-run 验证。
 
-  CON=corex5-py311
-  V=/opt/corex311-cpython-vllm
-  SITE=$V/lib/python3.11/site-packages
-  BAK=/tmp/184-new-venv-backup
-  T=/home/qch/transfer
-  Z=$T/host-opt-three-pr-validation-20261106-r10-arm64-py311.zip
-  PKG=$T/host-opt-pr-validation-20261106-r10
+  D=/home/huawei_ts_program/litehost_perf_opt
+  F=$D/vllmBench_lite_opt.sh
+  TS2=$(date +%Y%m%d-%H%M%S)
 
-  echo "== 0. 备份校验（宿主）=="
-  sha256sum "$BAK/envs.py" "$BAK/v1/attention/backends/ilu_flash_attn.py" "$BAK/v1/worker/gpu_model_runner.py"
+  echo "== 0. 备份 =="
+  cp -a "$F" "$F.bak-r10-$TS2" && echo "backup $F.bak-r10-$TS2"
 
-  echo "== 1. docker cp pristine 文件进容器 =="
-  docker cp "$BAK/envs.py" "$CON:$SITE/vllm/envs.py"
-  docker cp "$BAK/v1/attention/backends/ilu_flash_attn.py" "$CON:$SITE/vllm/v1/attention/backends/ilu_flash_attn.py"
-  docker cp "$BAK/v1/worker/gpu_model_runner.py" "$CON:$SITE/vllm/v1/worker/gpu_model_runner.py"
+  echo "== 1. 改开关与编译配置 =="
+  python3 - "$F" <<'PY'
+import sys
+p = sys.argv[1]
+s = open(p).read()
 
-  echo "== 2. 容器内删除旧补丁文件与陈旧 pyc =="
-  docker exec "$CON" sh -c "
-SP=$SITE
-rm -f \$SP/vllm/v1/worker/host_fastpath.py
-rm -f \$SP/vllm/_host_opt_native.abi3.so
-rm -f \$SP/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
-rm -f \$SP/vllm/__pycache__/envs.cpython-311*.pyc
-rm -f \$SP/vllm/v1/attention/backends/__pycache__/ilu_flash_attn.cpython-311*.pyc
-rm -f \$SP/vllm/v1/worker/__pycache__/gpu_model_runner.cpython-311*.pyc
-echo removed"
+old_env = """SERVER_EXTRA_ENV=(
+    UMD_MAXCOMMANDBUFFERNUMBER=256
+    UMD_MAXCOMMANDBUFFERSIZE=16384
+    VLLM_HOST_FASTPATH=on
+    TORCH_MODULE_ATTR_FASTPATH=slot_native
+)"""
+new_env = """SERVER_EXTRA_ENV=(
+    UMD_MAXCOMMANDBUFFERNUMBER=256
+    UMD_MAXCOMMANDBUFFERSIZE=16384
+    VLLM_HOST_OPT=on
+    VLLM_HOST_OPT_INPUTS=on
+    VLLM_HOST_OPT_ARENA=on
+    VLLM_HOST_OPT_BOOKKEEPING=on
+    VLLM_HOST_OPT_METADATA=on
+    VLLM_HOST_OPT_DIAGNOSTICS=0
+    VLLM_COMPACT_GREEDY=on
+    VLLM_COMPACT_GREEDY_DIAGNOSTICS=0
+    TORCH_MODULE_ATTR_FASTPATH=slot_native
+)"""
+if old_env not in s:
+    raise SystemExit("FAIL: env block not found")
+s = s.replace(old_env, new_env, 1)
 
-  echo "== 3. 容器内基线核对（r10 MANIFEST baseline）=="
-  docker exec "$CON" sh -c "
-SP=$SITE
-for f in vllm/v1/worker/gpu_model_runner.py \
-         vllm/v1/attention/backends/ilu_flash_attn.py \
-         vllm/envs.py \
-         vllm/model_executor/models/llama.py \
-         vllm/model_executor/models/qwen2.py \
-         vllm/model_executor/models/qwen3.py \
-         vllm/v1/worker/gpu_input_batch.py \
-         vllm/v1/utils.py ; do
-  sha256sum \$SP/\$f 2>/dev/null || echo MISSING \$f
-done"
+old_cc = """--compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}'"""
+new_cc = """--compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}'"""
+if old_cc not in s:
+    raise SystemExit("FAIL: compilation-config line not found")
+s = s.replace(old_cc, new_cc, 1)
 
-  echo "== 4. dry-run =="
-  docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= -e VLLM_R10_PACKAGE_DIR="$PKG" \
-    "$CON" "$V/bin/python" "$PKG/scripts/install.py" --root "$SITE" --dry-run
-  RC=$?
-  echo "dry-run rc=$RC"
-  if [ "$RC" -ne 0 ]; then echo "DRY-RUN FAILED, abort"; exit 1; fi
+open(p, "w").write(s)
+print("updated", p)
+PY
 
-  echo "== 5. install =="
-  docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= -e VLLM_R10_PACKAGE_DIR="$PKG" \
-    "$CON" "$V/bin/python" "$PKG/scripts/install.py" --root "$SITE"
-  RC=$?
-  echo "install rc=$RC"
-  if [ "$RC" -ne 0 ]; then echo "INSTALL FAILED, abort"; exit 1; fi
+  echo "== 2. 语法检查 =="
+  bash -n "$F" && echo "OK opt"
 
-  echo "== 6. check + verify =="
-  docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= -e VLLM_R10_PACKAGE_DIR="$PKG" \
-    "$CON" "$V/bin/python" "$PKG/scripts/install.py" --root "$SITE" --check
-  echo "check rc=$?"
-  docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= -e VLLM_R10_PACKAGE_DIR="$PKG" \
-    "$CON" "$V/bin/python" "$PKG/scripts/verify.py" --root "$SITE"
-  echo "verify rc=$?"
+  echo "== 3. diff =="
+  diff -u "$F.bak-r10-$TS2" "$F" | head -60
 
-  echo "== 7. 安装后关键 hash =="
-  docker exec "$CON" sh -c "
-SP=$SITE
-for f in vllm/v1/worker/gpu_model_runner.py vllm/envs.py vllm/v1/attention/backends/ilu_flash_attn.py \
-         vllm/v1/worker/host_opt.py vllm/v1/worker/compact_greedy.py vllm/v1/worker/sample_logits_graph.py ; do
-  sha256sum \$SP/\$f 2>/dev/null || echo MISSING \$f
-done"
+  echo "== 4. 容器内 dry-run =="
+  docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= corex5-py311 bash -c \
+    "cd $D && HOST_DRY_RUN=1 bash vllmBench_lite_opt.sh" 2>&1 | grep -E "PREFIX=|SERVER:|CASES:|ERROR" | head -5
 
   # ---- 命令结束 ----
 
