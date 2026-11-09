@@ -17,41 +17,31 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 只读：确认停止状态下 docker cp 可用、两个 venv 的 vllm 补丁文件状态。
-  # 只写入宿主 /tmp，不改容器内文件。
+  # 只读：用容器 overlay UpperDir 对两个 venv 的 vllm 树做完整 diff。
+  # 不改任何文件。
 
   CON=corex5-py311
-  T=/tmp/184-venv-check
-  mkdir -p "$T"
+  U=$(docker inspect "$CON" --format '{{.GraphDriver.Data.UpperDir}}')
+  echo "UpperDir=$U"
 
-  echo "== 1. 容器状态与 overlay 路径 =="
-  docker ps -a --format '{{.Names}}\t{{.Status}}' | grep -E "^$CON" || echo "container missing"
-  docker inspect "$CON" --format 'Status={{.State.Status}} GraphDriver={{.GraphDriver.Name}} UpperDir={{.GraphDriver.Data.UpperDir}}' 2>&1
+  echo "== 1. UpperDir 里是否有两个 venv =="
+  ls -d "$U/opt/corex311" "$U/opt/corex311-cpython-vllm" 2>&1
+  ls "$U/opt/corex311/lib/python3.11/site-packages/vllm" 2>/dev/null | head -5
 
-  echo "== 2. docker cp 试验（从停止的容器拷文件）=="
-  docker cp "$CON:/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py" "$T/GMR_base.py" 2>&1 && echo "cp base runner OK"
-  docker cp "$CON:/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py" "$T/GMR_new.py" 2>&1 && echo "cp new runner OK"
-  echo "-- host_fastpath.py --"
-  docker cp "$CON:/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py" "$T/HF_base.py" 2>&1 && echo "base HAS host_fastpath" || echo "base NO host_fastpath"
-  docker cp "$CON:/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py" "$T/HF_new.py" 2>&1 && echo "new HAS host_fastpath" || echo "new NO host_fastpath"
+  echo "== 2. vllm 树完整 diff（排除 pycache）=="
+  diff -rq --exclude='__pycache__' \
+    "$U/opt/corex311/lib/python3.11/site-packages/vllm" \
+    "$U/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm" 2>&1 | head -80
 
-  echo "== 3. 关键文件 hash（两边）=="
-  for f in vllm/v1/worker/gpu_model_runner.py vllm/envs.py vllm/v1/attention/backends/ilu_flash_attn.py; do
-    echo "-- $f"
-    docker cp "$CON:/opt/corex311/lib/python3.11/site-packages/$f" "$T/base_$(basename $f)" 2>/dev/null && sha256sum "$T/base_$(basename $f)" | sed 's|'"$T"'/|  base |'
-    docker cp "$CON:/opt/corex311-cpython-vllm/lib/python3.11/site-packages/$f" "$T/new_$(basename $f)" 2>/dev/null && sha256sum "$T/new_$(basename $f)" | sed 's|'"$T"'/|  new  |'
-  done
-  echo "-- 原生 .so --"
-  for n in _host_opt_native.abi3.so _host_opt_meta_native.cpython-311-aarch64-linux-gnu.so; do
-    for V in base new; do
-      P=/opt/corex311/lib/python3.11/site-packages/vllm/$n
-      [ "$V" = new ] && P=/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/$n
-      docker cp "$CON:$P" "$T/$V-$n" 2>/dev/null && sha256sum "$T/$V-$n" | sed "s|$T/|  $V |" || echo "  $V $n MISSING"
-    done
-  done
+  echo "== 3. 顶层 site-packages diff 摘要（排除 dist-info/pycache）=="
+  diff -rq --exclude='*.dist-info' --exclude='__pycache__' \
+    "$U/opt/corex311/lib/python3.11/site-packages" \
+    "$U/opt/corex311-cpython-vllm/lib/python3.11/site-packages" 2>&1 | head -40
 
-  echo "== 4. 宿主机 /tmp 结果 =="
-  ls -l "$T" | head -20
+  echo "== 4. diff 行数统计 =="
+  diff -rq --exclude='__pycache__' \
+    "$U/opt/corex311/lib/python3.11/site-packages/vllm" \
+    "$U/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm" 2>/dev/null | wc -l
 
   # ---- 命令结束 ----
 
