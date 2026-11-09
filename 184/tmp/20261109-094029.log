@@ -1,0 +1,569 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T01:40:29Z
+
++ CON=corex5-py311
++ Z=/home/qch/transfer/litehost_perf.zip
++ B=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
++ O=/home/qch/scripts/vllmBench_lite.sh
++ echo '== 1. zip 信息 =='
+== 1. zip 信息 ==
++ ls -la /home/qch/transfer/litehost_perf.zip
+-rw-rw-r--+ 1 root root 73094 Oct 14 14:55 /home/qch/transfer/litehost_perf.zip
++ unzip -l /home/qch/transfer/litehost_perf.zip
++ head -30
+Archive:  /home/qch/transfer/litehost_perf.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+        0  10-13-2026 18:52   litehost_perf/
+     7600  10-13-2026 08:30   litehost_perf/lhctl.py
+     3577  10-13-2026 18:52   litehost_perf/liblitehost.wrappers.cpp
+     2709  10-13-2026 08:27   litehost_perf/light_host_worker.py
+     1559  10-13-2026 08:45   litehost_perf/SHA256SUMS
+      854  10-13-2026 18:52   litehost_perf/liblitehost.exports.txt
+      407  10-13-2026 08:27   litehost_perf/litehost_internal.h
+     2467  10-13-2026 08:27   litehost_perf/lh_common.py
+    10954  10-13-2026 08:33   litehost_perf/analyze_litehost.py
+    12844  10-13-2026 18:25   litehost_perf/vllmBench_lite.sh
+     3288  10-13-2026 08:27   litehost_perf/litehost.c
+     4595  10-13-2026 08:27   litehost_perf/verify_torch.py
+      344  10-13-2026 08:27   litehost_perf/Makefile
+     9625  10-13-2026 18:25   litehost_perf/README.md
+     9741  10-13-2026 08:27   litehost_perf/lh_runtime.py
+        0  10-13-2026 18:24   litehost_perf/tests/
+     6228  10-13-2026 08:37   litehost_perf/tests/test_shell_end.py
+    15585  10-13-2026 08:45   litehost_perf/tests/test_compat.py
+     1631  10-13-2026 08:27   litehost_perf/tests/mock_worker.py
+     6332  10-13-2026 08:27   litehost_perf/bench_driver.py
+    72152  10-13-2026 18:52   litehost_perf/liblitehost.so
+     7460  10-13-2026 08:27   litehost_perf/build_corex.py
+     1696  10-13-2026 08:27   litehost_perf/procutil.py
+        0  10-13-2026 18:52   litehost_perf/__pycache__/
+    16356  10-13-2026 18:52   litehost_perf/__pycache__/bench_driver.cpython-311.pyc
+     7163  10-13-2026 18:52   litehost_perf/__pycache__/lh_common.cpython-311.pyc
+        0  10-13-2026 18:24   litehost_perf/docs/
+++ unzip -Z1 /home/qch/transfer/litehost_perf.zip
+++ grep -E 'vllmBench_lite.sh$'
+++ head -1
++ ENTRY=litehost_perf/vllmBench_lite.sh
++ echo ENTRY=litehost_perf/vllmBench_lite.sh
+ENTRY=litehost_perf/vllmBench_lite.sh
++ echo '== 2. 原始脚本头部（前 80 行）=='
+== 2. 原始脚本头部（前 80 行）==
++ unzip -p /home/qch/transfer/litehost_perf.zip litehost_perf/vllmBench_lite.sh
++ sed -n 1,80p
+# Adapted from the uploaded vllmBench_lite.sh. Keep one server for all cases.
+#!/usr/bin/env bash
+# Defaults retained: warmups=16, cache OFF, CPUs 80-159,240-319, backend=vllm.
+# Requires the matching files in this slim folder (included in the ZIP).
+set -uo pipefail
+
+: "${MODEL_PATH:?ERROR: 必须设置 MODEL_PATH}"
+TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
+PREFIX="${PREFIX:-/opt/corex311}"
+PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+GPU_LIST="${GPU_LIST:-0,1,2,3}"
+GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+PORT="${PORT:-8848}"
+NUM_PROMPTS="${NUM_PROMPTS:-100}"
+NUM_WARMUPS="${NUM_WARMUPS:-16}"
+MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+CASE_INTERVAL="${CASE_INTERVAL:-60}"
+CPU_RANGE="${CPU_RANGE-80-159,240-319}"
+HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
+HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
+HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
+HOST_MAX_SCOPES="${HOST_MAX_SCOPES:-200000}"
+HOST_DRY_RUN="${HOST_DRY_RUN:-0}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# Do not use an inherited OLD LIGHTHOST_HOME silently.
+if [[ -f "$SCRIPT_DIR/lhctl.py" ]]; then
+    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR}"
+else
+    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR/litehost_compat_slim}"
+fi
+HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 解压完整 litehost_compat_slim_v041.zip 或设置 HOST_TOOLKIT' >&2; exit 2; }
+[[ -x "$PYTHON_BIN" && -f "$HOST_TOOLKIT/lhctl.py" ]] || { echo 'ERROR: Python 或配套文件缺失' >&2; exit 2; }
+[[ "$HOST_MEASURE" == lite || "$HOST_MEASURE" == off ]] || { echo 'ERROR: HOST_MEASURE=lite|off' >&2; exit 2; }
+[[ "$GPUS_PER_INSTANCE" == 4 ]] || { echo 'ERROR: 此版要求四卡 TP=4, PP=1, DP=1' >&2; exit 2; }
+[[ "$TEST_ID" =~ ^[A-Za-z0-9_.-]+$ && "$TEST_ID" != . && "$TEST_ID" != .. ]] || { echo 'ERROR: TEST_ID 不能包含路径分隔符' >&2; exit 2; }
+
+BASE_DIR="$(pwd)"
+RUN_DIR="${BASE_DIR}/vllmBench/${TEST_ID}"
+LOG_DIR="${RUN_DIR}/logs"
+SERVER_LOG="${LOG_DIR}/server.log"
+SUMMARY_CSV="${RUN_DIR}/summary.csv"
+SESSION_FILE="${RUN_DIR}/session.json"
+PID_FILE="${RUN_DIR}/server.pid"
+SERVER_PID=""; BENCH_PID=""; CLEANED=0; INIT_DONE=0
+
+# Original case matrix: only 128/128 enabled; uncomment the others as before.
+CASES=(
+    "128 128"
+#   "128 1024"
+#   "128 2048"
+#   "1024 128"
+#   "1024 1024"
+#   "1024 2048"
+#   "2048 128"
+#   "2048 1024"
+#   "2048 2048"
+)
+# Optional text file, one 'input output' case per nonblank/non-comment line.
+if [[ -n "${CASES_FILE:-}" ]]; then
+    [[ -f "$CASES_FILE" ]] || { echo "ERROR: 找不到 CASES_FILE=$CASES_FILE" >&2; exit 2; }
+    mapfile -t CASES < <(grep -Ev '^[[:space:]]*(#|$)' "$CASES_FILE")
+fi
+log() { printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"; }
+# Child processes only: drop old measurement/audit injection; keep CoreX library paths.
+CLEAN_ENV=(env -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+    -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+SERVER_PREFIX=()
+[[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+SERVER_ARGS=(
+    -m vllm.entrypoints.openai.api_server
+    --host 127.0.0.1 --port "$PORT" --model "$MODEL_PATH" --trust_remote_code --dtype auto
+    --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1
+    --tensor_parallel_size "$GPUS_PER_INSTANCE" --data_parallel_size 1
+    --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto
+    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}'
+    --async-scheduling --no-enable-prefix-caching
+)
+[[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
+
+cleanup() {
++ echo '== 3. 原始 vs 184 base（完整 diff）=='
+== 3. 原始 vs 184 base（完整 diff）==
++ head -300
++ diff -u /dev/fd/63 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
+++ unzip -p /home/qch/transfer/litehost_perf.zip litehost_perf/vllmBench_lite.sh
+--- /dev/fd/63	2026-11-09 09:40:29.437949440 +0800
++++ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh	2026-11-09 08:59:41.513949440 +0800
+@@ -1,10 +1,10 @@
+-# Adapted from the uploaded vllmBench_lite.sh. Keep one server for all cases.
+ #!/usr/bin/env bash
+-# Defaults retained: warmups=16, cache OFF, CPUs 80-159,240-319, backend=vllm.
++# Adapted from the uploaded vllmBench_lite.sh. Keep one server for all cases.
++# Defaults retained: warmups=16, cache OFF, CPUs 192-255 (NUMA node 3), backend=vllm.
+ # Requires the matching files in this slim folder (included in the ZIP).
+ set -uo pipefail
+ 
+-: "${MODEL_PATH:?ERROR: 必须设置 MODEL_PATH}"
++MODEL_PATH="${MODEL_PATH:-/home/model/ts/Qwen3-32B-W8A8}"
+ TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
+ PREFIX="${PREFIX:-/opt/corex311}"
+ PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+@@ -15,12 +15,17 @@
+ NUM_WARMUPS="${NUM_WARMUPS:-16}"
+ MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+ CASE_INTERVAL="${CASE_INTERVAL:-60}"
+-CPU_RANGE="${CPU_RANGE-80-159,240-319}"
++CPU_RANGE="${CPU_RANGE-192-255}"
+ HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
+ HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
+ HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
+ HOST_MAX_SCOPES="${HOST_MAX_SCOPES:-200000}"
+ HOST_DRY_RUN="${HOST_DRY_RUN:-0}"
++SERVER_EXTRA_ENV=(
++    UMD_MAXCOMMANDBUFFERNUMBER=256
++    UMD_MAXCOMMANDBUFFERSIZE=16384
++    VLLM_DISABLE_DECODE_FASTPATH=1
++)
+ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ # Do not use an inherited OLD LIGHTHOST_HOME silently.
+ if [[ -f "$SCRIPT_DIR/lhctl.py" ]]; then
+@@ -41,7 +46,7 @@
+ SUMMARY_CSV="${RUN_DIR}/summary.csv"
+ SESSION_FILE="${RUN_DIR}/session.json"
+ PID_FILE="${RUN_DIR}/server.pid"
+-SERVER_PID=""; BENCH_PID=""; CLEANED=0; INIT_DONE=0
++SERVER_PID=""; BENCH_PID=""; CLEANED=0; INIT_DONE=0; PGO_RESTORE=0
+ 
+ # Original case matrix: only 128/128 enabled; uncomment the others as before.
+ CASES=(
+@@ -64,6 +69,90 @@
+ # Child processes only: drop old measurement/audit injection; keep CoreX library paths.
+ CLEAN_ENV=(env -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+     -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
++# ---- PGO guard: autofix two known-safe block causes, verify rollback --------
++PGO_VENV=/opt/corex311
++PGO_STATE=/root/.local/state/cpython-vllm-rebase
++
++pgo_runtime() {
++    "${CLEAN_ENV[@]}" -u PYTHONPATH -u PYTHONHOME "$PYTHON_BIN" -c \
++        'import sysconfig; print(sysconfig.get_config_var("CONFIG_ARGS") or "")' 2>/dev/null || true
++}
++
++pgo_is_on() {
++    local args
++    args=$(pgo_runtime)
++    [[ "$args" == *"--prefix=/opt/cpython-vllm/v1"* && "$args" == *"--with-lto"* ]]
++}
++
++pgo_fix_perms() {
++    local dir mode
++    for dir in "$PGO_VENV" "$PGO_VENV/bin" "$PGO_VENV/lib" "$PGO_VENV/lib/python3.11" \
++               "$PGO_VENV/lib/python3.11/site-packages"; do
++        [[ -d "$dir" ]] || continue
++        mode=$(stat -c %a "$dir" 2>/dev/null) || continue
++        if (( (8#$mode & 8#022) != 0 )); then
++            chmod g-w,o-w "$dir" && log "autofix: chmod g-w,o-w $dir"
++        fi
++    done
++}
++
++pgo_fix_index() {
++    local idx
++    idx=$(ls -1 "$PGO_STATE"/venv-*.json 2>/dev/null | head -1)
++    [[ -n "$idx" ]] || { log "autofix: 未找到索引文件，跳过"; return 1; }
++    mv -- "$idx" "$idx.stale-$(date +%Y%m%d_%H%M%S)" \
++        && log "autofix: 旧索引已挪开 -> $(basename "$idx").stale-*"
++}
++
++# Switch back to PGO; retries once after a known-safe autofix.
++pgo_switch() {
++    local out rc
++    out=$(env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
++        cpython-vllm-rebase switch --venv "$PGO_VENV" --ack-services-stopped 2>&1); rc=$?
++    if (( rc == 0 )); then
++        printf '%s\n' "$out"
++        return 0
++    fi
++    log "rebase switch 失败: $(printf '%s' "$out" | tr '\n' ' ' | tail -c 220)"
++    case "$out" in
++        *VENV_DIRECTORY_GROUP_OR_WORLD_WRITABLE*)
++            log "autofix: venv 目录带组/其他用户写权限，修正后重试"
++            pgo_fix_perms ;;
++        *PACKAGE_METADATA_CHANGED*)
++            log "autofix: 包清单与旧事务记录不一致，挪开索引后重试"
++            pgo_fix_index || return "$rc" ;;
++        *)
++            return "$rc" ;;
++    esac
++    env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
++        cpython-vllm-rebase switch --venv "$PGO_VENV" --ack-services-stopped
++}
++
++# Rollback; if the index record is gone, fall back to the newest APPLIED
++# transaction (this is the NO_MANAGED_TRANSACTION_... case).
++pgo_rollback() {
++    local out rc txn
++    out=$(env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
++        cpython-vllm-rebase rollback --venv "$PGO_VENV" --ack-services-stopped 2>&1); rc=$?
++    if (( rc == 0 )); then
++        printf '%s\n' "$out"
++        return 0
++    fi
++    log "rebase rollback 失败: $(printf '%s' "$out" | tr '\n' ' ' | tail -c 220)"
++    if [[ "$out" == *NO_MANAGED_TRANSACTION* ]]; then
++        txn=$(grep -l '"APPLIED_VERIFIED"' "$PGO_STATE"/20*/state.json 2>/dev/null \
++              | sed 's|/state.json$||' | sort | tail -1)
++        if [[ -n "$txn" ]]; then
++            log "autofix: 索引缺失，改用 --transaction $(basename "$txn")"
++            env -u LD_PRELOAD -u PYTHONPATH -u PYTHONHOME \
++                cpython-vllm-rebase rollback --transaction "$txn" --ack-services-stopped
++            return $?
++        fi
++        log "autofix: 未找到可回滚的 APPLIED 事务"
++    fi
++    return "$rc"
++}
++
+ SERVER_PREFIX=()
+ [[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+ SERVER_ARGS=(
+@@ -94,11 +183,41 @@
+     if [[ "$INIT_DONE" == 1 ]]; then
+         "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" cleanup-control --session "$SESSION_FILE" || true
+     fi
++    if [[ "$PGO_RESTORE" == 1 ]]; then
++        log "恢复跑之前的 PGO 运行时"
++        if pgo_switch; then
++            :
++        elif pgo_is_on; then
++            log "NOTE: switch 报校验提示，但运行时已是 PGO（已知的 payload 变更情况，无需处理）"
++        else
++            log "WARNING: 未能恢复到 PGO 运行时"
++            log "         下一步: /opt/corex311/bin/python3 /home/qch/scripts/pgo-doctor.py on"
++            [[ -d "$RUN_DIR" ]] && date > "$RUN_DIR/PGO_RESTORE_FAILED.txt"
++        fi
++        PGO_RESTORE=0
++    fi
+ }
+ trap cleanup EXIT
+ trap 'exit 130' INT
+ trap 'exit 143' TERM
+ 
++if pgo_is_on; then
++    log "当前是 PGO 运行时，回滚到原 base"
++    if pgo_rollback; then
++        PGO_RESTORE=1
++        log "已回滚到原 base（结束后恢复 PGO）"
++    elif pgo_is_on; then
++        log "ERROR: rebase rollback 失败，无法保证在非 PGO 环境运行"
++        log "       诊断: /opt/corex311/bin/python3 /home/qch/scripts/pgo-doctor.py"
++        exit 3
++    else
++        PGO_RESTORE=1
++        log "已回滚到原 base（rollback 报校验提示，但运行时已是 base；结束后恢复 PGO）"
++    fi
++else
++    log "PGO 运行时未启用，继续使用原 base"
++fi
++
+ check_gpu_memory() {
+     local gpu free_mib
+     local -a gpus=()
+@@ -130,9 +249,11 @@
+ with socket.socket() as s:s.bind(('127.0.0.1',int(sys.argv[1])))
+ PY
+     check_gpu_memory "$GPU_LIST"
+-    local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1)
++    local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1
++        "${SERVER_EXTRA_ENV[@]}")
+     if [[ "$HOST_MEASURE" == lite ]]; then
+-        env_args+=(PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}" LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so"
++        env_args+=(PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}"
++            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so"
+             LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+     fi
+     "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/server.process.json" -- \
+@@ -198,6 +319,17 @@
+ [[ -d "$MODEL_PATH" ]] || { log 'ERROR: MODEL_PATH 不是本地目录'; exit 2; }
+ if [[ -e "$RUN_DIR" ]]; then log 'ERROR: RUN_DIR 已存在，请换一个 TEST_ID，避免混入旧文件'; exit 2; fi
+ mkdir -p "$LOG_DIR"
++{
++    echo "test_id=$TEST_ID"
++    echo "started=$(date -Is)"
++    echo "pgo=$(pgo_is_on && echo on || echo off)"
++    echo "multi_engine=$(cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>/dev/null || echo unknown)"
++    echo "cpu_range=$CPU_RANGE"
++    echo "hotspot_opt=${HOTSPOT_OPT:-unset}"
++    echo "model_path=$MODEL_PATH"
++    echo "gpus=$GPU_LIST tp=$GPUS_PER_INSTANCE"
++    echo "prompts=$NUM_PROMPTS concurrency=$MAX_CONCURRENCY warmups=$NUM_WARMUPS"
++} > "$RUN_DIR/config.txt" 2>/dev/null || true
+ if [[ "$HOST_MEASURE" == lite ]]; then
+     "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" init --run-dir "$RUN_DIR" \
+         --timeout "$HOST_TIMEOUT" --max-scopes "$HOST_MAX_SCOPES" > "$LOG_DIR/preflight.log" 2>&1 || { cat "$LOG_DIR/preflight.log"; exit 2; }
++ echo '== 4. 原始 vs /home/qch/scripts/vllmBench_lite.sh =='
+== 4. 原始 vs /home/qch/scripts/vllmBench_lite.sh ==
++ head -80
++ diff -u /dev/fd/63 /home/qch/scripts/vllmBench_lite.sh
+++ unzip -p /home/qch/transfer/litehost_perf.zip litehost_perf/vllmBench_lite.sh
+--- /dev/fd/63	2026-11-09 09:40:29.437949440 +0800
++++ /home/qch/scripts/vllmBench_lite.sh	2026-10-13 16:44:09.812759296 +0800
+@@ -1,11 +1,11 @@
+-# Adapted from the uploaded vllmBench_lite.sh. Keep one server for all cases.
+ #!/usr/bin/env bash
++# Adapted from the uploaded vllmBench_lite.sh. Keep one server for all cases.
+ # Defaults retained: warmups=16, cache OFF, CPUs 80-159,240-319, backend=vllm.
+-# Requires the matching files in this slim folder (included in the ZIP).
++# Requires the matching files in litehost_compat/ (included in the complete ZIP).
+ set -uo pipefail
+ 
+ : "${MODEL_PATH:?ERROR: 必须设置 MODEL_PATH}"
+-TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
++TEST_ID="litehost_compat_$(date +%Y%m%d_%H%M%S)"
+ PREFIX="${PREFIX:-/opt/corex311}"
+ PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+ GPU_LIST="${GPU_LIST:-0,1,2,3}"
+@@ -26,9 +26,9 @@
+ if [[ -f "$SCRIPT_DIR/lhctl.py" ]]; then
+     HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR}"
+ else
+-    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR/litehost_compat_slim}"
++    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR/litehost_compat}"
+ fi
+-HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 解压完整 litehost_compat_slim_v041.zip 或设置 HOST_TOOLKIT' >&2; exit 2; }
++HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 解压完整 litehost_compat.zip 或设置 HOST_TOOLKIT' >&2; exit 2; }
+ [[ -x "$PYTHON_BIN" && -f "$HOST_TOOLKIT/lhctl.py" ]] || { echo 'ERROR: Python 或配套文件缺失' >&2; exit 2; }
+ [[ "$HOST_MEASURE" == lite || "$HOST_MEASURE" == off ]] || { echo 'ERROR: HOST_MEASURE=lite|off' >&2; exit 2; }
+ [[ "$GPUS_PER_INSTANCE" == 4 ]] || { echo 'ERROR: 此版要求四卡 TP=4, PP=1, DP=1' >&2; exit 2; }
+@@ -212,43 +212,11 @@
+     fi
+     if (( idx < ${#CASES[@]}-1 )); then log "等待 ${CASE_INTERVAL}s"; sleep "$CASE_INTERVAL"; fi
+ done
+-# Intermediate case results have already been validated and saved by
+-# lhctl.py finish (quietly). Build all-case CSV + Host report SILENTLY;
+-# print both result summaries only ONCE, after all cases and server cleanup.
+-if ! "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" summary "$RUN_DIR" \
+-        > "$LOG_DIR/summary_build.log"; then
+-    FAILED=1
+-fi
++"${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" summary "$RUN_DIR" || FAILED=1
+ if [[ "$HOST_MEASURE" == lite && "$FAILED" == 0 ]]; then
+     "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/analyze_litehost.py" "$RUN_DIR/litehost" \
+-        --link-percent "$HOST_LINK_PERCENT" --out "$RUN_DIR/host_summary" --quiet || FAILED=1
++        --link-percent "$HOST_LINK_PERCENT" --out "$RUN_DIR/host_summary" || FAILED=1
+ fi
+ cleanup
+ (( FAILED == 0 )) || { log "部分失败，保留诊断：$RUN_DIR"; exit 2; }
+-
+-log "========== 所有 case 最终结果（仅此处打印一次） =========="
+-"${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$SUMMARY_CSV" "$MAX_CONCURRENCY" "${CASES[@]}" <<'PY' || exit 2
+-import csv,sys
+-from pathlib import Path
+-path=Path(sys.argv[1]);bs=sys.argv[2]
+-with path.open(newline='') as f:
+-    rows={r['case']:r for r in csv.DictReader(f)}
+-print('===== Benchmark：吞吐与延迟（全部 case）=====')
+-for spec in sys.argv[3:]:
+-    in_len,out_len=spec.split()
+-    case=f'bs{bs}_in{in_len}_out{out_len}'
+-    if case not in rows:raise SystemExit(f'ERROR: summary.csv 缺少 {case}')
+-    r=rows[case]
+-    def fmt(key):
+-        val=r.get(key,'')
+-        try:return f'{float(val):.3f}'
+-        except (TypeError,ValueError):return 'N/A'
+-    print(f'{case}: output_tok/s={fmt("output_token_throughput_tok_s")} '
+-          f'TTFT_mean={fmt("mean_ttft_ms")}ms '
+-          f'TPOT_mean={fmt("mean_tpot_ms")}ms ITL_mean={fmt("mean_itl_ms")}ms')
+-PY
+-if [[ "$HOST_MEASURE" == lite ]]; then
+-    echo '===== LiteHost：四 rank、所有 case 的 H 与 H+G ====='
+-    cat "$RUN_DIR/host_summary/report.txt"
+-fi
+-log "全部完成 | benchmark=$SUMMARY_CSV | host=$([[ "$HOST_MEASURE" == lite ]] && echo "$RUN_DIR/host_summary/report.txt" || echo 'OFF/未采集')"
++log "全部完成 | benchmark=$SUMMARY_CSV | host=$RUN_DIR/host_summary/report.txt"
++ echo '== 5. 关键段对照 =='
+== 5. 关键段对照 ==
++ echo '-- 原始 SERVER_EXTRA_ENV / SERVER_ARGS --'
+-- 原始 SERVER_EXTRA_ENV / SERVER_ARGS --
++ unzip -p /home/qch/transfer/litehost_perf.zip litehost_perf/vllmBench_lite.sh
++ grep -nE 'SERVER_EXTRA_ENV|SERVER_ARGS|UMD_MAXCOMMAND|VLLM_|PREFIX=' -A4
++ head -60
+9:PREFIX="${PREFIX:-/opt/corex311}"
+10-PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+11-GPU_LIST="${GPU_LIST:-0,1,2,3}"
+12-GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+13-PORT="${PORT:-8848}"
+--
+66:    -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+67:SERVER_PREFIX=()
+68:[[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+69:SERVER_ARGS=(
+70-    -m vllm.entrypoints.openai.api_server
+71-    --host 127.0.0.1 --port "$PORT" --model "$MODEL_PATH" --trust_remote_code --dtype auto
+72-    --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1
+73-    --tensor_parallel_size "$GPUS_PER_INSTANCE" --data_parallel_size 1
+--
+78:[[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
+79-
+80-cleanup() {
+81-    if [[ "$CLEANED" == 1 ]]; then return; fi
+82-    CLEANED=1
+--
+133:    local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1)
+134-    if [[ "$HOST_MEASURE" == lite ]]; then
+135-        env_args+=(PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}" LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so"
+136-            LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+137-    fi
+--
+139:        "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}" >> "$SERVER_LOG" 2>&1 &
+140-    SERVER_PID=$!; echo "$SERVER_PID" > "$PID_FILE"
+141-    log "服务 PID=$SERVER_PID；所有 case 复用；日志=$SERVER_LOG"
+142-    wait_for_server
+143-}
+--
+194:    printf 'SERVER: '; printf '%q ' "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}"; printf '\n'
+195-    printf 'CASES: '; printf '%s; ' "${CASES[@]}"; printf '\n'
+196-    exit 0
+197-fi
+198-[[ -d "$MODEL_PATH" ]] || { log 'ERROR: MODEL_PATH 不是本地目录'; exit 2; }
++ echo '-- base 同段 --'
+-- base 同段 --
++ grep -nE 'SERVER_EXTRA_ENV|SERVER_ARGS|UMD_MAXCOMMAND|VLLM_|PREFIX=' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh -A4
++ head -60
+9:PREFIX="${PREFIX:-/opt/corex311}"
+10-PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+11-GPU_LIST="${GPU_LIST:-0,1,2,3}"
+12-GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+13-PORT="${PORT:-8848}"
+--
+24:SERVER_EXTRA_ENV=(
+25:    UMD_MAXCOMMANDBUFFERNUMBER=256
+26:    UMD_MAXCOMMANDBUFFERSIZE=16384
+27:    VLLM_DISABLE_DECODE_FASTPATH=1
+28-)
+29-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+30-# Do not use an inherited OLD LIGHTHOST_HOME silently.
+31-if [[ -f "$SCRIPT_DIR/lhctl.py" ]]; then
+--
+71:    -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+72-# ---- PGO guard: autofix two known-safe block causes, verify rollback --------
+73-PGO_VENV=/opt/corex311
+74-PGO_STATE=/root/.local/state/cpython-vllm-rebase
+75-
+--
+156:SERVER_PREFIX=()
+157:[[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+158:SERVER_ARGS=(
+159-    -m vllm.entrypoints.openai.api_server
+160-    --host 127.0.0.1 --port "$PORT" --model "$MODEL_PATH" --trust_remote_code --dtype auto
+161-    --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1
+162-    --tensor_parallel_size "$GPUS_PER_INSTANCE" --data_parallel_size 1
+--
+167:[[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
+168-
+169-cleanup() {
+170-    if [[ "$CLEANED" == 1 ]]; then return; fi
+171-    CLEANED=1
+--
+252:    local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1
+253:        "${SERVER_EXTRA_ENV[@]}")
+254-    if [[ "$HOST_MEASURE" == lite ]]; then
+255-        env_args+=(PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}"
+256-            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so"
+257-            LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+--
+260:        "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}" >> "$SERVER_LOG" 2>&1 &
+261-    SERVER_PID=$!; echo "$SERVER_PID" > "$PID_FILE"
+262-    log "服务 PID=$SERVER_PID；所有 case 复用；日志=$SERVER_LOG"
+263-    wait_for_server
+264-}
+--
+315:    printf 'SERVER: '; printf '%q ' "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}"; printf '\n'
+316-    printf 'CASES: '; printf '%s; ' "${CASES[@]}"; printf '\n'
+317-    exit 0
+318-fi
+319-[[ -d "$MODEL_PATH" ]] || { log 'ERROR: MODEL_PATH 不是本地目录'; exit 2; }
++ echo '== 6. VLLM_DISABLE_DECODE_FASTPATH 在 184 的引用 =='
+== 6. VLLM_DISABLE_DECODE_FASTPATH 在 184 的引用 ==
++ docker exec corex5-py311 sh -c '
+for P in /opt/corex311/lib/python3.11/site-packages /opt/corex311-cpython-vllm/lib/python3.11/site-packages \
+         /usr/local/lib/python3.12/site-packages /usr/local/corex-5.0.0 \
+         /home/huawei_ts_program/litehost_perf_opt /home/qch/scripts /home/qch/tools; do
+  echo "-- $P"
+  if [ -e "$P" ]; then
+    grep -ril VLLM_DISABLE_DECODE_FASTPATH "$P" 2>/dev/null | head -10 || true
+  else
+    echo "   path missing"
+  fi
+done
+echo "-- 进程环境里是否设置 --"
+for p in $(pgrep -f vllm.entrypoints.openai.api_server 2>/dev/null); do
+  tr "\0" "\n" < /proc/$p/environ 2>/dev/null | grep VLLM_DISABLE_DECODE_FASTPATH || true
+done
+echo "(以上为空 = 未引用/未设置)"
+'
+-- /opt/corex311/lib/python3.11/site-packages
+/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/__pycache__/gpu_model_runner.cpython-311.pyc
+-- /opt/corex311-cpython-vllm/lib/python3.11/site-packages
+-- /usr/local/lib/python3.12/site-packages
+-- /usr/local/corex-5.0.0
+-- /home/huawei_ts_program/litehost_perf_opt
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
+-- /home/qch/scripts
+-- /home/qch/tools
+/home/qch/tools/remote-env/184/cmd.sh
+/home/qch/tools/remote-env/184/tmp/20261109-094029.log
+/home/qch/tools/remote-env/184/tmp/20261109-092313.log
+-- 进程环境里是否设置 --
+VLLM_DISABLE_DECODE_FASTPATH=1
+(以上为空 = 未引用/未设置)
++ set +x
+
+### exit: 0
