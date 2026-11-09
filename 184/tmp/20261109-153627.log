@@ -1,0 +1,145 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T07:36:27Z
+
++ D=/home/huawei_ts_program/litehost_perf_opt
+++ date +%Y%m%d-%H%M%S
++ TS2=20261109-153627
++ echo '== 0. 占用检查 =='
+== 0. 占用检查 ==
+++ pgrep -af 'vllmBench|bench_driver|vllm.entrypoints|api_server'
+++ grep -v 'pgrep\|cmd.sh'
+++ true
++ BUSY=
++ '[' -n '' ']'
++ echo '无 bench/vllm 进程'
+无 bench/vllm 进程
++ echo '== 1. 备份并清理 =='
+== 1. 备份并清理 ==
++ python3 - /home/huawei_ts_program/litehost_perf_opt 20261109-153627
+PATCHED /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh (13417 -> 12995 bytes, backup .bak-20261109-153627)
+PATCHED /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh (13588 -> 13166 bytes, backup .bak-20261109-153627)
++ echo '== 2. 语法检查 =='
+== 2. 语法检查 ==
++ bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
++ echo 'OK base'
+OK base
++ bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ echo 'OK opt'
+OK opt
++ echo '== 3. 确认无 pgo/rebase =='
+== 3. 确认无 pgo/rebase ==
++ grep -in 'pgo\|rebase' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ echo '(无)'
+(无)
++ echo '== 4. diff（备份 -> 新）=='
+== 4. diff（备份 -> 新）==
++ for f in vllmBench_lite_base.sh vllmBench_lite_opt.sh
++ echo '---- vllmBench_lite_base.sh'
+---- vllmBench_lite_base.sh
++ diff -u /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh.bak-20261109-153627 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
++ head -60
+--- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh.bak-20261109-153627	2026-11-09 15:22:15.773020740 +0800
++++ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh	2026-11-09 15:36:27.309020740 +0800
+@@ -69,19 +69,6 @@
+ # Child processes only: drop old measurement/audit injection; keep CoreX library paths.
+ CLEAN_ENV=(env -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+     -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+-# ---- runtime check: read-only; PGO state is selected by the venv PREFIX points to ----
+-
+-pgo_runtime() {
+-    "${CLEAN_ENV[@]}" -u PYTHONPATH -u PYTHONHOME "$PYTHON_BIN" -c \
+-        'import sysconfig; print(sysconfig.get_config_var("CONFIG_ARGS") or "")' 2>/dev/null || true
+-}
+-
+-pgo_is_on() {
+-    local args
+-    args=$(pgo_runtime)
+-    [[ "$args" == *"--prefix=/opt/cpython-vllm/v1"* && "$args" == *"--with-lto"* ]]
+-}
+-
+ SERVER_PREFIX=()
+ [[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+ SERVER_ARGS=(
+@@ -117,6 +104,8 @@
+ trap 'exit 130' INT
+ trap 'exit 143' TERM
+ 
++log "PREFIX=$PREFIX"
++
+ check_gpu_memory() {
+     local gpu free_mib
+     local -a gpus=()
+@@ -221,7 +210,7 @@
+ {
+     echo "test_id=$TEST_ID"
+     echo "started=$(date -Is)"
+-    echo "pgo=$(pgo_is_on && echo on || echo off)"
++    echo "prefix=$PREFIX"
+     echo "multi_engine=$(cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>/dev/null || echo unknown)"
+     echo "cpu_range=$CPU_RANGE"
+     echo "hotspot_opt=${HOTSPOT_OPT:-unset}"
++ for f in vllmBench_lite_base.sh vllmBench_lite_opt.sh
++ echo '---- vllmBench_lite_opt.sh'
+---- vllmBench_lite_opt.sh
++ diff -u /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-20261109-153627 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ head -60
+--- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-20261109-153627	2026-11-09 15:22:18.833020740 +0800
++++ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh	2026-11-09 15:36:27.309020740 +0800
+@@ -70,19 +70,6 @@
+ # Child processes only: drop old measurement/audit injection; keep CoreX library paths.
+ CLEAN_ENV=(env -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+     -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+-# ---- runtime check: read-only; PGO state is selected by the venv PREFIX points to ----
+-
+-pgo_runtime() {
+-    "${CLEAN_ENV[@]}" -u PYTHONPATH -u PYTHONHOME "$PYTHON_BIN" -c \
+-        'import sysconfig; print(sysconfig.get_config_var("CONFIG_ARGS") or "")' 2>/dev/null || true
+-}
+-
+-pgo_is_on() {
+-    local args
+-    args=$(pgo_runtime)
+-    [[ "$args" == *"--prefix=/opt/cpython-vllm/v1"* && "$args" == *"--with-lto"* ]]
+-}
+-
+ SERVER_PREFIX=()
+ [[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+ SERVER_ARGS=(
+@@ -118,6 +105,8 @@
+ trap 'exit 130' INT
+ trap 'exit 143' TERM
+ 
++log "PREFIX=$PREFIX"
++
+ check_gpu_memory() {
+     local gpu free_mib
+     local -a gpus=()
+@@ -224,7 +213,7 @@
+ {
+     echo "test_id=$TEST_ID"
+     echo "started=$(date -Is)"
+-    echo "pgo=$(pgo_is_on && echo on || echo off)"
++    echo "prefix=$PREFIX"
+     echo "multi_engine=$(cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>/dev/null || echo unknown)"
+     echo "cpu_range=$CPU_RANGE"
+     echo "hotspot_opt=${HOTSPOT_OPT:-unset}"
++ echo '== 5. 关键行 =='
+== 5. 关键行 ==
++ grep -n 'PREFIX=\|VLLM_HOST_FASTPATH\|TORCH_MODULE_ATTR\|VLLM_DISABLE_DECODE\|log "PREFIX\|prefix=' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ head -12
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:9:PREFIX="${PREFIX:-/opt/corex311}"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:27:    VLLM_DISABLE_DECODE_FASTPATH=1
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:72:SERVER_PREFIX=()
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:73:[[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:107:log "PREFIX=$PREFIX"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:213:    echo "prefix=$PREFIX"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:9:PREFIX="${PREFIX:-/opt/corex311-cpython-vllm}"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:27:    VLLM_HOST_FASTPATH=on
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:28:    TORCH_MODULE_ATTR_FASTPATH=slot_native
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:73:SERVER_PREFIX=()
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:74:[[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:108:log "PREFIX=$PREFIX"
++ set +x
+
+### exit: 0
