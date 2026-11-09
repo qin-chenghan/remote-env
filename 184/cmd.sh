@@ -17,93 +17,117 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 重建干净 PGO venv 前的只读准备：只关心“怎样才能装出和 base 一样的包集合”。
+  # 第七批：重建干净 PGO venv 的最后准备，全部只读。
+  # A. 修正版包集合对比（名称归一化 + @ 行解析）
+  # B. 普通依赖来源：bundle wheels / pip 源 / wheelhouse / 网络
+  # C. base 的 pip 工具版本
   # 不删除、不安装、不建 venv。
 
   CON=corex5-py311
   BASE=/opt/corex311
-  NEW=/opt/corex311-cpython-vllm
   BUNDLE=/home/z30059427/corex5-py311-20261009
 
-  echo "== 1. install_corex311.sh 全文 =="
-  docker exec "$CON" sh -c "cat $BUNDLE/install_corex311.sh"
-
-  echo "== 2. README（离线安装/来源相关）=="
-  docker exec "$CON" sh -c "sed -n '1,160p' $BUNDLE/README.md"
-
-  echo "== 3. hashed 清单与 base 已装包集合是否对应 =="
+  echo "== A. 修正版包集合对比 =="
   docker exec -i -e PYTHONPATH= -e PYTHONHOME= "$CON" "$BASE/bin/python" - <<'PY'
 import re, subprocess, sys
 
-REQ = "/home/z30059427/corex5-py311-20261009/requirements-all.hashed.txt"
+B = "/home/z30059427/corex5-py311-20261009"
+norm = lambda n: re.sub(r"[-_.]+", "-", n.strip().lower())
 
 def parse_req(path):
     d = {}
-    for line in open(path):
-        line = line.strip()
-        if not line or line.startswith("#"):
+    for raw in open(path):
+        line = raw.split("#", 1)[0].strip()
+        if not line:
             continue
-        if " --hash=" in line:
-            line = line.split(" --hash=", 1)[0].strip()
-        m = re.match(r"^([A-Za-z0-9_.\-]+)==([^\s;]+)", line)
-        if m:
-            d[m.group(1).lower()] = m.group(2)
-        elif " @ " in line:
-            name = line.split(" @ ", 1)[0].strip().lower()
-            d[name] = "url"
+        line = re.split(r"\s+--hash", line)[0].strip()
+        if " @ " in line:
+            d[norm(line.split(" @ ", 1)[0])] = "(url)"
+        else:
+            m = re.match(r"([A-Za-z0-9_.\-]+)(?:\[[^\]]*\])?==([^\s;]+)", line)
+            if m:
+                d[norm(m.group(1))] = m.group(2)
+    return d
+
+def parse_freeze(text):
+    d = {}
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or line.startswith("-e "):
+            continue
+        if " @ " in line:
+            d[norm(line.split(" @ ", 1)[0])] = "(url)"
+        elif "==" in line:
+            n, v = line.split("==", 1)
+            d[norm(n)] = v.strip()
+        else:
+            d[norm(line)] = "(bare)"
     return d
 
 freeze = subprocess.run([sys.executable, "-m", "pip", "freeze", "--all"],
                         capture_output=True, text=True).stdout
-inst = {}
-for line in freeze.splitlines():
-    line = line.strip()
-    if not line or line.startswith("#") or line.startswith("-e "):
-        continue
-    if "==" in line:
-        n, v = line.split("==", 1)
-        inst[n.lower()] = v
-req = parse_req(REQ)
+inst = parse_freeze(freeze)
+print(f"base installed (normalized) = {len(inst)}")
 
-skip = {"pip", "setuptools", "wheel"}
-only_req = sorted(k for k in set(req) - set(inst))
-only_inst = sorted(k for k in set(inst) - set(req) - skip)
-mismatch = sorted(k for k in set(req) & set(inst) if req[k] != inst[k])
-print(f"requirements={len(req)} installed={len(inst)} covered={len(set(req) & set(inst)) - len(mismatch)}")
-print(f"in_requirements_not_installed={len(only_req)}")
-print(f"installed_not_in_requirements(excl pip/setuptools/wheel)={len(only_inst)}")
-print(f"version_mismatch={len(mismatch)}")
-print("--- in requirements, not installed ---")
-for k in only_req:
-    print(f"{k}=={req[k]}")
-print("--- installed, not in requirements ---")
-for k in only_inst:
-    print(f"{k}=={inst[k]}")
-print("--- version mismatch ---")
-for k in mismatch:
-    print(f"{k} | req {req[k]} -> inst {inst[k]}")
+for fname in ("requirements-all.hashed.txt", "requirements-py311.txt", "requirements-vendor-py311.txt"):
+    req = parse_req(f"{B}/{fname}")
+    miss = sorted(set(req) - set(inst))
+    extra = sorted(set(inst) - set(req))
+    mism = sorted(k for k in set(req) & set(inst) if req[k] != inst[k] and req[k] != "(url)")
+    print(f"\n===== {fname}: req={len(req)} covered={len(set(req) & set(inst)) - len(mism)} "
+          f"missing={len(miss)} mismatch={len(mism)} base_extra={len(extra)}")
+    if miss:
+        print("-- 需求有、base 没有 --")
+        for k in miss:
+            print(f"  {k}=={req[k]}")
+    if mism:
+        print("-- 版本不一致 --")
+        for k in mism:
+            print(f"  {k} | req {req[k]} -> base {inst[k]}")
+    if extra:
+        print("-- base 有、需求没有 --")
+        for k in extra:
+            print(f"  {k}=={inst[k]}")
 PY
 
-  echo "== 4. vendor 目录与 wheel 来源 =="
+  echo "== B. 普通依赖来源 =="
   docker exec "$CON" sh -c "
-ls -la $BUNDLE/vendor
-echo '-- 安装脚本里与来源相关的行 --'
-grep -nE 'find-links|no-index|index-url|pip download|wheelhouse|vendor|network|offline' $BUNDLE/install_corex311.sh $BUNDLE/README.md | head -40
-echo '-- 机器上的 wheelhouse --'
-find /home/z30059427 -maxdepth 4 -type d -iname '*wheelhouse*' 2>/dev/null | head -10
+B=$BUNDLE
+echo '-- \$BUNDLE/wheels 是否存在 --'
+ls -la \"\$B/wheels\" 2>/dev/null || echo 'no wheels dir'
+echo '-- bundle 根目录 --'
+ls -la \"\$B\" | head -20
+echo '-- pip 配置文件 --'
+for f in /etc/pip.conf /root/.pip/pip.conf /root/.config/pip/pip.conf /opt/corex311/pip.conf; do
+  [ -f \"\$f\" ] && { echo \"== \$f\"; cat \"\$f\"; }
+done
+echo '-- 环境变量 --'
+env | grep -iE 'PIP_|INDEX_URL' || echo none
+echo '-- pip config list --'
+/opt/corex311/bin/python -m pip config list 2>&1 | head -10
+echo '-- wheelhouse --'
+ls -la /home/z30059427/wheelhouse 2>/dev/null | head -25
+find /home/z30059427/wheelhouse -maxdepth 1 -name '*.whl' 2>/dev/null | wc -l
+find /home/z30059427/wheelhouse -maxdepth 1 -name 'transformers*.whl' -o -maxdepth 1 -name 'numpy*.whl' 2>/dev/null | head -5
+echo '-- 网络探测（只读）--'
+timeout 8 getent hosts pypi.org || echo 'dns pypi.org failed'
+timeout 8 curl -sI https://pypi.org/simple/ 2>&1 | head -3 || echo 'curl failed'
 "
 
-  echo "== 5. verify_corex311.py 用法 =="
-  docker exec "$CON" sh -c "sed -n '1,80p' $BUNDLE/verify_corex311.py"
+  echo "== C. base 的 pip 工具版本 =="
+  docker exec "$CON" sh -c "
+/opt/corex311/bin/python -m pip --version
+/opt/corex311/bin/python -c 'import setuptools, wheel; print(\"setuptools\", setuptools.__version__); print(\"wheel\", wheel.__version__)' 2>/dev/null || echo 'wheel not importable'
+/opt/corex311/bin/python -c 'import sys; print(sys.version)'
+"
 
-  echo "== 6. 新 venv 占用/磁盘 =="
+  echo "== D. 新 venv 是否仍无占用 =="
   docker exec "$CON" sh -c "
 for p in /proc/[0-9]*; do
   e=\$(readlink \"\$p/exe\" 2>/dev/null) || continue
   case \"\$e\" in *corex311-cpython-vllm*) echo \"\${p#/proc/} \$e\";; esac
 done | head -10
-du -sh $NEW 2>/dev/null
-df -h /opt | tail -1
+echo "(空 = 无进程使用)"
 "
 
   # ---- 命令结束 ----
