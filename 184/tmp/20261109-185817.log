@@ -1,0 +1,175 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T10:58:17Z
+
++ RUN=/home/qch/transfer/scripts/corex-driver-linux64-5.0.0_aarch64.run
++ echo '== 1. 驱动安装器文件 =='
+== 1. 驱动安装器文件 ==
++ ls -l /home/qch/transfer/scripts/corex-driver-linux64-5.0.0_aarch64.run
+-rwxrwxr-x+ 1 root root 8357419 Sep 21 09:40 /home/qch/transfer/scripts/corex-driver-linux64-5.0.0_aarch64.run
++ sha256sum /home/qch/transfer/scripts/corex-driver-linux64-5.0.0_aarch64.run
+c3bdb3404cd1dde2098e86fa134b72c39a27b5273bcf35fdd09f30b057fc3210  /home/qch/transfer/scripts/corex-driver-linux64-5.0.0_aarch64.run
++ file /home/qch/transfer/scripts/corex-driver-linux64-5.0.0_aarch64.run
+/home/qch/transfer/scripts/corex-driver-linux64-5.0.0_aarch64.run: Bourne-Again shell script executable (binary data)
++ echo '-- 头部（前 30 行）--'
+-- 头部（前 30 行）--
++ head -n 30 /home/qch/transfer/scripts/corex-driver-linux64-5.0.0_aarch64.run
++ strings
++ head -30
+#!/bin/bash
+# This script was generated using Makeself 2.3.0-iluvatar
+ORIG_UMASK=`umask`
+if test "n" = n; then
+    umask 077
+CRCsum="794442246"
+MD5="ce72992fae495d39256f5ecb743ecc75"
+TMPROOT=${TMPDIR:=/tmp}
+USER_PWD="$PWD"; export USER_PWD
+label="Corex Driver"
+script="./corex-driver-installer"
+scriptargs=""
+licensetxt=""
+helpheader='Corex Driver Installer.
+Usage: [COMMAND] [OPTIONS] ...
+Options:
+  --kernel-source-path=<KERNEL_SOURCE_PATH>
+    Set <KERNEL_SOURCE_PATH> as the driver installation to use <path> as the kernel source directory when building the Corex kernel module. Required for systems where the kernel source is installed to a non-standard location.
+  --disable-dkms
+    DKMS infrastructure can automatically build a new kernel module when changing kernels. this option will bypass DKMS detect and disable use of it.
+  --no-systemd
+    Disable the use of '\''systemd'\'' when installing drivers (default: false).
+    
++ echo '-- 关键字符串搜索 --'
+-- 关键字符串搜索 --
++ grep -a -oE 'makeself|MS_ARCHIVE_OFFSET|install|uninstall|kernel|dkms|--help|--silent|accept' /home/qch/transfer/scripts/corex-driver-linux64-5.0.0_aarch64.run
++ sort
++ uniq -c
++ head -20
+      1 accept
+      1 dkms
+      2 --help
+      8 install
+      8 kernel
+      3 makeself
++ echo '== 2. 当前内核与 OS =='
+== 2. 当前内核与 OS ==
++ uname -r
+6.6.0-145.3.37.168.oe2403sp3.aarch64
++ cat /etc/os-release
++ head -8
+NAME="openEuler"
+VERSION="24.03 (LTS-SP3)"
+ID="openEuler"
+VERSION_ID="24.03"
+PRETTY_NAME="openEuler 24.03 (LTS-SP3)"
+ANSI_COLOR="0;31"
+
++ getconf PAGESIZE
+4096
++ echo '== 3. 内核头文件/构建目录 =='
+== 3. 内核头文件/构建目录 ==
++ rpm -qa
++ grep -E 'kernel-devel|kernel-headers|kernel-default-devel|kernel-source'
++ head -10
+kernel-devel-6.6.0-145.3.37.168.oe2403sp3.aarch64
+kernel-source-6.6.0-145.3.37.168.oe2403sp3.aarch64
+kernel-headers-6.6.0-145.3.37.168.oe2403sp3.aarch64
++ ls -d /usr/src/kernels/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb /usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64
++ head -10
+/usr/src/kernels/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
+/usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64
++ head -5
+++ uname -r
+++ uname -r
++ ls -l /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/build /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/source
+lrwxrwxrwx. 1 root root 53 Nov  2 19:15 /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/build -> /usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64
+lrwxrwxrwx. 1 root root  5 Nov  2 19:15 /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/source -> build
++ head -10
+++ uname -r
++ ls /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64
+build
+kernel
+modules.alias
+modules.alias.bin
+modules.block
+modules.builtin
+modules.builtin.alias.bin
+modules.builtin.bin
+modules.builtin.modinfo
+modules.dep
++ echo '== 4. 旧内核里的 iluvatar.ko 与旧驱动安装形态 =='
+== 4. 旧内核里的 iluvatar.ko 与旧驱动安装形态 ==
++ find /lib/modules -name 'iluvatar.ko*' -printf '%p\n'
++ head -10
+/lib/modules/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb/updates/iluvatar.ko.xz
+/lib/modules/5.10.0-326.0.0.227.oe2203sp4.aarch64/updates/iluvatar.ko.xz
++ ls -d /usr/local/corex /usr/local/corex-4.4.0.bak /usr/local/corex-5.0.0 '/usr/local/iluvatar*'
+/usr/local/corex
+/usr/local/corex-4.4.0.bak
+/usr/local/corex-5.0.0
++ ls -la /usr/local/corex-5.0.0
++ head -10
+total 64
+drwxr-xr-x.  4 root root  4096 Sep 22 16:49 .
+drwxr-xr-x. 16 root root  4096 Dec 21  2025 ..
+drwxr-xr-x.  3 root root  4096 Sep 22 16:49 bin
+-rw-r--r--.  1 root root 25966 Sep 22 16:49 copyright
+-rw-r--r--.  1 root root 17490 Sep 22 16:49 EULA.txt
+lrwxrwxrwx.  1 root root     5 Sep 22 16:49 lib -> lib64
+drwxr-xr-x.  2 root root  4096 Sep 22 16:49 lib64
++ find /usr/local/corex-5.0.0 -maxdepth 3 '(' -name 'uninstall*' -o -name '*.ko' -o -name '*install*.sh' ')'
++ head -10
++ echo '== 5. 编译工具 =='
+== 5. 编译工具 ==
++ for c in gcc g++ make dkms ld
++ command -v gcc
+/usr/bin/gcc
++ for c in gcc g++ make dkms ld
++ command -v g++
+/usr/bin/g++
++ for c in gcc g++ make dkms ld
++ command -v make
+/usr/bin/make
++ for c in gcc g++ make dkms ld
++ command -v dkms
+/usr/sbin/dkms
++ for c in gcc g++ make dkms ld
++ command -v ld
+/usr/bin/ld
++ gcc --version
++ head -1
+gcc (GCC) 12.3.1 (openEuler 12.3.1-111.oe2403sp3)
++ echo '== 6. grub 候选（备选：回旧内核） =='
+== 6. grub 候选（备选：回旧内核） ==
++ grubby --default-kernel
+/boot/vmlinuz-6.6.0-145.3.37.168.oe2403sp3.aarch64
++ grubby --info=ALL
++ grep -E 'index=|kernel='
++ head -20
+index=0
+kernel=/boot/vmlinuz-6.6.0-145.3.37.168.oe2403sp3.aarch64
+args="ro rd.lvm.lv=openeuler00/root rd.lvm.lv=openeuler00/swap video=VGA-1:640x480-32@60me cgroup_disable=files apparmor=0 crashkernel=1024M,high smmu.bypassdev=0x1000:0x17 smmu.bypassdev=0x1000:0x15 arm64.nopauth rhgb quiet console=tty0"
+index=1
+kernel=/boot/vmlinuz-6.6.0-132.0.0.111.oe2403sp3.aarch64
+args="ro rd.lvm.lv=openeuler00/root rd.lvm.lv=openeuler00/swap video=VGA-1:640x480-32@60me cgroup_disable=files apparmor=0 crashkernel=1024M,high smmu.bypassdev=0x1000:0x17 smmu.bypassdev=0x1000:0x15 arm64.nopauth rhgb quiet console=tty0"
+index=2
+kernel=/boot/vmlinuz-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
+args="ro rd.lvm.lv=openeuler00/root rd.lvm.lv=openeuler00/swap video=VGA-1:640x480-32@60me cgroup_disable=files apparmor=0 crashkernel=1024M,high smmu.bypassdev=0x1000:0x17 smmu.bypassdev=0x1000:0x15 arm64.nopauth rhgb quiet console=tty0"
+index=3
+kernel=/boot/vmlinuz-6.6.0-145.1.28.165.oe2403sp1.aarch64
+args="ro rd.lvm.lv=openeuler00/root rd.lvm.lv=openeuler00/swap video=VGA-1:640x480-32@60me cgroup_disable=files apparmor=0 crashkernel=1024M,high smmu.bypassdev=0x1000:0x17 smmu.bypassdev=0x1000:0x15 arm64.nopauth rhgb quiet console=tty0"
+index=4
+kernel=/boot/vmlinuz-0-rescue-1167791de91a49c9a9b06b663b3d7e59
+args="ro rd.lvm.lv=openeuler00/root rd.lvm.lv=openeuler00/swap video=VGA-1:640x480-32@60me cgroup_disable=files apparmor=0 crashkernel=1024M,high smmu.bypassdev=0x1000:0x17 smmu.bypassdev=0x1000:0x15 arm64.nopauth rhgb quiet console=tty0"
+index=5
+index=6
+index=7
++ echo '== 7. 模块加载尝试痕迹 =='
+== 7. 模块加载尝试痕迹 ==
++ dmesg
++ tail -10
++ grep -iE 'iluvatar|module verification|version magic'
+[   15.825686] systemd[1]: Created slice Slice /system/iluvatarcorex-init.
++ set +x
+
+### exit: 0
