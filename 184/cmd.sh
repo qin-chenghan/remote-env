@@ -17,17 +17,15 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 第十批：正式重建 /opt/corex311-cpython-vllm。
-  # 只动该目录；/opt/corex311 不动。步骤失败即停，不自动回滚，末尾给回滚命令。
+  # 第十批 A：隔离旧 venv + 官方 installer + 装完自检。
+  # 不做 trim、不动工具链、不装 fastpath（留给 B）。
+  # 只动 /opt/corex311-cpython-vllm；/opt/corex311 不动。
 
   CON=corex5-py311
   BASE=/opt/corex311
   V=/opt/corex311-cpython-vllm
   B=/home/z30059427/corex5-py311-20261009
   PY=/opt/cpython-vllm/v1/bin/python3.11
-  FW=/home/qch/transfer/torch_module_attr_fastpath-0.1.0.dev2-cp311-cp311-linux_aarch64.whl
-  FW_SHA=9eb6ca36702600d85b754f21e4b812394ead6c09c17dcba1cd007776a84f573b
-  TRIM="cupy cupy-cuda11x cupy-cuda12x flash-attn pynvml ray torchaudio torchvision torchdebug"
 
   source /home/qch/env/set_proxy.sh 2>/dev/null || true
   PX=()
@@ -51,8 +49,13 @@ mkdir -p "$DIR/tmp"
   echo "== 1. 隔离旧 venv =="
   TRASH="/opt/_trash_$(date +%Y%m%d-%H%M%S)"
   docker exec "$CON" sh -c "mkdir -p $TRASH && mv $V $TRASH/corex311-cpython-vllm-old && ls -la $TRASH && echo '隔离完成: $TRASH'"
+  if ! docker exec "$CON" sh -c "test -d $TRASH/corex311-cpython-vllm-old && test ! -e $V"; then
+    echo "ABORT: 隔离动作未完成"
+    exit 1
+  fi
+  echo "隔离验证通过：$TRASH/corex311-cpython-vllm-old"
 
-  echo "== 2. 官方 installer 建 venv 并安装 =="
+  echo "== 2. 官方 installer 建 venv 并安装（耗时较长）=="
   docker exec "${PX[@]}" -e PYTHONPATH= -e PYTHONHOME= -e PIP_DISABLE_PIP_VERSION_CHECK=1 \
     "$CON" bash "$B/install_corex311.sh" "$PY" "$V" 2>&1 | tail -40
   RC=${PIPESTATUS[0]}
@@ -62,32 +65,18 @@ mkdir -p "$DIR/tmp"
     exit 1
   fi
 
-  echo "== 3. 卸掉 base 没有的 9 个厂商包 =="
-  docker exec "${PX[@]}" -e PYTHONPATH= -e PYTHONHOME= "$CON" "$V/bin/python" -m pip uninstall -y $TRIM 2>&1 | tail -15
-
-  echo "== 4. 工具链对齐 base =="
-  docker exec "${PX[@]}" -e PYTHONPATH= -e PYTHONHOME= -e PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    "$CON" "$V/bin/python" -m pip install --upgrade pip==25.3 setuptools==80.9.0 wheel==0.45.1 2>&1 | tail -8
-
-  echo "== 5. 装 torch_module_attr_fastpath =="
-  echo -n "wheel sha256: "; docker exec "$CON" sh -c "sha256sum $FW 2>/dev/null | cut -d' ' -f1"
-  FWSHA=$(docker exec "$CON" sh -c "sha256sum $FW 2>/dev/null | cut -d' ' -f1")
-  if [ "$FWSHA" != "$FW_SHA" ]; then
-    echo "WARN: fastpath wheel 摘要不符（期望 $FW_SHA），跳过安装"
-  else
-    docker exec -e PYTHONPATH= -e PYTHONHOME= "$CON" "$V/bin/python" -m pip install --no-index --no-deps "$FW" 2>&1 | tail -6
-  fi
-
-  echo "== 6. pip check =="
-  docker exec -e PYTHONPATH= -e PYTHONHOME= "$CON" "$V/bin/python" -m pip check || true
-
-  echo "== 7. 解释器与导入检查 =="
+  echo "== 3. 装完自检 =="
+  echo "-- 解释器 --"
   docker exec -e PYTHONPATH= -e PYTHONHOME= "$CON" "$V/bin/python" -c \
     'import sys,sysconfig; print("prefix", sys.prefix); print("base_prefix", sys.base_prefix); print("CONFIG_ARGS", sysconfig.get_config_var("CONFIG_ARGS"))'
+  echo "-- pip 版本与 check --"
+  docker exec -e PYTHONPATH= -e PYTHONHOME= "$CON" "$V/bin/python" -m pip --version
+  docker exec -e PYTHONPATH= -e PYTHONHOME= "$CON" "$V/bin/python" -m pip check || true
+  echo "-- 导入 --"
   docker exec -e PYTHONPATH= -e PYTHONHOME= "$CON" "$V/bin/python" -c \
-    'import vllm, torch; print("vllm", vllm.__version__, vllm.__file__); print("torch", torch.__version__, torch.__file__)' 2>&1 | tail -6
+    'import vllm, torch; print("vllm", vllm.__version__); print("torch", torch.__version__)' 2>&1 | tail -4
 
-  echo "== 8. 包集合对比 base vs new（归一化）=="
+  echo "== 4. 与 base 的差异快照（预期：only_new=9 个厂商包，工具链版本不同）=="
   docker exec -i -e PYTHONPATH= -e PYTHONHOME= "$CON" "$V/bin/python" - <<'PY'
 import os, re, subprocess
 
@@ -125,13 +114,12 @@ for k in only_new:
     print(f"  ONLY_NEW  {k}=={new[k]}")
 for k in mism:
     print(f"  MISMATCH  {k} | base {base[k]} -> new {new[k]}")
-if not only_base and not only_new and not mism:
-    print("PARITY PASS: 包集合完全一致")
 PY
 
-  echo "== 9. 磁盘与结论 =="
+  echo "== 5. 磁盘 =="
   docker exec "$CON" sh -c "du -sh $V $BASE 2>/dev/null; df -h /opt | tail -1"
   echo "旧 venv 隔离在: $TRASH"
+  echo "下一步（第十批 B，待确认后）：卸 9 包 -> 工具链对齐 -> 装 fastpath -> 完整 parity"
 
   # ---- 命令结束 ----
 
