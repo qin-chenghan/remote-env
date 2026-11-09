@@ -1,0 +1,137 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T07:45:39Z
+
++ CON=corex5-py311
++ T=/tmp/184-venv-check
++ mkdir -p /tmp/184-venv-check
++ echo '== 1. 容器状态与 overlay 路径 =='
+== 1. 容器状态与 overlay 路径 ==
++ docker ps -a --format '{{.Names}}\t{{.Status}}'
++ grep -E '^corex5-py311'
+corex5-py311-s00965207	Exited (137) 4 days ago
+corex5-py311-csz	Exited (255) 7 days ago
+corex5-py311-lzy	Exited (137) 12 days ago
+corex5-py311-ssh_tst1	Exited (137) 2 days ago
+corex5-py311-ssh_tst_new	Exited (137) 3 weeks ago
+corex5-py311-ssh_tst	Exited (137) 3 weeks ago
+corex5-py311-g30061491	Exited (137) 12 days ago
+corex5-py311	Exited (137) 5 hours ago
+corex5-py311-backup	Exited (137) 4 weeks ago
++ docker inspect corex5-py311 --format 'Status={{.State.Status}} GraphDriver={{.GraphDriver.Name}} UpperDir={{.GraphDriver.Data.UpperDir}}'
+Status=exited GraphDriver=overlay2 UpperDir=/home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff
++ echo '== 2. docker cp 试验（从停止的容器拷文件）=='
+== 2. docker cp 试验（从停止的容器拷文件）==
++ docker cp corex5-py311:/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py /tmp/184-venv-check/GMR_base.py
++ echo 'cp base runner OK'
+cp base runner OK
++ docker cp corex5-py311:/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py /tmp/184-venv-check/GMR_new.py
++ echo 'cp new runner OK'
+cp new runner OK
++ echo '-- host_fastpath.py --'
+-- host_fastpath.py --
++ docker cp corex5-py311:/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py /tmp/184-venv-check/HF_base.py
++ echo 'base HAS host_fastpath'
+base HAS host_fastpath
++ docker cp corex5-py311:/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py /tmp/184-venv-check/HF_new.py
+Error response from daemon: Could not find the file /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py in container corex5-py311
++ echo 'new NO host_fastpath'
+new NO host_fastpath
++ echo '== 3. 关键文件 hash（两边）=='
+== 3. 关键文件 hash（两边）==
++ for f in vllm/v1/worker/gpu_model_runner.py vllm/envs.py vllm/v1/attention/backends/ilu_flash_attn.py
++ echo '-- vllm/v1/worker/gpu_model_runner.py'
+-- vllm/v1/worker/gpu_model_runner.py
+++ basename vllm/v1/worker/gpu_model_runner.py
++ docker cp corex5-py311:/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py /tmp/184-venv-check/base_gpu_model_runner.py
++ sed 's|/tmp/184-venv-check/|  base |'
+++ basename vllm/v1/worker/gpu_model_runner.py
++ sha256sum /tmp/184-venv-check/base_gpu_model_runner.py
+b869bfb1e34bb48b6fe9333a734bb96d97585bd2017bef5ab21a4e36b5370fbe    base base_gpu_model_runner.py
+++ basename vllm/v1/worker/gpu_model_runner.py
++ docker cp corex5-py311:/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py /tmp/184-venv-check/new_gpu_model_runner.py
++ sed 's|/tmp/184-venv-check/|  new  |'
+++ basename vllm/v1/worker/gpu_model_runner.py
++ sha256sum /tmp/184-venv-check/new_gpu_model_runner.py
+ff9f2df42976347b85fbd6e12623b217e1beda6d5248a5662b3cf397eacaef59    new  new_gpu_model_runner.py
++ for f in vllm/v1/worker/gpu_model_runner.py vllm/envs.py vllm/v1/attention/backends/ilu_flash_attn.py
++ echo '-- vllm/envs.py'
+-- vllm/envs.py
+++ basename vllm/envs.py
++ docker cp corex5-py311:/opt/corex311/lib/python3.11/site-packages/vllm/envs.py /tmp/184-venv-check/base_envs.py
++ sed 's|/tmp/184-venv-check/|  base |'
+++ basename vllm/envs.py
++ sha256sum /tmp/184-venv-check/base_envs.py
+271952836bad0b9c9eba49f1f22186c6b486a574e39bf8465becf67e85556938    base base_envs.py
+++ basename vllm/envs.py
++ docker cp corex5-py311:/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py /tmp/184-venv-check/new_envs.py
++ sed 's|/tmp/184-venv-check/|  new  |'
+++ basename vllm/envs.py
++ sha256sum /tmp/184-venv-check/new_envs.py
+24e2e0aff019ca4a1f05517dfdba3764139fb775896e22904114715b258323bb    new  new_envs.py
++ for f in vllm/v1/worker/gpu_model_runner.py vllm/envs.py vllm/v1/attention/backends/ilu_flash_attn.py
++ echo '-- vllm/v1/attention/backends/ilu_flash_attn.py'
+-- vllm/v1/attention/backends/ilu_flash_attn.py
+++ basename vllm/v1/attention/backends/ilu_flash_attn.py
++ docker cp corex5-py311:/opt/corex311/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py /tmp/184-venv-check/base_ilu_flash_attn.py
++ sed 's|/tmp/184-venv-check/|  base |'
+++ basename vllm/v1/attention/backends/ilu_flash_attn.py
++ sha256sum /tmp/184-venv-check/base_ilu_flash_attn.py
+b6cc7b45d20cd9548bf7e8abec73e61809871aba668fce5c86cbaa8286625b43    base base_ilu_flash_attn.py
+++ basename vllm/v1/attention/backends/ilu_flash_attn.py
++ docker cp corex5-py311:/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py /tmp/184-venv-check/new_ilu_flash_attn.py
++ sed 's|/tmp/184-venv-check/|  new  |'
+++ basename vllm/v1/attention/backends/ilu_flash_attn.py
++ sha256sum /tmp/184-venv-check/new_ilu_flash_attn.py
+469e7198cfeb81135a7e043fa7ad885d8433571c7a629f30bd3057eff16e36cd    new  new_ilu_flash_attn.py
++ echo '-- 原生 .so --'
+-- 原生 .so --
++ for n in _host_opt_native.abi3.so _host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
++ for V in base new
++ P=/opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
++ '[' base = new ']'
++ docker cp corex5-py311:/opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so /tmp/184-venv-check/base-_host_opt_native.abi3.so
++ sha256sum /tmp/184-venv-check/base-_host_opt_native.abi3.so
++ sed 's|/tmp/184-venv-check/|  base |'
+6f8774f8c9e6839a3a1de15a763845511f200cb485f55ef10009475e30db8056    base base-_host_opt_native.abi3.so
++ for V in base new
++ P=/opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
++ '[' new = new ']'
++ P=/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
++ docker cp corex5-py311:/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so /tmp/184-venv-check/new-_host_opt_native.abi3.so
++ echo '  new _host_opt_native.abi3.so MISSING'
+  new _host_opt_native.abi3.so MISSING
++ for n in _host_opt_native.abi3.so _host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
++ for V in base new
++ P=/opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
++ '[' base = new ']'
++ docker cp corex5-py311:/opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so /tmp/184-venv-check/base-_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
++ sha256sum /tmp/184-venv-check/base-_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
++ sed 's|/tmp/184-venv-check/|  base |'
+7c8686a72759d2e4f75e8157b819039fcdcf69c1b5eba5948e0d956859af1715    base base-_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
++ for V in base new
++ P=/opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
++ '[' new = new ']'
++ P=/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
++ docker cp corex5-py311:/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so /tmp/184-venv-check/new-_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
++ echo '  new _host_opt_meta_native.cpython-311-aarch64-linux-gnu.so MISSING'
+  new _host_opt_meta_native.cpython-311-aarch64-linux-gnu.so MISSING
++ echo '== 4. 宿主机 /tmp 结果 =='
+== 4. 宿主机 /tmp 结果 ==
++ ls -l /tmp/184-venv-check
++ head -20
+total 1884
+-rw-rw-r--. 1 root root 100032 Nov  6 11:44 base_envs.py
+-rw-rw-r--. 1 root root 353433 Nov  9 08:59 base_gpu_model_runner.py
+-rw-r--r--. 1 root root  70752 Nov  6 11:44 base-_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+-rw-r--r--. 1 root root  71224 Nov  6 11:44 base-_host_opt_native.abi3.so
+-rw-rw-r--. 1 root root  65672 Nov  6 11:44 base_ilu_flash_attn.py
+-rw-rw-r--. 1 root root 353433 Nov  9 08:59 GMR_base.py
+-rw-r--r--. 1 root root 348672 Nov  9 09:09 GMR_new.py
+-rw-r--r--. 1 root root  28938 Nov  6 11:44 HF_base.py
+-rw-r--r--. 1 root root  98696 Nov  9 09:09 new_envs.py
+-rw-r--r--. 1 root root 348672 Nov  9 09:09 new_gpu_model_runner.py
+-rw-r--r--. 1 root root  53376 Nov  9 09:09 new_ilu_flash_attn.py
++ set +x
+
+### exit: 0
