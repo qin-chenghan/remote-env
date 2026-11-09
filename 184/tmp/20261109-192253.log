@@ -1,0 +1,109 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T11:22:53Z
+
++ CON=corex5-py311
++ V=/opt/corex311-cpython-vllm
++ SITE=/opt/corex311-cpython-vllm/lib/python3.11/site-packages
++ BAK=/tmp/184-new-venv-backup
++ T=/home/qch/transfer
++ Z=/home/qch/transfer/host-opt-three-pr-validation-20261106-r10-arm64-py311.zip
++ PKG=/home/qch/transfer/host-opt-pr-validation-20261106-r10
++ echo '== 0. r10 包校验 =='
+== 0. r10 包校验 ==
++ ls -l /home/qch/transfer/host-opt-three-pr-validation-20261106-r10-arm64-py311.zip /home/qch/transfer/host-opt-three-pr-validation-20261106-r10-arm64-py311.zip.sha256
+-rw-r--r--. 1 root root 536759 Nov  9 16:42 /home/qch/transfer/host-opt-three-pr-validation-20261106-r10-arm64-py311.zip
+-rw-r--r--. 1 root root    124 Nov  9 16:42 /home/qch/transfer/host-opt-three-pr-validation-20261106-r10-arm64-py311.zip.sha256
++ cd /home/qch/transfer
+++ basename /home/qch/transfer/host-opt-three-pr-validation-20261106-r10-arm64-py311.zip
++ sha256sum -c host-opt-three-pr-validation-20261106-r10-arm64-py311.zip.sha256
+host-opt-three-pr-validation-20261106-r10-arm64-py311.zip: OK
++ echo '== 1. 备份文件完整性（应为 pristine 三件套）=='
+== 1. 备份文件完整性（应为 pristine 三件套）==
++ sha256sum /tmp/184-new-venv-backup/envs.py /tmp/184-new-venv-backup/v1/attention/backends/ilu_flash_attn.py /tmp/184-new-venv-backup/v1/worker/gpu_model_runner.py
+24e2e0aff019ca4a1f05517dfdba3764139fb775896e22904114715b258323bb  /tmp/184-new-venv-backup/envs.py
+469e7198cfeb81135a7e043fa7ad885d8433571c7a629f30bd3057eff16e36cd  /tmp/184-new-venv-backup/v1/attention/backends/ilu_flash_attn.py
+ff9f2df42976347b85fbd6e12623b217e1beda6d5248a5662b3cf397eacaef59  /tmp/184-new-venv-backup/v1/worker/gpu_model_runner.py
++ echo '== 2. 恢复 pristine 并移除旧补丁文件 =='
+== 2. 恢复 pristine 并移除旧补丁文件 ==
++ cp -p /tmp/184-new-venv-backup/envs.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py
+cp: cannot create regular file '/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py': No such file or directory
++ cp -p /tmp/184-new-venv-backup/v1/attention/backends/ilu_flash_attn.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py
+cp: cannot create regular file '/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py': No such file or directory
++ cp -p /tmp/184-new-venv-backup/v1/worker/gpu_model_runner.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+cp: cannot create regular file '/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py': No such file or directory
++ rm -f /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py
++ rm -f /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
++ rm -f '/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/__pycache__/envs.cpython-311*.pyc'
++ rm -f '/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/__pycache__/ilu_flash_attn.cpython-311*.pyc'
++ rm -f '/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/__pycache__/gpu_model_runner.cpython-311*.pyc'
++ echo restored
+restored
++ echo '== 3. r10 基线核对（MANIFEST baseline）=='
+== 3. r10 基线核对（MANIFEST baseline）==
++ for f in vllm/v1/worker/gpu_model_runner.py vllm/v1/attention/backends/ilu_flash_attn.py vllm/envs.py vllm/model_executor/models/llama.py vllm/model_executor/models/qwen2.py vllm/model_executor/models/qwen3.py vllm/v1/worker/gpu_input_batch.py vllm/v1/utils.py
++ sha256sum /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
++ echo 'MISSING vllm/v1/worker/gpu_model_runner.py'
+MISSING vllm/v1/worker/gpu_model_runner.py
++ for f in vllm/v1/worker/gpu_model_runner.py vllm/v1/attention/backends/ilu_flash_attn.py vllm/envs.py vllm/model_executor/models/llama.py vllm/model_executor/models/qwen2.py vllm/model_executor/models/qwen3.py vllm/v1/worker/gpu_input_batch.py vllm/v1/utils.py
++ sha256sum /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py
++ echo 'MISSING vllm/v1/attention/backends/ilu_flash_attn.py'
+MISSING vllm/v1/attention/backends/ilu_flash_attn.py
++ for f in vllm/v1/worker/gpu_model_runner.py vllm/v1/attention/backends/ilu_flash_attn.py vllm/envs.py vllm/model_executor/models/llama.py vllm/model_executor/models/qwen2.py vllm/model_executor/models/qwen3.py vllm/v1/worker/gpu_input_batch.py vllm/v1/utils.py
++ sha256sum /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py
++ echo 'MISSING vllm/envs.py'
+MISSING vllm/envs.py
++ for f in vllm/v1/worker/gpu_model_runner.py vllm/v1/attention/backends/ilu_flash_attn.py vllm/envs.py vllm/model_executor/models/llama.py vllm/model_executor/models/qwen2.py vllm/model_executor/models/qwen3.py vllm/v1/worker/gpu_input_batch.py vllm/v1/utils.py
++ sha256sum /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/model_executor/models/llama.py
++ echo 'MISSING vllm/model_executor/models/llama.py'
+MISSING vllm/model_executor/models/llama.py
++ for f in vllm/v1/worker/gpu_model_runner.py vllm/v1/attention/backends/ilu_flash_attn.py vllm/envs.py vllm/model_executor/models/llama.py vllm/model_executor/models/qwen2.py vllm/model_executor/models/qwen3.py vllm/v1/worker/gpu_input_batch.py vllm/v1/utils.py
++ sha256sum /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/model_executor/models/qwen2.py
++ echo 'MISSING vllm/model_executor/models/qwen2.py'
+MISSING vllm/model_executor/models/qwen2.py
++ for f in vllm/v1/worker/gpu_model_runner.py vllm/v1/attention/backends/ilu_flash_attn.py vllm/envs.py vllm/model_executor/models/llama.py vllm/model_executor/models/qwen2.py vllm/model_executor/models/qwen3.py vllm/v1/worker/gpu_input_batch.py vllm/v1/utils.py
++ sha256sum /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/model_executor/models/qwen3.py
++ echo 'MISSING vllm/model_executor/models/qwen3.py'
+MISSING vllm/model_executor/models/qwen3.py
++ for f in vllm/v1/worker/gpu_model_runner.py vllm/v1/attention/backends/ilu_flash_attn.py vllm/envs.py vllm/model_executor/models/llama.py vllm/model_executor/models/qwen2.py vllm/model_executor/models/qwen3.py vllm/v1/worker/gpu_input_batch.py vllm/v1/utils.py
++ sha256sum /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_input_batch.py
++ echo 'MISSING vllm/v1/worker/gpu_input_batch.py'
+MISSING vllm/v1/worker/gpu_input_batch.py
++ for f in vllm/v1/worker/gpu_model_runner.py vllm/v1/attention/backends/ilu_flash_attn.py vllm/envs.py vllm/model_executor/models/llama.py vllm/model_executor/models/qwen2.py vllm/model_executor/models/qwen3.py vllm/v1/worker/gpu_input_batch.py vllm/v1/utils.py
++ sha256sum /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/utils.py
++ echo 'MISSING vllm/v1/utils.py'
+MISSING vllm/v1/utils.py
++ echo '== 4. 解包 r10 =='
+== 4. 解包 r10 ==
++ '[' '!' -d /home/qch/transfer/host-opt-pr-validation-20261106-r10 ']'
++ unzip -q /home/qch/transfer/host-opt-three-pr-validation-20261106-r10-arm64-py311.zip -d /home/qch/transfer
++ echo unzipped
+unzipped
++ cd /home/qch/transfer/host-opt-pr-validation-20261106-r10
++ sha256sum -c SHA256SUMS
++ tail -5
+source/pr3/vllm/model_executor/models/qwen2.py: OK
+source/pr3/vllm/model_executor/models/qwen3.py: OK
+source/pr3/vllm/v1/worker/compact_greedy.py: OK
+source/pr3/vllm/v1/worker/gpu_model_runner.py: OK
+source/pr3/vllm/v1/worker/sample_logits_graph.py: OK
++ echo '== 5. dry-run =='
+== 5. dry-run ==
++ docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= -e VLLM_R10_PACKAGE_DIR=/home/qch/transfer/host-opt-pr-validation-20261106-r10 corex5-py311 /opt/corex311-cpython-vllm/bin/python /home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages --dry-run
+Traceback (most recent call last):
+  File "/home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/install.py", line 202, in <module>
+    main()
+  File "/home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/install.py", line 149, in main
+    check_sources(root, manifest["baseline"])
+  File "/home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/install.py", line 49, in check_sources
+    raise RuntimeError("source digest mismatch: " + relative)
+RuntimeError: source digest mismatch: vllm/v1/worker/gpu_model_runner.py
++ RC=1
++ echo 'dry-run rc=1'
+dry-run rc=1
++ '[' 1 -ne 0 ']'
++ echo 'DRY-RUN FAILED, abort'
+DRY-RUN FAILED, abort
++ exit 1
+
+### exit: 1
