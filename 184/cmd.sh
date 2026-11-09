@@ -17,64 +17,42 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 184 的 opt 脚本切到 r10 开关：VLLM_HOST_OPT* + compact greedy + sample logits 配置。
-  # 备份、语法检查、容器内 dry-run 验证。
+  # 184 r10 实卡冒烟：单 case 128/128，20 prompts，4 warmups，GPU 0-3，端口 8848。
+  # 有 bench/vllm 进程则中止。
 
   D=/home/huawei_ts_program/litehost_perf_opt
-  F=$D/vllmBench_lite_opt.sh
-  TS2=$(date +%Y%m%d-%H%M%S)
+  CASES=/home/qch/transfer/cases_r10_smoke_184.txt
+  printf '128 128\n' > "$CASES"
 
-  echo "== 0. 备份 =="
-  cp -a "$F" "$F.bak-r10-$TS2" && echo "backup $F.bak-r10-$TS2"
+  echo "== 0. 占用检查 =="
+  BUSY=$(pgrep -af "vllmBench|bench_driver|vllm.entrypoints|api_server" 2>/dev/null | grep -v "pgrep\|cmd.sh" || true)
+  if [ -n "$BUSY" ]; then echo "ABORT: 有任务在跑"; echo "$BUSY" | head -5; exit 1; fi
+  echo "无任务"
 
-  echo "== 1. 改开关与编译配置 =="
-  python3 - "$F" <<'PY'
-import sys
-p = sys.argv[1]
-s = open(p).read()
+  echo "== 1. 模型路径 =="
+  MP=/home/model/ts/Qwen3-32B-W8A8
+  [ -d "$MP" ] || MP=/home/model/Qwen3-32B-W8A8
+  echo "MODEL_PATH=$MP"
 
-old_env = """SERVER_EXTRA_ENV=(
-    UMD_MAXCOMMANDBUFFERNUMBER=256
-    UMD_MAXCOMMANDBUFFERSIZE=16384
-    VLLM_HOST_FASTPATH=on
-    TORCH_MODULE_ATTR_FASTPATH=slot_native
-)"""
-new_env = """SERVER_EXTRA_ENV=(
-    UMD_MAXCOMMANDBUFFERNUMBER=256
-    UMD_MAXCOMMANDBUFFERSIZE=16384
-    VLLM_HOST_OPT=on
-    VLLM_HOST_OPT_INPUTS=on
-    VLLM_HOST_OPT_ARENA=on
-    VLLM_HOST_OPT_BOOKKEEPING=on
-    VLLM_HOST_OPT_METADATA=on
-    VLLM_HOST_OPT_DIAGNOSTICS=0
-    VLLM_COMPACT_GREEDY=on
-    VLLM_COMPACT_GREEDY_DIAGNOSTICS=0
-    TORCH_MODULE_ATTR_FASTPATH=slot_native
-)"""
-if old_env not in s:
-    raise SystemExit("FAIL: env block not found")
-s = s.replace(old_env, new_env, 1)
+  echo "== 2. 冒烟前 GPU =="
+  timeout 15 /usr/local/corex-5.0.0/bin/ixsmi 2>/dev/null | grep -E "MiB / 32768" | head -4
 
-old_cc = """--compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}'"""
-new_cc = """--compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}'"""
-if old_cc not in s:
-    raise SystemExit("FAIL: compilation-config line not found")
-s = s.replace(old_cc, new_cc, 1)
-
-open(p, "w").write(s)
-print("updated", p)
-PY
-
-  echo "== 2. 语法检查 =="
-  bash -n "$F" && echo "OK opt"
-
-  echo "== 3. diff =="
-  diff -u "$F.bak-r10-$TS2" "$F" | head -60
-
-  echo "== 4. 容器内 dry-run =="
+  echo "== 3. 运行 opt 冒烟 =="
   docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= corex5-py311 bash -c \
-    "cd $D && HOST_DRY_RUN=1 bash vllmBench_lite_opt.sh" 2>&1 | grep -E "PREFIX=|SERVER:|CASES:|ERROR" | head -5
+    "cd $D && CASES_FILE=$CASES NUM_PROMPTS=20 NUM_WARMUPS=4 TEST_ID=r10_smoke_184 PORT=8848 MODEL_PATH=$MP bash vllmBench_lite_opt.sh"
+  RC=$?
+  echo "smoke rc=$RC"
+
+  echo "== 4. 结果与 r10 证据 =="
+  RUN_DIR="$D/vllmBench/r10_smoke_184"
+  ls -la "$RUN_DIR" 2>/dev/null | head -10
+  echo "-- server.log 证据 --"
+  grep -iE "VLLM_HOST_OPT|VLLM_HOST_FASTPATH|HOST_OPT|host_opt|compact_greedy|Sample logits|metadata|COREX_HOST" \
+    "$RUN_DIR/logs/server.log" 2>/dev/null | head -20 || echo "(无匹配)"
+  echo "-- 结果 json --"
+  cat "$RUN_DIR/bs8_in128_out128.json" 2>/dev/null | head -5
+  echo "-- summary --"
+  cat "$RUN_DIR/summary.csv" 2>/dev/null | head -4
 
   # ---- 命令结束 ----
 
