@@ -1,0 +1,238 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T07:54:19Z
+
++ CON=corex5-py311
+++ docker inspect corex5-py311 --format '{{.GraphDriver.Data.UpperDir}}'
++ U=/home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff
++ SRC=/home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm
++ DST=/home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm
++ BAK=/tmp/184-new-venv-backup
++ mkdir -p /tmp/184-new-venv-backup
++ PYFILES='envs.py v1/attention/backends/ilu_flash_attn.py v1/worker/gpu_model_runner.py'
++ SOFILES='_host_opt_native.abi3.so _host_opt_meta_native.cpython-311-aarch64-linux-gnu.so'
++ HFILE=v1/worker/host_fastpath.py
++ echo '== 0. 前置检查（容器必须停止）=='
+== 0. 前置检查（容器必须停止）==
+++ docker inspect corex5-py311 --format '{{.State.Status}}'
++ '[' exited = exited ']'
++ echo 'container stopped'
+container stopped
++ echo '== 1. 迁移前 hash（目标侧）=='
+== 1. 迁移前 hash（目标侧）==
++ for f in $PYFILES
++ '[' -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py ']'
++ sha256sum /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py
++ sed 's|/home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/|  new |'
+24e2e0aff019ca4a1f05517dfdba3764139fb775896e22904114715b258323bb    new envs.py
++ for f in $PYFILES
++ '[' -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py ']'
++ sha256sum /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py
++ sed 's|/home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/|  new |'
+469e7198cfeb81135a7e043fa7ad885d8433571c7a629f30bd3057eff16e36cd    new v1/attention/backends/ilu_flash_attn.py
++ for f in $PYFILES
++ '[' -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py ']'
++ sha256sum /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
++ sed 's|/home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/|  new |'
+ff9f2df42976347b85fbd6e12623b217e1beda6d5248a5662b3cf397eacaef59    new v1/worker/gpu_model_runner.py
++ for f in $SOFILES $HFILE
++ '[' -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so ']'
++ echo '  new _host_opt_native.abi3.so MISSING(预期)'
+  new _host_opt_native.abi3.so MISSING(预期)
++ for f in $SOFILES $HFILE
++ '[' -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so ']'
++ echo '  new _host_opt_meta_native.cpython-311-aarch64-linux-gnu.so MISSING(预期)'
+  new _host_opt_meta_native.cpython-311-aarch64-linux-gnu.so MISSING(预期)
++ for f in $SOFILES $HFILE
++ '[' -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py ']'
++ echo '  new v1/worker/host_fastpath.py MISSING(预期)'
+  new v1/worker/host_fastpath.py MISSING(预期)
++ echo '== 2. 备份目标侧已有文件 =='
+== 2. 备份目标侧已有文件 ==
++ for f in $PYFILES $SOFILES $HFILE
++ '[' -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py ']'
+++ dirname envs.py
++ mkdir -p /tmp/184-new-venv-backup/.
++ cp -p /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py /tmp/184-new-venv-backup/envs.py
++ echo 'backup envs.py'
+backup envs.py
++ for f in $PYFILES $SOFILES $HFILE
++ '[' -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py ']'
+++ dirname v1/attention/backends/ilu_flash_attn.py
++ mkdir -p /tmp/184-new-venv-backup/v1/attention/backends
++ cp -p /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py /tmp/184-new-venv-backup/v1/attention/backends/ilu_flash_attn.py
++ echo 'backup v1/attention/backends/ilu_flash_attn.py'
+backup v1/attention/backends/ilu_flash_attn.py
++ for f in $PYFILES $SOFILES $HFILE
++ '[' -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py ']'
+++ dirname v1/worker/gpu_model_runner.py
++ mkdir -p /tmp/184-new-venv-backup/v1/worker
++ cp -p /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py /tmp/184-new-venv-backup/v1/worker/gpu_model_runner.py
++ echo 'backup v1/worker/gpu_model_runner.py'
+backup v1/worker/gpu_model_runner.py
++ for f in $PYFILES $SOFILES $HFILE
++ '[' -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so ']'
++ for f in $PYFILES $SOFILES $HFILE
++ '[' -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so ']'
++ for f in $PYFILES $SOFILES $HFILE
++ '[' -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py ']'
++ ls -R /tmp/184-new-venv-backup
++ head -20
+/tmp/184-new-venv-backup:
+envs.py
+v1
+
+/tmp/184-new-venv-backup/v1:
+attention
+worker
+
+/tmp/184-new-venv-backup/v1/attention:
+backends
+
+/tmp/184-new-venv-backup/v1/attention/backends:
+ilu_flash_attn.py
+
+/tmp/184-new-venv-backup/v1/worker:
+gpu_model_runner.py
++ echo '== 3. 复制补丁文件 =='
+== 3. 复制补丁文件 ==
++ for f in $PYFILES $SOFILES $HFILE
++ '[' '!' -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/envs.py ']'
+++ dirname envs.py
++ mkdir -p /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/.
++ cp -p /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/envs.py /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py
++ echo 'copied envs.py'
+copied envs.py
++ for f in $PYFILES $SOFILES $HFILE
++ '[' '!' -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py ']'
+++ dirname v1/attention/backends/ilu_flash_attn.py
++ mkdir -p /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends
++ cp -p /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py
++ echo 'copied v1/attention/backends/ilu_flash_attn.py'
+copied v1/attention/backends/ilu_flash_attn.py
++ for f in $PYFILES $SOFILES $HFILE
++ '[' '!' -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py ']'
+++ dirname v1/worker/gpu_model_runner.py
++ mkdir -p /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker
++ cp -p /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
++ echo 'copied v1/worker/gpu_model_runner.py'
+copied v1/worker/gpu_model_runner.py
++ for f in $PYFILES $SOFILES $HFILE
++ '[' '!' -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so ']'
+++ dirname _host_opt_native.abi3.so
++ mkdir -p /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/.
++ cp -p /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
++ echo 'copied _host_opt_native.abi3.so'
+copied _host_opt_native.abi3.so
++ for f in $PYFILES $SOFILES $HFILE
++ '[' '!' -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so ']'
+++ dirname _host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
++ mkdir -p /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/.
++ cp -p /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
++ echo 'copied _host_opt_meta_native.cpython-311-aarch64-linux-gnu.so'
+copied _host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
++ for f in $PYFILES $SOFILES $HFILE
++ '[' '!' -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py ']'
+++ dirname v1/worker/host_fastpath.py
++ mkdir -p /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker
++ cp -p /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py
++ echo 'copied v1/worker/host_fastpath.py'
+copied v1/worker/host_fastpath.py
++ echo '== 4. 迁移后 hash 对比（src vs dst）=='
+== 4. 迁移后 hash 对比（src vs dst）==
++ for f in $PYFILES $SOFILES $HFILE
+++ sha256sum /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/envs.py
+++ cut '-d ' -f1
++ a=271952836bad0b9c9eba49f1f22186c6b486a574e39bf8465becf67e85556938
+++ sha256sum /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py
+++ cut '-d ' -f1
++ b=271952836bad0b9c9eba49f1f22186c6b486a574e39bf8465becf67e85556938
++ '[' 271952836bad0b9c9eba49f1f22186c6b486a574e39bf8465becf67e85556938 = 271952836bad0b9c9eba49f1f22186c6b486a574e39bf8465becf67e85556938 ']'
++ echo 'OK  envs.py  271952836bad0b9c9eba49f1f22186c6b486a574e39bf8465becf67e85556938'
+OK  envs.py  271952836bad0b9c9eba49f1f22186c6b486a574e39bf8465becf67e85556938
++ for f in $PYFILES $SOFILES $HFILE
+++ sha256sum /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py
+++ cut '-d ' -f1
++ a=b6cc7b45d20cd9548bf7e8abec73e61809871aba668fce5c86cbaa8286625b43
+++ sha256sum /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py
+++ cut '-d ' -f1
++ b=b6cc7b45d20cd9548bf7e8abec73e61809871aba668fce5c86cbaa8286625b43
++ '[' b6cc7b45d20cd9548bf7e8abec73e61809871aba668fce5c86cbaa8286625b43 = b6cc7b45d20cd9548bf7e8abec73e61809871aba668fce5c86cbaa8286625b43 ']'
++ echo 'OK  v1/attention/backends/ilu_flash_attn.py  b6cc7b45d20cd9548bf7e8abec73e61809871aba668fce5c86cbaa8286625b43'
+OK  v1/attention/backends/ilu_flash_attn.py  b6cc7b45d20cd9548bf7e8abec73e61809871aba668fce5c86cbaa8286625b43
++ for f in $PYFILES $SOFILES $HFILE
+++ sha256sum /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+++ cut '-d ' -f1
++ a=b869bfb1e34bb48b6fe9333a734bb96d97585bd2017bef5ab21a4e36b5370fbe
+++ sha256sum /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+++ cut '-d ' -f1
++ b=b869bfb1e34bb48b6fe9333a734bb96d97585bd2017bef5ab21a4e36b5370fbe
++ '[' b869bfb1e34bb48b6fe9333a734bb96d97585bd2017bef5ab21a4e36b5370fbe = b869bfb1e34bb48b6fe9333a734bb96d97585bd2017bef5ab21a4e36b5370fbe ']'
++ echo 'OK  v1/worker/gpu_model_runner.py  b869bfb1e34bb48b6fe9333a734bb96d97585bd2017bef5ab21a4e36b5370fbe'
+OK  v1/worker/gpu_model_runner.py  b869bfb1e34bb48b6fe9333a734bb96d97585bd2017bef5ab21a4e36b5370fbe
++ for f in $PYFILES $SOFILES $HFILE
+++ sha256sum /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
+++ cut '-d ' -f1
++ a=6f8774f8c9e6839a3a1de15a763845511f200cb485f55ef10009475e30db8056
+++ sha256sum /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
+++ cut '-d ' -f1
++ b=6f8774f8c9e6839a3a1de15a763845511f200cb485f55ef10009475e30db8056
++ '[' 6f8774f8c9e6839a3a1de15a763845511f200cb485f55ef10009475e30db8056 = 6f8774f8c9e6839a3a1de15a763845511f200cb485f55ef10009475e30db8056 ']'
++ echo 'OK  _host_opt_native.abi3.so  6f8774f8c9e6839a3a1de15a763845511f200cb485f55ef10009475e30db8056'
+OK  _host_opt_native.abi3.so  6f8774f8c9e6839a3a1de15a763845511f200cb485f55ef10009475e30db8056
++ for f in $PYFILES $SOFILES $HFILE
+++ sha256sum /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+++ cut '-d ' -f1
++ a=7c8686a72759d2e4f75e8157b819039fcdcf69c1b5eba5948e0d956859af1715
+++ sha256sum /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+++ cut '-d ' -f1
++ b=7c8686a72759d2e4f75e8157b819039fcdcf69c1b5eba5948e0d956859af1715
++ '[' 7c8686a72759d2e4f75e8157b819039fcdcf69c1b5eba5948e0d956859af1715 = 7c8686a72759d2e4f75e8157b819039fcdcf69c1b5eba5948e0d956859af1715 ']'
++ echo 'OK  _host_opt_meta_native.cpython-311-aarch64-linux-gnu.so  7c8686a72759d2e4f75e8157b819039fcdcf69c1b5eba5948e0d956859af1715'
+OK  _host_opt_meta_native.cpython-311-aarch64-linux-gnu.so  7c8686a72759d2e4f75e8157b819039fcdcf69c1b5eba5948e0d956859af1715
++ for f in $PYFILES $SOFILES $HFILE
+++ sha256sum /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py
+++ cut '-d ' -f1
++ a=58a9059e4fb98ec7fbbd5d93de61a59f7e61f8cda10c286eff6a19897ab6821b
+++ sha256sum /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py
+++ cut '-d ' -f1
++ b=58a9059e4fb98ec7fbbd5d93de61a59f7e61f8cda10c286eff6a19897ab6821b
++ '[' 58a9059e4fb98ec7fbbd5d93de61a59f7e61f8cda10c286eff6a19897ab6821b = 58a9059e4fb98ec7fbbd5d93de61a59f7e61f8cda10c286eff6a19897ab6821b ']'
++ echo 'OK  v1/worker/host_fastpath.py  58a9059e4fb98ec7fbbd5d93de61a59f7e61f8cda10c286eff6a19897ab6821b'
+OK  v1/worker/host_fastpath.py  58a9059e4fb98ec7fbbd5d93de61a59f7e61f8cda10c286eff6a19897ab6821b
++ echo '== 5. 删除目标侧陈旧的 __pycache__ 字节码 =='
+== 5. 删除目标侧陈旧的 __pycache__ 字节码 ==
++ for f in $PYFILES
+++ basename envs.py .py
++ base=envs
+++ dirname envs.py
++ rm -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/./__pycache__/envs.cpython-311.pyc
++ echo 'removed stale pyc for envs.py'
+removed stale pyc for envs.py
++ for f in $PYFILES
+++ basename v1/attention/backends/ilu_flash_attn.py .py
++ base=ilu_flash_attn
+++ dirname v1/attention/backends/ilu_flash_attn.py
++ rm -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/__pycache__/ilu_flash_attn.cpython-311.pyc
++ echo 'removed stale pyc for v1/attention/backends/ilu_flash_attn.py'
+removed stale pyc for v1/attention/backends/ilu_flash_attn.py
++ for f in $PYFILES
+++ basename v1/worker/gpu_model_runner.py .py
++ base=gpu_model_runner
+++ dirname v1/worker/gpu_model_runner.py
++ rm -f /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/__pycache__/gpu_model_runner.cpython-311.pyc
++ echo 'removed stale pyc for v1/worker/gpu_model_runner.py'
+removed stale pyc for v1/worker/gpu_model_runner.py
++ echo '== 6. 复验 vllm 树 diff（预期只剩 .swp）=='
+== 6. 复验 vllm 树 diff（预期只剩 .swp）==
++ diff -rq --exclude=__pycache__ /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm
++ head -20
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker: .worker_base.py.swp
++ echo '-- 统计 --'
+-- 统计 --
++ diff -rq --exclude=__pycache__ /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm
++ wc -l
+1
++ set +x
+
+### exit: 0
