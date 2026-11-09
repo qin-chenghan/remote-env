@@ -1,0 +1,158 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T03:08:50Z
+
++ echo '== 1. 主机与内核 =='
+== 1. 主机与内核 ==
++ uname -a
+Linux controller 6.6.0-132.0.0.111.oe2403sp3.aarch64 #1 SMP Mon Dec 29 23:09:17 CST 2025 aarch64 aarch64 aarch64 GNU/Linux
++ uptime
+ 11:08:50 up 7 min,  2 users,  load average: 0.91, 1.23, 0.81
++ echo '-- 最近重启 --'
+-- 最近重启 --
++ last reboot
++ head -5
+reboot   system boot  6.6.0-132.0.0.11 Mon Nov  9 11:01   still running
+reboot   system boot  5.10.0-225.0.0.1 Fri Nov  6 17:13 - 10:58 (2+17:45)
+reboot   system boot  5.10.0-326.0.0.2 Fri Nov  6 09:52 - 17:10  (07:17)
+reboot   system boot  5.10.0-225.0.0.1 Thu Nov  5 18:57 - 09:49  (14:52)
+reboot   system boot  5.10.0-326.0.0.2 Thu Nov  5 15:51 - 18:54  (03:02)
++ echo '== 2. 模块状态 =='
+== 2. 模块状态 ==
++ lsmod
++ grep -i iluvatar
++ echo 'iluvatar NOT loaded'
+iluvatar NOT loaded
++ echo '-- modinfo --'
+-- modinfo --
++ modinfo iluvatar
++ grep -E 'filename|version|vermagic|license'
++ head -10
++ echo '== 3. 设备节点 =='
+== 3. 设备节点 ==
++ head -12
++ ls -l '/dev/iluvatar*'
+ls: cannot access '/dev/iluvatar*': No such file or directory
++ echo '== 4. dmesg 驱动相关 =='
+== 4. dmesg 驱动相关 ==
++ dmesg
++ grep -iE 'iluvatar|corex|version magic|module verification'
++ tail -50
+[   14.455855] systemd[1]: Created slice Slice /system/iluvatarcorex-init.
++ echo '== 5. 模块文件与内核匹配 =='
+== 5. 模块文件与内核匹配 ==
++ echo '-- 当前内核 --'
+-- 当前内核 --
++ uname -r
+6.6.0-132.0.0.111.oe2403sp3.aarch64
++ echo '-- 模块路径 --'
+-- 模块路径 --
+++ uname -r
++ ls -l /lib/modules/6.6.0-132.0.0.111.oe2403sp3.aarch64/kernel/drivers/misc/iluvatar.ko
+ls: cannot access '/lib/modules/6.6.0-132.0.0.111.oe2403sp3.aarch64/kernel/drivers/misc/iluvatar.ko': No such file or directory
++ echo '-- 已有内核目录 --'
+-- 已有内核目录 --
++ ls /lib/modules
+5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
+5.10.0-282.0.0.185.oe2203sp4.aarch64
+5.10.0-288.0.0.191.oe2203sp4.aarch64
+5.10.0-326.0.0.227.oe2203sp4.aarch64
+6.6.0-132.0.0.111.oe2403sp3.aarch64
+6.6.0-145.1.28.165.oe2403sp1.aarch64
++ echo '== 6. modprobe.d / 自动加载配置 =='
+== 6. modprobe.d / 自动加载配置 ==
++ grep -rin iluvatar /etc/modprobe.d/ /etc/modules-load.d/
++ head -10
+/etc/modules-load.d/iluvatar.conf:1:iluvatar
++ ls /etc/modprobe.d/
++ head -10
+firewalld-sysctls.conf
+mlx4.conf
+nvdimm-security.conf
+truescale.conf
+tuned.conf
++ echo '== 7. 驱动参数（若已加载）=='
+== 7. 驱动参数（若已加载）==
++ true
++ echo '== 8. 容器状态 =='
+== 8. 容器状态 ==
++ docker ps -a --format '{{.Names}}\t{{.Status}}'
++ head -15
+corex5-py311-s00965207	Exited (137) 4 days ago
+minio	Exited (0) 6 days ago
+corex5-py311-csz	Exited (255) 6 days ago
+corex5-v0.23.0	Exited (137) 4 days ago
+corex5-py311-lzy	Exited (137) 12 days ago
+corex5-py311-ssh_tst1	Exited (137) 2 days ago
+corex5-py311-ssh_tst_new	Exited (137) 3 weeks ago
+corex5-py311-ssh_tst	Exited (137) 3 weeks ago
+corex5-py311-g30061491	Exited (137) 12 days ago
+corex5-py311	Exited (137) 10 minutes ago
+corex5-py311-backup	Exited (137) 4 weeks ago
+corex5-noaff	Exited (255) 5 weeks ago
+corex-4.4.0-llm-py311	Exited (0) 3 weeks ago
+lf-qwen25-biv150-repro	Exited (255) 7 weeks ago
+llamafactory-biv150	Exited (255) 7 weeks ago
++ echo '== 9. 容器内视角 =='
+== 9. 容器内视角 ==
++ docker exec corex5-py311 sh -c '
+echo '\''-- /dev/iluvatar* --'\''; ls -l /dev/iluvatar* 2>&1 | head -10
+echo '\''-- ixsmi --'\''; ixsmi 2>&1 | head -20
+echo '\''-- corex 库 --'\''; ls /opt/corex-host 2>/dev/null | head -5
+'
++ head -50
+Error response from daemon: container 6da2873bf3f5fe589e75e8948ca9029d3026c52170c1f650be5d66824815d6a9 is not running
++ echo '== 10. 内核日志尾部 =='
+== 10. 内核日志尾部 ==
++ journalctl -k --no-pager -n 40
++ tail -40
+Nov 09 11:01:37 controller kernel: veth84636f2: entered allmulticast mode
+Nov 09 11:01:37 controller kernel: veth84636f2: entered promiscuous mode
+Nov 09 11:01:37 controller kernel: br-3555427fe04c: port 12(veth84636f2) entered blocking state
+Nov 09 11:01:37 controller kernel: br-3555427fe04c: port 12(veth84636f2) entered forwarding state
+Nov 09 11:01:37 controller kernel: eth0: renamed from vetha1ce4e8
+Nov 09 11:01:37 controller kernel: eth0: renamed from vethcd68b3c
+Nov 09 11:01:37 controller kernel: br-3555427fe04c: port 11(vethe78b741) entered disabled state
+Nov 09 11:01:37 controller kernel: br-3555427fe04c: port 12(veth84636f2) entered disabled state
+Nov 09 11:01:37 controller kernel: br-3555427fe04c: port 3(vethff6bd1b) entered blocking state
+Nov 09 11:01:37 controller kernel: br-3555427fe04c: port 3(vethff6bd1b) entered forwarding state
+Nov 09 11:01:37 controller kernel: eth0: renamed from veth95cca50
+Nov 09 11:01:37 controller kernel: br-3555427fe04c: port 4(veth06aa586) entered blocking state
+Nov 09 11:01:37 controller kernel: br-3555427fe04c: port 4(veth06aa586) entered forwarding state
+Nov 09 11:01:37 controller kernel: br-3555427fe04c: port 5(veth8844f1c) entered blocking state
+Nov 09 11:01:37 controller kernel: br-3555427fe04c: port 5(veth8844f1c) entered forwarding state
+Nov 09 11:01:38 controller kernel: eth0: renamed from veth5b3fb52
+Nov 09 11:01:38 controller kernel: br-3555427fe04c: port 6(veth48dbc74) entered blocking state
+Nov 09 11:01:38 controller kernel: br-3555427fe04c: port 6(veth48dbc74) entered forwarding state
+Nov 09 11:01:38 controller kernel: eth0: renamed from vethef07f42
+Nov 09 11:01:38 controller kernel: eth0: renamed from veth3bff8db
+Nov 09 11:01:38 controller kernel: br-3555427fe04c: port 7(veth3c8c447) entered blocking state
+Nov 09 11:01:38 controller kernel: br-3555427fe04c: port 7(veth3c8c447) entered forwarding state
+Nov 09 11:01:38 controller kernel: eth0: renamed from veth9e167ac
+Nov 09 11:01:38 controller kernel: br-3555427fe04c: port 8(veth7364486) entered blocking state
+Nov 09 11:01:38 controller kernel: br-3555427fe04c: port 8(veth7364486) entered forwarding state
+Nov 09 11:01:38 controller kernel: br-3555427fe04c: port 9(vethe452d71) entered blocking state
+Nov 09 11:01:38 controller kernel: br-3555427fe04c: port 9(vethe452d71) entered forwarding state
+Nov 09 11:01:38 controller kernel: eth0: renamed from vethb8b9b72
+Nov 09 11:01:38 controller kernel: br-3555427fe04c: port 10(veth2a73e68) entered blocking state
+Nov 09 11:01:38 controller kernel: br-3555427fe04c: port 10(veth2a73e68) entered forwarding state
+Nov 09 11:01:38 controller kernel: eth0: renamed from veth6ce8f83
+Nov 09 11:01:38 controller kernel: br-3555427fe04c: port 12(veth84636f2) entered blocking state
+Nov 09 11:01:38 controller kernel: br-3555427fe04c: port 12(veth84636f2) entered forwarding state
+Nov 09 11:01:38 controller kernel: eth0: renamed from veth83266ed
+Nov 09 11:01:39 controller kernel: br-3555427fe04c: port 11(vethe78b741) entered blocking state
+Nov 09 11:01:39 controller kernel: br-3555427fe04c: port 11(vethe78b741) entered forwarding state
+Nov 09 11:07:34 controller systemd-rc-local-generator[73822]: /etc/rc.d/rc.local is not marked executable, skipping.
+Nov 09 11:07:34 controller systemd-sysv-generator[73826]: SysV service '/etc/rc.d/init.d/jexec' lacks a native systemd unit file. Automatically generating a unit file for compatibility. Please update package to include a native systemd unit file, in order to make it more safe and robust.
+Nov 09 11:07:34 controller systemd-rc-local-generator[74100]: /etc/rc.d/rc.local is not marked executable, skipping.
+Nov 09 11:07:34 controller systemd-sysv-generator[74104]: SysV service '/etc/rc.d/init.d/jexec' lacks a native systemd unit file. Automatically generating a unit file for compatibility. Please update package to include a native systemd unit file, in order to make it more safe and robust.
++ echo '== 11. 驱动安装包是否在手边 =='
+== 11. 驱动安装包是否在手边 ==
++ ls -l /home/qch/transfer/corex-driver-linux64-5.0.0_aarch64.run
++ echo 'transfer 无 .run'
+transfer 无 .run
++ find /home -maxdepth 3 -name 'corex-driver*run'
++ head -5
++ set +x
+
+### exit: 0
