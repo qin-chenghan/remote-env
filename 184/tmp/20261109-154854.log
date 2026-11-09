@@ -1,0 +1,84 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T07:48:54Z
+
++ CON=corex5-py311
+++ docker inspect corex5-py311 --format '{{.GraphDriver.Data.UpperDir}}'
++ U=/home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff
++ echo UpperDir=/home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff
+UpperDir=/home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff
++ echo '== 1. UpperDir 里是否有两个 venv =='
+== 1. UpperDir 里是否有两个 venv ==
++ ls -d /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311 /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm
+/home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311
+/home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm
++ ls /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm
++ head -5
+_aiter_ops.py
+assets
+benchmarks
+collect_env.py
+compilation
++ echo '== 2. vllm 树完整 diff（排除 pycache）=='
+== 2. vllm 树完整 diff（排除 pycache）==
++ diff -rq --exclude=__pycache__ /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm
++ head -80
+Files /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/envs.py and /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py differ
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm: _host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm: _host_opt_native.abi3.so
+Files /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py and /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py differ
+Files /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py and /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py differ
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker: host_fastpath.py
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker: .worker_base.py.swp
++ echo '== 3. 顶层 site-packages diff 摘要（排除 dist-info/pycache）=='
+== 3. 顶层 site-packages diff 摘要（排除 dist-info/pycache）==
++ head -40
++ diff -rq '--exclude=*.dist-info' --exclude=__pycache__ /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: agent_detector
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: aiohappyeyeballs
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: aiohttp
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: aiosignal
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: annotated_doc
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: annotated_types
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: anthropic
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/anyio: abc
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/anyio/_backends: _asyncio.py
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/anyio/_backends: __init__.py
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/anyio/_backends: _trio.py
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/anyio: _core
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/anyio: from_thread.py
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/anyio: functools.py
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/anyio: __init__.py
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/anyio: lowlevel.py
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/anyio: pytest_plugin.py
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/anyio: py.typed
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/anyio: streams
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/anyio: to_interpreter.py
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/anyio: to_process.py
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/anyio: to_thread.py
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: astor
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: attr
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: attrs
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: blake3
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: cachetools
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: cbor2
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: _cbor2.cpython-311-aarch64-linux-gnu.so
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: certifi
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: cffi
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: _cffi_backend.cpython-311-aarch64-linux-gnu.so
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: charset_normalizer
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: click
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: cloudpickle
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: compressed_tensors
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: cpuinfo
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: cryptography
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: cv2
+Only in /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages: dateutil
++ echo '== 4. diff 行数统计 =='
+== 4. diff 行数统计 ==
++ diff -rq --exclude=__pycache__ /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311/lib/python3.11/site-packages/vllm /home/docker/overlay2/028fe0ae1b85e987b01e719e0603f6c18ffdf4f9e53e28e2f5fca26ceb83d214/diff/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm
++ wc -l
+7
++ set +x
+
+### exit: 0
