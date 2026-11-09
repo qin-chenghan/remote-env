@@ -17,43 +17,55 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 无待执行指令；本批仅输出当前状态快照（只读）。
+  # 重启后 ixsmi 无法与 iluvatar 驱动通信：只读诊断，不加载/不重装。
 
-  CON=corex5-py311
-  BASE=/opt/corex311
-  NEW=/opt/corex311-cpython-vllm
-  D=/home/huawei_ts_program/litehost_perf_opt
+  echo "== 1. 主机与内核 =="
+  uname -a
+  uptime
+  echo "-- 最近重启 --"
+  last reboot 2>/dev/null | head -5
 
-  echo "== 1. 两个 venv =="
-  docker exec "$CON" sh -c "
-for V in $BASE $NEW; do
-  echo \"-- \$V\"
-  if [ -x \$V/bin/python ]; then
-    \$V/bin/python -c 'import sys,sysconfig; print(\"  prefix\", sys.prefix); print(\"  base_prefix\", sys.base_prefix); print(\"  pgo\", \"--prefix=/opt/cpython-vllm/v1\" in (sysconfig.get_config_var(\"CONFIG_ARGS\") or \"\"))' 2>/dev/null
-    echo -n '  packages: '; \$V/bin/python -m pip freeze --all 2>/dev/null | wc -l
-  else
-    echo '  missing'
-  fi
-done
-"
+  echo "== 2. 模块状态 =="
+  lsmod 2>/dev/null | grep -i iluvatar || echo "iluvatar NOT loaded"
+  echo "-- modinfo --"
+  modinfo iluvatar 2>&1 | grep -E "filename|version|vermagic|license" | head -10
 
-  echo "== 2. bench 脚本是否仍含 rebase 切换 =="
-  for f in "$D/vllmBench_lite_base.sh" "$D/vllmBench_lite_opt.sh"; do
-    echo "-- $f"
-    if [ -f "$f" ]; then
-      echo -n "  pgo_switch/rollback 引用数: "
-      grep -c "pgo_switch\|pgo_rollback" "$f" || true
-      grep -n "PREFIX=\|runtime:" "$f" | head -4
-    else
-      echo "  missing"
-    fi
-  done
+  echo "== 3. 设备节点 =="
+  ls -l /dev/iluvatar* 2>&1 | head -12
 
-  echo "== 3. 当前是否有 bench/vllm 在跑 =="
-  pgrep -af "vllmBench|bench_driver|vllm.entrypoints|api_server" 2>/dev/null | grep -v pgrep | head -6 || echo "无"
+  echo "== 4. dmesg 驱动相关 =="
+  dmesg 2>/dev/null | grep -iE "iluvatar|corex|version magic|module verification" | tail -50
 
-  echo "== 4. 磁盘 =="
-  docker exec "$CON" sh -c 'du -sh /opt/corex311 /opt/corex311-cpython-vllm 2>/dev/null; df -h /opt | tail -1'
+  echo "== 5. 模块文件与内核匹配 =="
+  echo "-- 当前内核 --"; uname -r
+  echo "-- 模块路径 --"; ls -l "/lib/modules/$(uname -r)/kernel/drivers/misc/iluvatar.ko" 2>&1
+  echo "-- 已有内核目录 --"; ls /lib/modules 2>/dev/null
+
+  echo "== 6. modprobe.d / 自动加载配置 =="
+  grep -rin iluvatar /etc/modprobe.d/ /etc/modules-load.d/ 2>/dev/null | head -10 || echo "无配置"
+  ls /etc/modprobe.d/ 2>/dev/null | head -10
+
+  echo "== 7. 驱动参数（若已加载）=="
+  for f in /sys/module/iluvatar/parameters/*; do
+    [ -f "$f" ] && echo "$(basename "$f") = $(cat "$f" 2>/dev/null)"
+  done 2>/dev/null || true
+
+  echo "== 8. 容器状态 =="
+  docker ps -a --format '{{.Names}}\t{{.Status}}' 2>/dev/null | head -15
+
+  echo "== 9. 容器内视角 =="
+  docker exec corex5-py311 sh -c "
+echo '-- /dev/iluvatar* --'; ls -l /dev/iluvatar* 2>&1 | head -10
+echo '-- ixsmi --'; ixsmi 2>&1 | head -20
+echo '-- corex 库 --'; ls /opt/corex-host 2>/dev/null | head -5
+" 2>&1 | head -50
+
+  echo "== 10. 内核日志尾部 =="
+  journalctl -k --no-pager -n 40 2>/dev/null | tail -40 || dmesg 2>/dev/null | tail -40
+
+  echo "== 11. 驱动安装包是否在手边 =="
+  ls -l /home/qch/transfer/corex-driver-linux64-5.0.0_aarch64.run 2>/dev/null || echo "transfer 无 .run"
+  find /home -maxdepth 3 -name "corex-driver*run" 2>/dev/null | head -5
 
   # ---- 命令结束 ----
 
