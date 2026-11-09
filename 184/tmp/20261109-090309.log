@@ -1,0 +1,147 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T01:03:09Z
+
++ CON=corex5-py311
++ BASE=/opt/corex311
++ V=/opt/corex311-cpython-vllm
++ B=/home/z30059427/corex5-py311-20261009
++ PY=/opt/cpython-vllm/v1/bin/python3.11
++ source /home/qch/env/set_proxy.sh
+http.proxy=http://141.1.61.31:3129
+https.proxy=http://141.1.61.31:3129
++ PX=()
++ '[' -n http://141.1.61.31:3129 ']'
++ PX+=(-e "http_proxy=$http_proxy")
++ '[' -n http://141.1.61.31:3129 ']'
++ PX+=(-e "https_proxy=$https_proxy")
++ '[' -n 'localhost,127.0.0.*,10.*,192.168.*,*.local,*.huawei.com,*.athuawei.com,141.61.16.5,141.61.0.0/16' ']'
++ PX+=(-e "no_proxy=$no_proxy")
++ echo '== 0. 前置检查 =='
+== 0. 前置检查 ==
++ echo -n '目标存在: '
+目标存在: + docker exec corex5-py311 sh -c 'test -d /opt/corex311-cpython-vllm && echo yes || echo no'
+yes
++ docker exec corex5-py311 sh -c 'du -sh /opt/corex311-cpython-vllm 2>/dev/null || true'
+3.5G	/opt/corex311-cpython-vllm
+++ docker exec corex5-py311 sh -c 'for p in /proc/[0-9]*; do e=$(readlink "$p/exe" 2>/dev/null) || continue; case "$e" in *corex311-cpython-vllm*) echo "$e";; esac; done'
+++ head -3
++ USE=
++ '[' -n '' ']'
++ echo 无进程占用
+无进程占用
++ echo -n 'api_server 是否在跑: '
+api_server 是否在跑: + docker exec corex5-py311 sh -c 'pgrep -f vllm.entrypoints.openai.api_server >/dev/null && echo "yes (注意 CPU 占用)" || echo no'
+yes (注意 CPU 占用)
++ echo '== 1. 隔离旧 venv =='
+== 1. 隔离旧 venv ==
+++ date +%Y%m%d-%H%M%S
++ TRASH=/opt/_trash_20261109-090312
++ docker exec corex5-py311 sh -c 'mkdir -p /opt/_trash_20261109-090312 && mv /opt/corex311-cpython-vllm /opt/_trash_20261109-090312/corex311-cpython-vllm-old && ls -la /opt/_trash_20261109-090312 && echo '\''隔离完成: /opt/_trash_20261109-090312'\'''
+total 24
+drwxr-xr-x. 3 root root 4096 Nov  9 09:03 .
+drwxrwxr-x+ 1 root root 4096 Nov  9 09:03 ..
+drwxr-xr-x. 6 root root 4096 Nov  6 10:38 corex311-cpython-vllm-old
+隔离完成: /opt/_trash_20261109-090312
++ docker exec corex5-py311 sh -c 'test -d /opt/_trash_20261109-090312/corex311-cpython-vllm-old && test ! -e /opt/corex311-cpython-vllm'
++ echo 隔离验证通过：/opt/_trash_20261109-090312/corex311-cpython-vllm-old
+隔离验证通过：/opt/_trash_20261109-090312/corex311-cpython-vllm-old
++ echo '== 2. 官方 installer 建 venv 并安装（耗时较长）=='
+== 2. 官方 installer 建 venv 并安装（耗时较长）==
++ docker exec -e http_proxy=http://141.1.61.31:3129 -e https_proxy=http://141.1.61.31:3129 -e 'no_proxy=localhost,127.0.0.*,10.*,192.168.*,*.local,*.huawei.com,*.athuawei.com,141.61.16.5,141.61.0.0/16' -e PYTHONPATH= -e PYTHONHOME= -e PIP_DISABLE_PIP_VERSION_CHECK=1 corex5-py311 bash /home/z30059427/corex5-py311-20261009/install_corex311.sh /opt/cpython-vllm/v1/bin/python3.11 /opt/corex311-cpython-vllm
++ tail -40
+  },
+  "module_locations": {
+    "torch": "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/__init__.py",
+    "triton": "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/triton/__init__.py",
+    "ixformer": "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/ixformer/__init__.py",
+    "vllm": "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/__init__.py"
+  },
+  "optional_extensions": {
+    "rotary_emb": {
+      "available": false,
+      "origin": null
+    },
+    "fused_dense_lib": {
+      "available": false,
+      "origin": null
+    },
+    "fused_softmax_lib": {
+      "available": false,
+      "origin": null
+    },
+    "dropout_layer_norm": {
+      "available": false,
+      "origin": null
+    },
+    "xentropy_cuda_lib": {
+      "available": false,
+      "origin": null
+    }
+  },
+  "optional_extensions_scope": "Informational only: not a claim that all flash_attn.ops functionality is available.",
+  "platform_plugins": [
+    {
+      "name": "iluvatar",
+      "value": "vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin"
+    }
+  ],
+  "passed": true
+}
+Package imports and CPU smoke passed. Evidence: /opt/corex311-cpython-vllm/corex311-cpu-verification.json
+For a device smoke, run: /opt/corex311-cpython-vllm/bin/python /home/z30059427/corex5-py311-20261009/verify_corex311.py --expected-prefix /opt/corex311-cpython-vllm --device cuda:0
++ RC=0
++ '[' 0 -ne 0 ']'
++ echo '== 3. 装完自检 =='
+== 3. 装完自检 ==
++ echo '-- 解释器 --'
+-- 解释器 --
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -c 'import sys,sysconfig; print("prefix", sys.prefix); print("base_prefix", sys.base_prefix); print("CONFIG_ARGS", sysconfig.get_config_var("CONFIG_ARGS"))'
+prefix /opt/corex311-cpython-vllm
+base_prefix /opt/cpython-vllm/v1
+CONFIG_ARGS '--prefix=/opt/cpython-vllm/v1' '--enable-shared' '--enable-optimizations' '--with-lto' '--with-ensurepip=install' 'CC=/usr/bin/gcc' 'CXX=/usr/bin/g++' 'AR=/usr/bin/gcc-ar' 'RANLIB=/usr/bin/gcc-ranlib' 'LDFLAGS=-Wl,-rpath,/opt/cpython-vllm/v1/lib'
++ echo '-- pip 版本与 check --'
+-- pip 版本与 check --
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -m pip --version
+pip 25.3 from /opt/corex311-cpython-vllm/lib/python3.11/site-packages/pip (python 3.11)
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -m pip check
+No broken requirements found.
++ echo '-- 导入 --'
+-- 导入 --
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -c 'import vllm, torch; print("vllm", vllm.__version__); print("torch", torch.__version__)'
++ tail -4
+vllm 0.23.0
+torch 2.10.0
++ echo '== 4. 与 base 的差异快照（预期：only_new=9 个厂商包，工具链版本不同）=='
+== 4. 与 base 的差异快照（预期：only_new=9 个厂商包，工具链版本不同）==
++ docker exec -i -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -
+base=172 new=180
+only_base=1 only_new=9 mismatch=5
+  ONLY_BASE torch-module-attr-fastpath==(url)
+  ONLY_NEW  cupy==11.4.0+corex.5.0.0
+  ONLY_NEW  cupy-cuda11x==11.4.0+corex.5.0.0
+  ONLY_NEW  cupy-cuda12x==11.4.0+corex.5.0.0
+  ONLY_NEW  flash-attn==2.8.3+corex.5.0.0
+  ONLY_NEW  pynvml==11.5.3+corex.5.0.0
+  ONLY_NEW  ray==2.52.1+corex.5.0.0
+  ONLY_NEW  torchaudio==2.10.0+corex.5.0.0
+  ONLY_NEW  torchdebug==5.0.0+corex.5.0.0
+  ONLY_NEW  torchvision==0.25.0+corex.5.0.0
+  MISMATCH  apache-tvm-ffi | base (url) -> new 0.1.11+corex.5.0.0
+  MISMATCH  ixformer | base (url) -> new 0.7.0+corex.5.0.0
+  MISMATCH  torch | base (url) -> new 2.10.0+corex.5.0.0
+  MISMATCH  triton | base (url) -> new 3.2.0+corex.5.0.0
+  MISMATCH  vllm | base (url) -> new 0.23.0+corex.5.0.0
++ echo '== 5. 磁盘 =='
+== 5. 磁盘 ==
++ docker exec corex5-py311 sh -c 'du -sh /opt/corex311-cpython-vllm /opt/corex311 2>/dev/null; df -h /opt | tail -1'
+4.1G	/opt/corex311-cpython-vllm
+3.9G	/opt/corex311
+overlay         6.9T  3.4T  3.2T  52% /
++ echo '旧 venv 隔离在: /opt/_trash_20261109-090312'
+旧 venv 隔离在: /opt/_trash_20261109-090312
++ echo '下一步（第十批 B，待确认后）：卸 9 包 -> 工具链对齐 -> 装 fastpath -> 完整 parity'
+下一步（第十批 B，待确认后）：卸 9 包 -> 工具链对齐 -> 装 fastpath -> 完整 parity
++ set +x
+
+### exit: 0
