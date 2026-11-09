@@ -127,7 +127,7 @@ for p in /proc/[0-9]*; do
   e=\$(readlink \"\$p/exe\" 2>/dev/null) || continue
   case \"\$e\" in *corex311-cpython-vllm*) echo \"\${p#/proc/} \$e\";; esac
 done | head -10
-echo "(空 = 无进程使用)"
+echo \"(空 = 无进程使用)\"
 "
 
   # ---- 命令结束 ----
