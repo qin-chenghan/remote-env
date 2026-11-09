@@ -1,0 +1,76 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T11:12:53Z
+
+++ uname -r
++ K=6.6.0-145.3.37.168.oe2403sp3.aarch64
++ CONF=/var/lib/dkms/corex/5.0.0/build/dkms.conf
++ echo '== 0. 当前内核与 DKMS 参数 =='
+== 0. 当前内核与 DKMS 参数 ==
++ echo kernel=6.6.0-145.3.37.168.oe2403sp3.aarch64
+kernel=6.6.0-145.3.37.168.oe2403sp3.aarch64
++ grep -n 'VGPU_ENABLE\|_BUILDOPT\|MAKE\[0\]' /var/lib/dkms/corex/5.0.0/build/dkms.conf
+5:_BUILDOPT="VGPU_ENABLE=1 "
+30:EXTRA_BUILD="${EXTRA_BUILD} && KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) itr_peer_mem OFA_KERNEL=${OFED_SOURCE_DIR}"
+40:EXTRA_BUILD="${EXTRA_BUILD} && KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) itr_fs"
+48:MAKE[0]="KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) ${EXTRA_BUILD}"
++ echo '== 1. 关闭 vGPU 构建（备份 dkms.conf）=='
+== 1. 关闭 vGPU 构建（备份 dkms.conf）==
+++ date +%Y%m%d-%H%M%S
++ cp -a /var/lib/dkms/corex/5.0.0/build/dkms.conf /var/lib/dkms/corex/5.0.0/build/dkms.conf.bak-20261109-191253
++ grep -q VGPU_ENABLE=1 /var/lib/dkms/corex/5.0.0/build/dkms.conf
++ sed -i s/VGPU_ENABLE=1/VGPU_ENABLE=0/g /var/lib/dkms/corex/5.0.0/build/dkms.conf
++ echo 'VGPU_ENABLE set to 0'
+VGPU_ENABLE set to 0
++ grep -n VGPU_ENABLE /var/lib/dkms/corex/5.0.0/build/dkms.conf
+5:_BUILDOPT="VGPU_ENABLE=0 "
++ echo '== 2. dkms build =='
+== 2. dkms build ==
++ dkms build corex/5.0.0 -k 6.6.0-145.3.37.168.oe2403sp3.aarch64
++ tail -30
+Sign command: /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/build/scripts/sign-file
+Signing key: /var/lib/dkms/mok.key
+Public certificate (MOK): /var/lib/dkms/mok.pub
+
+Building module:
+Cleaning build area...
+KERNEL_UNAME=6.6.0-145.3.37.168.oe2403sp3.aarch64 VGPU_ENABLE=1 make -j320 ....(bad exit status: 2)
+Error! Bad return status for module build on kernel: 6.6.0-145.3.37.168.oe2403sp3.aarch64 (aarch64)
+Consult /var/lib/dkms/corex/5.0.0/build/make.log for more information.
++ RC=10
++ echo 'build rc=10'
+build rc=10
++ '[' 10 -ne 0 ']'
++ echo '== build 失败，make.log 尾部 =='
+== build 失败，make.log 尾部 ==
++ tail -120 /var/lib/dkms/corex/5.0.0/build/make.log
+DKMS make.log for corex-5.0.0 for kernel 6.6.0-145.3.37.168.oe2403sp3.aarch64 (aarch64)
+Mon Nov  9 07:12:53 PM CST 2026
+make -C itr modules
+make[1]: Entering directory '/var/lib/dkms/corex/5.0.0/build/itr'
+fatal: not a git repository (or any of the parent directories): .git
+date: invalid date ‘@’
+build in release package
+/var/lib/dkms/corex/5.0.0/build/itr/version.h exists
+make[2]: Entering directory '/usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64'
+warning: the compiler differs from the one used to build the kernel
+  The kernel was built by: gcc_old (GCC) 12.3.1 (openEuler 12.3.1-111.oe2403sp3)
+  You are using:           gcc (GCC) 12.3.1 (openEuler 12.3.1-111.oe2403sp3)
+Below CONFIG options are missing on the kernel for installing
+Iluvatar vGPU driver on KVM host
+CONFIG_VFIO_MDEV
+Please install the kernel with above CONFIG options set, then
+try installing again
+
+*** Failed vGPU on KVM sanity check. Bailing out! ***
+
+make[4]: *** [/var/lib/dkms/corex/5.0.0/build/itr/Kbuild:125: vgpu_kvm_sanity_check] Error 1
+make[3]: *** [/usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64/Makefile:1949: /var/lib/dkms/corex/5.0.0/build/itr] Error 2
+make[2]: *** [Makefile:234: __sub-make] Error 2
+make[2]: Leaving directory '/usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64'
+make[1]: *** [Makefile:72: modules] Error 2
+make[1]: Leaving directory '/var/lib/dkms/corex/5.0.0/build/itr'
+make: *** [Makefile:16: kmd] Error 2
++ exit 1
+
+### exit: 1
