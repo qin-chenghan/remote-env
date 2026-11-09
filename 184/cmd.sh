@@ -17,41 +17,33 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 只读：定位 VLLM_DISABLE_DECODE_FASTPATH 的引用上下文与来源。
+  # 只读：看当前谁在用 184、跑的是什么、跑了多久。
 
   CON=corex5-py311
-  SP=/opt/corex311/lib/python3.11/site-packages
 
-  echo "== 1. gpu_model_runner 中的上下文 =="
-  docker exec "$CON" sh -c "grep -n -B8 -A14 VLLM_DISABLE_DECODE_FASTPATH $SP/vllm/v1/worker/gpu_model_runner.py"
+  echo "== 1. 登录会话 =="
+  who 2>/dev/null || true
+  echo
+  w 2>/dev/null | head -20 || true
 
-  echo "== 2. 当前文件 hash 与备份 =="
-  docker exec "$CON" sh -c "
-sha256sum $SP/vllm/v1/worker/gpu_model_runner.py
-sha256sum $SP/.host-opt-pr-backup/vllm/v1/worker/gpu_model_runner.py 2>/dev/null || echo 'no backup file'
-grep -c VLLM_DISABLE_DECODE_FASTPATH $SP/.host-opt-pr-backup/vllm/v1/worker/gpu_model_runner.py 2>/dev/null || true
-"
+  echo "== 2. 宿主高占用进程 =="
+  ps -eo user,pid,etimes,pcpu,pmem,args --sort=-pcpu 2>/dev/null | head -25
 
-  echo "== 3. 其他 venv / r3 交付包 / 全盘来源 =="
-  docker exec "$CON" sh -c "
-echo '-- 新 venv --'
-grep -rl VLLM_DISABLE_DECODE_FASTPATH /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm 2>/dev/null | head -5 || echo none
-echo '-- r3 交付包 --'
-grep -rn VLLM_DISABLE_DECODE_FASTPATH /home/qch/transfer/host-opt-pr-validation-20261103-r3 2>/dev/null | head -10 || echo none
-echo '-- transfer 其他 --'
-grep -rl VLLM_DISABLE_DECODE_FASTPATH /home/qch/transfer 2>/dev/null | grep -v cmd.sh | head -10 || echo none
-echo '-- 谁定义了这个 env 名（vllm envs）--'
-grep -rn 'DISABLE_DECODE_FASTPATH' $SP/vllm/envs.py 2>/dev/null || echo 'not in envs.py'
-"
+  echo "== 3. 与 vllm/bench 相关的进程 =="
+  pgrep -af "vllmBench|bench_driver|vllm.entrypoints|api_server" 2>/dev/null | grep -v pgrep | head -20
 
-  echo "== 4. 运行中进程环境与启动命令 =="
-  docker exec "$CON" sh -c '
-for p in $(pgrep -f vllm.entrypoints.openai.api_server 2>/dev/null); do
-  echo "-- PID $p --"
-  tr "\0" "\n" < /proc/$p/environ 2>/dev/null | grep -E "VLLM_DISABLE_DECODE_FASTPATH|VLLM_HOST_FASTPATH|TORCH_MODULE_ATTR" | sort
-  echo -n "  cmdline: "; tr "\0" " " < /proc/$p/cmdline | cut -c1-400; echo
-done
-'
+  echo "== 4. 容器内进程（含启动时间）=="
+  docker exec "$CON" sh -c "ps -eo pid,user,lstart,etimes,pcpu,args 2>/dev/null | grep -E 'vllm|bench_driver|benchmark|python' | grep -v grep | head -30"
+
+  echo "== 5. GPU 占用 =="
+  docker exec "$CON" sh -c "ixsmi 2>/dev/null | head -60 || echo 'ixsmi unavailable'"
+
+  echo "== 6. 最近的 bench 运行目录 =="
+  ls -lt --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench 2>/dev/null | head -12
+  find /home -maxdepth 4 -type d -name "litehost_gap_2026*" -newermt "2026-11-08" 2>/dev/null | head -10
+
+  echo "== 7. 容器状态 =="
+  docker ps --format '{{.Names}}\t{{.Status}}' | head -10
 
   # ---- 命令结束 ----
 
