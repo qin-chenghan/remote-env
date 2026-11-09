@@ -1,0 +1,145 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T02:17:15Z
+
++ CON=corex5-py311
++ echo '== 1. 登录会话 =='
+== 1. 登录会话 ==
++ who
+root     pts/0        2026-11-06 17:18 (141.1.0.83)
+root     pts/3        2026-11-06 18:46 (141.1.36.222)
+root     pts/5        2026-11-07 11:50 (141.1.36.222)
+root     pts/6        2026-11-07 14:22 (141.0.203.202)
+root     pts/7        2026-11-09 08:39 (141.1.61.31)
+root     pts/8        2026-11-09 10:10 (141.1.203.216)
+root     pts/9        2026-11-09 08:56 (141.1.61.31)
+root     pts/10       2026-11-09 09:24 (141.1.61.31)
++ echo
+
++ w
++ head -20
+ 10:17:15 up 2 days, 17:04,  8 users,  load average: 6.69, 6.52, 6.33
+USER     TTY        LOGIN@   IDLE   JCPU   PCPU WHAT
+root     pts/0     Fri17   42:51  12.02s 11.98s docker exec -it corex5-py311 /bin/bash
+root     pts/3     Fri18   25:39   8.71s  8.59s docker exec -it corex5-py311 /bin/bash
+root     pts/5     Sat11   18.00s  0.18s  0.18s -bash
+root     pts/6     Sat14   22:46   0.06s  0.06s -bash
+root     pts/7     08:39    4.00s  0.49s   ?    bash ./cmd.sh
+root     pts/8     10:10    6:31   0.03s  0.03s -bash
+root     pts/9     08:56   54:12   1.67s  0.07s ps -p 667012 -o command=
+root     pts/10    09:24   52:43   0.18s  0.15s docker exec -it corex5-py311 bash
++ echo '== 2. 宿主高占用进程 =='
+== 2. 宿主高占用进程 ==
++ ps -eo user,pid,etimes,pcpu,pmem,args --sort=-pcpu
++ head -25
+USER         PID ELAPSED %CPU %MEM COMMAND
+root      667011    1468  174  0.3 VLLM::Worker_TP0
+root      667012    1468 90.0  0.3 VLLM::Worker_TP1
+root      667013    1468 90.0  0.3 VLLM::Worker_TP2
+root      667014    1468 90.0  0.3 VLLM::Worker_TP3
+root      666554    1475 88.4  0.0 VLLM::EngineCore
+root      358459    3471 19.8  0.9 /root/.remotedev-server/extensions/spb-wecode.wecode-cpp-1.9.0/artifacts/linux-aarch64/wecode-db --ctags-path=/root/.remotedev-server/extensions/spb-wecode.wecode-cpp-1.9.0/artifacts/linux-aarch64/ctags --cscope-path=/root/.remotedev-server/extensions/spb-wecode.wecode-cpp-1.9.0/artifacts/linux-aarch64/cscope --tcp-host=127.0.0.1
+root       15041  234213 12.9  0.2 /opt/app/rel/logflare/erts-13.2.2/bin/beam.smp -sbwt medium -sbwtdcpu medium -sbwtdio medium -zdbbl 10240 -P 1000000 -t 32000000 -- -root /opt/app/rel/logflare -bindir /opt/app/rel/logflare/erts-13.2.2/bin -progname erl -- -home /root -- -noshell -s elixir start_cli -mode embedded -setcookie cookie -name logflare@127.0.0.1 -config /opt/app/rel/logflare/releases/1.4.0/sys -boot /opt/app/rel/logflare/releases/1.4.0/start -boot_var RELEASE_LIB /opt/app/rel/logflare/lib -- -- -extra --no-halt
+root      323802    4159 10.4  0.0 /root/miniconda3/bin/python3.13 /root/miniconda3/bin/modelscope download --model metax-tech/DeepSeek-V4-Flash-0731-W8A8 --local_dir /home/z00970444/DeepSeek-V4-Flash-0731-W8A8
+root      709419     586  3.9  0.0 /opt/corex311/bin/python3 /home/s00806700/litehost_perf_opt/bench_driver.py --backend vllm --num_prompts 100 --num-warmups 16 --max-concurrency 8 --dataset_name random --random_input_len 128 --random_output_len 2048 --host 127.0.0.1 --port 8848 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --ignore_eos --top_p 1 --top_k -1 --temperature 0 --seed 42 --save-result --result-dir /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261109_095138 --result_filename bs8_in128_out2048.json
+root      665490    1485  2.9  0.1 /opt/corex311/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8848 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --dtype auto --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1 --tensor_parallel_size 4 --data_parallel_size 1 --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto --enable_chunked_prefill --compilation-config {"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0} --async-scheduling --no-enable-prefix-caching --worker-cls light_host_worker.LightHostWorker
+root       11042  234216  2.6  0.2 /app/erts-15.1.2/bin/beam.smp -hmax 1000000000 -zdbbl 100000 -sbwt none -sbwtdio none -sbwtdcpu none -- -root /app -bindir /app/erts-15.1.2/bin -progname erl -- -home /root -- -proto_dist inet_tcp -- -noshell -s elixir start_cli -mode embedded -setcookie NQDPILLDMNXHXBIKGTW6ZBFOVKV73X5W6FCPVOSDULYKDC7UCS7A==== -name realtime@127.0.0.1 -config /app/releases/2.33.58/sys -boot /app/releases/2.33.58/start -boot_var RELEASE_LIB /app/lib -- -- -- -extra --no-halt
+root        8606  234220  0.7  0.0 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+root        6552  234226  0.4  0.0 /usr/bin/containerd
+root        6423  234226  0.4  0.0 /usr/sbin/irqbalance --pid=/var/run/irqbalance.pid
+root      699714     833  0.3  0.0 node dist/start/server.js
+root      699715     833  0.2  0.0 node dist/server/server.js
+root           1  234245  0.1  0.0 /usr/lib/systemd/systemd rhgb --switched-root --system --deserialize 18
+systemd+    9963  234217  0.1  0.0 imgproxy
+root          13  234245  0.1  0.0 [rcu_sched]
+root        6491  234226  0.0  0.0 /usr/sbin/NetworkManager --no-daemon
+rabbitmq    6548  234226  0.0  0.1 /usr/lib64/erlang/erts-11.2.2.8/bin/beam.smp -W w -MBas ageffcbf -MHas ageffcbf -MBlmbcs 512 -MHlmbcs 512 -MMmcs 30 -P 1048576 -t 5000000 -stbt db -zdbbl 128000 -sbwt none -sbwtdcpu none -sbwtdio none -- -root /usr/lib64/erlang -progname erl -- -home /var/lib/rabbitmq -- -pa  -noshell -noinput -s rabbit boot -boot start_sasl -syslog logger [] -syslog syslog_error_logger false -kernel prevent_overlapping_partitions false
+computi+    9818  234217  0.0  0.1 postgrest
+root        6546  234226  0.0  0.0 /usr/bin/oeaware /etc/oeAware/config.yaml
+root       10560  234216  0.0  0.0 /usr/bin/containerd-shim-runc-v2 -namespace moby -id d3c7dc5cb56da4cdcc61082a8193874c856a1c0c9a36296647e0e81ccff0eab1 -address /run/containerd/containerd.sock
++ echo '== 3. 与 vllm/bench 相关的进程 =='
+== 3. 与 vllm/bench 相关的进程 ==
++ pgrep -af 'vllmBench|bench_driver|vllm.entrypoints|api_server'
++ grep -v pgrep
++ head -20
+663470 bash vllmBench_lite_opt.sh
+665490 /opt/corex311/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8848 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --dtype auto --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1 --tensor_parallel_size 4 --data_parallel_size 1 --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto --enable_chunked_prefill --compilation-config {"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0} --async-scheduling --no-enable-prefix-caching --worker-cls light_host_worker.LightHostWorker
+709419 /opt/corex311/bin/python3 /home/s00806700/litehost_perf_opt/bench_driver.py --backend vllm --num_prompts 100 --num-warmups 16 --max-concurrency 8 --dataset_name random --random_input_len 128 --random_output_len 2048 --host 127.0.0.1 --port 8848 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --ignore_eos --top_p 1 --top_k -1 --temperature 0 --seed 42 --save-result --result-dir /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261109_095138 --result_filename bs8_in128_out2048.json
++ echo '== 4. 容器内进程（含启动时间）=='
+== 4. 容器内进程（含启动时间）==
++ docker exec corex5-py311 sh -c 'ps -eo pid,user,lstart,etimes,pcpu,args 2>/dev/null | grep -E '\''vllm|bench_driver|benchmark|python'\'' | grep -v grep | head -30'
+   6550 root     Fri Nov  6 17:13:29 2026  234226  0.0 /usr/bin/python3 -Es /usr/sbin/tuned -l -P
+ 323802 root     Mon Nov  9 09:07:56 2026    4160 10.4 /root/miniconda3/bin/python3.13 /root/miniconda3/bin/modelscope download --model metax-tech/DeepSeek-V4-Flash-0731-W8A8 --local_dir /home/z00970444/DeepSeek-V4-Flash-0731-W8A8
+ 663470 root     Mon Nov  9 09:51:38 2026    1538  0.0 bash vllmBench_lite_opt.sh
+ 665490 root     Mon Nov  9 09:52:30 2026    1485  2.9 /opt/corex311/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8848 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --dtype auto --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1 --tensor_parallel_size 4 --data_parallel_size 1 --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto --enable_chunked_prefill --compilation-config {"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0} --async-scheduling --no-enable-prefix-caching --worker-cls light_host_worker.LightHostWorker
+ 666553 root     Mon Nov  9 09:52:41 2026    1475  0.0 /opt/corex311/bin/python3 -c from multiprocessing.resource_tracker import main;main(34)
+ 709419 root     Mon Nov  9 10:07:30 2026     586  3.9 /opt/corex311/bin/python3 /home/s00806700/litehost_perf_opt/bench_driver.py --backend vllm --num_prompts 100 --num-warmups 16 --max-concurrency 8 --dataset_name random --random_input_len 128 --random_output_len 2048 --host 127.0.0.1 --port 8848 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --ignore_eos --top_p 1 --top_k -1 --temperature 0 --seed 42 --save-result --result-dir /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261109_095138 --result_filename bs8_in128_out2048.json
++ echo '== 5. GPU 占用 =='
+== 5. GPU 占用 ==
++ docker exec corex5-py311 sh -c 'ixsmi 2>/dev/null | head -60 || echo '\''ixsmi unavailable'\'''
+Timestamp    Mon Nov  9 10:17:16 2026
++--------------------------------------------------------------------------------+
+|  IX-ML: 5.0.0            Driver Version: 5.0.0          CUDA Version: 10.2     |
+|----------------------------------+----------------------+----------------------|
+| GPU  Name                        | Bus-Id               | Clock-SM  Clock-Mem  |
+| Fan  Temp  Perf    Pwr:Usage/Cap |      Memory-Usage    | GPU-Util  Compute M. |
+|==================================+======================+======================|
+| 0    Iluvatar BI-V150            | 00000000:45:00.0     | 1500MHz   1600MHz    |
+| N/A  49C   P0       N/A / N/A    | 30424MiB / 32768MiB  | 60%       Default    |
++----------------------------------+----------------------+----------------------+
+| 1    Iluvatar BI-V150            | 00000000:48:00.0     | 1500MHz   1600MHz    |
+| N/A  48C   P0       169W / 350W  | 30464MiB / 32768MiB  | 55%       Default    |
++----------------------------------+----------------------+----------------------+
+| 2    Iluvatar BI-V150            | 00000000:AF:00.0     | 1500MHz   1600MHz    |
+| N/A  46C   P0       N/A / N/A    | 30468MiB / 32768MiB  | 33%       Default    |
++----------------------------------+----------------------+----------------------+
+| 3    Iluvatar BI-V150            | 00000000:B2:00.0     | 1500MHz   1600MHz    |
+| N/A  47C   P0       167W / 350W  | 30508MiB / 32768MiB  | 67%       Default    |
++----------------------------------+----------------------+----------------------+
+
++--------------------------------------------------------------------------------+
+| Processes:                                                          GPU Memory |
+|  GPU        PID      Process name                                   Usage(MiB) |
+|================================================================================|
+|    0     667011      VLLM::Worker_TP0                               30358      |
+|    1     667012      VLLM::Worker_TP1                               30398      |
+|    2     667013      VLLM::Worker_TP2                               30402      |
+|    3     667014      VLLM::Worker_TP3                               30442      |
++--------------------------------------------------------------------------------+
++ echo '== 6. 最近的 bench 运行目录 =='
+== 6. 最近的 bench 运行目录 ==
++ ls -lt --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ head -12
+total 100
+drwxr-xr-x. 6 root root 4096 2026-11-06 19:08 litehost_gap_20261106_172326
+drwxr-xr-x. 6 root root 4096 2026-11-06 16:20 litehost_gap_20261106_142706
+drwxr-xr-x. 6 root root 4096 2026-11-06 10:05 litehost_gap_20261106_100311
+drwxr-xr-x. 6 root root 4096 2026-11-05 22:01 litehost_gap_20261105_201703
+drwxr-xr-x. 6 root root 4096 2026-11-05 19:23 litehost_gap_20261105_190235
+drwxr-xr-x. 6 root root 4096 2026-11-05 16:57 litehost_gap_20261105_163521
+drwxr-xr-x. 6 root root 4096 2026-11-05 16:28 litehost_gap_20261105_160747
+drwxr-xr-x. 6 root root 4096 2026-11-05 15:18 litehost_gap_20261105_145708
+drwxr-xr-x. 6 root root 4096 2026-11-05 14:42 litehost_gap_20261105_142111
+drwxr-xr-x. 5 root root 4096 2026-11-05 14:02 litehost_gap_20261105_140113
+drwxr-xr-x. 3 root root 4096 2026-11-04 21:14 litehost_gap_20261104_211428
++ find /home -maxdepth 4 -type d -name 'litehost_gap_2026*' -newermt 2026-11-08
++ head -10
+/home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261109_091217
+/home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261109_095138
++ echo '== 7. 容器状态 =='
+== 7. 容器状态 ==
++ docker ps --format '{{.Names}}\t{{.Status}}'
++ head -10
+corex5-py311	Up 2 days
+supabase_db_agentpress	Up 2 days (healthy)
+supabase_studio_agentpress	Up 2 days (healthy)
+supabase_pg_meta_agentpress	Up 13 minutes (healthy)
+supabase_imgproxy_agentpress	Up 2 days (healthy)
+supabase_storage_agentpress	Up 13 minutes (healthy)
+supabase_rest_agentpress	Up 2 days
+supabase_realtime_agentpress	Up 2 days (healthy)
+supabase_inbucket_agentpress	Up 2 days (healthy)
+supabase_auth_agentpress	Up 2 days (healthy)
++ set +x
+
+### exit: 0
