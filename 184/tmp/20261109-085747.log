@@ -1,0 +1,44 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T00:57:47Z
+
++ CON=corex5-py311
++ BASE=/opt/corex311
++ echo '== A. TCP 可达性（容器内，host 网络）=='
+== A. TCP 可达性（容器内，host 网络）==
++ docker exec -i -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -
+141.1.61.31:3129 TCP OK
+141.4.2.160:8888 TCP OK
++ echo '== B. HTTPS 探测：无代理 =='
+== B. HTTPS 探测：无代理 ==
++ docker exec -i -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -
+FAIL URLError <urlopen error [Errno -3] Temporary failure in name resolution>
++ echo '== C. HTTPS 探测：set_proxy 小写那套 141.1.61.31:3129 =='
+== C. HTTPS 探测：set_proxy 小写那套 141.1.61.31:3129 ==
++ docker exec -i -e http_proxy=http://141.1.61.31:3129 -e https_proxy=http://141.1.61.31:3129 -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -
+FAIL URLError <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1006)>
++ echo '== D. HTTPS 探测：继承的大写那套 141.4.2.160:8888 =='
+== D. HTTPS 探测：继承的大写那套 141.4.2.160:8888 ==
++ docker exec -i -e HTTP_PROXY=http://141.4.2.160:8888 -e HTTPS_PROXY=http://141.4.2.160:8888 -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -
+FAIL URLError <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1006)>
++ echo '== E. pip dry-run：小写代理 + 未安装版本（必须联网解析）=='
+== E. pip dry-run：小写代理 + 未安装版本（必须联网解析）==
++ docker exec -e http_proxy=http://141.1.61.31:3129 -e https_proxy=http://141.1.61.31:3129 -e PYTHONPATH= -e PYTHONHOME= -e PIP_DISABLE_PIP_VERSION_CHECK=1 corex5-py311 /opt/corex311/bin/python -m pip install --dry-run --ignore-installed --no-cache-dir --no-deps --only-binary=:all: six==1.16.0
++ tail -6
+Looking in indexes: https://mirrors.aliyun.com/pypi/simple
+Collecting six==1.16.0
+  Downloading https://mirrors.aliyun.com/pypi/packages/d9/5a/e7c31adbe875f2abbb91bd84cf2dc52d792b5a01506781dbcf25c91daf11/six-1.16.0-py2.py3-none-any.whl (11 kB)
+Would install six-1.16.0
++ echo '== F. pip dry-run：代表性 pin（transformers + tokenizers），小写代理 =='
+== F. pip dry-run：代表性 pin（transformers + tokenizers），小写代理 ==
++ docker exec -e http_proxy=http://141.1.61.31:3129 -e https_proxy=http://141.1.61.31:3129 -e PYTHONPATH= -e PYTHONHOME= -e PIP_DISABLE_PIP_VERSION_CHECK=1 corex5-py311 /opt/corex311/bin/python -m pip install --dry-run --ignore-installed --no-cache-dir --no-deps --only-binary=:all: transformers==5.5.3 tokenizers==0.22.2
++ tail -6
+  Downloading https://mirrors.aliyun.com/pypi/packages/a1/0b/f8524551ab2d896dfaca74ddb70a4453d515bbf4ab5451c100c7788ae155/transformers-5.5.3-py3-none-any.whl (10.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.2/10.2 MB 1.6 MB/s  0:00:06
+Collecting tokenizers==0.22.2
+  Downloading https://mirrors.aliyun.com/pypi/packages/d6/84/7990e799f1309a8b87af6b948f31edaa12a3ed22d11b352eaf4f4b2e5753/tokenizers-0.22.2-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (3.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.3/3.3 MB 1.6 MB/s  0:00:02
+Would install tokenizers-0.22.2 transformers-5.5.3
++ set +x
+
+### exit: 0
