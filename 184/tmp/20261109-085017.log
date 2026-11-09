@@ -1,0 +1,330 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T00:50:17Z
+
++ CON=corex5-py311
++ BASE=/opt/corex311
++ BUNDLE=/home/z30059427/corex5-py311-20261009
++ echo '== A. 修正版包集合对比 =='
+== A. 修正版包集合对比 ==
++ docker exec -i -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -
+base installed (normalized) = 172
+
+===== requirements-all.hashed.txt: req=180 covered=166 missing=9 mismatch=5 base_extra=1
+-- 需求有、base 没有 --
+  cupy==11.4.0+corex.5.0.0
+  cupy-cuda11x==11.4.0+corex.5.0.0
+  cupy-cuda12x==11.4.0+corex.5.0.0
+  flash-attn==2.8.3+corex.5.0.0
+  pynvml==11.5.3+corex.5.0.0
+  ray==2.52.1+corex.5.0.0
+  torchaudio==2.10.0+corex.5.0.0
+  torchdebug==5.0.0+corex.5.0.0
+  torchvision==0.25.0+corex.5.0.0
+-- 版本不一致 --
+  apache-tvm-ffi | req 0.1.11+corex.5.0.0 -> base (url)
+  ixformer | req 0.7.0+corex.5.0.0 -> base (url)
+  torch | req 2.10.0+corex.5.0.0 -> base (url)
+  triton | req 3.2.0+corex.5.0.0 -> base (url)
+  vllm | req 0.23.0+corex.5.0.0 -> base (url)
+-- base 有、需求没有 --
+  torch-module-attr-fastpath==(url)
+
+===== requirements-py311.txt: req=166 covered=166 missing=0 mismatch=0 base_extra=6
+-- base 有、需求没有 --
+  apache-tvm-ffi==(url)
+  ixformer==(url)
+  torch==(url)
+  torch-module-attr-fastpath==(url)
+  triton==(url)
+  vllm==(url)
+
+===== requirements-vendor-py311.txt: req=14 covered=0 missing=9 mismatch=5 base_extra=167
+-- 需求有、base 没有 --
+  cupy==11.4.0+corex.5.0.0
+  cupy-cuda11x==11.4.0+corex.5.0.0
+  cupy-cuda12x==11.4.0+corex.5.0.0
+  flash-attn==2.8.3+corex.5.0.0
+  pynvml==11.5.3+corex.5.0.0
+  ray==2.52.1+corex.5.0.0
+  torchaudio==2.10.0+corex.5.0.0
+  torchdebug==5.0.0+corex.5.0.0
+  torchvision==0.25.0+corex.5.0.0
+-- 版本不一致 --
+  apache-tvm-ffi | req 0.1.11+corex.5.0.0 -> base (url)
+  ixformer | req 0.7.0+corex.5.0.0 -> base (url)
+  torch | req 2.10.0+corex.5.0.0 -> base (url)
+  triton | req 3.2.0+corex.5.0.0 -> base (url)
+  vllm | req 0.23.0+corex.5.0.0 -> base (url)
+-- base 有、需求没有 --
+  agent-detector==2.0.0
+  aiohappyeyeballs==2.6.1
+  aiohttp==3.13.3
+  aiosignal==1.4.0
+  annotated-doc==0.0.4
+  annotated-types==0.7.0
+  anthropic==0.71.0
+  anyio==4.12.1
+  astor==0.8.1
+  attrs==25.4.0
+  blake3==1.0.8
+  cachetools==7.0.1
+  cbor2==5.8.0
+  certifi==2026.1.4
+  cffi==2.0.0
+  charset-normalizer==3.4.4
+  click==8.2.1
+  cloudpickle==3.1.2
+  compressed-tensors==0.17.0
+  cryptography==50.0.2
+  depyf==0.20.0
+  detect-installer==0.2.1
+  dill==0.4.1
+  diskcache==5.6.3
+  distro==1.9.0
+  dnspython==2.8.0
+  docstring-parser==0.18.0
+  einops==0.6.1
+  email-validator==2.3.0
+  et-xmlfile==2.0.0
+  exceptiongroup==1.3.1
+  fastapi==0.129.0
+  fastapi-cli==0.0.21
+  fastapi-cloud-cli==0.26.0
+  fastar==0.12.0
+  fastrlock==0.8.3
+  filelock==3.23.0
+  frozenlist==1.8.0
+  fsspec==2025.10.0
+  genson==1.4.0
+  gguf==0.17.1
+  googleapis-common-protos==1.75.5
+  grpcio==1.84.0
+  h11==0.16.0
+  hf-transfer==0.1.9
+  hf-xet==1.2.0
+  httpcore==1.0.9
+  httptools==0.7.1
+  httpx==0.28.1
+  httpx-sse==0.4.3
+  huggingface-hub==1.5.0
+  idna==3.11
+  ijson==3.5.1
+  iniconfig==2.3.1
+  interegular==0.3.3
+  jinja2==3.1.6
+  jiter==0.13.0
+  jmespath==1.1.0
+  jsonpath-ng==1.9.1
+  jsonschema==4.26.0
+  jsonschema-specifications==2025.9.1
+  lark==1.2.2
+  llguidance==1.7.0
+  llvmlite==0.47.0
+  lm-format-enforcer==0.11.3
+  loguru==0.7.3
+  markdown-it-py==4.2.0
+  markupsafe==3.0.3
+  mcp==1.30.0
+  mdurl==0.1.2
+  mistral-common==1.11.3
+  model-hosting-container-standards==0.1.14
+  mpi4py==4.1.1
+  mpmath==1.3.0
+  msgpack==1.1.2
+  msgspec==0.20.0
+  multidict==6.7.1
+  networkx==3.4.2
+  ninja==1.13.0
+  numba==0.65.0
+  numpy==1.26.4
+  openai==2.21.0
+  openai-harmony==0.0.8
+  opencv-python-headless==4.11.0.86
+  openpyxl==3.1.5
+  opentelemetry-api==1.45.1
+  opentelemetry-exporter-http-transport==0.66b1
+  opentelemetry-exporter-otlp==1.45.1
+  opentelemetry-exporter-otlp-common==0.66b1
+  opentelemetry-exporter-otlp-proto-common==1.45.1
+  opentelemetry-exporter-otlp-proto-grpc==1.45.1
+  opentelemetry-exporter-otlp-proto-http==1.45.1
+  opentelemetry-proto==1.45.1
+  opentelemetry-sdk==1.45.1
+  opentelemetry-semantic-conventions==0.66b1
+  opentelemetry-semantic-conventions-ai==0.5.1
+  orjson==3.11.7
+  outlines==1.2.12
+  outlines-core==0.2.14
+  packaging==26.0
+  pandas==2.3.2
+  partial-json-parser==0.2.1.1.post7
+  pillow==12.1.1
+  pip==25.3
+  pluggy==1.6.0
+  prometheus-client==0.24.1
+  prometheus-fastapi-instrumentator==7.1.0
+  propcache==0.4.1
+  protobuf==6.33.5
+  psutil==7.2.2
+  py-cpuinfo==9.0.0
+  pybase64==1.4.3
+  pycountry==26.2.16
+  pycparser==3.0
+  pydantic==2.12.5
+  pydantic-core==2.41.5
+  pydantic-extra-types==2.11.1
+  pydantic-settings==2.15.0
+  pygments==2.21.0
+  pyjwt==2.15.1
+  pytest==9.1.1
+  python-dateutil==2.9.0.post0
+  python-dotenv==1.2.4
+  python-json-logger==4.2.0
+  python-multipart==0.0.32
+  pytz==2026.5
+  pyyaml==6.0.3
+  pyzmq==27.1.0
+  referencing==0.37.0
+  regex==2026.1.15
+  requests==2.32.5
+  rich==15.0.0
+  rich-toolkit==0.20.6
+  rignore==0.7.6
+  rpds-py==0.30.0
+  safetensors==0.7.0
+  scipy==1.15.3
+  sentencepiece==0.2.1
+  sentry-sdk==2.71.0
+  setproctitle==1.3.7
+  setuptools==80.9.0
+  shellingham==1.5.4
+  six==1.17.0
+  sniffio==1.3.1
+  sse-starlette==3.5.0
+  starlette==0.52.1
+  supervisor==4.3.0
+  sympy==1.14.0
+  tabulate==0.9.0
+  tiktoken==0.12.0
+  tokenizers==0.22.2
+  torch-module-attr-fastpath==(url)
+  tqdm==4.67.3
+  transformers==5.5.3
+  typer==0.27.3
+  typing-extensions==4.15.0
+  typing-inspection==0.4.2
+  tzdata==2026.5
+  urllib3==2.6.3
+  uvicorn==0.40.0
+  uvloop==0.22.1
+  watchfiles==1.1.1
+  websockets==16.0
+  wheel==0.45.1
+  xgrammar==0.2.1
+  xxhash==3.6.0
+  yarl==1.22.0
++ echo '== B. 普通依赖来源 =='
+== B. 普通依赖来源 ==
++ docker exec corex5-py311 sh -c '
+B=/home/z30059427/corex5-py311-20261009
+echo '\''-- $BUNDLE/wheels 是否存在 --'\''
+ls -la "$B/wheels" 2>/dev/null || echo '\''no wheels dir'\''
+echo '\''-- bundle 根目录 --'\''
+ls -la "$B" | head -20
+echo '\''-- pip 配置文件 --'\''
+for f in /etc/pip.conf /root/.pip/pip.conf /root/.config/pip/pip.conf /opt/corex311/pip.conf; do
+  [ -f "$f" ] && { echo "== $f"; cat "$f"; }
+done
+echo '\''-- 环境变量 --'\''
+env | grep -iE '\''PIP_|INDEX_URL'\'' || echo none
+echo '\''-- pip config list --'\''
+/opt/corex311/bin/python -m pip config list 2>&1 | head -10
+echo '\''-- wheelhouse --'\''
+ls -la /home/z30059427/wheelhouse 2>/dev/null | head -25
+find /home/z30059427/wheelhouse -maxdepth 1 -name '\''*.whl'\'' 2>/dev/null | wc -l
+find /home/z30059427/wheelhouse -maxdepth 1 -name '\''transformers*.whl'\'' -o -maxdepth 1 -name '\''numpy*.whl'\'' 2>/dev/null | head -5
+echo '\''-- 网络探测（只读）--'\''
+timeout 8 getent hosts pypi.org || echo '\''dns pypi.org failed'\''
+timeout 8 curl -sI https://pypi.org/simple/ 2>&1 | head -3 || echo '\''curl failed'\''
+'
+-- $BUNDLE/wheels 是否存在 --
+no wheels dir
+-- bundle 根目录 --
+total 328
+drwxrwxr-x+  4 root root   4096 Oct  9 14:04 .
+drwxrwxr-x+ 17 root root   4096 Oct 28 13:45 ..
+drwxrwxr-x+  2 root root   4096 Oct  9 14:04 evidence
+-rw-rw-rw-+  1 root root   2710 Oct  9 12:44 install_corex311.sh
+-rw-rw-rw-+  1 root root 187941 Oct  9 12:45 manifest.json
+-rw-rw-rw-+  1 root root   8042 Oct  9 12:44 README.md
+-rw-rw-rw-+  1 root root  18049 Oct  9 12:45 requirements-all.hashed.txt
+-rw-rw-rw-+  1 root root   1334 Oct  9 12:45 REQUIREMENTS_CHANGES.md
+-rw-rw-rw-+  1 root root   1944 Oct  9 12:45 requirements-py311.requested.txt
+-rw-rw-rw-+  1 root root   3422 Oct  9 12:45 requirements-py311.txt
+-rw-rw-rw-+  1 root root    480 Oct  9 12:45 requirements-vendor-py311.txt
+-rw-rw-rw-+  1 root root   4922 Oct  9 12:45 SHA256SUMS.txt
+drwxrwxr-x+  2 root root   4096 Oct  9 14:04 vendor
+-rw-rw-rw-+  1 root root  13315 Oct  9 12:14 verify_corex311.py
+-- pip 配置文件 --
+== /root/.pip/pip.conf
+[global]
+index-url=https://mirrors.aliyun.com/pypi/simple
+trusted-host=mirrors.aliyun.com
+-- 环境变量 --
+PIP_CONSTRAINT=/opt/pip/constraints.txt
+-- pip config list --
+global.index-url='https://mirrors.aliyun.com/pypi/simple'
+global.trusted-host='mirrors.aliyun.com'
+:env:.constraint='/opt/pip/constraints.txt'
+-- wheelhouse --
+total 11828
+drwxrwxr-x+  2 root root    4096 Oct 30 10:13 .
+drwxrwxr-x+ 17 root root    4096 Oct 28 13:45 ..
+-rw-rw-r--+  1 root root 2071854 Oct 13 09:58 cinderx-2026.10.13.7-cp311-cp311-linux_aarch64.whl
+-rw-rw-r--+  1 root root 2084349 Oct 14 11:16 cinderx-2026.10.14.3-cp311-cp311-linux_aarch64.whl
+-rw-rw-r--+  1 root root 2215410 Oct 15 17:12 cinderx-2026.10.15.5-cp311-cp311-linux_aarch64.whl
+-rw-rw-r--+  1 root root 2830898 Sep 14 14:49 cinderx-2026.9.14.1-cp311-cp311-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl
+-rw-rw-r--+  1 root root 2174956 Sep 17 14:20 cinderx-2026.9.17.0-cp311-cp311-linux_aarch64.whl
+-rw-rw-r--+  1 root root   28304 Oct 20 15:56 corex_host_fastpath-0.1.0.dev1-cp311-cp311-linux_aarch64.whl
+-rw-rw-r--+  1 root root   56302 Oct 21 13:21 corex_host_fastpath-0.1.0.dev4-cp311-cp311-linux_aarch64.whl
+-rw-rw-r--+  1 root root   70279 Oct 21 16:51 corex_host_fastpath-0.1.0.dev5-cp311-cp311-linux_aarch64.whl
+-rw-rw-r--+  1 root root   60143 Oct 22 18:42 corex_host_fastpath-0.1.0.dev6-cp311-cp311-linux_aarch64.whl
+-rw-rw-r--+  1 root root   70093 Oct 23 11:49 corex_host_fastpath-0.1.0.dev7-cp311-cp311-linux_aarch64.whl
+-rw-r--r--.  1 root root  108301 Oct 30 10:37 corex_host_fastpath-0.1.0.dev8-cp311-cp311-linux_aarch64.whl
+-rw-rw-r--+  1 root root    9864 Sep 28 11:09 corex_host_opt-0.1.0.dev1-cp312-none-any.whl
+-rw-rw-r--+  1 root root   15314 Sep 28 16:38 corex_host_opt-0.1.0.dev3-cp312-none-any.whl
+-rw-rw-r--+  1 root root   18198 Sep 28 20:11 corex_host_opt-0.1.0.dev4-cp312-none-any.whl
+-rw-rw-r--+  1 root root   28994 Sep 28 20:02 corex_host_opt-0.1.0.dev5-cp312-none-any.whl
+-rw-rw-r--+  1 root root   20384 Oct 20 11:55 corex_metadata_fastpath-0.1.0.dev1-cp311-cp311-linux_aarch64.whl
+-rw-rw-r--+  1 root root   20476 Oct  9 17:39 corex_metadata_native-0.1.0.dev1-cp311-cp311-linux_aarch64.whl
+-rw-rw-r--+  1 root root   37283 Oct  8 16:31 corex_metadata_native-0.1.0.dev1-cp312-cp312-linux_aarch64.whl
+-rw-rw-r--+  1 root root   30734 Oct  9 16:41 torch_module_attr_fastpath-0.1.0.dev2-cp311-cp311-linux_aarch64.whl
+-rw-rw-r--+  1 root root   31913 Sep 24 15:29 torch_module_attr_fastpath-0.1.0.dev3-cp312-cp312-linux_aarch64.whl
+20
+-- 网络探测（只读）--
+dns pypi.org failed
++ echo '== C. base 的 pip 工具版本 =='
+== C. base 的 pip 工具版本 ==
++ docker exec corex5-py311 sh -c '
+/opt/corex311/bin/python -m pip --version
+/opt/corex311/bin/python -c '\''import setuptools, wheel; print("setuptools", setuptools.__version__); print("wheel", wheel.__version__)'\'' 2>/dev/null || echo '\''wheel not importable'\''
+/opt/corex311/bin/python -c '\''import sys; print(sys.version)'\''
+'
+pip 26.2.1 from /usr/local/lib/python3.12/site-packages/pip (python 3.11)
+setuptools 80.10.2
+wheel 0.45.1
+3.11.6 (main, Oct  9 2026, 11:13:58) [GCC 13.3.0]
++ echo '== D. 新 venv 是否仍无占用 =='
+== D. 新 venv 是否仍无占用 ==
++ docker exec corex5-py311 sh -c '
+for p in /proc/[0-9]*; do
+  e=$(readlink "$p/exe" 2>/dev/null) || continue
+  case "$e" in *corex311-cpython-vllm*) echo "${p#/proc/} $e";; esac
+done | head -10
+echo "(空 = 无进程使用)"
+'
+(空 = 无进程使用)
++ set +x
+
+### exit: 0
