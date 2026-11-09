@@ -17,41 +17,85 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 驱动已恢复：确认 8 卡 -> 启动容器 -> 验证容器设备与两个 venv 状态。
+  # 在 184 新 venv 上安装 r10：
+  # 1) 校验 r10 包；2) 恢复 pristine（备份在 /tmp/184-new-venv-backup）；
+  # 3) 移除旧 fastpath 文件；4) 基线核对；5) install.py 全流程。
+  # corex311 不动。
 
-  echo "== 1. 宿主设备与 GPU 数 =="
-  ls /dev/iluvatar* | wc -l
-  ls -l /dev/iluvatar* | head -10
-  timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>/dev/null | grep -c "BI-V150" || true
+  CON=corex5-py311
+  V=/opt/corex311-cpython-vllm
+  SITE=$V/lib/python3.11/site-packages
+  BAK=/tmp/184-new-venv-backup
+  T=/home/qch/transfer
+  Z=$T/host-opt-three-pr-validation-20261106-r10-arm64-py311.zip
+  PKG=$T/host-opt-pr-validation-20261106-r10
 
-  echo "== 2. 启动容器 =="
-  docker start corex5-py311
-  echo "start rc=$?"
-  docker ps --filter name=corex5-py311 --format '{{.Names}} {{.Status}}'
-  sleep 3
+  echo "== 0. r10 包校验 =="
+  ls -l "$Z" "$Z.sha256" 2>&1
+  ( cd "$T" && sha256sum -c "$(basename "$Z").sha256" )
 
-  echo "== 3. 容器内设备/GPU =="
-  docker exec corex5-py311 sh -c 'echo -n "devices: "; ls /dev/iluvatar* 2>/dev/null | wc -l; echo -n "gpus: "; ixsmi 2>/dev/null | grep -c "BI-V150" || echo ixsmi-fail'
+  echo "== 1. 备份文件完整性（应为 pristine 三件套）=="
+  sha256sum "$BAK/envs.py" "$BAK/v1/attention/backends/ilu_flash_attn.py" "$BAK/v1/worker/gpu_model_runner.py" 2>&1
 
-  echo "== 4. corex311 状态 =="
-  docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -c \
-    'import sys,sysconfig;print("prefix",sys.prefix);print("base_prefix",sys.base_prefix);print("pgo","--prefix=/opt/cpython-vllm/v1" in (sysconfig.get_config_var("CONFIG_ARGS") or ""))' 2>&1 | tail -3
+  echo "== 2. 恢复 pristine 并移除旧补丁文件 =="
+  cp -p "$BAK/envs.py" "$SITE/vllm/envs.py"
+  cp -p "$BAK/v1/attention/backends/ilu_flash_attn.py" "$SITE/vllm/v1/attention/backends/ilu_flash_attn.py"
+  cp -p "$BAK/v1/worker/gpu_model_runner.py" "$SITE/vllm/v1/worker/gpu_model_runner.py"
+  rm -f "$SITE/vllm/v1/worker/host_fastpath.py"
+  rm -f "$SITE/vllm/_host_opt_native.abi3.so" \
+        "$SITE/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so"
+  rm -f "$SITE/vllm/__pycache__/envs.cpython-311"*.pyc
+  rm -f "$SITE/vllm/v1/attention/backends/__pycache__/ilu_flash_attn.cpython-311"*.pyc
+  rm -f "$SITE/vllm/v1/worker/__pycache__/gpu_model_runner.cpython-311"*.pyc
+  echo "restored"
 
-  echo "== 5. 新 venv 状态 =="
-  docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -c \
-    'import sys,sysconfig;print("base_prefix",sys.base_prefix);print("pgo","--prefix=/opt/cpython-vllm/v1" in (sysconfig.get_config_var("CONFIG_ARGS") or ""))' 2>&1 | tail -2
-  docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -m pip check
-  docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -c \
-    'import vllm,torch;print("vllm",vllm.__version__,"torch",torch.__version__)' 2>&1 | tail -2
+  echo "== 3. r10 基线核对（MANIFEST baseline）=="
+  for f in vllm/v1/worker/gpu_model_runner.py \
+           vllm/v1/attention/backends/ilu_flash_attn.py \
+           vllm/envs.py \
+           vllm/model_executor/models/llama.py \
+           vllm/model_executor/models/qwen2.py \
+           vllm/model_executor/models/qwen3.py \
+           vllm/v1/worker/gpu_input_batch.py \
+           vllm/v1/utils.py ; do
+    sha256sum "$SITE/$f" 2>/dev/null || echo "MISSING $f"
+  done
 
-  echo "== 6. 新 venv 源码状态（旧 fastpath 变体）=="
-  docker exec corex5-py311 sh -c '
-SP=/opt/corex311-cpython-vllm/lib/python3.11/site-packages
-for f in vllm/v1/worker/gpu_model_runner.py vllm/envs.py vllm/v1/attention/backends/ilu_flash_attn.py vllm/v1/worker/host_fastpath.py; do
-  [ -f "$SP/$f" ] && sha256sum "$SP/$f" || echo "MISSING $f"
-done
-ls $SP/vllm/_host_opt_native*.so 2>/dev/null || echo "no native so"
-'
+  echo "== 4. 解包 r10 =="
+  if [ ! -d "$PKG" ]; then
+    unzip -q "$Z" -d "$T" && echo unzipped
+  else
+    echo "already extracted"
+  fi
+  ( cd "$PKG" && sha256sum -c SHA256SUMS 2>&1 | tail -5 )
+
+  echo "== 5. dry-run =="
+  docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= -e VLLM_R10_PACKAGE_DIR="$PKG" \
+    "$CON" "$V/bin/python" "$PKG/scripts/install.py" --root "$SITE" --dry-run
+  RC=$?
+  echo "dry-run rc=$RC"
+  if [ "$RC" -ne 0 ]; then echo "DRY-RUN FAILED, abort"; exit 1; fi
+
+  echo "== 6. install =="
+  docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= -e VLLM_R10_PACKAGE_DIR="$PKG" \
+    "$CON" "$V/bin/python" "$PKG/scripts/install.py" --root "$SITE"
+  RC=$?
+  echo "install rc=$RC"
+  if [ "$RC" -ne 0 ]; then echo "INSTALL FAILED, abort"; exit 1; fi
+
+  echo "== 7. check + verify =="
+  docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= -e VLLM_R10_PACKAGE_DIR="$PKG" \
+    "$CON" "$V/bin/python" "$PKG/scripts/install.py" --root "$SITE" --check
+  echo "check rc=$?"
+  docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= -e VLLM_R10_PACKAGE_DIR="$PKG" \
+    "$CON" "$V/bin/python" "$PKG/scripts/verify.py" --root "$SITE"
+  echo "verify rc=$?"
+
+  echo "== 8. 安装后关键 hash =="
+  for f in vllm/v1/worker/gpu_model_runner.py vllm/envs.py vllm/v1/attention/backends/ilu_flash_attn.py \
+           vllm/v1/worker/host_opt.py vllm/v1/worker/compact_greedy.py vllm/v1/worker/sample_logits_graph.py ; do
+    sha256sum "$SITE/$f" 2>/dev/null || echo "MISSING $f"
+  done
 
   # ---- 命令结束 ----
 
