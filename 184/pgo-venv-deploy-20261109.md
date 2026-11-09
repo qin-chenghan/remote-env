@@ -165,9 +165,15 @@ PARITY PASS: 包集合与版本完全一致
    host fastpath 变体 `b869bfb1…`（含 R3-V3 decode fastpath，`VLLM_DISABLE_DECODE_FASTPATH`
    为 kill switch）。做 PGO A/B 前，两边必须打**同一套**补丁；
    旧版 r3 交付包在 `/home/qch/transfer/host-opt-pr-validation-20261103-r3`。
-2. **bench 脚本尚未改**：已准备好补丁（删除 rebase 切换；base 断言非 PGO、
-   opt 默认 `PREFIX=/opt/corex311-cpython-vllm` 并检查 `host_fastpath.py` 存在），
-   执行前会检查无 bench/vllm 进程，有则中止。
+2. **bench 脚本已改（2026-11-09 10:54，空闲窗口执行）**：
+   两个脚本删除全部 rebase 切换/回滚逻辑，只保留只读 `pgo_runtime`/`pgo_is_on`
+   与 `config.txt` 记录；base 断言“非 PGO 才继续”，opt 默认
+   `PREFIX=/opt/corex311-cpython-vllm` 并检查 `host_fastpath.py` 存在。
+   备份：`vllmBench_lite_base.sh.bak-20261109-105413`、
+   `vllmBench_lite_opt.sh.bak-20261109-105413`。
+   opt 目前会因新 venv 缺 `host_fastpath.py` 而拒绝运行，需先打补丁。
+   同事 s00806700 使用的是其个人目录 `/home/s00806700/litehost_perf_opt/`
+   下的副本，不受本次修改影响。
 3. **corex311 的 PGO 状态**：目前仍是 PGO；用户计划空闲时用
    `/home/qch/scripts/pgo-doctor.py off` 切回 base。切换后 base 脚本才能跑。
 4. **旧 venv 清理**：`/opt/_trash_20261109-090312` 观察一段时间后再删。
