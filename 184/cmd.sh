@@ -17,59 +17,41 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 修正：DKMS 从源目录 /usr/src/corex-5.0.0 拷贝 dkms.conf，改源目录那份。
-  # 关闭 vGPU（6.6 无 CONFIG_VFIO_MDEV）-> 重编 -> 安装 -> 加载 -> 验证。
+  # 驱动已恢复：确认 8 卡 -> 启动容器 -> 验证容器设备与两个 venv 状态。
 
-  K=$(uname -r)
-  SRC=/usr/src/corex-5.0.0
-  CONF=$SRC/dkms.conf
+  echo "== 1. 宿主设备与 GPU 数 =="
+  ls /dev/iluvatar* | wc -l
+  ls -l /dev/iluvatar* | head -10
+  timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>/dev/null | grep -c "BI-V150" || true
 
-  echo "== 0. 源 dkms.conf 现状 =="
-  grep -n "_BUILDOPT\|VGPU_ENABLE" "$CONF" 2>/dev/null || { echo "missing $CONF"; exit 1; }
+  echo "== 2. 启动容器 =="
+  docker start corex5-py311
+  echo "start rc=$?"
+  docker ps --filter name=corex5-py311 --format '{{.Names}} {{.Status}}'
+  sleep 3
 
-  echo "== 1. 改源目录 dkms.conf =="
-  cp -a "$CONF" "$CONF.bak-$(date +%Y%m%d-%H%M%S)"
-  if grep -q "VGPU_ENABLE=1" "$CONF"; then
-    sed -i 's/VGPU_ENABLE=1/VGPU_ENABLE=0/g' "$CONF"
-    echo "VGPU_ENABLE set to 0 (source)"
-    grep -n "VGPU_ENABLE" "$CONF"
-  else
-    echo "VGPU_ENABLE=1 not found in source conf; abort"
-    exit 1
-  fi
+  echo "== 3. 容器内设备/GPU =="
+  docker exec corex5-py311 sh -c 'echo -n "devices: "; ls /dev/iluvatar* 2>/dev/null | wc -l; echo -n "gpus: "; ixsmi 2>/dev/null | grep -c "BI-V150" || echo ixsmi-fail'
 
-  echo "== 2. Kbuild 里 vGPU 检查的开关条件 =="
-  grep -n -B10 -A6 "vgpu_kvm_sanity_check" "$SRC/itr/Kbuild" 2>/dev/null | head -40
+  echo "== 4. corex311 状态 =="
+  docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -c \
+    'import sys,sysconfig;print("prefix",sys.prefix);print("base_prefix",sys.base_prefix);print("pgo","--prefix=/opt/cpython-vllm/v1" in (sysconfig.get_config_var("CONFIG_ARGS") or ""))' 2>&1 | tail -3
 
-  echo "== 3. dkms build =="
-  dkms build corex/5.0.0 -k "$K" 2>&1 | tail -30
-  RC=${PIPESTATUS[0]}
-  echo "build rc=$RC"
-  if [ "$RC" -ne 0 ]; then
-    echo "== build 失败，make.log 尾部 =="
-    tail -120 /var/lib/dkms/corex/5.0.0/build/make.log 2>/dev/null
-    exit 1
-  fi
+  echo "== 5. 新 venv 状态 =="
+  docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -c \
+    'import sys,sysconfig;print("base_prefix",sys.base_prefix);print("pgo","--prefix=/opt/cpython-vllm/v1" in (sysconfig.get_config_var("CONFIG_ARGS") or ""))' 2>&1 | tail -2
+  docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -m pip check
+  docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311-cpython-vllm/bin/python -c \
+    'import vllm,torch;print("vllm",vllm.__version__,"torch",torch.__version__)' 2>&1 | tail -2
 
-  echo "== 4. dkms install =="
-  dkms install corex/5.0.0 -k "$K" 2>&1 | tail -20
-  RC=${PIPESTATUS[0]}
-  echo "install rc=$RC"
-  if [ "$RC" -ne 0 ]; then
-    exit 1
-  fi
-
-  echo "== 5. depmod + modprobe =="
-  depmod -a
-  modprobe iluvatar 2>&1
-  echo "modprobe rc=$?"
-  lsmod | grep iluvatar || echo "iluvatar NOT loaded"
-  ls -l /dev/iluvatar* 2>&1 | head -10
-
-  echo "== 6. 验证 =="
-  dmesg | tail -20
-  timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | head -20
-  dkms status
+  echo "== 6. 新 venv 源码状态（旧 fastpath 变体）=="
+  docker exec corex5-py311 sh -c '
+SP=/opt/corex311-cpython-vllm/lib/python3.11/site-packages
+for f in vllm/v1/worker/gpu_model_runner.py vllm/envs.py vllm/v1/attention/backends/ilu_flash_attn.py vllm/v1/worker/host_fastpath.py; do
+  [ -f "$SP/$f" ] && sha256sum "$SP/$f" || echo "MISSING $f"
+done
+ls $SP/vllm/_host_opt_native*.so 2>/dev/null || echo "no native so"
+'
 
   # ---- 命令结束 ----
 
