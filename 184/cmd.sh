@@ -17,32 +17,56 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 只读：确认 6.6 兼容分支、dkms.conf、安装器对已安装驱动的处理。
-  # 所有 grep 加 -I 跳过二进制，避免把固件字节写进日志。
+  # 6.6 内核没有 CONFIG_VFIO_MDEV：先把 DKMS 的 VGPU_ENABLE 改 0，再重编/安装/加载。
+  # 只动当前内核的模块；不重装用户态、不重启、不动旧内核模块。失败即停。
 
-  X=/tmp/corex-drv-extract
+  K=$(uname -r)
+  CONF=/var/lib/dkms/corex/5.0.0/build/dkms.conf
 
-  echo "== 1. kernel_test.sh 中 6.6 的上下文 =="
-  grep -I -n -B6 -A10 "6\.6" "$X/kernel/itr/kernel_test.sh" 2>/dev/null | head -40
+  echo "== 0. 当前内核与 DKMS 参数 =="
+  echo "kernel=$K"
+  grep -n "VGPU_ENABLE\|_BUILDOPT\|MAKE\[0\]" "$CONF" 2>/dev/null || { echo "dkms.conf missing"; exit 1; }
 
-  echo "== 2. dkms.conf 全文 =="
-  cat "$X/kernel/dkms.conf" 2>/dev/null
+  echo "== 1. 关闭 vGPU 构建（备份 dkms.conf）=="
+  cp -a "$CONF" "$CONF.bak-$(date +%Y%m%d-%H%M%S)"
+  if grep -q "VGPU_ENABLE=1" "$CONF"; then
+    sed -i 's/VGPU_ENABLE=1/VGPU_ENABLE=0/g' "$CONF"
+    echo "VGPU_ENABLE set to 0"
+    grep -n "VGPU_ENABLE" "$CONF"
+  else
+    echo "VGPU_ENABLE=1 not found; abort"
+    exit 1
+  fi
 
-  echo "== 3. 内核 Makefile 里的版本分支 =="
-  grep -I -n "kernel_test\|KERNEL_UNAME\|6\.6\|6\.1\|5\.1\|PAGE_SIZE\|page" \
-    "$X/kernel/Makefile" "$X/kernel/itr/Makefile" 2>/dev/null | head -30
+  echo "== 2. dkms build =="
+  dkms build corex/5.0.0 -k "$K" 2>&1 | tail -30
+  RC=${PIPESTATUS[0]}
+  echo "build rc=$RC"
+  if [ "$RC" -ne 0 ]; then
+    echo "== build 失败，make.log 尾部 =="
+    tail -120 /var/lib/dkms/corex/5.0.0/build/make.log 2>/dev/null
+    exit 1
+  fi
 
-  echo "== 4. 安装器对“已安装/卸载”的处理 =="
-  grep -I -n "already\|installed\|uninstall\|existing\|uname -r\|kernel-source" \
-    "$X/corex-driver-installer" 2>/dev/null | head -30
+  echo "== 3. dkms install =="
+  dkms install corex/5.0.0 -k "$K" 2>&1 | tail -20
+  RC=${PIPESTATUS[0]}
+  echo "install rc=$RC"
+  if [ "$RC" -ne 0 ]; then
+    exit 1
+  fi
 
-  echo "== 5. 现有 DKMS 源与安装目录 =="
-  ls -la /var/lib/dkms/corex/5.0.0 2>/dev/null | head -10
-  ls /var/lib/dkms/corex/5.0.0/build 2>/dev/null | head -10
-  ls -ld /usr/src/corex* 2>/dev/null | head -5
-  echo "-- corex 用户态版本 --"
-  cat /usr/local/corex-5.0.0/bin/corex-driver-uninstaller 2>/dev/null | head -5 || echo "(uninstaller 是二进制)"
-  strings /usr/local/corex-5.0.0/bin/corex-driver-uninstaller 2>/dev/null | head -5
+  echo "== 4. depmod + modprobe =="
+  depmod -a
+  modprobe iluvatar 2>&1
+  echo "modprobe rc=$?"
+  lsmod | grep iluvatar || echo "iluvatar NOT loaded"
+  ls -l /dev/iluvatar* 2>&1 | head -10
+
+  echo "== 5. 验证 =="
+  dmesg | tail -20
+  timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | head -20
+  dkms status
 
   # ---- 命令结束 ----
 
