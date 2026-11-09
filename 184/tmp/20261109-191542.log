@@ -1,0 +1,148 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T11:15:42Z
+
+++ uname -r
++ K=6.6.0-145.3.37.168.oe2403sp3.aarch64
++ SRC=/usr/src/corex-5.0.0
++ CONF=/usr/src/corex-5.0.0/dkms.conf
++ echo '== 0. 源 dkms.conf 现状 =='
+== 0. 源 dkms.conf 现状 ==
++ grep -n '_BUILDOPT\|VGPU_ENABLE' /usr/src/corex-5.0.0/dkms.conf
+5:_BUILDOPT="VGPU_ENABLE=1 "
+30:EXTRA_BUILD="${EXTRA_BUILD} && KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) itr_peer_mem OFA_KERNEL=${OFED_SOURCE_DIR}"
+40:EXTRA_BUILD="${EXTRA_BUILD} && KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) itr_fs"
+48:MAKE[0]="KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) ${EXTRA_BUILD}"
++ echo '== 1. 改源目录 dkms.conf =='
+== 1. 改源目录 dkms.conf ==
+++ date +%Y%m%d-%H%M%S
++ cp -a /usr/src/corex-5.0.0/dkms.conf /usr/src/corex-5.0.0/dkms.conf.bak-20261109-191542
++ grep -q VGPU_ENABLE=1 /usr/src/corex-5.0.0/dkms.conf
++ sed -i s/VGPU_ENABLE=1/VGPU_ENABLE=0/g /usr/src/corex-5.0.0/dkms.conf
++ echo 'VGPU_ENABLE set to 0 (source)'
+VGPU_ENABLE set to 0 (source)
++ grep -n VGPU_ENABLE /usr/src/corex-5.0.0/dkms.conf
+5:_BUILDOPT="VGPU_ENABLE=0 "
++ echo '== 2. Kbuild 里 vGPU 检查的开关条件 =='
+== 2. Kbuild 里 vGPU 检查的开关条件 ==
++ grep -n -B10 -A6 vgpu_kvm_sanity_check /usr/src/corex-5.0.0/itr/Kbuild
++ head -40
+110-	@mkdir -p $(obj)/kerneltest
+111-	@$(ITR_CONFTEST_CMD) test_kernel_headers $(ITR_CONFTEST_CFLAGS_FILE) > $@
+112-
+113-clean-dirs := $(obj)/kerneltest
+114-clean-files += $(ITR_CONFTEST_CFLAGS_FILE)
+115-
+116-# set object depends, exit of ITR_CONFTEST_HEADERS is Preconditions that os interface build
+117-$(addprefix $(obj)/,$(ITR_OBJECTS_DEPEND_ON_CONFTEST)): | $(ITR_CONFTEST_HEADERS)
+118-
+119-BUILD_SANITY_CHECKS = \
+120: vgpu_kvm_sanity_check
+121-
+122-.PHONY: $(BUILD_SANITY_CHECKS)
+123-
+124-$(BUILD_SANITY_CHECKS):
+125-	@$(ITR_CONFTEST_CMD) $@ full_output
+126-
++ echo '== 3. dkms build =='
+== 3. dkms build ==
++ dkms build corex/5.0.0 -k 6.6.0-145.3.37.168.oe2403sp3.aarch64
++ tail -30
+Sign command: /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/build/scripts/sign-file
+Signing key: /var/lib/dkms/mok.key
+Public certificate (MOK): /var/lib/dkms/mok.pub
+
+Building module:
+Cleaning build area...
+KERNEL_UNAME=6.6.0-145.3.37.168.oe2403sp3.aarch64 VGPU_ENABLE=0 make -j320 .....
+Signing module /var/lib/dkms/corex/5.0.0/build/iluvatar.ko
+Cleaning build area...
++ RC=0
++ echo 'build rc=0'
+build rc=0
++ '[' 0 -ne 0 ']'
++ echo '== 4. dkms install =='
+== 4. dkms install ==
++ dkms install corex/5.0.0 -k 6.6.0-145.3.37.168.oe2403sp3.aarch64
++ tail -20
+
+iluvatar.ko.xz:
+Running module version sanity check.
+ - Original module
+   - No original module exists within this kernel
+ - Installation
+   - Installing to /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/updates/
+Adding any weak-modules
+depmod...
++ RC=0
++ echo 'install rc=0'
+install rc=0
++ '[' 0 -ne 0 ']'
++ echo '== 5. depmod + modprobe =='
+== 5. depmod + modprobe ==
++ depmod -a
++ modprobe iluvatar
++ echo 'modprobe rc=0'
+modprobe rc=0
++ lsmod
++ grep iluvatar
+iluvatar             1675264  0
++ head -10
++ ls -l /dev/iluvatar0 /dev/iluvatar1 /dev/iluvatar2 /dev/iluvatar3
+crw-rw-rw-. 1 root root 236, 0 Nov  9 19:16 /dev/iluvatar0
+crw-rw-rw-. 1 root root 236, 1 Nov  9 19:16 /dev/iluvatar1
+crw-rw-rw-. 1 root root 236, 2 Nov  9 19:16 /dev/iluvatar2
+crw-rw-rw-. 1 root root 236, 3 Nov  9 19:16 /dev/iluvatar3
++ echo '== 6. 验证 =='
+== 6. 验证 ==
++ dmesg
++ tail -20
+[   35.478242] br-3555427fe04c: port 5(veth8a5efce) entered disabled state
+[   35.692523] br-3555427fe04c: port 5(veth3a7a2a7) entered blocking state
+[   35.692531] br-3555427fe04c: port 5(veth3a7a2a7) entered disabled state
+[   35.692571] veth3a7a2a7: entered allmulticast mode
+[   35.692673] veth3a7a2a7: entered promiscuous mode
+[   36.015704] eth0: renamed from veth0c782bb
+[   36.063465] br-3555427fe04c: port 5(veth3a7a2a7) entered blocking state
+[   36.063472] br-3555427fe04c: port 5(veth3a7a2a7) entered forwarding state
+[   37.783938] block dm-0: the capability attribute has been deprecated.
+[ 1397.225439] hrtimer: interrupt took 20990 ns
+[15352.889166] iluvatar: loading out-of-tree module taints kernel.
+[15352.889182] iluvatar: module verification failed: signature and/or required key missing - tainting kernel
+[15352.898555] iluvatar 0000:45:00.0: enabling device (0140 -> 0142)
+[15353.607486] iluvatar 0000:45:00.0: DEV-0 is okay.
+[15353.607815] iluvatar 0000:48:00.0: enabling device (0140 -> 0142)
+[15354.307595] iluvatar 0000:48:00.0: DEV-1 is okay.
+[15354.308175] iluvatar 0000:af:00.0: enabling device (0140 -> 0142)
+[15354.999680] iluvatar 0000:af:00.0: DEV-2 is okay.
+[15354.999994] iluvatar 0000:b2:00.0: enabling device (0140 -> 0142)
+[15355.697813] iluvatar 0000:b2:00.0: DEV-3 is okay.
++ timeout 20 /usr/local/corex-5.0.0/bin/ixsmi
++ head -20
+Timestamp    Mon Nov  9 19:16:19 2026
++--------------------------------------------------------------------------------+
+|  IX-ML: 5.0.0            Driver Version: 5.0.0          CUDA Version: 10.2     |
+|----------------------------------+----------------------+----------------------|
+| GPU  Name                        | Bus-Id               | Clock-SM  Clock-Mem  |
+| Fan  Temp  Perf    Pwr:Usage/Cap |      Memory-Usage    | GPU-Util  Compute M. |
+|==================================+======================+======================|
+| 0    Iluvatar BI-V150            | 00000000:45:00.0     | 1500MHz   1600MHz    |
+| N/A  38C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 1    Iluvatar BI-V150            | 00000000:48:00.0     | 1500MHz   1600MHz    |
+| N/A  38C   P0       102W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 2    Iluvatar BI-V150            | 00000000:AF:00.0     | 1500MHz   1600MHz    |
+| N/A  36C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 3    Iluvatar BI-V150            | 00000000:B2:00.0     | 1500MHz   1600MHz    |
+| N/A  37C   P0       107W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+
++ dkms status
+corex/5.0.0, 5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb, aarch64: installed
+corex/5.0.0, 5.10.0-326.0.0.227.oe2203sp4.aarch64, aarch64: installed (WARNING! Missing some built modules!)
+corex/5.0.0, 6.6.0-145.3.37.168.oe2403sp3.aarch64, aarch64: installed
++ set +x
+
+### exit: 0
