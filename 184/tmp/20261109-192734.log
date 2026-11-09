@@ -1,0 +1,64 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T11:27:34Z
+
++ D=/home/huawei_ts_program/litehost_perf_opt
++ F=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+++ date +%Y%m%d-%H%M%S
++ TS2=20261109-192734
++ echo '== 0. 备份 =='
+== 0. 备份 ==
++ cp -a /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-r10-20261109-192734
++ echo 'backup /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-r10-20261109-192734'
+backup /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-r10-20261109-192734
++ echo '== 1. 改开关与编译配置 =='
+== 1. 改开关与编译配置 ==
++ python3 - /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+updated /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ echo '== 2. 语法检查 =='
+== 2. 语法检查 ==
++ bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ echo 'OK opt'
+OK opt
++ echo '== 3. diff =='
+== 3. diff ==
++ diff -u /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-r10-20261109-192734 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ head -60
+--- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-r10-20261109-192734	2026-11-09 15:36:27.309020740 +0800
++++ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh	2026-11-09 19:27:34.573020740 +0800
+@@ -24,7 +24,14 @@
+ SERVER_EXTRA_ENV=(
+     UMD_MAXCOMMANDBUFFERNUMBER=256
+     UMD_MAXCOMMANDBUFFERSIZE=16384
+-    VLLM_HOST_FASTPATH=on
++    VLLM_HOST_OPT=on
++    VLLM_HOST_OPT_INPUTS=on
++    VLLM_HOST_OPT_ARENA=on
++    VLLM_HOST_OPT_BOOKKEEPING=on
++    VLLM_HOST_OPT_METADATA=on
++    VLLM_HOST_OPT_DIAGNOSTICS=0
++    VLLM_COMPACT_GREEDY=on
++    VLLM_COMPACT_GREEDY_DIAGNOSTICS=0
+     TORCH_MODULE_ATTR_FASTPATH=slot_native
+ )
+ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+@@ -78,7 +85,7 @@
+     --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1
+     --tensor_parallel_size "$GPUS_PER_INSTANCE" --data_parallel_size 1
+     --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto
+-    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}'
++    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}'
+     --async-scheduling --no-enable-prefix-caching
+ )
+ [[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
++ echo '== 4. 容器内 dry-run =='
+== 4. 容器内 dry-run ==
++ docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= corex5-py311 bash -c 'cd /home/huawei_ts_program/litehost_perf_opt && HOST_DRY_RUN=1 bash vllmBench_lite_opt.sh'
++ grep -E 'PREFIX=|SERVER:|CASES:|ERROR'
++ head -5
+[2026-11-09 19:27:34] PREFIX=/opt/corex311-cpython-vllm
+SERVER: taskset -c 192-255 /opt/corex311-cpython-vllm/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8848 --model /home/model/ts/Qwen3-32B-W8A8 --trust_remote_code --dtype auto --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1 --tensor_parallel_size 4 --data_parallel_size 1 --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto --enable_chunked_prefill --compilation-config \{\"cudagraph_mode\":\"FULL_DECODE_ONLY\"\,\ \"mode\":0\,\ \"sample_logits_cudagraph\":\"on\"\,\ \"sample_logits_cudagraph_max_bytes\":67108864\,\ \"sample_logits_cudagraph_capture_sizes\":\[1\,2\,3\,4\,5\,6\,7\,8\]\} --async-scheduling --no-enable-prefix-caching --worker-cls light_host_worker.LightHostWorker 
+CASES: 128 128; 128 1024; 128 2048; 1024 128; 1024 1024; 1024 2048; 2048 128; 2048 1024; 2048 2048; 
++ set +x
+
+### exit: 0
