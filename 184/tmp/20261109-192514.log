@@ -1,0 +1,272 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T11:25:14Z
+
++ CON=corex5-py311
++ V=/opt/corex311-cpython-vllm
++ SITE=/opt/corex311-cpython-vllm/lib/python3.11/site-packages
++ BAK=/tmp/184-new-venv-backup
++ T=/home/qch/transfer
++ Z=/home/qch/transfer/host-opt-three-pr-validation-20261106-r10-arm64-py311.zip
++ PKG=/home/qch/transfer/host-opt-pr-validation-20261106-r10
++ echo '== 0. 备份校验（宿主）=='
+== 0. 备份校验（宿主）==
++ sha256sum /tmp/184-new-venv-backup/envs.py /tmp/184-new-venv-backup/v1/attention/backends/ilu_flash_attn.py /tmp/184-new-venv-backup/v1/worker/gpu_model_runner.py
+24e2e0aff019ca4a1f05517dfdba3764139fb775896e22904114715b258323bb  /tmp/184-new-venv-backup/envs.py
+469e7198cfeb81135a7e043fa7ad885d8433571c7a629f30bd3057eff16e36cd  /tmp/184-new-venv-backup/v1/attention/backends/ilu_flash_attn.py
+ff9f2df42976347b85fbd6e12623b217e1beda6d5248a5662b3cf397eacaef59  /tmp/184-new-venv-backup/v1/worker/gpu_model_runner.py
++ echo '== 1. docker cp pristine 文件进容器 =='
+== 1. docker cp pristine 文件进容器 ==
++ docker cp /tmp/184-new-venv-backup/envs.py corex5-py311:/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py
++ docker cp /tmp/184-new-venv-backup/v1/attention/backends/ilu_flash_attn.py corex5-py311:/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py
++ docker cp /tmp/184-new-venv-backup/v1/worker/gpu_model_runner.py corex5-py311:/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
++ echo '== 2. 容器内删除旧补丁文件与陈旧 pyc =='
+== 2. 容器内删除旧补丁文件与陈旧 pyc ==
++ docker exec corex5-py311 sh -c '
+SP=/opt/corex311-cpython-vllm/lib/python3.11/site-packages
+rm -f $SP/vllm/v1/worker/host_fastpath.py
+rm -f $SP/vllm/_host_opt_native.abi3.so
+rm -f $SP/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+rm -f $SP/vllm/__pycache__/envs.cpython-311*.pyc
+rm -f $SP/vllm/v1/attention/backends/__pycache__/ilu_flash_attn.cpython-311*.pyc
+rm -f $SP/vllm/v1/worker/__pycache__/gpu_model_runner.cpython-311*.pyc
+echo removed'
+removed
++ echo '== 3. 容器内基线核对（r10 MANIFEST baseline）=='
+== 3. 容器内基线核对（r10 MANIFEST baseline）==
++ docker exec corex5-py311 sh -c '
+SP=/opt/corex311-cpython-vllm/lib/python3.11/site-packages
+for f in vllm/v1/worker/gpu_model_runner.py          vllm/v1/attention/backends/ilu_flash_attn.py          vllm/envs.py          vllm/model_executor/models/llama.py          vllm/model_executor/models/qwen2.py          vllm/model_executor/models/qwen3.py          vllm/v1/worker/gpu_input_batch.py          vllm/v1/utils.py ; do
+  sha256sum $SP/$f 2>/dev/null || echo MISSING $f
+done'
+ff9f2df42976347b85fbd6e12623b217e1beda6d5248a5662b3cf397eacaef59  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+469e7198cfeb81135a7e043fa7ad885d8433571c7a629f30bd3057eff16e36cd  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py
+24e2e0aff019ca4a1f05517dfdba3764139fb775896e22904114715b258323bb  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py
+1e1003454985bf86d3868a7755bcf5324676881548b3895809edf0b76698d384  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/model_executor/models/llama.py
+040462bfb0fe47cd1bc85fe2fb48d3e567269d0dfbe7a96d52331bc9d5f460dc  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/model_executor/models/qwen2.py
+b0199a7e09b33354a9f5f9951792845c7d504ca1130f31814dc4b1ad77fcc5ff  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/model_executor/models/qwen3.py
+3a628b06b9eeb43b78a5ddc135b3b56f3e26e42a9b73b32bc5b37c888f8d89d5  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_input_batch.py
+98e1c469fabacec7015687029e1f9bae4b6af3afa41f3af43f2852c5e6c491e0  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/utils.py
++ echo '== 4. dry-run =='
+== 4. dry-run ==
++ docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= -e VLLM_R10_PACKAGE_DIR=/home/qch/transfer/host-opt-pr-validation-20261106-r10 corex5-py311 /opt/corex311-cpython-vllm/bin/python /home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages --dry-run
++ /opt/corex311-cpython-vllm/bin/python /home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/apply_patch.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages --check /home/qch/transfer/host-opt-pr-validation-20261106-r10/container/patches/0001-host-paths.patch /home/qch/transfer/host-opt-pr-validation-20261106-r10/container/patches/0002-ilu-metadata.patch /home/qch/transfer/host-opt-pr-validation-20261106-r10/container/patches/0003-compact-greedy.patch
+would apply 0001-host-paths.patch
+would apply 0002-ilu-metadata.patch
+would apply 0003-compact-greedy.patch
+dry run: baseline and patches PASS; nothing changed
++ RC=0
++ echo 'dry-run rc=0'
+dry-run rc=0
++ '[' 0 -ne 0 ']'
++ echo '== 5. install =='
+== 5. install ==
++ docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= -e VLLM_R10_PACKAGE_DIR=/home/qch/transfer/host-opt-pr-validation-20261106-r10 corex5-py311 /opt/corex311-cpython-vllm/bin/python /home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages
++ /opt/corex311-cpython-vllm/bin/python /home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/apply_patch.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages --check /home/qch/transfer/host-opt-pr-validation-20261106-r10/container/patches/0001-host-paths.patch /home/qch/transfer/host-opt-pr-validation-20261106-r10/container/patches/0002-ilu-metadata.patch /home/qch/transfer/host-opt-pr-validation-20261106-r10/container/patches/0003-compact-greedy.patch
+would apply 0001-host-paths.patch
+would apply 0002-ilu-metadata.patch
+would apply 0003-compact-greedy.patch
++ /opt/corex311-cpython-vllm/bin/python /home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/apply_patch.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages /home/qch/transfer/host-opt-pr-validation-20261106-r10/container/patches/0001-host-paths.patch /home/qch/transfer/host-opt-pr-validation-20261106-r10/container/patches/0002-ilu-metadata.patch /home/qch/transfer/host-opt-pr-validation-20261106-r10/container/patches/0003-compact-greedy.patch
+applied 0001-host-paths.patch
+applied 0002-ilu-metadata.patch
+applied 0003-compact-greedy.patch
++ cmake -S /home/qch/transfer/host-opt-pr-validation-20261106-r10/source/pr1 -B /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-build/pr1 -DCMAKE_BUILD_TYPE=Release -DVLLM_TARGET_DEVICE=empty -DVLLM_PYTHON_EXECUTABLE=/opt/corex311-cpython-vllm/bin/python -DCMAKE_INSTALL_PREFIX=/opt/corex311-cpython-vllm/lib/python3.11/site-packages
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Build type: Release
+-- Target device: empty
+-- Found Python: /opt/corex311-cpython-vllm/bin/python (found version "3.11.6") found components: Interpreter Development.Module Development.SABIModule
+-- Found python matching: /opt/corex311-cpython-vllm/bin/python.
+CMake Warning (dev) at /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/share/cmake/Caffe2/public/cuda.cmake:29 (find_package):
+  Policy CMP0146 is not set: The FindCUDA module is removed.  Run "cmake
+  --help-policy CMP0146" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+
+Call Stack (most recent call first):
+  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/share/cmake/Caffe2/Caffe2Config.cmake:86 (include)
+  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/share/cmake/Torch/TorchConfig.cmake:68 (find_package)
+  CMakeLists.txt:95 (find_package)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Found CUDA: /usr/local/corex (found version "10.2")
+-- The CUDA compiler identification is Clang 22.1.0
+-- Detecting CUDA compiler ABI info
+-- Detecting CUDA compiler ABI info - done
+-- Check for working CUDA compiler: /usr/local/corex/bin/clang++ - skipped
+-- Detecting CUDA compile features
+-- Detecting CUDA compile features - done
+-- Found CUDAToolkit: /usr/local/corex/include (found version "10.2")
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- PyTorch: CUDA detected: 10.2
+-- PyTorch: CUDA nvcc is: /usr/local/corex/bin/clang++
+-- PyTorch: CUDA toolkit directory: /usr/local/corex
+-- PyTorch: Header version is: 10.2
+-- Found Python: /opt/corex311-cpython-vllm/bin/python (found version "3.11.6") found components: Interpreter
+-- USE_CUDNN is set to 0. Compiling without cuDNN support
+-- cuINFER compile support is disabled for this target
+-- USE_CUSPARSELT is set to 0. Compiling without cuSPARSELt support
+CMake Warning at /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/share/cmake/Caffe2/public/cuda.cmake:149 (message):
+  Failed to compute shorthash for libnvrtc.so
+Call Stack (most recent call first):
+  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/share/cmake/Caffe2/Caffe2Config.cmake:86 (include)
+  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/share/cmake/Torch/TorchConfig.cmake:68 (find_package)
+  CMakeLists.txt:95 (find_package)
+
+
+-- USE_CUDSS is set to 0. Compiling without cuDSS support
+-- USE_CUFILE is set to 0. Compiling without cuFile support
+-- Autodetected CUDA architecture(s):  7.1 7.1 7.1 7.1
+CMake Warning at /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/share/cmake/Caffe2/public/cuda.cmake:361 (message):
+  pytorch is not compatible with `CMAKE_CUDA_ARCHITECTURES` and will ignore
+  its value.  Please configure `TORCH_CUDA_ARCH_LIST` instead.
+Call Stack (most recent call first):
+  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/share/cmake/Caffe2/Caffe2Config.cmake:86 (include)
+  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/share/cmake/Torch/TorchConfig.cmake:68 (find_package)
+  CMakeLists.txt:95 (find_package)
+
+
+-- Added CUDA NVCC flags for: -gencode;arch=compute_71,code=sm_71
+CMake Warning at /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/share/cmake/Torch/TorchConfig.cmake:22 (message):
+  static library kineto_LIBRARY-NOTFOUND not found.
+Call Stack (most recent call first):
+  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/share/cmake/Torch/TorchConfig.cmake:125 (append_torchlib_if_found)
+  CMakeLists.txt:95 (find_package)
+
+
+-- Found Torch: /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/lib/libtorch.so
+-- Configuring done (7.2s)
+-- Generating done (0.0s)
+-- Build files have been written to: /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-build/pr1
++ cmake --build /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-build/pr1 --target _host_opt_native -j2
+[ 50%] Building CXX object CMakeFiles/_host_opt_native.dir/csrc/host_opt_native.cpp.o
+[100%] Linking CXX shared module _host_opt_native.abi3.so
+[100%] Built target _host_opt_native
++ cmake --install /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-build/pr1 --component _host_opt_native
+-- Install configuration: "Release"
+-- Installing: /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
++ cmake -S /home/qch/transfer/host-opt-pr-validation-20261106-r10/source/pr2/CoreX-5.0.0/native -B /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-build/pr2 -DCMAKE_BUILD_TYPE=Release -DPython_EXECUTABLE=/opt/corex311-cpython-vllm/bin/python -DVLLM_PACKAGE_DIR=/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm
+-- The C compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Found Python: /opt/corex311-cpython-vllm/bin/python (found suitable version "3.11.6", minimum required is "3.11") found components: Interpreter Development.Module
+-- vLLM package directory: /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
+-- Build files have been written to: /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-build/pr2
++ cmake --build /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-build/pr2 -j2
+[ 50%] Building C object CMakeFiles/_host_opt_meta_native.dir/native.c.o
+[100%] Linking C shared module _host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+[100%] Built target _host_opt_meta_native
++ cmake --install /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-build/pr2
+-- Install configuration: "Release"
+-- Installing: /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+installed: defaults remain off; run scripts/verify.py separately
++ RC=0
++ echo 'install rc=0'
+install rc=0
++ '[' 0 -ne 0 ']'
++ echo '== 6. check + verify =='
+== 6. check + verify ==
++ docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= -e VLLM_R10_PACKAGE_DIR=/home/qch/transfer/host-opt-pr-validation-20261106-r10 corex5-py311 /opt/corex311-cpython-vllm/bin/python /home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages --check
+installed source digests and both built modules: PASS
++ echo 'check rc=0'
+check rc=0
++ docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= -e VLLM_R10_PACKAGE_DIR=/home/qch/transfer/host-opt-pr-validation-20261106-r10 corex5-py311 /opt/corex311-cpython-vllm/bin/python /home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/verify.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages
+INFO 11-09 19:25:26 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-09 19:25:26 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-09 19:25:26 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-09 19:25:26 [__init__.py:238] Platform plugin iluvatar is activated
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+........................................................................ [ 28%]
+........................................................................ [ 57%]
+........................................................................ [ 86%]
+..................................                                       [ 99%]
+=============================== warnings summary ===============================
+../../../opt/corex311-cpython-vllm/lib/python3.11/site-packages/_pytest/config/__init__.py:1345
+../../../opt/corex311-cpython-vllm/lib/python3.11/site-packages/_pytest/config/__init__.py:1345
+  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/_pytest/config/__init__.py:1345: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio
+    self._mark_plugins_for_rewrite(hook, disable_autoload)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+250 passed, 2 warnings in 0.89s
+{
+  "python": "3.11.6 (main, Oct 23 2026, 16:26:10) [GCC 13.3.0]",
+  "executable": "/opt/corex311-cpython-vllm/bin/python",
+  "architecture": "aarch64",
+  "platform": "Linux-6.6.0-145.3.37.168.oe2403sp3.aarch64-aarch64-with-glibc2.39",
+  "imports": {
+    "vllm.envs": {
+      "path": "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py",
+      "sha256": "61d00716c878c25c800f1fdce1deb0bdd8e4a53e218b2c79d80d51cb7f82d327"
+    },
+    "vllm._host_opt_native": {
+      "path": "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so",
+      "sha256": "6f8774f8c9e6839a3a1de15a763845511f200cb485f55ef10009475e30db8056"
+    },
+    "vllm._host_opt_meta_native": {
+      "path": "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so",
+      "sha256": "7c8686a72759d2e4f75e8157b819039fcdcf69c1b5eba5948e0d956859af1715"
+    },
+    "vllm.v1.worker.host_opt": {
+      "path": "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py",
+      "sha256": "2f1943f6557374abfcec4ecf7ef130e1734618f9391126b6f714ffca29712667"
+    },
+    "vllm.v1.worker.compact_greedy": {
+      "path": "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy.py",
+      "sha256": "4776461a00ba62037f22baa9ad39a97e09c2e2144bb4b697783f43b95c534ce3"
+    },
+    "vllm.v1.worker.sample_logits_graph": {
+      "path": "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/sample_logits_graph.py",
+      "sha256": "8cacf0db26ba33e3bfa76b163ac99b00dc9bd63d4de34cc5bf7e361650bec1aa"
+    },
+    "vllm.v1.worker.gpu_model_runner": {
+      "path": "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py",
+      "sha256": "b1bc3b00a8c09cceeb49111c864584018f84ea10440ef400d6dd2c8fb6e24a5e"
+    },
+    "vllm.v1.attention.backends.ilu_flash_attn": {
+      "path": "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py",
+      "sha256": "04049f511f8b2f3d0986d3494f70f5d596a409edc0ad3329aa48acd6e1b6a945"
+    }
+  },
+  "pytest_exit_code": 0,
+  "default_features": {
+    "inputs": false,
+    "arena": false,
+    "bookkeeping": false
+  },
+  "default_metadata": "off",
+  "default_compact_greedy": "off",
+  "default_sample_logits_graph": "off",
+  "scope": "container native build, CPU tests and metadata differential; no model run"
+}
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ echo 'verify rc=0'
+verify rc=0
++ echo '== 7. 安装后关键 hash =='
+== 7. 安装后关键 hash ==
++ docker exec corex5-py311 sh -c '
+SP=/opt/corex311-cpython-vllm/lib/python3.11/site-packages
+for f in vllm/v1/worker/gpu_model_runner.py vllm/envs.py vllm/v1/attention/backends/ilu_flash_attn.py          vllm/v1/worker/host_opt.py vllm/v1/worker/compact_greedy.py vllm/v1/worker/sample_logits_graph.py ; do
+  sha256sum $SP/$f 2>/dev/null || echo MISSING $f
+done'
+b1bc3b00a8c09cceeb49111c864584018f84ea10440ef400d6dd2c8fb6e24a5e  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+61d00716c878c25c800f1fdce1deb0bdd8e4a53e218b2c79d80d51cb7f82d327  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py
+04049f511f8b2f3d0986d3494f70f5d596a409edc0ad3329aa48acd6e1b6a945  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py
+2f1943f6557374abfcec4ecf7ef130e1734618f9391126b6f714ffca29712667  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py
+4776461a00ba62037f22baa9ad39a97e09c2e2144bb4b697783f43b95c534ce3  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy.py
+8cacf0db26ba33e3bfa76b163ac99b00dc9bd63d4de34cc5bf7e361650bec1aa  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/sample_logits_graph.py
++ set +x
+
+### exit: 0
