@@ -17,47 +17,29 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 只读：确认旧内核与驱动模块、grub 候选、驱动安装来源、服务状态。
-  # 不 reboot、不 insmod、不装包。
+  # 只读：检查用户手工改过的两个 bench 脚本现状。
 
-  echo "== 1. grub 默认与候选 =="
-  grubby --default-kernel 2>/dev/null || echo "grubby 不可用"
-  echo "-- 所有内核条目 --"
-  grubby --info=ALL 2>/dev/null | grep -E "index=|kernel=|title=" | head -40
-  echo "-- /boot 下的内核 --"
-  ls -1 /boot/vmlinuz* /boot/Image* 2>/dev/null | head -20
+  D=/home/huawei_ts_program/litehost_perf_opt
 
-  echo "== 2. 各内核下的 iluvatar.ko =="
-  find /lib/modules -name "iluvatar.ko*" -printf "%p\n" 2>/dev/null | head -10
-  for d in /lib/modules/*/; do
-    k=$(basename "$d")
-    if [ -e "$d/kernel/drivers/misc/iluvatar.ko" ]; then echo "HAS_MODULE $k"; fi
-  done
+  echo "== 1. 目录与备份 =="
+  ls -lt --time-style=long-iso "$D"/vllmBench_lite_base.sh "$D"/vllmBench_lite_opt.sh "$D"/*.bak* 2>/dev/null | head -20
 
-  echo "== 3. 驱动来源（包/安装器）=="
-  rpm -qa 2>/dev/null | grep -iE "corex|iluvatar" | head -20 || echo "rpm 无匹配"
-  echo "-- /usr/local/corex-5.0.0 --"
-  ls -la /usr/local/corex-5.0.0 2>/dev/null | head -12
-  echo "-- 驱动安装器搜索 --"
-  timeout 60 find /root /opt /usr/local /home /var -maxdepth 5 \
-    \( -name "*corex*driver*" -o -name "*.run" -o -name "*iluvatar*.ko" \) 2>/dev/null \
-    | grep -iE "corex|iluvatar|driver" | head -20
+  echo "== 2. 语法检查 =="
+  bash -n "$D/vllmBench_lite_base.sh" && echo "OK base" || echo "SYNTAX ERROR base"
+  bash -n "$D/vllmBench_lite_opt.sh" && echo "OK opt" || echo "SYNTAX ERROR opt"
 
-  echo "== 4. 服务状态 =="
-  systemctl list-units --all 2>/dev/null | grep -iE "iluvatar|corex" | head -10 || echo "无相关 unit"
-  systemctl status iluvatarcorex-init 2>&1 | head -15 || true
-  systemctl status "iluvatarcorex-init*" 2>&1 | head -15 || true
-  journalctl -u iluvatarcorex-init --no-pager -n 30 2>/dev/null | tail -30 || true
+  echo "== 3. 残留的 pgo/rebase 引用 =="
+  grep -in "pgo\|rebase" "$D/vllmBench_lite_base.sh" "$D/vllmBench_lite_opt.sh" || echo "(无)"
 
-  echo "== 5. 新内核的 headers/devel =="
-  rpm -qa 2>/dev/null | grep -E "kernel-devel|kernel-headers" | head -10
-  ls /usr/src/kernels 2>/dev/null | head -10
+  echo "== 4. base 头部与 PGO 区域 =="
+  sed -n '1,35p' "$D/vllmBench_lite_base.sh"
+  echo "---- 60-140 ----"
+  sed -n '60,140p' "$D/vllmBench_lite_base.sh"
 
-  echo "== 6. 容器重启策略 =="
-  docker inspect corex5-py311 --format 'RestartPolicy={{.HostConfig.RestartPolicy.Name}}' 2>/dev/null || true
-
-  echo "== 7. 页面大小 =="
-  getconf PAGESIZE 2>/dev/null || true
+  echo "== 5. opt 头部与 PGO 区域 =="
+  sed -n '1,35p' "$D/vllmBench_lite_opt.sh"
+  echo "---- 60-140 ----"
+  sed -n '60,140p' "$D/vllmBench_lite_opt.sh"
 
   # ---- 命令结束 ----
 
