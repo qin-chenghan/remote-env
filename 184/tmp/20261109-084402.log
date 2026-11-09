@@ -1,0 +1,365 @@
+### server: 184
+### host:   controller
+### time:   2026-11-09T00:44:02Z
+
++ CON=corex5-py311
++ BASE=/opt/corex311
++ NEW=/opt/corex311-cpython-vllm
++ BUNDLE=/home/z30059427/corex5-py311-20261009
++ echo '== 1. install_corex311.sh 全文 =='
+== 1. install_corex311.sh 全文 ==
++ docker exec corex5-py311 sh -c 'cat /home/z30059427/corex5-py311-20261009/install_corex311.sh'
+#!/usr/bin/env bash
+# Resolve vendor and ordinary requirements together in a fresh, isolated venv.
+set -Eeuo pipefail
+
+bundle_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+python_command="${1:-python3.11}"
+venv_prefix="${2:-/opt/corex-vllm-py311}"
+
+die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
+
+[[ "$(uname -s)" == Linux && "$(uname -m)" == aarch64 ]] || die 'Requires Linux AArch64.'
+base_python="$(command -v -- "$python_command")" || die "Installed interpreter not found: $python_command"
+[[ -x "$base_python" ]] || die "Interpreter is not executable: $base_python"
+unset PYTHONHOME PYTHONPATH
+python_prefix="$("$base_python" -c 'import sys; print(sys.prefix)')"
+[[ "$venv_prefix" == /* && "$venv_prefix" != / && "$venv_prefix" != /usr && "$venv_prefix" != /usr/local && "$venv_prefix" != "$python_prefix" ]] || die 'Use a new absolute venv prefix.'
+[[ "$venv_prefix" != *[[:space:]]* ]] || die 'The venv prefix must not contain whitespace.'
+[[ ! -e "$venv_prefix" ]] || die "Venv already exists: $venv_prefix; use a new directory instead of overwriting it."
+command -v sha256sum >/dev/null || die 'Missing verification tool: sha256sum'
+[[ -s "$bundle_dir/SHA256SUMS.txt" ]] || die 'Missing SHA256SUMS.txt in the bundle root.'
+(cd "$bundle_dir" && sha256sum --check --strict SHA256SUMS.txt)
+for required_file in requirements-vendor-py311.txt requirements-py311.txt verify_corex311.py; do
+  [[ -s "$bundle_dir/$required_file" ]] || die "Missing bundle file: $required_file"
+done
+shopt -s nullglob
+vendor_wheels=("$bundle_dir/vendor/"*.whl)
+[[ ${#vendor_wheels[@]} -gt 0 ]] || die 'No vendor wheels found.'
+
+unset PYTHONHOME PYTHONPATH
+export PIP_DISABLE_PIP_VERSION_CHECK=1
+"$base_python" "$bundle_dir/verify_corex311.py" --runtime-only --expected-prefix "$python_prefix"
+"$base_python" -m venv "$venv_prefix"
+venv_python="$venv_prefix/bin/python"
+
+# Exact CoreX pins participate in this same solve, preventing a transitive
+# dependency from replacing the vendor Torch/Triton packages.
+"$venv_python" -m pip install \
+  --only-binary=:all: \
+  --find-links "$bundle_dir/vendor" --find-links "$bundle_dir/wheels" \
+  --requirement "$bundle_dir/requirements-vendor-py311.txt" \
+  --requirement "$bundle_dir/requirements-py311.txt"
+"$venv_python" -m pip --isolated check
+"$venv_python" "$bundle_dir/verify_corex311.py" \
+  --expected-prefix "$venv_prefix" --bundle "$bundle_dir" \
+  --output "$venv_prefix/corex311-cpu-verification.json"
+printf 'Package imports and CPU smoke passed. Evidence: %s\n' "$venv_prefix/corex311-cpu-verification.json"
+printf 'For a device smoke, run: %q %q --expected-prefix %q --device cuda:0\n' \
+  "$venv_python" "$bundle_dir/verify_corex311.py" "$venv_prefix"
++ echo '== 2. README（离线安装/来源相关）=='
+== 2. README（离线安装/来源相关）==
++ docker exec corex5-py311 sh -c 'sed -n '\''1,160p'\'' /home/z30059427/corex5-py311-20261009/README.md'
+# CoreX 5.0.0 / AArch64 / CPython 3.11.6 依赖安装包
+
+使用用户已安装的 **CPython 3.11.6**，为 CoreX 5.0.0 / Linux AArch64 的 vLLM Qwen3-W8A8 环境提供定制包和普通依赖。
+
+本包包含 **14 个厂商 wheel、精确 requirements、安装/验证脚本和校验清单**，约736 MB。普通依赖仅提供166项精确 requirements，从已配置的 pip 源安装，不包含其 wheel；也不包含 Python 源码或构建脚本。依照 Linux/AArch64/CPython3.11.6 的 marker、目标 glibc2.39 对实际 wheel 的递归闭包和平台标签核验通过；厂商 MD5、普通依赖审计用的 PyPI SHA256 与 ZIP CRC 已核对。原始 requirements 保存在 `requirements-py311.requested.txt`，调整表见 `REQUIREMENTS_CHANGES.md`。`manifest.json` 中 `included_in_bundle` 区分实际收录的厂商 wheel 和仅记录依赖的普通包。目标天数卡环境的 Torch/CoreX、四卡 vLLM 和 E2E 尚未验收。
+
+## 1. 文件与适用范围
+
+另在真实 Linux/AArch64/CPython3.11.6 测试容器中，用与原 wheel 相同的 METADATA 进行离线 `pip --dry-run --ignore-installed --no-index`，180 个包的最终版本与本包完全一致；该测试容器的既有 CP311 解释器运行时验证19项通过。此过程没有安装/执行厂商代码，证据摘要见 `evidence/remote-validation-summary.json`。
+
+```text
+vendor/                             SFTP 下载的厂商 wheels
+requirements-vendor-py311.txt       厂商包精确版本
+requirements-py311.txt              按 CoreX5 wheel metadata 调整后的普通依赖
+SHA256SUMS.txt                      制品校验和
+install_corex311.sh                 新 venv 中一次解算安装
+verify_corex311.py                  版本、ABI、依赖、CPU/可选设备检查
+```
+
+最终厂商版本以 `requirements-vendor-py311.txt` 和 wheel metadata 为准。此次主要版本是 Torch `2.10.0+corex.5.0.0`、Triton `3.2.0+corex.5.0.0`、ixformer `0.7.0+corex.5.0.0`、vLLM `0.23.0+corex.5.0.0`。不要把旧 CoreX4.4 的版本后缀机械替换后作为依赖方案。
+
+历史目标采集记录为 AArch64、CPython3.12.11、glibc2.39；没有记录容器发行版，先在实际目标中检查：
+
+```bash
+uname -m
+cat /etc/os-release
+getconf GNU_LIBC_VERSION
+python -VV
+```
+
+安装脚本接受现有解释器命令或实际可执行文件路径，基于它创建独立 venv，默认位置为 `/opt/corex-vllm-py311`。创建 venv 时不继承系统 site-packages，不复制 CP312 `.so`。
+
+必须保留工作中的 CoreX SDK、通信库、设备映射、驱动挂载及对应 `LD_LIBRARY_PATH`。这些属于容器/系统运行时，Python wheels 不能替代。脚本清除 `PYTHONHOME/PYTHONPATH`，避免原 CP312 包被导入；若 SDK 另有纯 Python 启动路径，须核验为 CP311 兼容后有选择地重新设置。
+
+## 2. 使用已安装的 Python3.11.6
+
+以下 `python3.11` 必须指向你已安装的3.11.6；若不在 PATH，将 `PYTHON311` 设为其实际可执行文件路径。先核对解释器并验证包内文件：
+
+```bash
+export BUNDLE=/absolute/path/to/corex5-py311-20261009
+export PYTHON311="$(command -v python3.11)"
+"$PYTHON311" -c 'import sys,platform; assert sys.version_info[:3] == (3,11,6); assert platform.system() == "Linux" and platform.machine() == "aarch64"; print(sys.executable, sys.version)'
+cd "$BUNDLE"
+sha256sum --check SHA256SUMS.txt
+```
+
+若需要完全离线安装，可在**Linux/AArch64、精确 CPython3.11.6** 的联网准备机上另行准备普通依赖。`--constraint` 和厂商 `--find-links` 约束依赖，防止间接下载官方 Torch/Triton/CuPy/Ray 替换厂商包。普通依赖 wheel 未包含在本压缩包中。
+
+```bash
+mkdir -p "$BUNDLE/wheels"
+"$PYTHON311" -m pip --isolated download \
+  --only-binary=:all: \
+  --find-links "$BUNDLE/vendor" \
+  --constraint "$BUNDLE/requirements-vendor-py311.txt" \
+  --requirement "$BUNDLE/requirements-py311.txt" \
+  --dest "$BUNDLE/wheels"
+```
+
+将下载后的 `wheels/` 一起复制到离线目标。resolver 可能同时保存一部分已在 `vendor/` 的厂商 wheel；这不会选择官方替代品，但会增加体积。如果某普通包没有匹配 CP311/AArch64 wheel，命令会停止，应在匹配环境中单独构建 wheel 后再继续，不以忽略依赖方式绕过。
+
+## 3. 安装与验证
+
+在已保留 CoreX 原运行环境的目标容器中执行。安装脚本拒绝覆盖已有 venv 目录；失败时保留日志/目录以定位原因，再使用新的 venv 目录重试。
+
+```bash
+bash "$BUNDLE/install_corex311.sh" "$PYTHON311"
+```
+
+该步骤先使用根目录 `SHA256SUMS.txt` 校验制品，再新建无 system-site-packages 的 venv，同时解算两份 pinned requirements：厂商包从 `vendor/` 获取，普通依赖从已配置的 pip 源获取。脚本没有 `--no-deps`。随后运行 pip check、核心包导入、CPU tensor 运算；JSON 默认存于 `/opt/corex-vllm-py311/corex311-cpu-verification.json`。若另行补齐完整 `wheels/` 并需要禁网安装，可手动用 `pip install --no-index --find-links vendor --find-links wheels -r requirements-vendor-py311.txt -r requirements-py311.txt`。运行时校验未通过时，校验脚本跳过厂商包导入和 tensor 运算。
+
+显式进行单卡传输/运算验证；CoreX 沿用 Torch 的 `cuda` 接口：
+
+```bash
+/opt/corex-vllm-py311/bin/python "$BUNDLE/verify_corex311.py" \
+  --device cuda:0 \
+  --output /opt/corex-vllm-py311/corex311-device-verification.json
+```
+
+校验脚本记录 Python/ABI/glibc/系统、头文件、libpython linkage、全部 pinned 版本、模块位置、pip check、平台插件 entry points 和运算结果。CPU检查不证明卡侧兼容；单卡 tensor 检查也不证明 ixformer W8A8、collective、Graph replay 或完整 Qwen 推理正确。
+
+服务测试继续使用当前已工作的模型、TP、量化与编译参数，将入口解释器改成 `/opt/corex-vllm-py311/bin/python`，或使用新 venv 的 `/opt/corex-vllm-py311/bin/vllm`。launcher、manager/controller 及每个 TP Worker 都需检查 `sys.executable`，避免只切换主进程而 Worker 仍为3.12。先做短请求正确性检查，再做 profiler 关闭的重复 TPOT/吞吐 A/B。
+
+指定不同 venv 目录时，传入相同的已安装解释器和新的 venv 路径：
+
+```bash
+bash "$BUNDLE/install_corex311.sh" "$PYTHON311" /opt/corex-vllm-py311-r2
+/opt/corex-vllm-py311-r2/bin/python "$BUNDLE/verify_corex311.py" \
+  --expected-prefix /opt/corex-vllm-py311-r2 --device cuda:0
+```
+
+## 4. 厂商目录缺件与 CuPy 说明
+
+此次目标目录未提供以下五个请求的独立包：`rotary_emb`、`fused_dense_lib`、`fused_softmax_lib`、`dropout_layer_norm`、`xentropy_cuda_lib`。不把4.4或CP312制品混入311包，不声称已完整复制原容器。`verify_corex311.py` 将这些模块的可发现性作为单独信息记录。
+
+`flash_attn` 的部分 `ops` 路径会强依赖这些扩展，因此带上 `flash_attn` wheel 不等于其全部功能完整。当前目标 vLLM 的 `ilu_flash_attn` backend 使用 `ixformer.contrib.vllm_flash_attn`；仍需用实际 Qwen3-W8A8 服务路径确认缺件是否影响所需功能。
+
+此次厂商 `cupy-cuda11x`、`cupy-cuda12x` 是**仅携带 dist-info、无 Requires-Dist、无 cupy 模块**的占位包；实际模块由定制 `cupy` 提供。三者可同时安装，本结论来自此次 wheel 内容，不能推广到 PyPI 上同名的普通 CUDA 包。
+
+## 5. CinderX 接入边界
+
+此包不自动安装 CinderX。当前 CP311 优化 wheel 的验证环境是 openEuler `3.11.6-34.oe2403sp3`；你实际解释器和系统动态库与该 wheel 的兼容性需单独验收。先建立不加载 CinderX 的 CoreX5/CP311基线，再接入已验收的 CinderX wheel。
+
+接入时必须在导入 Torch 前 `cinderx.init()`，再检查 evaluator/JIT 和全部 Worker 的解释器。不要把修改 Python 版本、依赖版本或已有 JIT 开关带来的差异归因于 `dict.get` 新优化。迁移不保证原CPU微基准收益会出现在设备E2E上。
+
++ echo '== 3. hashed 清单与 base 已装包集合是否对应 =='
+== 3. hashed 清单与 base 已装包集合是否对应 ==
++ docker exec -i -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -
+requirements=180 installed=166 covered=157
+in_requirements_not_installed=23
+installed_not_in_requirements(excl pip/setuptools/wheel)=9
+version_mismatch=0
+--- in requirements, not installed ---
+apache-tvm-ffi==0.1.11+corex.5.0.0
+cupy==11.4.0+corex.5.0.0
+cupy-cuda11x==11.4.0+corex.5.0.0
+cupy-cuda12x==11.4.0+corex.5.0.0
+docstring-parser==0.18.0
+et-xmlfile==2.0.0
+flash-attn==2.8.3+corex.5.0.0
+hf-transfer==0.1.9
+huggingface-hub==1.5.0
+ixformer==0.7.0+corex.5.0.0
+mistral-common==1.11.3
+outlines-core==0.2.14
+prometheus-client==0.24.1
+pydantic-core==2.41.5
+pynvml==11.5.3+corex.5.0.0
+ray==2.52.1+corex.5.0.0
+torch==2.10.0+corex.5.0.0
+torchaudio==2.10.0+corex.5.0.0
+torchdebug==5.0.0+corex.5.0.0
+torchvision==0.25.0+corex.5.0.0
+triton==3.2.0+corex.5.0.0
+typing-extensions==4.15.0
+vllm==0.23.0+corex.5.0.0
+--- installed, not in requirements ---
+docstring_parser==0.18.0
+et_xmlfile==2.0.0
+hf_transfer==0.1.9
+huggingface_hub==1.5.0
+mistral_common==1.11.3
+outlines_core==0.2.14
+prometheus_client==0.24.1
+pydantic_core==2.41.5
+typing_extensions==4.15.0
+--- version mismatch ---
++ echo '== 4. vendor 目录与 wheel 来源 =='
+== 4. vendor 目录与 wheel 来源 ==
++ docker exec corex5-py311 sh -c '
+ls -la /home/z30059427/corex5-py311-20261009/vendor
+echo '\''-- 安装脚本里与来源相关的行 --'\''
+grep -nE '\''find-links|no-index|index-url|pip download|wheelhouse|vendor|network|offline'\'' /home/z30059427/corex5-py311-20261009/install_corex311.sh /home/z30059427/corex5-py311-20261009/README.md | head -40
+echo '\''-- 机器上的 wheelhouse --'\''
+find /home/z30059427 -maxdepth 4 -type d -iname '\''*wheelhouse*'\'' 2>/dev/null | head -10
+'
+total 718996
+drwxrwxr-x+ 2 root root      4096 Oct  9 14:04 .
+drwxrwxr-x+ 4 root root      4096 Oct  9 14:04 ..
+-rw-rw-rw-+ 1 root root   2638021 Oct  9 11:53 apache_tvm_ffi-0.1.11+corex.5.0.0-cp311-cp311-linux_aarch64.whl
+-rw-rw-rw-+ 1 root root       153 Oct  9 11:53 apache_tvm_ffi-0.1.11+corex.5.0.0-cp311-cp311-linux_aarch64.whl.md5sum
+-rw-rw-rw-+ 1 root root  43410838 Oct  9 11:29 cupy-11.4.0+corex.5.0.0-cp311-cp311-linux_aarch64.whl
+-rw-rw-rw-+ 1 root root       143 Oct  9 11:53 cupy-11.4.0+corex.5.0.0-cp311-cp311-linux_aarch64.whl.md5sum
+-rw-rw-rw-+ 1 root root      3004 Oct  9 11:29 cupy_cuda11x-11.4.0+corex.5.0.0-py3-none-any.whl
+-rw-rw-rw-+ 1 root root       138 Oct  9 11:53 cupy_cuda11x-11.4.0+corex.5.0.0-py3-none-any.whl.md5sum
+-rw-rw-rw-+ 1 root root      3004 Oct  9 11:29 cupy_cuda12x-11.4.0+corex.5.0.0-py3-none-any.whl
+-rw-rw-rw-+ 1 root root       138 Oct  9 11:53 cupy_cuda12x-11.4.0+corex.5.0.0-py3-none-any.whl.md5sum
+-rw-rw-rw-+ 1 root root   5188681 Oct  9 11:29 flash_attn-2.8.3+corex.5.0.0-cp311-cp311-linux_aarch64.whl
+-rw-rw-rw-+ 1 root root       157 Oct  9 11:53 flash_attn-2.8.3+corex.5.0.0-cp311-cp311-linux_aarch64.whl.md5sum
+-rw-rw-rw-+ 1 root root  31887989 Oct  9 11:29 ixformer-0.7.0+corex.5.0.0-cp311-cp311-linux_aarch64.whl
+-rw-rw-rw-+ 1 root root       144 Oct  9 11:53 ixformer-0.7.0+corex.5.0.0-cp311-cp311-linux_aarch64.whl.md5sum
+-rw-rw-rw-+ 1 root root     53300 Oct  9 11:29 pynvml-11.5.3+corex.5.0.0-py3-none-any.whl
+-rw-rw-rw-+ 1 root root       132 Oct  9 11:53 pynvml-11.5.3+corex.5.0.0-py3-none-any.whl.md5sum
+-rw-rw-rw-+ 1 root root  39939042 Oct  9 11:42 ray-2.52.1+corex.5.0.0-cp311-cp311-linux_aarch64.whl
+-rw-rw-rw-+ 1 root root       140 Oct  9 11:53 ray-2.52.1+corex.5.0.0-cp311-cp311-linux_aarch64.whl.md5sum
+-rw-rw-rw-+ 1 root root 315062539 Oct  9 11:30 torch-2.10.0+corex.5.0.0-cp311-cp311-linux_aarch64.whl
+-rw-rw-rw-+ 1 root root       142 Oct  9 11:53 torch-2.10.0+corex.5.0.0-cp311-cp311-linux_aarch64.whl.md5sum
+-rw-rw-rw-+ 1 root root    867760 Oct  9 11:30 torchaudio-2.10.0+corex.5.0.0-cp311-cp311-linux_aarch64.whl
+-rw-rw-rw-+ 1 root root       147 Oct  9 11:53 torchaudio-2.10.0+corex.5.0.0-cp311-cp311-linux_aarch64.whl.md5sum
+-rw-rw-rw-+ 1 root root    115752 Oct  9 11:30 torchdebug-5.0.0+corex.5.0.0-py3-none-any.whl
+-rw-rw-rw-+ 1 root root       133 Oct  9 11:53 torchdebug-5.0.0+corex.5.0.0-py3-none-any.whl.md5sum
+-rw-rw-rw-+ 1 root root   2070431 Oct  9 11:30 torchvision-0.25.0+corex.5.0.0-cp311-cp311-linux_aarch64.whl
+-rw-rw-rw-+ 1 root root       148 Oct  9 11:53 torchvision-0.25.0+corex.5.0.0-cp311-cp311-linux_aarch64.whl.md5sum
+-rw-rw-rw-+ 1 root root 287023613 Oct  9 11:31 triton-3.2.0+corex.5.0.0-cp311-cp311-linux_aarch64.whl
+-rw-rw-rw-+ 1 root root       142 Oct  9 11:53 triton-3.2.0+corex.5.0.0-cp311-cp311-linux_aarch64.whl.md5sum
+-rw-rw-rw-+ 1 root root   7765589 Oct  9 11:31 vllm-0.23.0+corex.5.0.0-py3-none-any.whl
+-rw-rw-rw-+ 1 root root       128 Oct  9 11:53 vllm-0.23.0+corex.5.0.0-py3-none-any.whl.md5sum
+-- 安装脚本里与来源相关的行 --
+/home/z30059427/corex5-py311-20261009/install_corex311.sh:2:# Resolve vendor and ordinary requirements together in a fresh, isolated venv.
+/home/z30059427/corex5-py311-20261009/install_corex311.sh:22:for required_file in requirements-vendor-py311.txt requirements-py311.txt verify_corex311.py; do
+/home/z30059427/corex5-py311-20261009/install_corex311.sh:26:vendor_wheels=("$bundle_dir/vendor/"*.whl)
+/home/z30059427/corex5-py311-20261009/install_corex311.sh:27:[[ ${#vendor_wheels[@]} -gt 0 ]] || die 'No vendor wheels found.'
+/home/z30059427/corex5-py311-20261009/install_corex311.sh:36:# dependency from replacing the vendor Torch/Triton packages.
+/home/z30059427/corex5-py311-20261009/install_corex311.sh:39:  --find-links "$bundle_dir/vendor" --find-links "$bundle_dir/wheels" \
+/home/z30059427/corex5-py311-20261009/install_corex311.sh:40:  --requirement "$bundle_dir/requirements-vendor-py311.txt" \
+/home/z30059427/corex5-py311-20261009/README.md:9:另在真实 Linux/AArch64/CPython3.11.6 测试容器中，用与原 wheel 相同的 METADATA 进行离线 `pip --dry-run --ignore-installed --no-index`，180 个包的最终版本与本包完全一致；该测试容器的既有 CP311 解释器运行时验证19项通过。此过程没有安装/执行厂商代码，证据摘要见 `evidence/remote-validation-summary.json`。
+/home/z30059427/corex5-py311-20261009/README.md:12:vendor/                             SFTP 下载的厂商 wheels
+/home/z30059427/corex5-py311-20261009/README.md:13:requirements-vendor-py311.txt       厂商包精确版本
+/home/z30059427/corex5-py311-20261009/README.md:20:最终厂商版本以 `requirements-vendor-py311.txt` 和 wheel metadata 为准。此次主要版本是 Torch `2.10.0+corex.5.0.0`、Triton `3.2.0+corex.5.0.0`、ixformer `0.7.0+corex.5.0.0`、vLLM `0.23.0+corex.5.0.0`。不要把旧 CoreX4.4 的版本后缀机械替换后作为依赖方案。
+/home/z30059427/corex5-py311-20261009/README.md:47:若需要完全离线安装，可在**Linux/AArch64、精确 CPython3.11.6** 的联网准备机上另行准备普通依赖。`--constraint` 和厂商 `--find-links` 约束依赖，防止间接下载官方 Torch/Triton/CuPy/Ray 替换厂商包。普通依赖 wheel 未包含在本压缩包中。
+/home/z30059427/corex5-py311-20261009/README.md:53:  --find-links "$BUNDLE/vendor" \
+/home/z30059427/corex5-py311-20261009/README.md:54:  --constraint "$BUNDLE/requirements-vendor-py311.txt" \
+/home/z30059427/corex5-py311-20261009/README.md:59:将下载后的 `wheels/` 一起复制到离线目标。resolver 可能同时保存一部分已在 `vendor/` 的厂商 wheel；这不会选择官方替代品，但会增加体积。如果某普通包没有匹配 CP311/AArch64 wheel，命令会停止，应在匹配环境中单独构建 wheel 后再继续，不以忽略依赖方式绕过。
+/home/z30059427/corex5-py311-20261009/README.md:69:该步骤先使用根目录 `SHA256SUMS.txt` 校验制品，再新建无 system-site-packages 的 venv，同时解算两份 pinned requirements：厂商包从 `vendor/` 获取，普通依赖从已配置的 pip 源获取。脚本没有 `--no-deps`。随后运行 pip check、核心包导入、CPU tensor 运算；JSON 默认存于 `/opt/corex-vllm-py311/corex311-cpu-verification.json`。若另行补齐完整 `wheels/` 并需要禁网安装，可手动用 `pip install --no-index --find-links vendor --find-links wheels -r requirements-vendor-py311.txt -r requirements-py311.txt`。运行时校验未通过时，校验脚本跳过厂商包导入和 tensor 运算。
+-- 机器上的 wheelhouse --
+/home/z30059427/wheelhouse
++ echo '== 5. verify_corex311.py 用法 =='
+== 5. verify_corex311.py 用法 ==
++ docker exec corex5-py311 sh -c 'sed -n '\''1,80p'\'' /home/z30059427/corex5-py311-20261009/verify_corex311.py'
+#!/usr/bin/env python3
+"""Record CPython/CoreX ABI, package checks, and an explicit CPU/device smoke."""
+from __future__ import annotations
+
+import argparse
+import importlib
+import importlib.metadata
+import importlib.util
+import json
+import platform
+import re
+import subprocess
+import sys
+import sysconfig
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+
+MISSING_OPTIONAL_MODULES = (
+    "rotary_emb",
+    "fused_dense_lib",
+    "fused_softmax_lib",
+    "dropout_layer_norm",
+    "xentropy_cuda_lib",
+)
+CORE_MODULES = ("torch", "triton", "ixformer", "vllm")
+
+
+def read_exact_pins(path: Path) -> dict[str, str]:
+    pins: dict[str, str] = {}
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.split("#", 1)[0].strip()
+        if not line:
+            continue
+        match = re.fullmatch(
+            r"([A-Za-z0-9_.-]+)(?:\[[A-Za-z0-9_.-]+(?:\s*,\s*[A-Za-z0-9_.-]+)*\])?==([^\s;]+)",
+            line,
+        )
+        if match is None:
+            raise ValueError(f"Expected an exact package pin in {path.name}: {line}")
+        name, version = match.groups()
+        normalized = re.sub(r"[-_.]+", "-", name).lower()
+        if normalized in pins and pins[normalized] != version:
+            raise ValueError(f"Conflicting versions for {normalized} in {path.name}")
+        pins[normalized] = version
+    return pins
+
+
+def add_check(report: dict[str, Any], name: str, passed: bool, details: Any) -> None:
+    report["checks"].append({"name": name, "passed": bool(passed), "details": details})
+
+
+def command_result(command: list[str]) -> dict[str, Any]:
+    try:
+        completed = subprocess.run(
+            command, capture_output=True, text=True, timeout=120, check=False
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return {"command": command, "returncode": None, "error": str(exc)}
+    return {
+        "command": command,
+        "returncode": completed.returncode,
+        "stdout": completed.stdout.strip(),
+        "stderr": completed.stderr.strip(),
+    }
+
+
+def check_runtime(report: dict[str, Any], expected_prefix: Path) -> None:
+    report["runtime"] = {
+        "python": sys.version,
+        "executable": sys.executable,
+        "prefix": sys.prefix,
+        "base_prefix": sys.base_prefix,
+        "implementation": platform.python_implementation(),
+        "system": platform.system(),
+        "machine": platform.machine(),
+        "libc": list(platform.libc_ver()),
+        "soabi": sysconfig.get_config_var("SOABI"),
+        "extension_suffix": sysconfig.get_config_var("EXT_SUFFIX"),
++ echo '== 6. 新 venv 占用/磁盘 =='
+== 6. 新 venv 占用/磁盘 ==
++ docker exec corex5-py311 sh -c '
+for p in /proc/[0-9]*; do
+  e=$(readlink "$p/exe" 2>/dev/null) || continue
+  case "$e" in *corex311-cpython-vllm*) echo "${p#/proc/} $e";; esac
+done | head -10
+du -sh /opt/corex311-cpython-vllm 2>/dev/null
+df -h /opt | tail -1
+'
+3.5G	/opt/corex311-cpython-vllm
+overlay         6.9T  3.4T  3.2T  52% /
++ set +x
+
+### exit: 0
