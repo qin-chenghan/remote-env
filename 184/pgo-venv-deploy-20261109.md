@@ -212,6 +212,8 @@ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 \
 - 184 的 `corex311` 同期被同事更新为 `b869bfb1…` 变体，并在跑 opt 基准
   （`/home/s00806700/litehost_perf_opt/`）。做任何对比前先确认两侧补丁版本。
 
+> 32 的对应部署记录见 [`../32/pgo-venv-deploy-20261109.md`](../32/pgo-venv-deploy-20261109.md)。
+
 ## 9. 已知坑清单
 
 1. `docker exec` 不继承宿主 env → 代理必须显式 `-e`。
