@@ -17,55 +17,47 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 重启后 ixsmi 无法与 iluvatar 驱动通信：只读诊断，不加载/不重装。
+  # 只读：确认旧内核与驱动模块、grub 候选、驱动安装来源、服务状态。
+  # 不 reboot、不 insmod、不装包。
 
-  echo "== 1. 主机与内核 =="
-  uname -a
-  uptime
-  echo "-- 最近重启 --"
-  last reboot 2>/dev/null | head -5
+  echo "== 1. grub 默认与候选 =="
+  grubby --default-kernel 2>/dev/null || echo "grubby 不可用"
+  echo "-- 所有内核条目 --"
+  grubby --info=ALL 2>/dev/null | grep -E "index=|kernel=|title=" | head -40
+  echo "-- /boot 下的内核 --"
+  ls -1 /boot/vmlinuz* /boot/Image* 2>/dev/null | head -20
 
-  echo "== 2. 模块状态 =="
-  lsmod 2>/dev/null | grep -i iluvatar || echo "iluvatar NOT loaded"
-  echo "-- modinfo --"
-  modinfo iluvatar 2>&1 | grep -E "filename|version|vermagic|license" | head -10
+  echo "== 2. 各内核下的 iluvatar.ko =="
+  find /lib/modules -name "iluvatar.ko*" -printf "%p\n" 2>/dev/null | head -10
+  for d in /lib/modules/*/; do
+    k=$(basename "$d")
+    if [ -e "$d/kernel/drivers/misc/iluvatar.ko" ]; then echo "HAS_MODULE $k"; fi
+  done
 
-  echo "== 3. 设备节点 =="
-  ls -l /dev/iluvatar* 2>&1 | head -12
+  echo "== 3. 驱动来源（包/安装器）=="
+  rpm -qa 2>/dev/null | grep -iE "corex|iluvatar" | head -20 || echo "rpm 无匹配"
+  echo "-- /usr/local/corex-5.0.0 --"
+  ls -la /usr/local/corex-5.0.0 2>/dev/null | head -12
+  echo "-- 驱动安装器搜索 --"
+  timeout 60 find /root /opt /usr/local /home /var -maxdepth 5 \
+    \( -name "*corex*driver*" -o -name "*.run" -o -name "*iluvatar*.ko" \) 2>/dev/null \
+    | grep -iE "corex|iluvatar|driver" | head -20
 
-  echo "== 4. dmesg 驱动相关 =="
-  dmesg 2>/dev/null | grep -iE "iluvatar|corex|version magic|module verification" | tail -50
+  echo "== 4. 服务状态 =="
+  systemctl list-units --all 2>/dev/null | grep -iE "iluvatar|corex" | head -10 || echo "无相关 unit"
+  systemctl status iluvatarcorex-init 2>&1 | head -15 || true
+  systemctl status "iluvatarcorex-init*" 2>&1 | head -15 || true
+  journalctl -u iluvatarcorex-init --no-pager -n 30 2>/dev/null | tail -30 || true
 
-  echo "== 5. 模块文件与内核匹配 =="
-  echo "-- 当前内核 --"; uname -r
-  echo "-- 模块路径 --"; ls -l "/lib/modules/$(uname -r)/kernel/drivers/misc/iluvatar.ko" 2>&1
-  echo "-- 已有内核目录 --"; ls /lib/modules 2>/dev/null
+  echo "== 5. 新内核的 headers/devel =="
+  rpm -qa 2>/dev/null | grep -E "kernel-devel|kernel-headers" | head -10
+  ls /usr/src/kernels 2>/dev/null | head -10
 
-  echo "== 6. modprobe.d / 自动加载配置 =="
-  grep -rin iluvatar /etc/modprobe.d/ /etc/modules-load.d/ 2>/dev/null | head -10 || echo "无配置"
-  ls /etc/modprobe.d/ 2>/dev/null | head -10
+  echo "== 6. 容器重启策略 =="
+  docker inspect corex5-py311 --format 'RestartPolicy={{.HostConfig.RestartPolicy.Name}}' 2>/dev/null || true
 
-  echo "== 7. 驱动参数（若已加载）=="
-  for f in /sys/module/iluvatar/parameters/*; do
-    [ -f "$f" ] && echo "$(basename "$f") = $(cat "$f" 2>/dev/null)"
-  done 2>/dev/null || true
-
-  echo "== 8. 容器状态 =="
-  docker ps -a --format '{{.Names}}\t{{.Status}}' 2>/dev/null | head -15
-
-  echo "== 9. 容器内视角 =="
-  docker exec corex5-py311 sh -c "
-echo '-- /dev/iluvatar* --'; ls -l /dev/iluvatar* 2>&1 | head -10
-echo '-- ixsmi --'; ixsmi 2>&1 | head -20
-echo '-- corex 库 --'; ls /opt/corex-host 2>/dev/null | head -5
-" 2>&1 | head -50
-
-  echo "== 10. 内核日志尾部 =="
-  journalctl -k --no-pager -n 40 2>/dev/null | tail -40 || dmesg 2>/dev/null | tail -40
-
-  echo "== 11. 驱动安装包是否在手边 =="
-  ls -l /home/qch/transfer/corex-driver-linux64-5.0.0_aarch64.run 2>/dev/null || echo "transfer 无 .run"
-  find /home -maxdepth 3 -name "corex-driver*run" 2>/dev/null | head -5
+  echo "== 7. 页面大小 =="
+  getconf PAGESIZE 2>/dev/null || true
 
   # ---- 命令结束 ----
 
