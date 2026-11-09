@@ -17,52 +17,40 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 只读对比：litehost_perf.zip 里的原始 vllmBench_lite.sh vs 184 的 base 脚本。
+  # 只读：定位 VLLM_DISABLE_DECODE_FASTPATH 的引用上下文与来源。
 
   CON=corex5-py311
-  Z=/home/qch/transfer/litehost_perf.zip
-  B=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
-  O=/home/qch/scripts/vllmBench_lite.sh
+  SP=/opt/corex311/lib/python3.11/site-packages
 
-  echo "== 1. zip 信息 =="
-  ls -la "$Z" 2>/dev/null || echo "zip missing"
-  unzip -l "$Z" 2>/dev/null | head -30
+  echo "== 1. gpu_model_runner 中的上下文 =="
+  docker exec "$CON" sh -c "grep -n -B8 -A14 VLLM_DISABLE_DECODE_FASTPATH $SP/vllm/v1/worker/gpu_model_runner.py"
 
-  ENTRY=$(unzip -Z1 "$Z" 2>/dev/null | grep -E "vllmBench_lite.sh$" | head -1)
-  echo "ENTRY=$ENTRY"
+  echo "== 2. 当前文件 hash 与备份 =="
+  docker exec "$CON" sh -c "
+sha256sum $SP/vllm/v1/worker/gpu_model_runner.py
+sha256sum $SP/.host-opt-pr-backup/vllm/v1/worker/gpu_model_runner.py 2>/dev/null || echo 'no backup file'
+grep -c VLLM_DISABLE_DECODE_FASTPATH $SP/.host-opt-pr-backup/vllm/v1/worker/gpu_model_runner.py 2>/dev/null || true
+"
 
-  echo "== 2. 原始脚本头部（前 80 行）=="
-  unzip -p "$Z" "$ENTRY" 2>/dev/null | sed -n '1,80p'
+  echo "== 3. 其他 venv / r3 交付包 / 全盘来源 =="
+  docker exec "$CON" sh -c "
+echo '-- 新 venv --'
+grep -rl VLLM_DISABLE_DECODE_FASTPATH /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm 2>/dev/null | head -5 || echo none
+echo '-- r3 交付包 --'
+grep -rn VLLM_DISABLE_DECODE_FASTPATH /home/qch/transfer/host-opt-pr-validation-20261103-r3 2>/dev/null | head -10 || echo none
+echo '-- transfer 其他 --'
+grep -rl VLLM_DISABLE_DECODE_FASTPATH /home/qch/transfer 2>/dev/null | grep -v cmd.sh | head -10 || echo none
+echo '-- 谁定义了这个 env 名（vllm envs）--'
+grep -rn 'DISABLE_DECODE_FASTPATH' $SP/vllm/envs.py 2>/dev/null || echo 'not in envs.py'
+"
 
-  echo "== 3. 原始 vs 184 base（完整 diff）=="
-  diff -u <(unzip -p "$Z" "$ENTRY" 2>/dev/null) "$B" | head -300
-
-  echo "== 4. 原始 vs /home/qch/scripts/vllmBench_lite.sh =="
-  diff -u <(unzip -p "$Z" "$ENTRY" 2>/dev/null) "$O" 2>/dev/null | head -80
-
-  echo "== 5. 关键段对照 =="
-  echo "-- 原始 SERVER_EXTRA_ENV / SERVER_ARGS --"
-  unzip -p "$Z" "$ENTRY" 2>/dev/null | grep -nE "SERVER_EXTRA_ENV|SERVER_ARGS|UMD_MAXCOMMAND|VLLM_|PREFIX=" -A4 | head -60
-  echo "-- base 同段 --"
-  grep -nE "SERVER_EXTRA_ENV|SERVER_ARGS|UMD_MAXCOMMAND|VLLM_|PREFIX=" "$B" -A4 | head -60
-
-  echo "== 6. VLLM_DISABLE_DECODE_FASTPATH 在 184 的引用 =="
+  echo "== 4. 运行中进程环境与启动命令 =="
   docker exec "$CON" sh -c '
-for P in /opt/corex311/lib/python3.11/site-packages /opt/corex311-cpython-vllm/lib/python3.11/site-packages \
-         /usr/local/lib/python3.12/site-packages /usr/local/corex-5.0.0 \
-         /home/huawei_ts_program/litehost_perf_opt /home/qch/scripts /home/qch/tools; do
-  echo "-- $P"
-  if [ -e "$P" ]; then
-    grep -ril VLLM_DISABLE_DECODE_FASTPATH "$P" 2>/dev/null | head -10 || true
-  else
-    echo "   path missing"
-  fi
-done
-echo "-- 进程环境里是否设置 --"
 for p in $(pgrep -f vllm.entrypoints.openai.api_server 2>/dev/null); do
-  tr "\0" "\n" < /proc/$p/environ 2>/dev/null | grep VLLM_DISABLE_DECODE_FASTPATH || true
+  echo "-- PID $p --"
+  tr "\0" "\n" < /proc/$p/environ 2>/dev/null | grep -E "VLLM_DISABLE_DECODE_FASTPATH|VLLM_HOST_FASTPATH|TORCH_MODULE_ATTR" | sort
+  echo -n "  cmdline: "; tr "\0" " " < /proc/$p/cmdline | cut -c1-400; echo
 done
-echo "(以上为空 = 未引用/未设置)"
 '
 
   # ---- 命令结束 ----
