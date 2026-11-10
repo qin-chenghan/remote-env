@@ -1,0 +1,76 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T07:47:36Z
+
+++ uname -r
++ K=6.6.02403_sp3-64K
++ echo kernel=6.6.02403_sp3-64K
+kernel=6.6.02403_sp3-64K
++ echo '== provenance =='
+== provenance ==
++ cat /proc/cmdline
+BOOT_IMAGE=/vmlinuz-6.6.02403_sp3-64K root=/dev/mapper/openeuler00-root ro rd.lvm.lv=openeuler00/root rd.lvm.lv=openeuler00/swap video=VGA-1:640x480-32@60me cgroup_disable=files apparmor=0 crashkernel=1024M,high smmu.bypassdev=0x1000:0x17 smmu.bypassdev=0x1000:0x15 arm64.nopauth rhgb quiet console=tty0
++ ls -la /lib/modules/6.6.02403_sp3-64K
++ head -12
+total 2656
+drwxr-xr-x.  3 root root   4096 Nov 10 14:58 .
+drwxr-xr-x. 10 root root   4096 Nov 10 14:57 ..
+drwxr-xr-x. 12 root root   4096 Nov 10 14:57 kernel
+-rw-r--r--.  1 root root 643363 Nov 10 14:58 modules.alias
+-rw-r--r--.  1 root root 630828 Nov 10 14:58 modules.alias.bin
+-rw-r--r--.  1 root root   9659 Nov 10 15:11 modules.builtin
+-rw-r--r--.  1 root root   8152 Nov 10 14:58 modules.builtin.alias.bin
+-rw-r--r--.  1 root root  11787 Nov 10 14:58 modules.builtin.bin
+-rw-r--r--.  1 root root  73004 Nov 10 15:11 modules.builtin.modinfo
+-rw-r--r--.  1 root root 139515 Nov 10 14:58 modules.dep
+-rw-r--r--.  1 root root 215421 Nov 10 14:58 modules.dep.bin
+++ readlink -f /lib/modules/6.6.02403_sp3-64K/build
++ echo 'build -> /usr/lib/modules/6.6.02403_sp3-64K/build'
+build -> /usr/lib/modules/6.6.02403_sp3-64K/build
+++ readlink -f /lib/modules/6.6.02403_sp3-64K/source
++ echo 'source -> /usr/lib/modules/6.6.02403_sp3-64K/source'
+source -> /usr/lib/modules/6.6.02403_sp3-64K/source
++ rpm -qf /lib/modules/6.6.02403_sp3-64K
+kernel-6.6.02403_sp3_64K-6.aarch64
++ rpm -qa
++ grep -iE '^kernel'
++ sort
++ head -20
+error: rpmdbNextIterator: skipping h#    1259 tag[0]: BAD, tag 100 type 6 offset 0 count 1 len 0
+error: rpmdbNextIterator: skipping h#    1280 tag[0]: BAD, tag 100 type 6 offset 0 count 1 len 0
+kernel-64kb-5.10.0-225.0.0.124.oe2203sp4.aarch64
+kernel-64kb-debuginfo-5.10.0-225.0.0.124.oe2203sp4.aarch64
+kernel-64kb-debugsource-5.10.0-225.0.0.124.oe2203sp4.aarch64
+kernel-64kb-devel-5.10.0-225.0.0.124.oe2203sp4.aarch64
+kernel-6.6.0-132.0.0.111.oe2403sp3.aarch64
+kernel-6.6.0-145.1.28.165.oe2403sp1.aarch64
+kernel-6.6.0-145.3.37.168.oe2403sp3.aarch64
+kernel-6.6.02403_sp3_64K-6.aarch64
+kernel-devel-6.6.0-145.3.37.168.oe2403sp3.aarch64
+kernel-headers-6.6.0-145.3.37.168.oe2403sp3.aarch64
+kernel-source-6.6.0-145.3.37.168.oe2403sp3.aarch64
+kernel-tools-6.6.0-145.3.37.168.oe2403sp3.aarch64
++ echo '== build headers present? =='
+== build headers present? ==
++ '[' -f /lib/modules/6.6.02403_sp3-64K/build/Makefile ']'
++ echo BUILD_DIR_MISSING
+BUILD_DIR_MISSING
++ dnf list --available 'kernel-devel*'
++ tail -12
+error: rpmdb: damaged header #1259 retrieved -- skipping.
+error: rpmdb: damaged header #1280 retrieved -- skipping.
+OpenStack_Wallaby                               124  B/s | 146  B     00:01    
+Errors during downloading metadata for repository 'OpenStack_Wallaby':
+  - Status code: 404 for https://dl-cdn.openeuler.openatom.cn/openEuler-24.03-LTS-SP3/EPOL/multi_version/OpenStack/Wallaby/aarch64/repodata/repomd.xml (IP: 141.1.61.31)
+Error: Failed to download metadata for repo 'OpenStack_Wallaby': Cannot download repomd.xml: Cannot download repodata/repomd.xml: All mirrors were tried
++ dnf list --installed 'kernel-devel*'
++ tail -8
+error: rpmdb: damaged header #1259 retrieved -- skipping.
+error: rpmdb: damaged header #1280 retrieved -- skipping.
+Installed Packages
+kernel-devel.aarch64       6.6.0-145.3.37.168.oe2403sp3       @oe2403-sp3-update
++ echo '== ABORT: 没有匹配的 build 头文件，需先装 kernel-devel, 不强装 =='
+== ABORT: 没有匹配的 build 头文件，需先装 kernel-devel, 不强装 ==
++ exit 6
+
+### exit: 6
