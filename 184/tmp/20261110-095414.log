@@ -1,0 +1,145 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T01:54:14Z
+
++ echo '== container config env =='
+== container config env ==
++ docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' corex5-py311
++ grep -E 'PYTHON|LD_|PATH='
+LD_LIBRARY_PATH=/opt/corex-host:/usr/local/corex/lib64:/usr/local/openmpi/lib:/usr/local/lib
+PATH=/usr/local/corex/bin:/usr/local/lib/python3.12/site-packages/bin:/usr/local/openmpi/bin:/usr/local/openmpi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+PYTHONPATH=/usr/local/lib/python3.12/site-packages
++ echo '== tcmalloc search =='
+== tcmalloc search ==
++ find /home -maxdepth 5 -name 'libtcmalloc.so*'
++ head -5
+/home/lw/gperftools/.libs/libtcmalloc.so.4.6.8
+/home/lw/gperftools/.libs/libtcmalloc.so
+/home/lw/gperftools/.libs/libtcmalloc.so.4
++ find /usr/local /opt -maxdepth 5 -name 'libtcmalloc.so*'
++ head -5
++ echo '== server launch block (base) =='
+== server launch block (base) ==
++ sed -n /SERVER_EXTRA_ENV/,/SERVER_PID/p /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
++ head -70
+SERVER_EXTRA_ENV=(
+    UMD_MAXCOMMANDBUFFERNUMBER=256
+    UMD_MAXCOMMANDBUFFERSIZE=16384
+    VLLM_DISABLE_DECODE_FASTPATH=1
+)
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# Do not use an inherited OLD LIGHTHOST_HOME silently.
+if [[ -f "$SCRIPT_DIR/lhctl.py" ]]; then
+    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR}"
+else
+    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR/litehost_compat_slim}"
+fi
+HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 解压完整 litehost_compat_slim_v041.zip 或设置 HOST_TOOLKIT' >&2; exit 2; }
+[[ -x "$PYTHON_BIN" && -f "$HOST_TOOLKIT/lhctl.py" ]] || { echo 'ERROR: Python 或配套文件缺失' >&2; exit 2; }
+[[ "$HOST_MEASURE" == lite || "$HOST_MEASURE" == off ]] || { echo 'ERROR: HOST_MEASURE=lite|off' >&2; exit 2; }
+[[ "$GPUS_PER_INSTANCE" == 4 ]] || { echo 'ERROR: 此版要求四卡 TP=4, PP=1, DP=1' >&2; exit 2; }
+[[ "$TEST_ID" =~ ^[A-Za-z0-9_.-]+$ && "$TEST_ID" != . && "$TEST_ID" != .. ]] || { echo 'ERROR: TEST_ID 不能包含路径分隔符' >&2; exit 2; }
+
+BASE_DIR="$(pwd)"
+RUN_DIR="${BASE_DIR}/vllmBench/${TEST_ID}"
+LOG_DIR="${RUN_DIR}/logs"
+SERVER_LOG="${LOG_DIR}/server.log"
+SUMMARY_CSV="${RUN_DIR}/summary.csv"
+SESSION_FILE="${RUN_DIR}/session.json"
+PID_FILE="${RUN_DIR}/server.pid"
+SERVER_PID=""; BENCH_PID=""; CLEANED=0; INIT_DONE=0
+        "${SERVER_EXTRA_ENV[@]}")
+    if [[ "$HOST_MEASURE" == lite ]]; then
+        env_args+=(PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}"
+            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so"
+            LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+    fi
+    "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/server.process.json" -- \
+        "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}" >> "$SERVER_LOG" 2>&1 &
+    SERVER_PID=$!; echo "$SERVER_PID" > "$PID_FILE"
++ echo '== server launch block (opt) =='
+== server launch block (opt) ==
++ sed -n /SERVER_EXTRA_ENV/,/SERVER_PID/p /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ head -70
+SERVER_EXTRA_ENV=(
+    UMD_MAXCOMMANDBUFFERNUMBER=256
+    UMD_MAXCOMMANDBUFFERSIZE=16384
+    VLLM_HOST_OPT=on
+    VLLM_HOST_OPT_INPUTS=on
+    VLLM_HOST_OPT_ARENA=on
+    VLLM_HOST_OPT_BOOKKEEPING=on
+    VLLM_HOST_OPT_METADATA=on
+    VLLM_HOST_OPT_DIAGNOSTICS=0
+    VLLM_COMPACT_GREEDY=on
+    VLLM_COMPACT_GREEDY_DIAGNOSTICS=0
+    TORCH_MODULE_ATTR_FASTPATH=slot_native
+)
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# Do not use an inherited OLD LIGHTHOST_HOME silently.
+if [[ -f "$SCRIPT_DIR/lhctl.py" ]]; then
+    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR}"
+else
+    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR/litehost_compat_slim}"
+fi
+HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 解压完整 litehost_compat_slim_v041.zip 或设置 HOST_TOOLKIT' >&2; exit 2; }
+[[ -x "$PYTHON_BIN" && -f "$HOST_TOOLKIT/lhctl.py" ]] || { echo 'ERROR: Python 或配套文件缺失' >&2; exit 2; }
+[[ "$HOST_MEASURE" == lite || "$HOST_MEASURE" == off ]] || { echo 'ERROR: HOST_MEASURE=lite|off' >&2; exit 2; }
+[[ "$GPUS_PER_INSTANCE" == 4 ]] || { echo 'ERROR: 此版要求四卡 TP=4, PP=1, DP=1' >&2; exit 2; }
+[[ "$TEST_ID" =~ ^[A-Za-z0-9_.-]+$ && "$TEST_ID" != . && "$TEST_ID" != .. ]] || { echo 'ERROR: TEST_ID 不能包含路径分隔符' >&2; exit 2; }
+
+BASE_DIR="$(pwd)"
+RUN_DIR="${BASE_DIR}/vllmBench/${TEST_ID}"
+LOG_DIR="${RUN_DIR}/logs"
+SERVER_LOG="${LOG_DIR}/server.log"
+SUMMARY_CSV="${RUN_DIR}/summary.csv"
+SESSION_FILE="${RUN_DIR}/session.json"
+PID_FILE="${RUN_DIR}/server.pid"
+SERVER_PID=""; BENCH_PID=""; CLEANED=0; INIT_DONE=0
+        "${SERVER_EXTRA_ENV[@]}")
+    if [[ "$HOST_MEASURE" == lite ]]; then
+        env_args+=(PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}"
+            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so"
+            TCMALLOC_MAX_TOTAL_THREAD_CACHE_BYTES=536870912
+            MALLOCSTATS=1
+            LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+    fi
+    "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/server.process.json" -- \
+        "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}" >> "$SERVER_LOG" 2>&1 &
+    SERVER_PID=$!; echo "$SERVER_PID" > "$PID_FILE"
++ echo '== LD_PRELOAD assembly =='
+== LD_PRELOAD assembly ==
++ grep -n 'LD_PRELOAD\|CLEAN_ENV\|LIGHTHOST' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ head -30
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:30:# Do not use an inherited OLD LIGHTHOST_HOME silently.
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:70:CLEAN_ENV=(env -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:89:        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/bench.process.json" || true
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:95:        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:100:        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" cleanup-control --session "$SESSION_FILE" || true
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:135:    "${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$PORT" <<'PY' || return 1
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:144:            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:145:            LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:147:    "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/server.process.json" -- \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:160:        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" prepare --session "$SESSION_FILE" \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:163:        env_args=(LIGHTHOST_SESSION="$SESSION_FILE" LIGHTHOST_CASE_DIR="$case_dir")
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:168:    "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/bench.process.json" -- \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:182:        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" finish "$case_dir" \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:189:"${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$GPU_LIST" "$NUM_PROMPTS" "$NUM_WARMUPS" "$MAX_CONCURRENCY" "$HOST_LINK_PERCENT" "$CASE_INTERVAL" "${CASES[@]}" <<'PY' || exit 2
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:222:    "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" init --run-dir "$RUN_DIR" \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:238:if ! "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" summary "$RUN_DIR" \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:243:    "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/analyze_litehost.py" "$RUN_DIR/litehost" \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:250:"${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$SUMMARY_CSV" "$MAX_CONCURRENCY" "${CASES[@]}" <<'PY' || exit 2
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:38:# Do not use an inherited OLD LIGHTHOST_HOME silently.
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:78:CLEAN_ENV=(env -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:97:        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/bench.process.json" || true
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:103:        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:108:        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" cleanup-control --session "$SESSION_FILE" || true
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:143:    "${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$PORT" <<'PY' || return 1
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:152:            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:155:            LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:157:    "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/server.process.json" -- \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:170:        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" prepare --session "$SESSION_FILE" \
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:173:        env_args=(LIGHTHOST_SESSION="$SESSION_FILE" LIGHTHOST_CASE_DIR="$case_dir")
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:178:    "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/bench.process.json" -- \
++ set +x
+
+### exit: 0
