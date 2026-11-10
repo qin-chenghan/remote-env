@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读；本脚本在宿主机执行，/opt 属于容器，走 docker exec。
+# 只读；宿主机执行，/opt 属于容器，走 docker exec。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,51 +17,22 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== build flags (all vars) =="
-  docker exec corex5-py311 /opt/corex311-cpython-vllm/bin/python3 -c \
-    "import sysconfig
-for k in ('CFLAGS','PY_CFLAGS','PY_CFLAGS_NODIST','LDFLAGS','PY_LDFLAGS','CONFIGURE_CFLAGS','OPT'):
-    print(k,'=',sysconfig.get_config_var(k))" 2>&1
+  echo "== 3.12 tree packages (transformers?) =="
+  docker exec corex5-py311 bash -c 'ls -d /usr/local/lib/python3.12/site-packages/transformers-*.dist-info 2>&1; ls -d /usr/local/lib/python3.12/site-packages/vllm-*.dist-info 2>&1'
 
-  echo "== build Makefile flags =="
-  docker exec corex5-py311 bash -c '
-    M=$(ls /opt/cpython-vllm/v1/lib/python3.11/config-*/Makefile 2>/dev/null | head -1)
-    echo "makefile=$M"
-    [ -n "$M" ] && grep -nE "^CFLAGS=|^PY_CFLAGS=|^LDFLAGS=|^PY_LDFLAGS=|fprofile-use|fprofile-generate|flto" "$M" | head -12
-    echo "-- .gcda/.gcno --"
-    find /opt/cpython-vllm/v1 -name "*.gcda" -o -name "*.gcno" 2>/dev/null | head -3' 2>&1
+  echo "== reproduce: pip list with polluted env =="
+  docker exec -e PYTHONPATH=/usr/local/lib/python3.12/site-packages corex5-py311 \
+    /opt/corex311/bin/python3 -m pip list 2>&1 | grep -E '^(transformers|vllm|torch) ' | head -10
 
-  echo "== link-test the native .so =="
-  for V in /opt/corex311 /opt/corex311-cpython-vllm; do
-    docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME "$V/bin/python3" -c \
-      "import importlib
-for n in ('vllm._host_opt_native','vllm._host_opt_meta_native'):
-    try:
-        m=importlib.import_module(n); print(n,'OK',getattr(m,'__file__',''))
-    except Exception as e: print(n,'FAIL',type(e).__name__,e)" 2>&1 | sed "s|^|$V: |"
-  done
+  echo "== same, clean env =="
+  docker exec -e PYTHONPATH= corex5-py311 \
+    /opt/corex311/bin/python3 -m pip list 2>&1 | grep -E '^(transformers|vllm|torch) ' | head -10
 
-  echo "== host fastpath wiring =="
-  for V in /opt/corex311 /opt/corex311-cpython-vllm; do
-    echo "-- $V"
-    docker exec corex5-py311 bash -c "grep -rln 'VLLM_HOST_FASTPATH\|host_fastpath' $V/lib/python3.11/site-packages/vllm/ 2>/dev/null | head -8" | sed "s|$V/lib/python3.11/site-packages|...|"
-  done
-
-  echo "== transformers version + install time =="
-  docker exec corex5-py311 bash -c '
-    for V in /opt/corex311 /opt/corex311-cpython-vllm; do
-      for d in $V/lib/python3.11/site-packages/transformers-*.dist-info; do
-        echo "$V: $(basename "$d") mtime=$(stat -c %y "$d" 2>/dev/null)"
-      done
-      ls -l --time-style=long-iso $V/lib/python3.11/site-packages/transformers/version.py 2>/dev/null
-    done' 2>&1
-
-  echo "== bundle pin =="
-  grep -n '^transformers' /home/z30059427/corex5-py311-20261009/requirements-py311.txt 2>&1
-  grep -n 'transformers' /home/z30059427/corex5-py311-20261009/requirements-vendor-py311.txt 2>&1 | head -5
-
-  echo "== pip check =="
-  docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python3 -m pip check 2>&1 | tail -5
+  echo "== which transformers actually imports =="
+  docker exec -e PYTHONPATH=/usr/local/lib/python3.12/site-packages corex5-py311 \
+    /opt/corex311/bin/python3 -c "import transformers;print('polluted ->',transformers.__version__,transformers.__file__)" 2>&1 | tail -3
+  docker exec -e PYTHONPATH= corex5-py311 \
+    /opt/corex311/bin/python3 -c "import transformers;print('clean ->',transformers.__version__,transformers.__file__)" 2>&1 | tail -3
 
   # ---- 命令结束 ----
 
