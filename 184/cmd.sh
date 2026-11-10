@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：评估"自行重建内核产生 Module.symvers"是否可行。
+# 只读：重启后检查驱动与 64K 内核配套情况。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,30 +17,36 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== module signing policy =="
-  grep -E '^CONFIG_MODULE_SIG_FORCE|^CONFIG_MODULE_COMPRESS' /boot/config-6.6.02403_sp3-64K 2>&1
-  echo "modules_disabled=$(cat /proc/sys/kernel/modules_disabled 2>&1)"
+  K=$(uname -r)
+  echo "== kernel =="
+  echo "running=$K"
+  uname -v
+  uptime
+  cat /proc/cmdline
 
-  echo "== existing iluvatar module on 145 (for comparison) =="
-  modinfo -F vermagic /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/updates/iluvatar.ko.xz 2>&1
-  modinfo -F sig_id /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/updates/iluvatar.ko.xz 2>&1
+  echo "== driver =="
+  lsmod | grep -i iluvatar || echo "  not loaded"
+  ls -l /dev/iluvatar* 2>&1
+  modinfo iluvatar 2>&1 | grep -E 'filename|vermagic' | head -3
+  ixsmi 2>&1 | head -14
 
-  echo "== local kernel source trees =="
-  rpm -qa 'kernel-source*' 2>&1
-  ls -d /usr/src/linux-* 2>&1
-  S=/usr/src/linux-6.6.0-145.3.37.168.oe2403sp3.aarch64
-  sed -n '1,6p' "$S/Makefile" 2>&1
-  echo "-- patches applied? --"
-  ls "$S" 2>&1 | head -20
+  echo "== devel tree for this kernel =="
+  ls -d "/usr/src/kernels/$K" 2>&1
+  ls -l "/usr/src/kernels/$K/Module.symvers" 2>&1
+  rpm -qa 'kernel-devel*' 2>&1
 
-  echo "== disk space =="
-  df -h / /home /usr/src 2>&1 | tail -4
+  echo "== new rpms =="
+  ls -lt /home/l30029702/64k 2>&1 | head -8
+  find /home /root -maxdepth 4 -iname 'kernel-devel-6.6.02403*' 2>/dev/null | head -5
 
-  echo "== gcc version =="
-  gcc --version 2>&1 | head -2
+  echo "== dkms =="
+  dkms status 2>&1 | head -10
 
-  echo "== any oe kernel src rpm on disk =="
-  find /home /root -maxdepth 4 -iname 'kernel-*src.rpm' 2>/dev/null | head -5
+  echo "== modules dir =="
+  ls -l /lib/modules/$K/updates 2>&1 | head -8
+
+  echo "== dmesg =="
+  dmesg 2>/dev/null | grep -iE 'iluvatar|corex' | tail -10
 
   # ---- 命令结束 ----
 
