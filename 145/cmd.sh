@@ -17,29 +17,35 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # v3：在 v2 基础上，横向 pass 按通道打包向量化（RGB 装进 float32x4）。
+  # v4：横向用 4 个独立累加器打断 FMA 依赖链 + 批量加载权重。
 
   D=/home/qch/clamp_opt
 
-  echo "== 1. 生成 v3 源码（新文件，包含 v2）=="
-  cat > "$D/clamp_neon_opt_v3.cpp" <<'CPP'
+  echo "== 1. 生成 v4 源码（新文件，包含 v2）=="
+  cat > "$D/clamp_neon_opt_v4.cpp" <<'CPP'
 // [agent-opt] 生成文件，可安全删除。
-// v3 = v2(vertical 向量化) + horizontal 按通道打包向量化。
+// v4 = v2(vertical 向量化) + horizontal 按通道打包且用 4 个累加器打断依赖链。
 #include "/home/qch/clamp_opt/clamp_neon_opt_v2.cpp"
 
-// 横向：一个像素的 R,G,B 连续 3 字节，装进 float32x4 的第 0..2 lane（第 3 lane 为下一像素的 R，忽略）。
-static void resize_horizontal_neon(const uint8_t* input, float* mid, int W_in,
-                                   const ResizePassParams& p)
+static inline float32x4_t load_rgb4(const uint8_t* p) {
+    uint32_t u;
+    __builtin_memcpy(&u, p, 4);
+    uint8x8_t vb = vreinterpret_u8_u32(vdup_n_u32(u));
+    return vcvtq_f32_u32(vmovl_u16(vget_low_u16(vmovl_u8(vb))));
+}
+
+static void resize_horizontal_neon4(const uint8_t* input, float* mid, int W_in,
+                                    const ResizePassParams& p)
 {
     const int stride = p.W_out * kInputChannels;
-    const int ymax = (p.H > 1) ? p.H - 1 : 0;   // 最后一行走标量，避免 4 字节读越界
+    const int ymax = (p.H > 1) ? p.H - 1 : 0;
 #pragma omp parallel for schedule(static) num_threads(p.num_threads)
     for (int y = 0; y < p.H; ++y) {
         const uint8_t* src = input + y * W_in * kInputChannels;
         float* dst = mid + y * stride;
         const bool vec_row = (y < ymax);
+        int vec_end = vec_row ? p.W_out - 1 : 0;
 
-        int vec_end = vec_row ? p.W_out - 1 : 0;   // 最后一个输出像素始终标量
         int x = 0;
         for (; x < vec_end; ++x) {
             int n = p.lut->count[x];
@@ -47,21 +53,28 @@ static void resize_horizontal_neon(const uint8_t* input, float* mid, int W_in,
             const float* w_row = p.lut->w + x * p.lut->ksize;
             const uint8_t* s = src + xmin * kInputChannels;
 
-            float32x4_t acc = vdupq_n_f32(0.0f);
-            for (int k = 0; k < n; ++k) {
-                uint32_t u;
-                __builtin_memcpy(&u, s + k * kInputChannels, 4);
-                uint8x8_t vb = vreinterpret_u8_u32(vdup_n_u32(u));
-                uint32x4_t w32 = vmovl_u16(vget_low_u16(vmovl_u8(vb)));
-                float32x4_t f = vcvtq_f32_u32(w32);
-                acc = vfmaq_f32(acc, f, vdupq_n_f32(w_row[k]));
+            float32x4_t a0 = vdupq_n_f32(0.0f), a1 = vdupq_n_f32(0.0f);
+            float32x4_t a2 = vdupq_n_f32(0.0f), a3 = vdupq_n_f32(0.0f);
+
+            int k = 0;
+            for (; k + 4 <= n; k += 4) {          // 4 条独立链
+                float32x4_t w4 = vld1q_f32(w_row + k);
+                a0 = vfmaq_laneq_f32(a0, load_rgb4(s + (k + 0) * kInputChannels), w4, 0);
+                a1 = vfmaq_laneq_f32(a1, load_rgb4(s + (k + 1) * kInputChannels), w4, 1);
+                a2 = vfmaq_laneq_f32(a2, load_rgb4(s + (k + 2) * kInputChannels), w4, 2);
+                a3 = vfmaq_laneq_f32(a3, load_rgb4(s + (k + 3) * kInputChannels), w4, 3);
             }
+            for (; k < n; ++k) {
+                a0 = vfmaq_n_f32(a0, load_rgb4(s + k * kInputChannels), w_row[k]);
+            }
+
+            float32x4_t acc = vaddq_f32(vaddq_f32(a0, a1), vaddq_f32(a2, a3));
             int32x4_t iv = vcvtaq_s32_f32(acc);
             iv = vmaxq_s32(iv, vdupq_n_s32(0));
             iv = vminq_s32(iv, vdupq_n_s32(255));
             vst1q_f32(dst + x * kInputChannels, vcvtq_f32_s32(iv));
         }
-        for (; x < p.W_out; ++x) {                 // 尾部标量（含最后一行）
+        for (; x < p.W_out; ++x) {
             int n = p.lut->count[x];
             int xmin = p.lut->start[x];
             const float* w_row = p.lut->w + x * p.lut->ksize;
@@ -83,7 +96,7 @@ static void resize_horizontal_neon(const uint8_t* input, float* mid, int W_in,
     }
 }
 
-extern "C" void combined_preprocess_v3(const uint8_t* input, float* output,
+extern "C" void combined_preprocess_v4(const uint8_t* input, float* output,
                                        int H_in, int W_in, int num_threads)
 {
     Lut xlut = build_lut(kOutputSize, W_in);
@@ -94,7 +107,7 @@ extern "C" void combined_preprocess_v3(const uint8_t* input, float* output,
                       sizeof(float), "mid"));
     ResizePassParams hp{H_in, kOutputSize, num_threads, &xlut};
     ResizePassParams vp{kOutputSize, kOutputSize, num_threads, &ylut};
-    resize_horizontal_neon(input, mid, W_in, hp);
+    resize_horizontal_neon4(input, mid, W_in, hp);
 
     constexpr size_t kResizedBytes = static_cast<size_t>(kOutputPlane) * kInputChannels;
     uint8_t* resized = static_cast<uint8_t*>(checked_alloc(kResizedBytes, 1, "resized"));
@@ -107,16 +120,16 @@ extern "C" void combined_preprocess_v3(const uint8_t* input, float* output,
     free_lut(ylut);
 }
 CPP
-  ls -l "$D/clamp_neon_opt_v3.cpp"
+  ls -l "$D/clamp_neon_opt_v4.cpp"
 
-  echo "== 2. 编译 v3 =="
+  echo "== 2. 编译 v4 =="
   g++ -std=c++14 -march=armv8.2-a+fp16+dotprod -fopenmp -O3 \
-      -shared -fPIC -o "$D/libpreprocess_v3.so" "$D/clamp_neon_opt_v3.cpp" 2>&1 | tail -15
+      -shared -fPIC -o "$D/libpreprocess_v4.so" "$D/clamp_neon_opt_v4.cpp" 2>&1 | tail -15
   echo "build rc=$?"
-  ls -l "$D/libpreprocess_v3.so"
+  ls -l "$D/libpreprocess_v4.so"
 
   echo "== 3. A/B 脚本（新文件）=="
-  cat > "$D/clamp_neon_opt_ab3.py" <<'PY'
+  cat > "$D/clamp_neon_opt_ab4.py" <<'PY'
 # [agent-opt] 生成文件，可安全删除。
 import ctypes, sys, time
 
@@ -149,24 +162,24 @@ def run(fn, h, w, threads, iters):
     return ms, memoryview(out).tobytes()
 
 v1 = load(sys.argv[1], "combined_preprocess")
-v2 = load(sys.argv[2], "combined_preprocess_v2")
-v3 = load(sys.argv[3], "combined_preprocess_v3")
+v3 = load(sys.argv[2], "combined_preprocess_v3")
+v4 = load(sys.argv[3], "combined_preprocess_v4")
 
 print("%-12s %-4s %9s %9s %9s %8s %8s %8s" %
-      ("size", "thr", "v1", "v2", "v3", "v1/v2", "v1/v3", "v3 match"))
+      ("size", "thr", "v1", "v3", "v4", "v1/v3", "v1/v4", "match"))
 for (h, w, iters) in ((224, 224, 200), (481, 321, 100), (1080, 1920, 30)):
     for t in (1, 4):
         m1, b1 = run(v1, h, w, t, iters)
-        m2, b2 = run(v2, h, w, t, iters)
         m3, b3 = run(v3, h, w, t, iters)
-        same = "exact" if b1 == b3 else "DIFF"
+        m4, b4 = run(v4, h, w, t, iters)
+        same = "exact" if b1 == b4 else "DIFF"
         print("%-12s %-4d %9.3f %9.3f %9.3f %7.2fx %7.2fx %8s" %
-              ("%dx%d" % (w, h), t, m1, m2, m3, m1 / m2, m1 / m3, same))
+              ("%dx%d" % (w, h), t, m1, m3, m4, m1 / m3, m1 / m4, same))
 PY
-  ls -l "$D/clamp_neon_opt_ab3.py"
+  ls -l "$D/clamp_neon_opt_ab4.py"
 
   echo "== 4. A/B 运行（绑 cpu0）=="
-  cd "$D" && taskset -c 0 python3 clamp_neon_opt_ab3.py ./libpreprocess.so ./libpreprocess_v2.so ./libpreprocess_v3.so 2>&1 | tail -12
+  cd "$D" && taskset -c 0 python3 clamp_neon_opt_ab4.py ./libpreprocess.so ./libpreprocess_v3.so ./libpreprocess_v4.so 2>&1 | tail -12
 
   # ---- 命令结束 ----
 
