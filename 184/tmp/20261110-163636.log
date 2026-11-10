@@ -1,0 +1,45 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T08:36:36Z
+
++ echo '== container =='
+== container ==
++ docker ps --format '{{.Names}}\t{{.Status}}'
++ head -5
+supabase_db_agentpress	Up 4 minutes (healthy)
+supabase_studio_agentpress	Up 4 minutes (healthy)
+supabase_pg_meta_agentpress	Up 4 minutes (healthy)
+supabase_imgproxy_agentpress	Up 4 minutes (healthy)
+supabase_storage_agentpress	Up 4 minutes (healthy)
++ echo '== devices in container =='
+== devices in container ==
++ docker exec corex5-py311 bash -c 'ls -l /dev/iluvatar* 2>&1 | head -6'
+Error response from daemon: container 6da2873bf3f5fe589e75e8948ca9029d3026c52170c1f650be5d66824815d6a9 is not running
++ echo '== ixsmi in container =='
+== ixsmi in container ==
++ docker exec corex5-py311 ixsmi
++ sed -n 1,16p
+Error response from daemon: container 6da2873bf3f5fe589e75e8948ca9029d3026c52170c1f650be5d66824815d6a9 is not running
++ echo '== venv imports =='
+== venv imports ==
++ for V in /opt/corex311 /opt/corex311-cpython-vllm
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311/bin/python3 -c 'import torch,vllm;print('\''/opt/corex311 ok'\'',torch.__version__,vllm.__version__)'
++ tail -2
+Error response from daemon: container 6da2873bf3f5fe589e75e8948ca9029d3026c52170c1f650be5d66824815d6a9 is not running
++ for V in /opt/corex311 /opt/corex311-cpython-vllm
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python3 -c 'import torch,vllm;print('\''/opt/corex311-cpython-vllm ok'\'',torch.__version__,vllm.__version__)'
++ tail -2
+Error response from daemon: container 6da2873bf3f5fe589e75e8948ca9029d3026c52170c1f650be5d66824815d6a9 is not running
++ echo '== r10 still in place =='
+== r10 still in place ==
++ docker exec corex5-py311 bash -c 'ls /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py 2>&1'
+Error response from daemon: container 6da2873bf3f5fe589e75e8948ca9029d3026c52170c1f650be5d66824815d6a9 is not running
++ echo '== dkms autostart =='
+== dkms autostart ==
++ systemctl is-enabled dkms
+enabled
++ systemctl is-active dkms
+active
++ set +x
+
+### exit: 0
