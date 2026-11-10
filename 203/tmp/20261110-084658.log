@@ -1,0 +1,192 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-10T00:46:58Z
+
++ echo '== 1. 内核与 OS =='
+== 1. 内核与 OS ==
++ uname -r
+6.6.0-132.0.0.111.oe2403sp3.x86_64
++ uname -m
+x86_64
++ head -4 /etc/os-release
+NAME="openEuler"
+VERSION="24.03 (LTS-SP1)"
+ID="openEuler"
+VERSION_ID="24.03"
++ getconf PAGESIZE
+4096
++ echo '== 2. 驱动安装器 =='
+== 2. 驱动安装器 ==
++ find /home /opt /usr/local /root -maxdepth 4 -name 'corex-driver*'
++ head -10
+/home/qch/transfer/corex-driver-linux64-5.0.0_x86_64.run
+/usr/local/corex-5.0.0/bin/corex-driver-uninstaller
+++ find /home /opt /usr/local /root -maxdepth 4 -name 'corex-driver*.run'
+++ head -5
++ for f in $(find /home /opt /usr/local /root -maxdepth 4 -name 'corex-driver*.run' 2> /dev/null | head -5)
++ ls -l /home/qch/transfer/corex-driver-linux64-5.0.0_x86_64.run
+-rwxr-xr-x. 1 root root 8943206 Sep 24 13:47 /home/qch/transfer/corex-driver-linux64-5.0.0_x86_64.run
++ sha256sum /home/qch/transfer/corex-driver-linux64-5.0.0_x86_64.run
+7b57029160a00e80e440c917b8ab6ff66b8013a3846d8f1504a787e073bce952  /home/qch/transfer/corex-driver-linux64-5.0.0_x86_64.run
++ file /home/qch/transfer/corex-driver-linux64-5.0.0_x86_64.run
+/home/qch/transfer/corex-driver-linux64-5.0.0_x86_64.run: Bourne-Again shell script executable (binary data)
++ echo '== 3. 内核头文件/构建目录 =='
+== 3. 内核头文件/构建目录 ==
+++ uname -r
++ ls -d /lib/modules/6.6.0-132.0.0.111.oe2403sp3.x86_64/build
+ls: cannot access '/lib/modules/6.6.0-132.0.0.111.oe2403sp3.x86_64/build': No such file or directory
+++ uname -r
++ ls -ld /lib/modules/6.6.0-132.0.0.111.oe2403sp3.x86_64/build
+ls: cannot access '/lib/modules/6.6.0-132.0.0.111.oe2403sp3.x86_64/build': No such file or directory
+++ uname -r
++ readlink -f /lib/modules/6.6.0-132.0.0.111.oe2403sp3.x86_64/build
+/usr/lib/modules/6.6.0-132.0.0.111.oe2403sp3.x86_64/build
++ ls -d /usr/src/kernels/6.6.0-72.0.0.76.oe2403sp1.x86_64
++ head -10
+/usr/src/kernels/6.6.0-72.0.0.76.oe2403sp1.x86_64
++ rpm -qa
++ grep -E 'kernel-devel|kernel-headers|kernel-source'
++ head -10
+kernel-headers-6.6.0-145.0.2.142.oe2403sp1.x86_64
+kernel-source-6.6.0-72.0.0.76.oe2403sp1.x86_64
+kernel-devel-6.6.0-72.0.0.76.oe2403sp1.x86_64
++ echo '== 4. DKMS 现状 =='
+== 4. DKMS 现状 ==
++ command -v dkms
++ dkms status
++ head -10
+./cmd.sh: line 43: dkms: command not found
++ ls -la /var/lib/dkms/corex/5.0.0
++ head -10
+ls: cannot access '/var/lib/dkms/corex/5.0.0': No such file or directory
++ ls -d '/usr/src/corex*'
++ head
+ls: cannot access '/usr/src/corex*': No such file or directory
++ echo '== 5. 源 dkms.conf 的 vGPU 开关 =='
+== 5. 源 dkms.conf 的 vGPU 开关 ==
++ grep -n 'VGPU_ENABLE|_BUILDOPT|MAKE\[0\]' /usr/src/corex-5.0.0/dkms.conf
++ grep -nE '_BUILDOPT|MAKE\[0\]' /usr/src/corex-5.0.0/dkms.conf
++ echo 'no /usr/src/corex-5.0.0/dkms.conf'
+no /usr/src/corex-5.0.0/dkms.conf
++ ls /usr/src/corex-5.0.0/itr/Kbuild
++ echo '== 6. 旧内核模块与用户态 =='
+== 6. 旧内核模块与用户态 ==
++ find /lib/modules -name 'iluvatar.ko*'
++ head -10
+/lib/modules/6.6.0-72.0.0.76.oe2403sp1.x86_64/kernel/drivers/misc/iluvatar.ko
++ ls -d /usr/local/corex /usr/local/corex-4.4.0 /usr/local/corex-5.0.0 '/usr/local/iluvatar*'
+/usr/local/corex
+/usr/local/corex-4.4.0
+/usr/local/corex-5.0.0
++ ls /usr/local/corex-5.0.0/bin
++ head -8
+corex-driver-uninstaller
+iluvatar-bug-report.sh
+iluvatarcorex.sh
+ixsmi
+logtools
+pci_timeout.sh
++ cat /usr/local/corex-5.0.0/version
++ true
++ echo '== 7. 模块自动加载配置 =='
+== 7. 模块自动加载配置 ==
++ cat /etc/modules-load.d/iluvatar.conf
++ grep -rn iluvatar /etc/modprobe.d/
++ head -5
++ echo '== 8. 编译工具 =='
+== 8. 编译工具 ==
++ for c in gcc g++ make dkms ld xz
++ printf '%s: ' gcc
+gcc: + command -v gcc
+/usr/bin/gcc
++ for c in gcc g++ make dkms ld xz
++ printf '%s: ' g++
+g++: + command -v g++
+/usr/bin/g++
++ for c in gcc g++ make dkms ld xz
++ printf '%s: ' make
+make: + command -v make
+/usr/bin/make
++ for c in gcc g++ make dkms ld xz
++ printf '%s: ' dkms
+dkms: + command -v dkms
++ echo missing
+missing
++ for c in gcc g++ make dkms ld xz
++ printf '%s: ' ld
+ld: + command -v ld
+/usr/bin/ld
++ for c in gcc g++ make dkms ld xz
++ printf '%s: ' xz
+xz: + command -v xz
+/usr/bin/xz
++ gcc --version
++ head -1
+gcc (GCC) 12.3.1 (openEuler 12.3.1-67.oe2403sp1)
++ nproc
+255
++ echo '== 9. 磁盘余量（dkms 构建需要空间）=='
+== 9. 磁盘余量（dkms 构建需要空间）==
++ df -h / /var /home /usr/src
+Filesystem                  Size  Used Avail Use% Mounted on
+/dev/mapper/openeuler-root   69G   65G     0 100% /
+/dev/mapper/openeuler-root   69G   65G     0 100% /
+/dev/mapper/openeuler-home  804G  732G   32G  96% /home
+/dev/mapper/openeuler-root   69G   65G     0 100% /
++ echo '-- /var/lib/dkms 占用 --'
+-- /var/lib/dkms 占用 --
++ du -sh /var/lib/dkms
++ echo '-- / 上占用最大的目录 --'
+-- / 上占用最大的目录 --
++ du -xhd1 /
++ sort -rh
++ head -10
+65G	/
+27G	/usr
+18G	/data
+14G	/opt
+5.1G	/root
+2.1G	/var
+647M	/mnt
+35M	/etc
+16K	/lost+found
+8.0K	/workspace
++ echo '== 10. grub 候选 =='
+== 10. grub 候选 ==
++ grubby --default-kernel
+/boot/vmlinuz-6.6.0-132.0.0.111.oe2403sp3.x86_64
++ grubby --info=ALL
++ grep -E 'index=|kernel='
++ head -20
+index=0
+kernel=/boot/vmlinuz-6.6.0-132.0.0.111.oe2403sp3.x86_64
+args="ro resume=/dev/mapper/openeuler-swap rd.lvm.lv=openeuler/root rd.lvm.lv=openeuler/swap cgroup_disable=files apparmor=0 crashkernel=512M iommu=off amd_iommu=off"
+index=1
+kernel=/boot/vmlinuz-6.6.0-72.0.0.76.oe2403sp1.x86_64
+args="ro resume=/dev/mapper/openeuler-swap rd.lvm.lv=openeuler/root rd.lvm.lv=openeuler/swap cgroup_disable=files apparmor=0 crashkernel=512M iommu=off amd_iommu=off"
+index=2
+kernel=/boot/vmlinuz-0-rescue-6d4243971f334440b5ee3d87dc6c89f8
+args="ro resume=/dev/mapper/openeuler-swap rd.lvm.lv=openeuler/root rd.lvm.lv=openeuler/swap cgroup_disable=files apparmor=0 crashkernel=512M iommu=off amd_iommu=off"
+index=3
+index=4
+index=5
++ echo '== 11. 加速卡 PCI 与厂商 =='
+== 11. 加速卡 PCI 与厂商 ==
++ lspci -nn
++ grep -Ei 'vga|3d|display|accelerator|processing|iluvatar|metax|nvidia'
++ head -20
+10:00.0 Processing accelerators [1200]: Device [1e3e:0003] (rev 01)
+13:00.0 Processing accelerators [1200]: Device [1e3e:0003] (rev 01)
+19:00.0 Processing accelerators [1200]: Device [1e3e:0003] (rev 01)
+1c:00.0 Processing accelerators [1200]: Device [1e3e:0003] (rev 01)
+21:00.0 VGA compatible controller [0300]: ASPEED Technology, Inc. ASPEED Graphics Family [1a03:2000] (rev 52)
++ echo '== 12. 上一次启动的驱动错误 =='
+== 12. 上一次启动的驱动错误 ==
++ dmesg
++ grep -iE 'iluvatar|version magic|module verification|mdev|vfio'
++ tail -15
+[   20.218431] ublk_drv: module verification failed: signature and/or required key missing - tainting kernel
+[   27.160943] systemd[1]: Created slice Slice /system/iluvatarcorex-init.
++ set +x
+
+### exit: 0
