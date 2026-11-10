@@ -1,0 +1,66 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-10T07:05:17Z
+
++ echo '== 1. STEPS / WARMUP_STEPS 定义 =='
+== 1. STEPS / WARMUP_STEPS 定义 ==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+grep -rn "STEPS" "$P"/*.cpp "$P"/*.h 2>/dev/null | grep -iE "define|const|=" | head -10
+'
++ head -15
+/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion_test.cpp:26:#define STEPS 20
+/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion_test.cpp:28:#define WARMUP_STEPS 10
+/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion_test.cpp:599:  for (int i = 0; i < STEPS; i ++) {
+/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion_test.cpp:622:  // for (int s = 0; s < STEPS; s ++) {
+/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion_test.cpp:634:  for (int s = 0; s < WARMUP_STEPS; s ++) {
+/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion_test.cpp:682:  for (int s = WARMUP_STEPS; s < STEPS; s ++) {
+/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion_test.cpp:707:  // int s = STEPS/2;
+/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion_test.cpp:722:  for (int i = 0; i < STEPS; i ++) {
++ echo '== 2. 交替测量 3 轮（绑 cpu0）=='
+== 2. 交替测量 3 轮（绑 cpu0）==
++ head -30
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+cd "$P" || exit 1
+: > /tmp/res_base.txt
+: > /tmp/res_neon.txt
+for i in 1 2 3; do
+  taskset -c 0 ./fusion.unittest.bak_before_neon 1 2>&1 | grep -E "warmup .*Step +9 " | tail -1 >> /tmp/res_base.txt
+  taskset -c 0 ./fusion.unittest                 1 2>&1 | grep -E "warmup .*Step +9 " | tail -1 >> /tmp/res_neon.txt
+done
+
+echo "-- 基线 3 轮 --"; cat /tmp/res_base.txt
+echo "-- 优化 3 轮 --"; cat /tmp/res_neon.txt
+
+echo "-- 统计 --"
+python3 - <<"PY"
+import re
+for name, f in (("base", "/tmp/res_base.txt"), ("neon", "/tmp/res_neon.txt")):
+    ms, bw = [], []
+    for line in open(f):
+        m = re.search(r"Target Time is (\S+) ms Bandwidth is (\S+) MB/s", line)
+        if m:
+            ms.append(float(m.group(1)))
+            bw.append(float(m.group(2)))
+    if ms:
+        print("%s: n=%d mean_ms=%.3f min_ms=%.3f mean_bw=%.1f" %
+              (name, len(ms), sum(ms)/len(ms), min(ms), sum(bw)/len(bw)))
+    else:
+        print("%s: no sample" % name)
+PY
+'
+-- 基线 3 轮 --
+warmup [  0] Step   9 Target Time is 13.240 ms Bandwidth is   2206.512 MB/s 
+warmup [  0] Step   9 Target Time is 13.244 ms Bandwidth is   2205.797 MB/s 
+warmup [  0] Step   9 Target Time is 13.276 ms Bandwidth is   2200.519 MB/s 
+-- 优化 3 轮 --
+warmup [  0] Step   9 Target Time is 11.562 ms Bandwidth is   2526.697 MB/s 
+warmup [  0] Step   9 Target Time is 11.627 ms Bandwidth is   2512.555 MB/s 
+warmup [  0] Step   9 Target Time is 11.513 ms Bandwidth is   2537.488 MB/s 
+-- 统计 --
+base: no sample
+neon: no sample
++ set +x
+
+### exit: 0
