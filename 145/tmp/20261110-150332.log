@@ -1,0 +1,89 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-10T07:03:32Z
+
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+cd "$P" || exit 1
+
+echo "== 1. 绑核工具 =="
+command -v taskset || echo NO_TASKSET
+command -v numactl || echo NO_NUMACTL
+
+run_pinned() {
+  local bin=$1
+  if command -v taskset >/dev/null 2>&1; then
+    taskset -c 0 "$bin" 1
+  else
+    python3 -c "import os,sys; os.sched_setaffinity(0,{0}); os.execv(sys.argv[1],[sys.argv[1],\"1\"])" "$bin"
+  fi
+}
+
+echo "== 2. 基线（bak_before_neon）=="
+run_pinned ./fusion.unittest.bak_before_neon > /tmp/run_base.log 2>&1
+echo "rc=$?"
+grep "warmup" /tmp/run_base.log | tail -12
+echo "-- 尾部 --"
+tail -5 /tmp/run_base.log
+
+echo "== 3. 优化版（fusion.unittest）=="
+run_pinned ./fusion.unittest > /tmp/run_neon.log 2>&1
+echo "rc=$?"
+grep "warmup" /tmp/run_neon.log | tail -12
+echo "-- 尾部 --"
+tail -5 /tmp/run_neon.log
+
+echo "== 4. Step 9 对比 =="
+echo "-- base --"; grep "warmup" /tmp/run_base.log | tail -1
+echo "-- neon --"; grep "warmup" /tmp/run_neon.log | tail -1
+'
++ head -80
+== 1. 绑核工具 ==
+/usr/bin/taskset
+NO_NUMACTL
+== 2. 基线（bak_before_neon）==
+rc=0
+warmup [  0] Step   0 Target Time is 21.282 ms Bandwidth is   1372.687 MB/s 
+warmup [  0] Step   1 Target Time is 13.335 ms Bandwidth is   2190.727 MB/s 
+warmup [  0] Step   2 Target Time is 13.245 ms Bandwidth is   2205.644 MB/s 
+warmup [  0] Step   3 Target Time is 13.350 ms Bandwidth is   2188.391 MB/s 
+warmup [  0] Step   4 Target Time is 13.259 ms Bandwidth is   2203.278 MB/s 
+warmup [  0] Step   5 Target Time is 13.220 ms Bandwidth is   2209.761 MB/s 
+warmup [  0] Step   6 Target Time is 13.209 ms Bandwidth is   2211.712 MB/s 
+warmup [  0] Step   7 Target Time is 13.249 ms Bandwidth is   2205.005 MB/s 
+warmup [  0] Step   8 Target Time is 13.158 ms Bandwidth is   2220.275 MB/s 
+warmup [  0] Step   9 Target Time is 13.136 ms Bandwidth is   2223.953 MB/s 
+warmup end
+-- 尾部 --
+warmup [  0] Step   8 Target Time is 13.158 ms Bandwidth is   2220.275 MB/s 
+warmup [  0] Step   9 Target Time is 13.136 ms Bandwidth is   2223.953 MB/s 
+warmup end
+deAllocPillowFusionV2Var before
+deAllocPillowFusionV2Var after
+== 3. 优化版（fusion.unittest）==
+rc=0
+warmup [  0] Step   0 Target Time is 19.457 ms Bandwidth is   1501.434 MB/s 
+warmup [  0] Step   1 Target Time is 11.787 ms Bandwidth is   2478.399 MB/s 
+warmup [  0] Step   2 Target Time is 11.657 ms Bandwidth is   2506.209 MB/s 
+warmup [  0] Step   3 Target Time is 11.585 ms Bandwidth is   2521.781 MB/s 
+warmup [  0] Step   4 Target Time is 11.590 ms Bandwidth is   2520.528 MB/s 
+warmup [  0] Step   5 Target Time is 11.621 ms Bandwidth is   2513.965 MB/s 
+warmup [  0] Step   6 Target Time is 11.600 ms Bandwidth is   2518.431 MB/s 
+warmup [  0] Step   7 Target Time is 11.592 ms Bandwidth is   2520.169 MB/s 
+warmup [  0] Step   8 Target Time is 11.602 ms Bandwidth is   2518.066 MB/s 
+warmup [  0] Step   9 Target Time is 11.599 ms Bandwidth is   2518.570 MB/s 
+warmup end
+-- 尾部 --
+warmup [  0] Step   8 Target Time is 11.602 ms Bandwidth is   2518.066 MB/s 
+warmup [  0] Step   9 Target Time is 11.599 ms Bandwidth is   2518.570 MB/s 
+warmup end
+deAllocPillowFusionV2Var before
+deAllocPillowFusionV2Var after
+== 4. Step 9 对比 ==
+-- base --
+warmup end
+-- neon --
+warmup end
++ set +x
+
+### exit: 0
