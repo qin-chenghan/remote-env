@@ -1,0 +1,91 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T07:58:59Z
+
++ echo '== /home/lw/20261104-64k =='
+== /home/lw/20261104-64k ==
++ ls -la /home/lw/20261104-64k
++ head -20
+total 1402776
+drwxr-xr-x. 2 root root      4096 Nov  4 15:16 .
+drwxrwxr-x+ 6 root root      4096 Nov  9 18:41 ..
+-rw-------. 1 root root  59066008 Nov  4 14:36 perf_20261104.data
+-rw-r--r--. 1 root root   7529299 Nov  4 14:46 perf_20261104.folded
+-rw-r--r--. 1 root root    607084 Nov  4 14:46 perf_20261104.svg
+-rw-r--r--. 1 root root 524598760 Nov  4 14:44 perf_20261104.unfold
+-rw-------. 1 root root  44073956 Nov  4 15:12 perf_20261104_workerTP.data
+-rw-r--r--. 1 root root   2653355 Nov  4 15:15 perf_20261104_workerTP.folded
+-rw-r--r--. 1 root root    239273 Nov  4 15:16 perf_20261104_workerTP.svg
+-rw-r--r--. 1 root root 482086963 Nov  4 15:14 perf_20261104_workerTP.unfolded
+-rw-r--r--. 1 root root      6487 Nov  4 14:41 topdown_261104.log
+-rw-r--r--. 1 root root 315531085 Nov  4 14:54 trace_261104.log
++ echo '== /home/lw/kernel =='
+== /home/lw/kernel ==
++ ls -la /home/lw/kernel
++ head -25
+total 916
+drwxr-xr-x.  26 root root   4096 Nov  4 20:30 .
+drwxrwxr-x+   6 root root   4096 Nov  9 18:41 ..
+drwxr-xr-x.  28 root root   4096 Jun 27  2024 arch
+drwxr-xr-x.   3 root root   4096 Jun 27  2024 block
+drwxr-xr-x.   2 root root   4096 Jun 27  2024 certs
+-rw-r--r--.   1 root root  16673 Jun 27  2024 .clang-format
+-rw-r--r--.   1 root root     59 Jun 27  2024 .cocciconfig
+-rw-r--r--.   1 root root    496 Jun 27  2024 COPYING
+-rw-r--r--.   1 root root 100478 Jun 27  2024 CREDITS
+drwxr-xr-x.   4 root root   4096 Jun 27  2024 crypto
+drwxr-xr-x.  81 root root   4096 Jun 27  2024 Documentation
+drwxr-xr-x. 145 root root   4096 Jun 27  2024 drivers
+drwxr-xr-x.  82 root root   4096 Jun 27  2024 fs
+-rw-r--r--.   1 root root     71 Jun 27  2024 .get_maintainer.ignore
+drwxr-xr-x.  31 root root   4096 Nov  4 19:42 include
+drwxr-xr-x.   2 root root   4096 Jun 27  2024 init
+drwxr-xr-x.   2 root root   4096 Jun 27  2024 io_uring
+drwxr-xr-x.   2 root root   4096 Jun 27  2024 ipc
+-rw-r--r--.   1 root root   1327 Jun 27  2024 Kbuild
+-rw-r--r--.   1 root root    555 Jun 27  2024 Kconfig
+drwxr-xr-x.  21 root root   4096 Jun 27  2024 kernel
+drwxr-xr-x.  21 root root  12288 Jun 27  2024 lib
+drwxr-xr-x.   6 root root   4096 Jun 27  2024 LICENSES
+-rw-r--r--.   1 root root  18204 Jun 27  2024 .mailmap
++ sed -n 1,6p /home/lw/kernel/Makefile
+# SPDX-License-Identifier: GPL-2.0
+VERSION = 5
+PATCHLEVEL = 10
+SUBLEVEL = 0
+EXTRAVERSION =
+NAME = Kleptomaniac Octopus
++ echo '== prepared build tree? =='
+== prepared build tree? ==
++ ls -l /home/lw/kernel/Module.symvers /home/lw/kernel/.config /home/lw/kernel/vmlinux
+ls: cannot access '/home/lw/kernel/Module.symvers': No such file or directory
+ls: cannot access '/home/lw/kernel/.config': No such file or directory
+ls: cannot access '/home/lw/kernel/vmlinux': No such file or directory
++ grep -E 'CONFIG_ARM64_64K_PAGES|CONFIG_LOCALVERSION' /home/lw/kernel/.config
+grep: /home/lw/kernel/.config: No such file or directory
++ ls -l /home/lw/kernel/include/generated/asm-offsets.h
+ls: cannot access '/home/lw/kernel/include/generated/asm-offsets.h': No such file or directory
++ echo '== kernelrelease from tree =='
+== kernelrelease from tree ==
++ grep -rn CONFIG_LOCALVERSION= /home/lw/kernel/.config
+grep: /home/lw/kernel/.config: No such file or directory
++ ls -la '/home/lw/20261104-64k/*.rpm'
++ head -5
+ls: cannot access '/home/lw/20261104-64k/*.rpm': No such file or directory
++ find /home/lw -maxdepth 3 -name 'kernel-devel*.rpm'
++ head -5
++ echo '== driver kernel dirs available =='
+== driver kernel dirs available ==
++ ls -1 /home/lw/kernel/arch/arm64/boot
++ head -5
+dts
+install.sh
+Makefile
++ echo '== dkms.conf in tree? =='
+== dkms.conf in tree? ==
++ ls -l /home/lw/kernel/.config /home/lw/kernel/Module.symvers
+ls: cannot access '/home/lw/kernel/.config': No such file or directory
+ls: cannot access '/home/lw/kernel/Module.symvers': No such file or directory
++ set +x
+
+### exit: 0
