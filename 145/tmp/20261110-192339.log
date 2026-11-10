@@ -1,0 +1,64 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-10T11:23:39Z
+
++ D=/home/qch/clamp_opt
++ echo '== 1. 生成实验源码（新文件）=='
+== 1. 生成实验源码（新文件）==
++ cat
++ ls -l /home/qch/clamp_opt/clamp_neon_opt_clampcost.cpp
+-rw-r--r--. 1 root root 3421 Nov 10 19:23 /home/qch/clamp_opt/clamp_neon_opt_clampcost.cpp
++ echo '== 2. 编译 =='
+== 2. 编译 ==
++ g++ -std=c++14 -march=armv8.2-a+fp16+dotprod -fopenmp -O3 -shared -fPIC -o /home/qch/clamp_opt/libpreprocess_clampcost.so /home/qch/clamp_opt/clamp_neon_opt_clampcost.cpp
++ tail -12
++ echo 'build rc=0'
+build rc=0
++ ls -l /home/qch/clamp_opt/libpreprocess_clampcost.so
+-rwxr-xr-x. 1 root root 72408 Nov 10 19:23 /home/qch/clamp_opt/libpreprocess_clampcost.so
++ echo '== 3. 生成测量脚本（新文件）=='
+== 3. 生成测量脚本（新文件）==
++ cat
++ ls -l /home/qch/clamp_opt/clamp_neon_opt_clampcost.py
+-rw-r--r--. 1 root root 1869 Nov 10 19:23 /home/qch/clamp_opt/clamp_neon_opt_clampcost.py
++ echo '== 4. 运行（绑 cpu0）=='
+== 4. 运行（绑 cpu0）==
++ cd /home/qch/clamp_opt
++ taskset -c 0 python3 clamp_neon_opt_clampcost.py ./libpreprocess_clampcost.so
++ tail -40
+
+=== 224x224 (1 thread, avg of 3 rounds) ===
+clamp mode             vertical      total
+full(round+clamp)         0.325      0.765
+cast only                 0.199      0.641
+round only                0.197      0.638
+clamp only                0.322      0.758
+-- 差值（相对 full）--
+round+clamp 总成本 : 0.126 ms (vertical 的 38.7%, 总体的 16.2%)
+其中 仅钳位(min/max): 0.128 ms
+其中 仅取整(round)  : 0.003 ms
+
+=== 321x481 (1 thread, avg of 3 rounds) ===
+clamp mode             vertical      total
+full(round+clamp)         0.465      1.587
+cast only                 0.372      1.500
+round only                0.365      1.492
+clamp only                0.455      1.582
+-- 差值（相对 full）--
+round+clamp 总成本 : 0.093 ms (vertical 的 19.9%, 总体的 5.5%)
+其中 仅钳位(min/max): 0.100 ms
+其中 仅取整(round)  : 0.010 ms
+
+=== 1920x1080 (1 thread, avg of 3 rounds) ===
+clamp mode             vertical      total
+full(round+clamp)         0.911      9.885
+cast only                 0.826      9.776
+round only                0.824      9.788
+clamp only                0.876      9.828
+-- 差值（相对 full）--
+round+clamp 总成本 : 0.085 ms (vertical 的 9.3%, 总体的 1.1%)
+其中 仅钳位(min/max): 0.086 ms
+其中 仅取整(round)  : 0.035 ms
++ set +x
+
+### exit: 0
