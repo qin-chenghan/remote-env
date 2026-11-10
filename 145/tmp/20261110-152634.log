@@ -1,0 +1,48 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-10T07:26:34Z
+
++ echo '== 1. 全盘搜 clamp_to_u8 =='
+== 1. 全盘搜 clamp_to_u8 ==
++ docker exec fusionv1 bash -lc '
+grep -rn "clamp_to_u8" /home/workspace /home/qch /opt 2>/dev/null | head -20
+'
++ head -25
++ echo '== 2. 搜 kUint8ToFloatDivisor =='
+== 2. 搜 kUint8ToFloatDivisor ==
++ docker exec fusionv1 bash -lc '
+grep -rn "kUint8ToFloatDivisor" /home/workspace /home/qch /opt 2>/dev/null | head -10
+'
++ head -15
++ echo '== 3. workspace 结构 =='
+== 3. workspace 结构 ==
++ docker exec fusionv1 bash -lc '
+ls /home/workspace/tensor 2>/dev/null
+echo "-- files --"; ls /home/workspace/tensor/files 2>/dev/null | head -20
+'
++ head -30
+files
+-- files --
+libkperf
+links.txt
+opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro-arm.zip
+opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro-backup
+opt_fusion_qwen-master_fusion_v0.zip
+opt_fusion_qwen-master_fusion_v0_m4.zip
+test_opencv_resize-master.zip
++ echo '== 4. 最近修改的 cpp/h（近 7 天）=='
+== 4. 最近修改的 cpp/h（近 7 天）==
++ docker exec fusionv1 bash -lc '
+find /home/workspace /home/qch -name "*.cpp" -o -name "*.h" 2>/dev/null | xargs -r ls -lt 2>/dev/null | head -15
+'
++ head -20
++ echo '== 5. 任何含 uint8 转换的源文件 =='
+== 5. 任何含 uint8 转换的源文件 ==
++ docker exec fusionv1 bash -lc '
+grep -rln "static_cast<uint8_t>" /home/workspace /home/qch 2>/dev/null | head -10
+'
++ head -15
++ set +x
+
+### exit: 0
