@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：重启后检查驱动与 64K 内核配套情况。
+# 只读：确认重启+新内核后容器内 GPU 栈正常。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,36 +17,27 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  K=$(uname -r)
-  echo "== kernel =="
-  echo "running=$K"
-  uname -v
-  uptime
-  cat /proc/cmdline
+  echo "== container =="
+  docker ps --format '{{.Names}}\t{{.Status}}' 2>&1 | head -5
 
-  echo "== driver =="
-  lsmod | grep -i iluvatar || echo "  not loaded"
-  ls -l /dev/iluvatar* 2>&1
-  modinfo iluvatar 2>&1 | grep -E 'filename|vermagic' | head -3
-  ixsmi 2>&1 | head -14
+  echo "== devices in container =="
+  docker exec corex5-py311 bash -c 'ls -l /dev/iluvatar* 2>&1 | head -6' 2>&1
 
-  echo "== devel tree for this kernel =="
-  ls -d "/usr/src/kernels/$K" 2>&1
-  ls -l "/usr/src/kernels/$K/Module.symvers" 2>&1
-  rpm -qa 'kernel-devel*' 2>&1
+  echo "== ixsmi in container =="
+  docker exec corex5-py311 ixsmi 2>&1 | sed -n '1,16p'
 
-  echo "== new rpms =="
-  ls -lt /home/l30029702/64k 2>&1 | head -8
-  find /home /root -maxdepth 4 -iname 'kernel-devel-6.6.02403*' 2>/dev/null | head -5
+  echo "== venv imports =="
+  for V in /opt/corex311 /opt/corex311-cpython-vllm; do
+    docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME "$V/bin/python3" -c \
+      "import torch,vllm;print('$V ok',torch.__version__,vllm.__version__)" 2>&1 | tail -2
+  done
 
-  echo "== dkms =="
-  dkms status 2>&1 | head -10
+  echo "== r10 still in place =="
+  docker exec corex5-py311 bash -c 'ls /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py 2>&1' 2>&1
 
-  echo "== modules dir =="
-  ls -l /lib/modules/$K/updates 2>&1 | head -8
-
-  echo "== dmesg =="
-  dmesg 2>/dev/null | grep -iE 'iluvatar|corex' | tail -10
+  echo "== dkms autostart =="
+  systemctl is-enabled dkms 2>&1
+  systemctl is-active dkms 2>&1
 
   # ---- 命令结束 ----
 
