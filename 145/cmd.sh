@@ -17,42 +17,41 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== 1. STEPS / WARMUP_STEPS 定义 =="
+  # 只读：定位 clamp_to_u8 的定义与所有调用点，以及所在循环。
+
+  echo "== 1. clamp_to_u8 出现在哪些文件 =="
   docker exec fusionv1 bash -lc '
 P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
-grep -rn "STEPS" "$P"/*.cpp "$P"/*.h 2>/dev/null | grep -iE "define|const|=" | head -10
+grep -rn "clamp_to_u8" "$P" --include="*.cpp" --include="*.h" 2>/dev/null | head -20
+' 2>&1 | head -25
+
+  echo "== 2. kUint8ToFloatDivisor 定义 =="
+  docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+grep -rn "kUint8ToFloatDivisor" "$P" --include="*.cpp" --include="*.h" 2>/dev/null | head -10
 ' 2>&1 | head -15
 
-  echo "== 2. 交替测量 3 轮（绑 cpu0）=="
+  echo "== 3. 定义与上下文 =="
   docker exec fusionv1 bash -lc '
 P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
-cd "$P" || exit 1
-: > /tmp/res_base.txt
-: > /tmp/res_neon.txt
-for i in 1 2 3; do
-  taskset -c 0 ./fusion.unittest.bak_before_neon 1 2>&1 | grep -E "warmup .*Step +9 " | tail -1 >> /tmp/res_base.txt
-  taskset -c 0 ./fusion.unittest                 1 2>&1 | grep -E "warmup .*Step +9 " | tail -1 >> /tmp/res_neon.txt
+F=$(grep -rln "static inline uint8_t clamp_to_u8" "$P" --include="*.cpp" --include="*.h" 2>/dev/null | head -1)
+echo "F=$F"
+[ -n "$F" ] && grep -n -B8 -A20 "clamp_to_u8" "$F" | head -70
+' 2>&1 | head -80
+
+  echo "== 4. 调用点所在函数 =="
+  docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+for f in $(grep -rl "clamp_to_u8(" "$P" --include="*.cpp" 2>/dev/null); do
+  echo "--- $(basename $f) ---"
+  grep -n "^[a-zA-Z_].*(" "$f" | head -20
 done
+' 2>&1 | head -40
 
-echo "-- 基线 3 轮 --"; cat /tmp/res_base.txt
-echo "-- 优化 3 轮 --"; cat /tmp/res_neon.txt
-
-echo "-- 统计 --"
-python3 - <<"PY"
-import re
-for name, f in (("base", "/tmp/res_base.txt"), ("neon", "/tmp/res_neon.txt")):
-    ms, bw = [], []
-    for line in open(f):
-        m = re.search(r"Target Time is (\S+) ms Bandwidth is (\S+) MB/s", line)
-        if m:
-            ms.append(float(m.group(1)))
-            bw.append(float(m.group(2)))
-    if ms:
-        print("%s: n=%d mean_ms=%.3f min_ms=%.3f mean_bw=%.1f" %
-              (name, len(ms), sum(ms)/len(ms), min(ms), sum(bw)/len(bw)))
-    else:
-        print("%s: no sample" % name)
-PY
+  echo "== 5. 该文件是否参与构建 =="
+  docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+grep -n "\.o" "$P/Makefile" | head -25
 ' 2>&1 | head -30
 
   # ---- 命令结束 ----
