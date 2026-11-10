@@ -1,0 +1,71 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T08:40:41Z
+
++ echo '== container state before =='
+== container state before ==
++ docker inspect -f 'status={{.State.Status}} exit={{.State.ExitCode}} oom={{.State.OOMKilled}} started={{.State.StartedAt}} finished={{.State.FinishedAt}} policy={{.HostConfig.RestartPolicy.Name}}' corex5-py311
+status=running exit=0 oom=false started=2026-11-10T08:38:25.84793367Z finished=2026-11-10T08:27:11.03938472Z policy=no
++ echo '== start it =='
+== start it ==
++ docker start corex5-py311
+corex5-py311
++ echo 'start rc=0'
+start rc=0
++ sleep 6
++ echo '== container state after =='
+== container state after ==
++ docker ps --format '{{.Names}}\t{{.Status}}'
++ head -3
+corex5-py311	Up 2 minutes
+supabase_db_agentpress	Up 8 minutes (healthy)
+supabase_studio_agentpress	Up 8 minutes (healthy)
++ docker inspect -f 'status={{.State.Status}} exit={{.State.ExitCode}}' corex5-py311
+status=running exit=0
++ echo '== container logs tail =='
+== container logs tail ==
++ docker logs --tail 20 corex5-py311
++ tail -20
+[?2004h]0;root@controller: /usr/local/corex-5.0.0root@controller:/usr/local/corex-5.0.0# [?2004h]0;root@controller: /usr/local/corex-5.0.0root@controller:/usr/local/corex-5.0.0# [?2004h]0;root@controller: /usr/local/corex-5.0.0root@controller:/usr/local/corex-5.0.0# [?2004h]0;root@controller: /usr/local/corex-5.0.0root@controller:/usr/local/corex-5.0.0# [?2004h]0;root@controller: /usr/local/corex-5.0.0root@controller:/usr/local/corex-5.0.0# [?2004h]0;root@controller: /usr/local/corex-5.0.0root@controller:/usr/local/corex-5.0.0# [?2004h]0;root@controller: /usr/local/corex-5.0.0root@controller:/usr/local/corex-5.0.0# [?2004h]0;root@controller: /usr/local/corex-5.0.0root@controller:/usr/local/corex-5.0.0# [?2004h]0;root@controller: /usr/local/corex-5.0.0root@controller:/usr/local/corex-5.0.0# [?2004h]0;root@controller: /usr/local/corex-5.0.0root@controller:/usr/local/corex-5.0.0# [?2004h]0;root@controller: /usr/local/corex-5.0.0root@controller:/usr/local/corex-5.0.0# [?2004h]0;root@controller: /usr/local/corex-5.0.0root@controller:/usr/local/corex-5.0.0# [?2004h]0;root@controller: /usr/local/corex-5.0.0root@controller:/usr/local/corex-5.0.0# + echo '== devices =='
+== devices ==
++ docker exec corex5-py311 bash -c 'ls -l /dev/iluvatar* 2>&1 | head -6'
+crw-rw-rw-. 1 root root 237, 0 Nov 10 16:32 /dev/iluvatar0
+crw-rw-rw-. 1 root root 237, 1 Nov 10 16:32 /dev/iluvatar1
+crw-rw-rw-. 1 root root 237, 2 Nov 10 16:32 /dev/iluvatar2
+crw-rw-rw-. 1 root root 237, 3 Nov 10 16:32 /dev/iluvatar3
++ echo '== ixsmi =='
+== ixsmi ==
++ docker exec corex5-py311 ixsmi
++ sed -n 1,14p
+Timestamp    Tue Nov 10 16:40:47 2026
++--------------------------------------------------------------------------------+
+|  IX-ML: 5.0.0            Driver Version: 5.0.0          CUDA Version: 10.2     |
+|----------------------------------+----------------------+----------------------|
+| GPU  Name                        | Bus-Id               | Clock-SM  Clock-Mem  |
+| Fan  Temp  Perf    Pwr:Usage/Cap |      Memory-Usage    | GPU-Util  Compute M. |
+|==================================+======================+======================|
+| 0    Iluvatar BI-V150            | 00000000:45:00.0     | 1500MHz   1600MHz    |
+| N/A  42C   P0       N/A / N/A    | 62MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 1    Iluvatar BI-V150            | 00000000:48:00.0     | 1500MHz   1600MHz    |
+| N/A  43C   P0       102W / 350W  | 62MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 2    Iluvatar BI-V150            | 00000000:AF:00.0     | 1500MHz   1600MHz    |
++ echo '== venv imports =='
+== venv imports ==
++ for V in /opt/corex311 /opt/corex311-cpython-vllm
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311/bin/python3 -c 'import torch,vllm;print('\''/opt/corex311 ok'\'',torch.__version__,vllm.__version__)'
++ tail -2
+/opt/corex311 ok 2.10.0 0.23.0
++ for V in /opt/corex311 /opt/corex311-cpython-vllm
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python3 -c 'import torch,vllm;print('\''/opt/corex311-cpython-vllm ok'\'',torch.__version__,vllm.__version__)'
++ tail -2
+/opt/corex311-cpython-vllm ok 2.10.0 0.23.0
++ echo '== r10 files =='
+== r10 files ==
++ docker exec corex5-py311 bash -c 'ls /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py 2>&1'
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py
+/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py
++ set +x
+
+### exit: 0
