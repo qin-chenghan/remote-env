@@ -1,0 +1,59 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-10T10:58:49Z
+
++ echo '== 1. 宿主机 /home/qch/projects =='
+== 1. 宿主机 /home/qch/projects ==
++ ls -la /home/qch/projects
++ head -20
+total 12
+drwxr-xr-x. 3 root root 4096 Nov 10 16:52 .
+drwxr-xr-x. 5 root root 4096 Nov 10 16:52 ..
+drwxr-xr-x. 6 root root 4096 Nov 10 16:52 vllm
++ git -C /home/qch/projects rev-parse --abbrev-ref HEAD
+fatal: not a git repository (or any parent up to mount point /)
+Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
++ find /home/qch/projects -maxdepth 3 -name lib_preprocess.cpp
++ head -5
+/home/qch/projects/vllm/workplace/lib_preprocess.cpp
++ find /home/qch/projects -maxdepth 3 -type d -name workplace
++ head -5
+/home/qch/projects/vllm/workplace
++ echo '== 2. 容器内 /home/qch/projects =='
+== 2. 容器内 /home/qch/projects ==
++ docker exec fusionv1 bash -lc '
+ls -la /home/qch/projects 2>&1 | head -20
+echo "-- 找 lib_preprocess.cpp --"
+find /home/qch /home/workspace -maxdepth 6 -name "lib_preprocess.cpp" 2>/dev/null | head -5
+echo "-- 找 workplace 目录 --"
+find /home/qch /home/workspace -maxdepth 6 -type d -name "workplace" 2>/dev/null | head -5
+'
++ head -35
+total 12
+drwxr-xr-x. 3 root root 4096 Nov 10 16:54 .
+drwxr-xr-x. 3 root root 4096 Nov 10 16:51 ..
+drwxr-xr-x. 6 root root 4096 Nov 10 16:52 vllm
+-- 找 lib_preprocess.cpp --
+-- 找 workplace 目录 --
++ echo '== 3. 容器内其它 python 环境 =='
+== 3. 容器内其它 python 环境 ==
++ docker exec fusionv1 bash -lc '
+ls -d /opt/* 2>/dev/null | head -10
+for p in /usr/bin/python3 /usr/local/bin/python3 /opt/*/bin/python3; do
+  [ -x "$p" ] || continue
+  echo "-- $p --"
+  "$p" -V 2>&1
+  "$p" -c "import numpy,PIL;print(\"numpy\",numpy.__version__,\"PIL\",PIL.__version__)" 2>&1 | tail -1
+done
+command -v pip3 || echo NO_PIP3
+command -v yum || command -v dnf || echo NO_PKG_MGR
+'
++ head -30
+-- /usr/bin/python3 --
+Python 3.9.9
+ModuleNotFoundError: No module named 'numpy'
+NO_PIP3
+/usr/bin/yum
++ set +x
+
+### exit: 0
