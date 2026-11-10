@@ -1,0 +1,83 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T02:14:58Z
+
++ NEW=/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm
++ BASE=/opt/corex311/lib/python3.11/site-packages/vllm
++ echo '== r10 files present? =='
+== r10 files present? ==
++ docker exec corex5-py311 bash -c 'ls -l /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/sample_logits_graph.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/.host-opt-pr-backup 2>&1 | head'
+ls: cannot access '/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/.host-opt-pr-backup': No such file or directory
+-rw-r--r--. 1 root root 36928 Nov  9 19:25 /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy.py
+-rw-r--r--. 1 root root 30242 Nov  9 19:25 /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py
+-rw-r--r--. 1 root root 16571 Nov  9 19:25 /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/sample_logits_graph.py
++ echo '== r10 hashes (new venv) =='
+== r10 hashes (new venv) ==
++ docker exec corex5-py311 bash -c 'cd /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/.. && sha256sum     vllm/v1/worker/gpu_model_runner.py vllm/envs.py vllm/v1/attention/backends/ilu_flash_attn.py     vllm/v1/worker/host_opt.py vllm/v1/worker/compact_greedy.py vllm/v1/worker/sample_logits_graph.py     vllm/config/compilation.py vllm/config/vllm.py     vllm/model_executor/models/llama.py vllm/model_executor/models/qwen2.py vllm/model_executor/models/qwen3.py'
+b1bc3b00a8c09cceeb49111c864584018f84ea10440ef400d6dd2c8fb6e24a5e  vllm/v1/worker/gpu_model_runner.py
+61d00716c878c25c800f1fdce1deb0bdd8e4a53e218b2c79d80d51cb7f82d327  vllm/envs.py
+04049f511f8b2f3d0986d3494f70f5d596a409edc0ad3329aa48acd6e1b6a945  vllm/v1/attention/backends/ilu_flash_attn.py
+2f1943f6557374abfcec4ecf7ef130e1734618f9391126b6f714ffca29712667  vllm/v1/worker/host_opt.py
+4776461a00ba62037f22baa9ad39a97e09c2e2144bb4b697783f43b95c534ce3  vllm/v1/worker/compact_greedy.py
+8cacf0db26ba33e3bfa76b163ac99b00dc9bd63d4de34cc5bf7e361650bec1aa  vllm/v1/worker/sample_logits_graph.py
+caf93a67b5ef6f2fb09d345d1f4f1f585f02f5dee8f189523b61781a9e65554e  vllm/config/compilation.py
+19cdd32ad89e5f521aefd9fbfed06359dc976bf42c6682d73fbefd2abc59a08b  vllm/config/vllm.py
+05ca750be091c8a9c6fc21cfe3751b630b4a0fb4c5b63be85defdc659d773b19  vllm/model_executor/models/llama.py
+4cf8a9ce36f266689d03de7643f5eff59ad5a899fa0ecf1e854b78d8571c9523  vllm/model_executor/models/qwen2.py
+7ea30647dd3bf507099c0a1a4c0792681e1e1e1db50f6141e5e5ea2d9646babc  vllm/model_executor/models/qwen3.py
++ echo '== r10 switches wired =='
+== r10 switches wired ==
++ docker exec corex5-py311 bash -c 'grep -n '\''VLLM_HOST_OPT\|VLLM_COMPACT_GREEDY\|sample_logits_cudagraph'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py | head -20'
+15:    VLLM_HOST_OPT: str = "off"
+16:    VLLM_HOST_OPT_INPUTS: str | None = None
+17:    VLLM_HOST_OPT_ARENA: str | None = None
+18:    VLLM_HOST_OPT_BOOKKEEPING: str | None = None
+19:    VLLM_HOST_OPT_ARENA_MAX_REQS: int = 2048
+20:    VLLM_HOST_OPT_DIAGNOSTICS: str = "0"
+220:    VLLM_COMPACT_GREEDY: str = "off"
+221:    VLLM_COMPACT_GREEDY_DIAGNOSTICS: str = "0"
+581:    # per-feature modes inherit VLLM_HOST_OPT when unset.
+582:    "VLLM_HOST_OPT": env_with_choices(
+583:        "VLLM_HOST_OPT", "off", ["off", "on", "verify"], case_sensitive=False
+585:    "VLLM_HOST_OPT_INPUTS": env_with_choices(
+586:        "VLLM_HOST_OPT_INPUTS", None, ["off", "on", "verify"], case_sensitive=False
+588:    "VLLM_HOST_OPT_ARENA": env_with_choices(
+589:        "VLLM_HOST_OPT_ARENA", None, ["off", "on", "verify"], case_sensitive=False
+591:    "VLLM_HOST_OPT_BOOKKEEPING": env_with_choices(
+592:        "VLLM_HOST_OPT_BOOKKEEPING",
+597:    "VLLM_HOST_OPT_ARENA_MAX_REQS": lambda: int(
+598:        os.getenv("VLLM_HOST_OPT_ARENA_MAX_REQS", "2048")
+600:    "VLLM_HOST_OPT_DIAGNOSTICS": env_with_choices(
++ docker exec corex5-py311 bash -c 'grep -n '\''sample_logits_cudagraph'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/compilation.py | head -8'
+658:    sample_logits_cudagraph: Literal["off", "on", "verify"] = "off"
+670:    sample_logits_cudagraph_max_bytes: int = 64 * 1024 * 1024
+672:    sample_logits_cudagraph_capture_sizes: list[int] | None = None
+933:        if self.sample_logits_cudagraph_max_bytes < 0:
+935:                "sample_logits_cudagraph_max_bytes must be nonnegative"
+937:        if self.sample_logits_cudagraph_capture_sizes is not None and any(
+939:            for size in self.sample_logits_cudagraph_capture_sizes
+942:                "sample_logits_cudagraph_capture_sizes must be "
++ echo '== base venv patch generation =='
+== base venv patch generation ==
++ docker exec corex5-py311 bash -c 'ls /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py 2>&1; grep -l '\''VLLM_HOST_FASTPATH'\'' /opt/corex311/lib/python3.11/site-packages/vllm/envs.py 2>/dev/null'
+ls: cannot access '/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py': No such file or directory
+/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py
+/opt/corex311/lib/python3.11/site-packages/vllm/envs.py
++ echo '== find r10 package dir =='
+== find r10 package dir ==
++ find /home -maxdepth 4 -type d -name 'host-opt-pr-validation-*r10*'
++ head -5
+/home/qch/transfer/host-opt-pr-validation-20261106-r10
++ echo '== install.py --check =='
+== install.py --check ==
+++ find /home -maxdepth 4 -type d -name 'host-opt-pr-validation-*r10*'
+++ head -1
++ D=/home/qch/transfer/host-opt-pr-validation-20261106-r10
++ '[' -n /home/qch/transfer/host-opt-pr-validation-20261106-r10 ']'
++ '[' -f /home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/install.py ']'
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python3 /home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/.. --check
++ tail -12
+installed source digests and both built modules: PASS
++ set +x
+
+### exit: 0
