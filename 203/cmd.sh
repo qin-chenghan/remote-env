@@ -17,47 +17,37 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  K=$(uname -r)
-  SRC=/tmp/corex-drv/kernel
+  echo "== 1. 宿主机 GPU 状态 =="
+  lsmod | grep iluvatar
+  ls /dev/iluvatar* | wc -l
+  cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>/dev/null || echo "no multi_engine param"
 
-  echo "== 1. 编译 iluvatar.ko（在 tmpfs 上，不写 /）=="
-  cd "$SRC" || exit 1
-  make KERNEL_UNAME="$K" -j"$(nproc)" > /tmp/corex-build.log 2>&1
-  RC=$?
-  echo "build rc=$RC"
-  tail -30 /tmp/corex-build.log
-  KO=$(find "$SRC" -name 'iluvatar.ko' -type f 2>/dev/null | head -1)
-  echo "ko path=$KO"
+  echo "== 2. 容器设备配置 =="
+  docker inspect corex5-py311 --format '{{json .HostConfig.Devices}}' 2>&1 | head -5
+  docker inspect corex5-py311 --format '{{json .HostConfig.DeviceRequests}}' 2>&1 | head -5
+  docker inspect corex5-py311 --format '{{range .HostConfig.Binds}}{{.}}{{"\n"}}{{end}}' 2>&1 | head -10
+  docker inspect corex5-py311 --format '{{.State.StartedAt}}' 2>&1
 
-  if [ "$RC" -eq 0 ] && [ -n "$KO" ]; then
-    echo "== 2. 模块信息 =="
-    ls -l "$KO"
-    file "$KO"
-    modinfo "$KO" 2>/dev/null | grep -E '^(version|vermagic|name|license|depends)' | head -6
+  echo "== 3. 容器内是否看到 GPU =="
+  docker exec corex5-py311 bash -lc '
+    echo -n "devices: "; ls /dev/iluvatar* 2>/dev/null | wc -l
+    ixsmi -L 2>&1 | head -8
+  ' 2>&1 | head -20
 
-    echo "== 3. 安装模块 =="
-    install -D -m 644 "$KO" "/lib/modules/$K/updates/iluvatar.ko"
-    echo "install rc=$?"
-    ls -l "/lib/modules/$K/updates/iluvatar.ko"
-    echo iluvatar > /etc/modules-load.d/iluvatar.conf
-    df -h / | tail -1
+  echo "== 4. 容器内 venv 与包 =="
+  docker exec corex5-py311 bash -lc '
+    ls /opt 2>/dev/null
+    for p in /opt/corex311/bin/python /opt/corex311-cpython-vllm/bin/python; do
+      [ -x "$p" ] && echo "$p -> $("$p" -V 2>&1)"
+    done
+    /opt/corex311/bin/pip list 2>/dev/null | grep -iE "^(vllm|torch|ixsys|triton|transformers)"
+  ' 2>&1 | head -30
 
-    echo "== 4. depmod + modprobe =="
-    depmod -a "$K"
-    echo "depmod rc=$?"
-    modprobe iluvatar
-    echo "modprobe rc=$?"
-    lsmod | grep iluvatar || echo "iluvatar NOT loaded"
-    ls -l /dev/iluvatar* 2>&1 | head -6
+  echo "== 5. 容器内 corex =="
+  docker exec corex5-py311 bash -lc 'ls /usr/local | head -10; echo "COREX_VERSION=${COREX_VERSION:-<empty>}"' 2>&1 | head -15
 
-    echo "== 5. 内核日志 =="
-    dmesg 2>/dev/null | grep -iE 'iluvatar|version magic|module verification' | tail -15
-
-    echo "== 6. ixsmi =="
-    timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | head -25
-  else
-    echo "!! 编译失败或无 .ko，未安装。查看 /tmp/corex-build.log"
-  fi
+  echo "== 6. 空间 =="
+  df -h / | tail -1
 
   # ---- 命令结束 ----
 
