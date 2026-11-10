@@ -1,0 +1,101 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T08:35:15Z
+
+++ uname -r
++ K=6.6.02403_sp3-64K+
++ echo '== kernel =='
+== kernel ==
++ echo running=6.6.02403_sp3-64K+
+running=6.6.02403_sp3-64K+
++ uname -v
+#7 SMP Tue Nov 10 16:39:39 CST 2026
++ uptime
+ 16:35:15 up 4 min,  2 users,  load average: 2.93, 6.59, 3.22
++ cat /proc/cmdline
+BOOT_IMAGE=/vmlinuz-6.6.02403_sp3-64K+ root=/dev/mapper/openeuler00-root ro rd.lvm.lv=openeuler00/root rd.lvm.lv=openeuler00/swap video=VGA-1:640x480-32@60me cgroup_disable=files apparmor=0 crashkernel=1024M,high smmu.bypassdev=0x1000:0x17 smmu.bypassdev=0x1000:0x15 arm64.nopauth rhgb quiet console=tty0
++ echo '== driver =='
+== driver ==
++ lsmod
++ grep -i iluvatar
+iluvatar             1769472  0
++ ls -l /dev/iluvatar0 /dev/iluvatar1 /dev/iluvatar2 /dev/iluvatar3
+crw-rw-rw-. 1 root root 237, 0 Nov 10 16:32 /dev/iluvatar0
+crw-rw-rw-. 1 root root 237, 1 Nov 10 16:32 /dev/iluvatar1
+crw-rw-rw-. 1 root root 237, 2 Nov 10 16:32 /dev/iluvatar2
+crw-rw-rw-. 1 root root 237, 3 Nov 10 16:32 /dev/iluvatar3
++ modinfo iluvatar
++ grep -E 'filename|vermagic'
++ head -3
+filename:       /lib/modules/6.6.02403_sp3-64K+/updates/iluvatar.ko
+vermagic:       6.6.02403_sp3-64K+ SMP mod_unload modversions aarch64
++ ixsmi
++ head -14
+Timestamp    Tue Nov 10 16:35:15 2026
++--------------------------------------------------------------------------------+
+|  IX-ML: 5.0.0            Driver Version: 5.0.0          CUDA Version: 10.2     |
+|----------------------------------+----------------------+----------------------|
+| GPU  Name                        | Bus-Id               | Clock-SM  Clock-Mem  |
+| Fan  Temp  Perf    Pwr:Usage/Cap |      Memory-Usage    | GPU-Util  Compute M. |
+|==================================+======================+======================|
+| 0    Iluvatar BI-V150            | 00000000:45:00.0     | 1500MHz   1600MHz    |
+| N/A  42C   P0       N/A / N/A    | 62MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 1    Iluvatar BI-V150            | 00000000:48:00.0     | 1500MHz   1600MHz    |
+| N/A  43C   P0       102W / 350W  | 62MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 2    Iluvatar BI-V150            | 00000000:AF:00.0     | 1500MHz   1600MHz    |
++ echo '== devel tree for this kernel =='
+== devel tree for this kernel ==
++ ls -d /usr/src/kernels/6.6.02403_sp3-64K+
+/usr/src/kernels/6.6.02403_sp3-64K+
++ ls -l /usr/src/kernels/6.6.02403_sp3-64K+/Module.symvers
+-rw-r--r--. 1 root root 1351390 Nov 10  2026 /usr/src/kernels/6.6.02403_sp3-64K+/Module.symvers
++ rpm -qa 'kernel-devel*'
+error: rpmdbNextIterator: skipping h#    1259 tag[0]: BAD, tag 100 type 6 offset 0 count 1 len 0
+error: rpmdbNextIterator: skipping h#    1280 tag[0]: BAD, tag 100 type 6 offset 0 count 1 len 0
+kernel-devel-6.6.02403_sp3_64K+-7.aarch64
+kernel-devel-6.6.0-145.3.37.168.oe2403sp3.aarch64
++ echo '== new rpms =='
+== new rpms ==
++ ls -lt /home/l30029702/64k
++ head -8
+total 595272
+-rw-r--r--. 1 root root   1598505 Nov 10 16:24 kernel-headers-6.6.02403_sp3_64K+-7.aarch64.rpm
+-rw-r--r--. 1 root root  11531357 Nov 10 16:24 kernel-devel-6.6.02403_sp3_64K+-7.aarch64.rpm
+-rw-r--r--. 1 root root 596412569 Nov 10 16:24 kernel-6.6.02403_sp3_64K+-7.aarch64.rpm
++ find /home /root -maxdepth 4 -iname 'kernel-devel-6.6.02403*'
++ head -5
+/home/l30029702/64k/kernel-devel-6.6.02403_sp3_64K+-7.aarch64.rpm
++ echo '== dkms =='
+== dkms ==
++ dkms status
++ head -10
+corex/5.0.0, 5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb, aarch64: installed
+corex/5.0.0, 5.10.0-326.0.0.227.oe2203sp4.aarch64, aarch64: installed (WARNING! Missing some built modules!)
+corex/5.0.0, 6.6.0-145.3.37.168.oe2403sp3.aarch64, aarch64: installed
+corex/5.0.0, 6.6.02403_sp3-64K+, aarch64: installed
++ echo '== modules dir =='
+== modules dir ==
++ ls -l /lib/modules/6.6.02403_sp3-64K+/updates
++ head -8
+total 1992
+-rw-r--r--. 1 root root 2039237 Nov 10 16:31 iluvatar.ko
++ echo '== dmesg =='
+== dmesg ==
++ dmesg
++ grep -iE 'iluvatar|corex'
++ tail -10
+[   14.101333] systemd[1]: Created slice Slice /system/iluvatarcorex-init.
+[   46.784630] iluvatar: loading out-of-tree module taints kernel.
+[   46.810123] iluvatar 0000:45:00.0: enabling device (0140 -> 0142)
+[   47.451401] iluvatar 0000:45:00.0: DEV-0 is okay.
+[   47.452030] iluvatar 0000:48:00.0: enabling device (0140 -> 0142)
+[   48.082199] iluvatar 0000:48:00.0: DEV-1 is okay.
+[   48.083459] iluvatar 0000:af:00.0: enabling device (0140 -> 0142)
+[   48.976457] iluvatar 0000:af:00.0: DEV-2 is okay.
+[   48.976952] iluvatar 0000:b2:00.0: enabling device (0140 -> 0142)
+[   49.874196] iluvatar 0000:b2:00.0: DEV-3 is okay.
++ set +x
+
+### exit: 0
