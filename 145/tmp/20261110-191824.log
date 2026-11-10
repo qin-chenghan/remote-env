@@ -1,0 +1,38 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-10T11:18:24Z
+
++ D=/home/qch/clamp_opt
++ echo '== 1. 生成 v2 源码（新文件）=='
+== 1. 生成 v2 源码（新文件）==
++ cat
++ ls -l /home/qch/clamp_opt/clamp_neon_opt_v2.cpp
+-rw-r--r--. 1 root root 5519 Nov 10 19:18 /home/qch/clamp_opt/clamp_neon_opt_v2.cpp
++ echo '== 2. 编译 v2 =='
+== 2. 编译 v2 ==
++ g++ -std=c++14 -march=armv8.2-a+fp16+dotprod -fopenmp -O3 -shared -fPIC -o /home/qch/clamp_opt/libpreprocess_v2.so /home/qch/clamp_opt/clamp_neon_opt_v2.cpp
++ tail -15
++ echo 'build rc=0'
+build rc=0
++ ls -l /home/qch/clamp_opt/libpreprocess_v2.so
+-rwxr-xr-x. 1 root root 72176 Nov 10 19:18 /home/qch/clamp_opt/libpreprocess_v2.so
++ echo '== 3. 生成 A/B 脚本（新文件）=='
+== 3. 生成 A/B 脚本（新文件）==
++ cat
++ ls -l /home/qch/clamp_opt/clamp_neon_opt_ab.py
+-rw-r--r--. 1 root root 1432 Nov 10 19:18 /home/qch/clamp_opt/clamp_neon_opt_ab.py
++ echo '== 4. A/B 对比（绑 cpu0）=='
+== 4. A/B 对比（绑 cpu0）==
++ cd /home/qch/clamp_opt
++ taskset -c 0 python3 clamp_neon_opt_ab.py ./libpreprocess.so ./libpreprocess_v2.so
++ tail -12
+size         thr       v1_ms      v2_ms  speedup      match
+224x224      1         0.768      0.543     1.42x      exact
+224x224      4         0.812      0.571     1.42x      exact
+321x481      1         1.552      1.317     1.18x      exact
+321x481      4         1.618      1.374     1.18x      exact
+1920x1080    1         9.991      9.452     1.06x      exact
+1920x1080    4        10.149      9.514     1.07x      exact
++ set +x
+
+### exit: 0
