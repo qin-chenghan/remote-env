@@ -17,31 +17,45 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 只读：在 145 宿主机（容器外）与其它运行中的容器里搜 clamp_to_u8。
+  # 构建 libpreprocess.so 并跑仓库自带基准（占位基线）。
 
-  echo "== 1. 宿主机搜索（跳过 docker 存储目录）=="
-  timeout 120 grep -rln "clamp_to_u8\|kUint8ToFloatDivisor" \
-    /home /opt /data /root /usr/local \
-    --exclude-dir=docker --exclude-dir=overlay2 --exclude-dir=containerd 2>/dev/null | head -10
-  echo "host_search_done"
+  echo "== 1. 仓库状态 =="
+  docker exec fusionv1 bash -lc '
+P=/home/qch/projects
+ls -d "$P" 2>&1
+git -C "$P" rev-parse --abbrev-ref HEAD 2>&1
+git -C "$P" log --oneline -3 2>&1
+ls -l "$P/workplace/lib_preprocess.cpp" 2>&1
+' 2>&1 | head -20
 
-  echo "== 2. 运行中的容器 =="
-  docker ps --format '{{.Names}}	{{.Image}}' 2>&1 | head -20
+  echo "== 2. 工具链与 python 依赖 =="
+  docker exec fusionv1 bash -lc '
+g++ --version | head -1
+python3 -V
+python3 -c "import numpy, PIL; print(\"numpy\", numpy.__version__, \"PIL\", PIL.__version__)" 2>&1 | tail -2
+' 2>&1 | head -10
 
-  echo "== 3. 其它容器内搜索（限源码类文件）=="
-  for c in $(docker ps --format '{{.Names}}' 2>/dev/null); do
-    R=$(timeout 40 docker exec "$c" bash -lc \
-      'grep -rln --include=*.cpp --include=*.h --include=*.cc --include=*.hpp clamp_to_u8 /opt /home 2>/dev/null | head -3' 2>/dev/null)
-    if [ -n "$R" ]; then
-      echo "--- $c ---"
-      echo "$R"
-    fi
-  done
-  echo "container_search_done"
+  echo "== 3. 构建 libpreprocess.so =="
+  docker exec fusionv1 bash -lc '
+cd /home/qch/projects/workplace || exit 1
+ls -l libpreprocess.so 2>&1
+g++ -std=c++14 -march=armv8.2-a+fp16+dotprod -fopenmp -O3 \
+    -shared -fPIC -o libpreprocess.so lib_preprocess.cpp 2>&1 | tail -20
+echo "build rc=$?"
+ls -l libpreprocess.so 2>&1
+' 2>&1 | head -25
 
-  echo "== 4. 宿主机 /home 下近期改动的源码 =="
-  find /home -maxdepth 4 \( -name '*.cpp' -o -name '*.h' \) -newermt '-14 days' 2>/dev/null | head -10
-  echo "recent_done"
+  echo "== 4. 正确性（e2e_verify）=="
+  docker exec fusionv1 bash -lc '
+cd /home/qch/projects/workplace/edition1 || exit 1
+timeout 300 python3 e2e_verify.py 2>&1 | tail -25
+' 2>&1 | head -30
+
+  echo "== 5. 分步耗时（224×224, 1 线程）=="
+  docker exec fusionv1 bash -lc '
+cd /home/qch/projects/workplace/edition1 || exit 1
+timeout 300 python3 step_breakdown.py --size 224 224 --threads 1 --iters 100 2>&1 | tail -30
+' 2>&1 | head -35
 
   # ---- 命令结束 ----
 
