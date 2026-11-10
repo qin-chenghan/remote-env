@@ -1,0 +1,234 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-10T00:51:01Z
+
++ echo '== 1. 挂载与全部磁盘 =='
+== 1. 挂载与全部磁盘 ==
++ df -hT
++ head -20
+Filesystem                 Type      Size  Used Avail Use% Mounted on
+/dev/mapper/openeuler-root ext4       69G   65G     0 100% /
+devtmpfs                   devtmpfs  4.0M     0  4.0M   0% /dev
+tmpfs                      tmpfs     361G     0  361G   0% /dev/shm
+tmpfs                      tmpfs     4.0M     0  4.0M   0% /sys/fs/cgroup
+efivarfs                   efivarfs  128K   89K   35K  73% /sys/firmware/efi/efivars
+tmpfs                      tmpfs     145G   48M  144G   1% /run
+tmpfs                      tmpfs     361G  2.0M  361G   1% /tmp
+/dev/sdc2                  ext4      974M  349M  558M  39% /boot
+/dev/mapper/openeuler-home ext4      804G  732G   32G  96% /home
+/dev/sdb1                  xfs       744G   16G  729G   3% /data/cubelet
+/dev/sdc1                  vfat      599M  6.1M  593M   2% /boot/efi
+overlay                    overlay   804G  732G   32G  96% /home/docker/overlay2/9cfae872a222303b16b4fada2263720806ce27b0898397de8e49f6fd7a0da53d/merged
+overlay                    overlay   804G  732G   32G  96% /home/docker/overlay2/a8fa981dc2e075f91984dcf2851144ee283ed1f5bee3febbbad0f2ca603a2183/merged
+overlay                    overlay   804G  732G   32G  96% /home/docker/overlay2/cbb431ad1519a855fc3148acfedea94530eac34092290da83abf3de7b2cc60ec/merged
+overlay                    overlay   804G  732G   32G  96% /home/docker/overlay2/6c0cc86bf85538217177f45948b7c76133877b351251566c66a9891272bc36d8/merged
+overlay                    overlay   804G  732G   32G  96% /home/docker/overlay2/1d164e9867afa62cfec8cc788f4debb3fc257d2e4a4b89353e01d878af7220a8/merged
+overlay                    overlay   804G  732G   32G  96% /home/docker/overlay2/f5846e512abfdbf358ea586d81b5895e41d153375fcead4644c433fdf0cbe290/merged
+overlay                    overlay   804G  732G   32G  96% /home/docker/overlay2/13082d06f62d352b8669cb8ad213dda9b88ec290503799cc428cb56384948736/merged
++ echo '== 2. / 上的空间分布 =='
+== 2. / 上的空间分布 ==
++ du -xhd2 /usr /opt /root /data /var
++ sort -rh
++ head -40
+27G	/usr
+21G	/usr/local
+18G	/data
+16G	/data/log
+14G	/opt
+14G	/data/log/CubeMaster
+13G	/opt/maca-3.3.0
+11G	/opt/maca-3.3.0/lib
+9.3G	/usr/local/corex-4.4.0
+7.1G	/usr/local/cuda-13.3
+5.1G	/root
+3.5G	/usr/local/services
+2.1G	/var
+2.0G	/data/log/Cubelet
+1.9G	/usr/lib
+1.9G	/data/CubeMaster/storage
+1.9G	/data/CubeMaster
+1.7G	/usr/src
+1.6G	/usr/src/linux-6.6.0-72.0.0.76.oe2403sp1.x86_64
+1.5G	/root/.rustup/toolchains
+1.5G	/root/.rustup
+1.4G	/var/cache/dnf
+1.4G	/var/cache
+1.3G	/usr/lib64
+1.3G	/opt/maca-3.3.0/mxgpu_llvm
+979M	/root/.vscode-server
+920M	/root/.vscode-server/cli
+846M	/usr/lib/firmware
+757M	/root/.remotedev-server
+745M	/root/.remotedev-server/bin
+637M	/usr/share
+632M	/root/.nvm
+599M	/root/.nvm/versions
+564M	/root/.cargo
+542M	/root/.cargo/registry
+525M	/usr/bin
+513M	/usr/local/bin
+505M	/opt/mxdriver
+482M	/opt/mxdriver/kernel_module
+450M	/var/log
++ echo '== 3. docker 占用 =='
+== 3. docker 占用 ==
++ docker system df
++ head -10
+TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
+Images          23        17        162.6GB   69.48GB (42%)
+Containers      20        7         79.41GB   73.54GB (92%)
+Local Volumes   3         3         4.431GB   0B (0%)
+Build Cache     12        0         63.66MB   63.66MB
++ echo '== 4. transfer 目录内容 =='
+== 4. transfer 目录内容 ==
++ ls -la /home/qch/transfer
++ head -30
+total 46120
+drwxr-xr-x.  3 root root     4096 Oct 31 17:07 .
+drwxr-xr-x. 10 root root     4096 Oct 30 20:19 ..
+-rw-r--r--.  1 root root 19255993 Oct 31 16:14 203opt.zip1
+-rwxr-xr-x.  1 root root  8943206 Sep 24 13:47 corex-driver-linux64-5.0.0_x86_64.run
+-rw-r--r--.  1 root root     3835 Sep 26 15:55 gpu_worker_184_to_203.patch
+-rw-r--r--.  1 root root      877 Sep 26 16:44 hygon_fix.patch
+drwxr-xr-x.  3 root root     4096 Oct 23 16:34 litehost_perf
+-rw-r--r--.  1 root root        0 Oct 23 16:35 litehost_perf - 副本.md.zip
+-rw-r--r--.  1 root root 18947816 Oct 31 17:07 opt.zip1
+-rw-r--r--.  1 root root    50492 Sep 26 15:29 scripts_184_to_203.patch
++ find /home/qch/transfer -maxdepth 2 -name '*.rpm'
++ head -20
++ echo '== 5. 本地是否有 132 的 kernel-devel rpm =='
+== 5. 本地是否有 132 的 kernel-devel rpm ==
++ find /home /data /opt /root -maxdepth 5 -name 'kernel-devel-6.6*132*' -o -maxdepth 5 -name 'kernel-devel*.rpm'
++ head -20
++ echo '== 6. 已装/可见的内核包 =='
+== 6. 已装/可见的内核包 ==
++ rpm -qa
++ grep -E '^kernel'
++ sort
++ head -20
+kernel-6.6.0-132.0.0.111.oe2403sp3.x86_64
+kernel-6.6.0-72.0.0.76.oe2403sp1.x86_64
+kernel-devel-6.6.0-72.0.0.76.oe2403sp1.x86_64
+kernel-headers-6.6.0-145.0.2.142.oe2403sp1.x86_64
+kernel-source-6.6.0-72.0.0.76.oe2403sp1.x86_64
+kernel-tools-6.6.0-72.0.0.76.oe2403sp1.x86_64
++ echo '== 7. dnf 仓库 =='
+== 7. dnf 仓库 ==
++ ls /etc/yum.repos.d/
++ head -10
+oe2403-sp3.repo
+openEuler.repo
++ timeout 90 dnf repolist
++ tail -20
+repo id                                 repo name
+oe2403-sp3-everything                   oe2403-sp3-everything
+oe2403-sp3-os                           oe2403-sp3-os
+oe2403-sp3-update                       oe2403-sp3-update
++ echo '== 8. dnf 能否提供 132 的 kernel-devel 与 dkms =='
+== 8. dnf 能否提供 132 的 kernel-devel 与 dkms ==
++ timeout 120 dnf list --showduplicates 'kernel-devel*' dkms
++ tail -30
+kernel-devel.x86_64 6.6.0-145.0.0.131.oe2403sp3                        oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.0.2.133.oe2403sp3                        oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.0.3.134.oe2403sp3                        oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.0.4.135.oe2403sp3                        oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.0.6.137.oe2403sp3                        oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.0.7.138.oe2403sp3                        oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.0.9.140.oe2403sp3                        oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.0.10.141.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.12.142.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.13.143.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.14.145.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.15.146.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.16.148.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.17.150.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.18.151.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.21.152.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.22.153.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.23.154.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.24.155.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.26.157.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.27.158.20260826.b7db8e91096e.oe2403sp3 oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.29.160.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.30.161.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.30.161.20260910.f620d9c7c985.oe2403sp3 oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.31.162.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.33.164.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.34.165.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.35.166.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.36.167.oe2403sp3                       oe2403-sp3-update    
+kernel-devel.x86_64 6.6.0-145.3.37.168.oe2403sp3                       oe2403-sp3-update    
++ echo '-- 精确到运行内核 --'
+-- 精确到运行内核 --
++ head -15
+++ uname -r
++ timeout 120 dnf info kernel-devel-6.6.0-132.0.0.111.oe2403sp3.x86_64
+Last metadata expiration check: 2:30:34 ago on Tue 10 Nov 2026 06:20:32 AM CST.
+Available Packages
+Name         : kernel-devel
+Version      : 6.6.0
+Release      : 132.0.0.111.oe2403sp3
+Architecture : x86_64
+Size         : 16 M
+Source       : kernel-6.6.0-132.0.0.111.oe2403sp3.src.rpm
+Repository   : oe2403-sp3-everything
+Summary      : Development package for building kernel modules to match the 6.6.0-132.0.0.111.oe2403sp3.x86_64 kernel
+URL          : http://www.kernel.org/
+License      : GPLv2
+Description  : This package provides kernel headers and makefiles sufficient to build modules
+             : against the 6.6.0-132.0.0.111.oe2403sp3.x86_64 kernel package.
+
++ echo '== 9. 旧内核目录与 build =='
+== 9. 旧内核目录与 build ==
++ ls /lib/modules/
+6.6.0-132.0.0.111.oe2403sp3.x86_64
+6.6.0-145.0.2.142.oe2403sp1.x86_64
+6.6.0-72.0.0.76.oe2403sp1.x86_64
++ ls -ld /usr/src/kernels/6.6.0-72.0.0.76.oe2403sp1.x86_64
+drwxr-xr-x. 25 root root 4096 Apr 17  2026 /usr/src/kernels/6.6.0-72.0.0.76.oe2403sp1.x86_64
++ ls /usr/src/kernels/6.6.0-72.0.0.76.oe2403sp1.x86_64
++ head -5
+arch
+block
+certs
+crypto
+Documentation
++ echo '== 10. 驱动包里是否有 kernel 源码/预编译模块 =='
+== 10. 驱动包里是否有 kernel 源码/预编译模块 ==
++ strings /home/qch/transfer/corex-driver-linux64-5.0.0_x86_64.run
++ grep -aoE '(dkms|VGPU_ENABLE|kernel/[a-z]+|corex-[0-9.]+|prebuilt|ko)'
++ sort
++ uniq -c
++ head -20
+      1 dkms
+     31 ko
++ echo '== 11. 当前是否已有容器占用 GPU / 有无残留进程 =='
+== 11. 当前是否已有容器占用 GPU / 有无残留进程 ==
++ docker ps --format '{{.Names}}\t{{.Status}}'
++ head -10
+cube-lifecycle-manager	Up 19 hours
+cube-webui	Up 19 hours (healthy)
+cube-proxy	Up 19 hours
+cube-sandbox-redis	Up 19 hours (healthy)
+cube-sandbox-mysql	Up 19 hours (healthy)
+cube-proxy-coredns	Up 19 hours
+corex5-py311	Up 13 hours
++ ps -eo pid,args
++ grep -E 'vllm|ixsmi'
++ grep -v grep
++ cut -c1-160
++ head -5
++ echo '== 12. 网络与代理 =='
+== 12. 网络与代理 ==
++ env
++ grep -iE 'proxy|no_proxy'
+no_proxy=localhost,127.0.0.*,10.*,192.168.*,*.local,*.huawei.com,*.athuawei.com,141.61.16.5,141.61.0.0/16
+https_proxy=http://141.1.61.31:3129
+NO_PROXY=localhost,127.0.0.*,10.*,192.168.*,*.local,*.huawei.com,*.athuawei.com,141.61.16.5,141.61.0.0/16
+http_proxy=http://141.1.61.31:3129
++ timeout 10 ping -c1 -W2 8.8.8.8
++ echo '外网 ping 不通'
+外网 ping 不通
++ set +x
+
+### exit: 0
