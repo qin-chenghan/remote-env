@@ -1,0 +1,138 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-10T01:02:34Z
+
+++ uname -r
++ K=6.6.0-132.0.0.111.oe2403sp3.x86_64
++ X=/tmp/corex-drv
++ echo '== 1. 安装器形态 =='
+== 1. 安装器形态 ==
++ file /tmp/corex-drv/corex-driver-installer
+/tmp/corex-drv/corex-driver-installer: ELF 64-bit LSB executable, x86-64, version 1 (GNU/Linux), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=a3fcce1224be91158ae3cc92883ff9dad6ae7a03, for GNU/Linux 2.6.32, not stripped
++ file /tmp/corex-drv/corex-driver-installer
++ grep -q ELF
++ strings /tmp/corex-drv/corex-driver-installer
++ grep -iE -- '--?(kernel|silent|vGPU|force|uninstall)[a-z-]*'
++ sort -u
++ head -20
+ --force  > /dev/null 2>&1
+--kernel-source-path
+Please make sure you have installed the kernel source files for your kernel and that they are properly configured; on Red Hat Linux systems, for example, be sure you have the 'kernel-source' or 'kernel-devel' RPM installed.  If you know the correct kernel source files are installed, you may specify the kernel source path with the '--kernel-source-path' command line option.
+--silent
+    sudo %sbin/corex-driver-uninstaller
+/var/lib/dkms/mlnx-ofed-kernel
+--without-vgpu
+--with-vgpu
++ echo '== 2. VGPU 默认值与 sanity check =='
+== 2. VGPU 默认值与 sanity check ==
++ grep -rnI VGPU_ENABLE /tmp/corex-drv/kernel
++ head -15
+/tmp/corex-drv/kernel/itr/cfg.mk:7:# VGPU_ENABLE support 1(enable) 0(disable)
+/tmp/corex-drv/kernel/itr/cfg.mk:8:VGPU_ENABLE 		?= 0
+/tmp/corex-drv/kernel/itr/cfg.mk:45:export PG_MODE VGPU_ENABLE MEM_CHECK SKIP_LICENSE VGPU_LOG_DEFAULT CC RM DISABLE_UVA FW_CHECK ENABLE_32_CARD TOOL_VDEV_CNT_DBG UMVA_ENABLE USER_MODE_RING_ENABLE SPECTRE_V2_RETPOLINE CODEC_ENABLE JPU_ENABLE P2P_ENABLE SMB_ENABLE
+/tmp/corex-drv/kernel/itr/Makefile:75:		if [ "$(VGPU_ENABLE)" = "1" ]; then \
+/tmp/corex-drv/kernel/itr/Makefile:91:	@if [ "$(VGPU_ENABLE)" = "1" ]; then \
+/tmp/corex-drv/kernel/itr/kernel_test.sh:1259:           if [ -n "$VGPU_ENABLE" ]; then
+/tmp/corex-drv/kernel/itr/kernel_test.sh:2082:        if [ "$VGPU_ENABLE" = "1" ]; then
+/tmp/corex-drv/kernel/itr/itr.Kbuild:29:#VGPU_ENABLE := 1
+/tmp/corex-drv/kernel/itr/itr.Kbuild:30:ifeq ($(VGPU_ENABLE), 1)
+/tmp/corex-drv/kernel/itr/Kbuild:127:ifeq ($(VGPU_ENABLE), 1)
++ grep -n -B4 -A8 BUILD_SANITY_CHECKS /tmp/corex-drv/kernel/itr/Kbuild
++ head -25
+115-
+116-# set object depends, exit of ITR_CONFTEST_HEADERS is Preconditions that os interface build
+117-$(addprefix $(obj)/,$(ITR_OBJECTS_DEPEND_ON_CONFTEST)): | $(ITR_CONFTEST_HEADERS)
+118-
+119:BUILD_SANITY_CHECKS = \
+120- vgpu_kvm_sanity_check
+121-
+122:.PHONY: $(BUILD_SANITY_CHECKS)
+123-
+124:$(BUILD_SANITY_CHECKS):
+125-	@$(ITR_CONFTEST_CMD) $@ full_output
+126-
+127-ifeq ($(VGPU_ENABLE), 1)
+128:$(ITR_CONFTEST_HEADERS): | $(BUILD_SANITY_CHECKS)
+129-endif
++ echo '== 3. kernel/Makefile 目标 =='
+== 3. kernel/Makefile 目标 ==
++ grep -nE '^[a-zA-Z0-9_./-]+:|KERNEL_UNAME|MODULE|install' /tmp/corex-drv/kernel/Makefile
++ head -25
+2:all: kmd
+4:.PHONY: kmdlib kmd itr_fs itr_peer_mem
+6:kmdlib:
+9:itr_fs: kmd
+12:itr_peer_mem: kmd
+15:kmd:
+18:.PHONY: clean kmd.clean kmdlib.clean itrfs.clean itr_peer_mem.clean
+20:clean: kmd.clean itrfs.clean itr_peer_mem.clean
+22:kmd.clean:
+24:kmdlib.clean:
+26:itrfs.clean:
+29:itr_peer_mem.clean:
+33:install:
+40:	@echo "Finished installing firmware files to /lib/firmware..."
++ echo '== 4. firmware 是否已装 =='
+== 4. firmware 是否已装 ==
++ ls -l /lib/firmware/iluvatar_cp.bin
+-rw-r--r--. 1 root root 33632 Sep 24 15:58 /lib/firmware/iluvatar_cp.bin
++ ls /tmp/corex-drv/firmware
+iluvatar_cp.bin
+sd_dcpu.bin
+sd_vdec.bin
+sd_venc.bin
+zk100_dcpu.bin
+zk100_vdec.bin
++ echo '== 5. 空间评估（先不删旧内核源码）=='
+== 5. 空间评估（先不删旧内核源码）==
++ du -sh /usr/src /usr/src/kernels
+1.7G	/usr/src
++ rpm -q kernel-source
+kernel-source-6.6.0-72.0.0.76.oe2403sp1.x86_64
++ df -h /
++ tail -1
+/dev/mapper/openeuler-root   69G   64G  1.3G  99% /
++ echo '== 6. 安装匹配运行内核的 kernel-devel =='
+== 6. 安装匹配运行内核的 kernel-devel ==
++ timeout 300 dnf install -y kernel-devel-6.6.0-132.0.0.111.oe2403sp3.x86_64
++ tail -20
+kernel-devel-6.6.0-132.0.0.111.oe2403sp3.x86_64 660 kB/s |  16 MB     00:24    
+--------------------------------------------------------------------------------
+Total                                           660 kB/s |  16 MB     00:24     
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1 
+  Upgrading        : kernel-devel-6.6.0-132.0.0.111.oe2403sp3.x86_64        1/2 
+  Running scriptlet: kernel-devel-6.6.0-132.0.0.111.oe2403sp3.x86_64        1/2 
+  Cleanup          : kernel-devel-6.6.0-72.0.0.76.oe2403sp1.x86_64          2/2 
+  Running scriptlet: kernel-devel-6.6.0-72.0.0.76.oe2403sp1.x86_64          2/2 
+  Verifying        : kernel-devel-6.6.0-132.0.0.111.oe2403sp3.x86_64        1/2 
+  Verifying        : kernel-devel-6.6.0-72.0.0.76.oe2403sp1.x86_64          2/2 
+
+Upgraded:
+  kernel-devel-6.6.0-132.0.0.111.oe2403sp3.x86_64                               
+
+Complete!
++ echo 'install rc=0'
+install rc=0
++ df -h /
++ tail -1
+/dev/mapper/openeuler-root   69G   64G  1.2G  99% /
++ echo '== 7. 验证 build 目录与 VFIO 配置 =='
+== 7. 验证 build 目录与 VFIO 配置 ==
++ ls -ld /lib/modules/6.6.0-132.0.0.111.oe2403sp3.x86_64/build
+lrwxrwxrwx. 1 root root 51 Dec 29  2025 /lib/modules/6.6.0-132.0.0.111.oe2403sp3.x86_64/build -> /usr/src/kernels/6.6.0-132.0.0.111.oe2403sp3.x86_64
++ readlink -f /lib/modules/6.6.0-132.0.0.111.oe2403sp3.x86_64/build
+/usr/src/kernels/6.6.0-132.0.0.111.oe2403sp3.x86_64
++ grep -E CONFIG_VFIO_MDEV /usr/src/kernels/6.6.0-132.0.0.111.oe2403sp3.x86_64/.config
++ head -3
+CONFIG_VFIO_MDEV=m
++ df -h /
++ tail -1
+/dev/mapper/openeuler-root   69G   64G  1.2G  99% /
++ set +x
+
+### exit: 0
