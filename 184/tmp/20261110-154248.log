@@ -1,0 +1,107 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T07:42:48Z
+
++ echo '== os / kernel =='
+== os / kernel ==
++ head -2 /etc/os-release
+NAME="openEuler"
+VERSION="24.03 (LTS-SP3)"
++ uname -r
+6.6.02403_sp3-64K
++ uptime
+ 15:42:48 up 19 min,  4 users,  load average: 0.15, 0.54, 0.61
++ echo 'installed kernels:'
+installed kernels:
++ ls -1 /lib/modules/
+5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
+5.10.0-282.0.0.185.oe2203sp4.aarch64
+5.10.0-288.0.0.191.oe2203sp4.aarch64
+5.10.0-326.0.0.227.oe2203sp4.aarch64
+6.6.0-132.0.0.111.oe2403sp3.aarch64
+6.6.0-145.1.28.165.oe2403sp1.aarch64
+6.6.0-145.3.37.168.oe2403sp3.aarch64
+6.6.02403_sp3-64K
++ echo '== module state =='
+== module state ==
++ lsmod
++ grep -iE 'iluvatar|corex'
++ echo '  no iluvatar module loaded'
+  no iluvatar module loaded
++ ls -l '/dev/iluvatar*'
+ls: cannot access '/dev/iluvatar*': No such file or directory
++ modinfo iluvatar
++ head -8
+modinfo: ERROR: Module iluvatar not found.
++ echo '== built modules on disk =='
+== built modules on disk ==
++ find /lib/modules -name 'iluvatar*.ko*'
++ head -10
+/lib/modules/6.6.0-145.1.28.165.oe2403sp1.aarch64/weak-updates/iluvatar.ko.xz
+/lib/modules/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb/updates/iluvatar.ko.xz
+/lib/modules/5.10.0-326.0.0.227.oe2203sp4.aarch64/updates/iluvatar.ko.xz
+/lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/updates/iluvatar.ko.xz
++ echo '-- current kernel dir --'
+-- current kernel dir --
++ head -10
+++ uname -r
++ ls -la /lib/modules/6.6.02403_sp3-64K/extra
+ls: cannot access '/lib/modules/6.6.02403_sp3-64K/extra': No such file or directory
++ echo '== dkms =='
+== dkms ==
++ dkms status
++ head -10
+corex/5.0.0, 5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb, aarch64: installed
+corex/5.0.0, 5.10.0-326.0.0.227.oe2203sp4.aarch64, aarch64: installed (WARNING! Missing some built modules!)
+corex/5.0.0, 6.6.0-145.3.37.168.oe2403sp3.aarch64, aarch64: installed
++ ls -la /var/lib/dkms/corex
++ head -8
+total 12
+drwxr-xr-x. 3 root root 4096 Nov  9 19:15 .
+drwxr-xr-x. 3 root root 4096 Nov  9 14:47 ..
+drwxr-xr-x. 5 root root 4096 Nov  9 19:15 5.0.0
+lrwxrwxrwx. 1 root root   55 Nov  2 15:26 kernel-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb-aarch64 -> 5.0.0/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb/aarch64
+lrwxrwxrwx. 1 root root   50 Sep 22 16:48 kernel-5.10.0-326.0.0.227.oe2203sp4.aarch64-aarch64 -> 5.0.0/5.10.0-326.0.0.227.oe2203sp4.aarch64/aarch64
+lrwxrwxrwx. 1 root root   50 Nov  9 19:15 kernel-6.6.0-145.3.37.168.oe2403sp3.aarch64-aarch64 -> 5.0.0/6.6.0-145.3.37.168.oe2403sp3.aarch64/aarch64
++ echo '== dkms.conf BUILDOPT =='
+== dkms.conf BUILDOPT ==
++ grep -n _BUILDOPT /usr/src/corex-5.0.0/dkms.conf
+5:_BUILDOPT="VGPU_ENABLE=0 "
+30:EXTRA_BUILD="${EXTRA_BUILD} && KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) itr_peer_mem OFA_KERNEL=${OFED_SOURCE_DIR}"
+40:EXTRA_BUILD="${EXTRA_BUILD} && KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) itr_fs"
+48:MAKE[0]="KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) ${EXTRA_BUILD}"
++ echo '== kernel-devel =='
+== kernel-devel ==
+++ uname -r
++ rpm -q kernel-devel-6.6.02403_sp3-64K
+package kernel-devel-6.6.02403_sp3-64K is not installed
++ ls -d /usr/src/kernels/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb /usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64
+/usr/src/kernels/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
+/usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64
++ echo '== dmesg (driver) =='
+== dmesg (driver) ==
++ dmesg
++ grep -iE 'iluvatar|corex'
++ tail -20
+[   13.957438] systemd[1]: Created slice Slice /system/iluvatarcorex-init.
++ echo '== try modprobe (no-op check) =='
+== try modprobe (no-op check) ==
++ modprobe -n iluvatar
+modprobe: FATAL: Module iluvatar not found in directory /lib/modules/6.6.02403_sp3-64K
++ echo 'modprobe -n rc=1'
+modprobe -n rc=1
++ echo '== ixsmi =='
+== ixsmi ==
++ ixsmi
++ head -12
+Iluvatar-SMI has failed because it couldn't communicate with the Iluvatar driver. Make sure that the latest Iluvatar driver is installed and running.
++ echo '== services =='
+== services ==
++ systemctl list-units --type=service
++ grep -iE 'iluvatar|corex|dkms'
++ head -5
+● dkms.service                                                                              loaded failed failed  Builds and install new kernel modules through DKMS
+● iluvatarcorex-init@iluvatar.service                                                       loaded failed failed  IX pci timeout service.
++ set +x
+
+### exit: 0
