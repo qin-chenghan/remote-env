@@ -17,34 +17,22 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 184 两个脚本的默认 MODEL_PATH 改为 /home/model/Qwen3-32B-W8A8（ts 路径在 184 不存在）。
+  echo "== container config env =="
+  docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' corex5-py311 2>&1 | grep -E 'PYTHON|LD_|PATH='
 
-  D=/home/huawei_ts_program/litehost_perf_opt
-  TS2=$(date +%Y%m%d-%H%M%S)
+  echo "== tcmalloc search =="
+  find /home -maxdepth 5 -name 'libtcmalloc.so*' 2>/dev/null | head -5
+  find /usr/local /opt -maxdepth 5 -name 'libtcmalloc.so*' 2>/dev/null | head -5
 
-  for f in vllmBench_lite_base.sh vllmBench_lite_opt.sh; do
-    echo "== $f =="
-    cp -a "$D/$f" "$D/$f.bak-modelpath-$TS2"
-    python3 - "$D/$f" <<'PY'
-import sys
-p = sys.argv[1]
-s = open(p).read()
-old = 'MODEL_PATH="${MODEL_PATH:-/home/model/ts/Qwen3-32B-W8A8}"'
-new = 'MODEL_PATH="${MODEL_PATH:-/home/model/Qwen3-32B-W8A8}"'
-if old not in s:
-    raise SystemExit(f"FAIL {p}: MODEL_PATH line not found")
-open(p, "w").write(s.replace(old, new, 1))
-print("updated", p)
-PY
-    bash -n "$D/$f" && echo "OK $f"
-    grep -n "MODEL_PATH=" "$D/$f" | head -2
-  done
+  echo "== server launch block (base) =="
+  sed -n '/SERVER_EXTRA_ENV/,/SERVER_PID/p' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh 2>&1 | head -70
 
-  echo "== 容器内 dry-run（base/opt）=="
-  docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= corex5-py311 bash -c \
-    "cd $D && HOST_DRY_RUN=1 bash vllmBench_lite_base.sh" 2>&1 | grep -E "PREFIX=|SERVER:|ERROR" | head -2
-  docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= corex5-py311 bash -c \
-    "cd $D && HOST_DRY_RUN=1 bash vllmBench_lite_opt.sh" 2>&1 | grep -E "PREFIX=|SERVER:|ERROR" | head -2
+  echo "== server launch block (opt) =="
+  sed -n '/SERVER_EXTRA_ENV/,/SERVER_PID/p' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh 2>&1 | head -70
+
+  echo "== LD_PRELOAD assembly =="
+  grep -n 'LD_PRELOAD\|CLEAN_ENV\|LIGHTHOST' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh \
+    /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh 2>&1 | head -30
 
   # ---- 命令结束 ----
 
