@@ -17,82 +17,44 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 只读：运行前检查——二进制、依赖、绑核可行性、当前各核负载。
+  # 容器内没有 numactl，改用 taskset / python sched_setaffinity 绑到 cpu0。
+  # 先跑一次基线、一次优化版，看输出格式并取 Step 9。
 
-  echo "== 1. 两个二进制 =="
   docker exec fusionv1 bash -lc '
 P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
-cd "$P"
-ls -l fusion.unittest fusion.unittest.bak_before_neon
-md5sum fusion.unittest fusion.unittest.bak_before_neon
-for b in fusion.unittest fusion.unittest.bak_before_neon; do
-  echo "-- $b --"
-  file "$b"
-  ldd "$b" 2>&1 | grep -iE "kperf|not found" | head -5
-  nm -C "$b" 2>/dev/null | grep -c "PillowFusionV2"
-done
-' 2>&1 | head -40
+cd "$P" || exit 1
 
-  echo "== 2. 反汇编：sqxtun 指令数量 =="
-  docker exec fusionv1 bash -lc '
-P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
-cd "$P"
-for b in fusion.unittest.bak_before_neon fusion.unittest; do
-  printf "%-38s sqxtun=%s uqxtn=%s\n" "$b" \
-    "$(objdump -d "$b" 2>/dev/null | grep -c sqxtun)" \
-    "$(objdump -d "$b" 2>/dev/null | grep -c uqxtn)"
-done
-' 2>&1 | head -10
-
-  echo "== 3. libkperf 依赖 =="
-  docker exec fusionv1 bash -lc '
-ls -l /home/workspace/tensor/files/libkperf 2>&1 | head -10
-' 2>&1 | head -15
-
-  echo "== 4. numactl 与拓扑（确认核 0/3 属于 node0）=="
-  docker exec fusionv1 bash -lc '
+echo "== 1. 绑核工具 =="
+command -v taskset || echo NO_TASKSET
 command -v numactl || echo NO_NUMACTL
-numactl -s 2>&1 | head -5
-numactl -H 2>&1 | grep -E "^node [0-9] cpus|^available" | head -5
-head -1 /sys/devices/system/cpu/cpu0/topology/core_id 2>/dev/null; echo "^cpu0 core_id"
-cat /sys/devices/system/cpu/cpu0/node*/link 2>/dev/null | head -2
-' 2>&1 | head -20
 
-  echo "== 5. 当前各核负载（1 秒采样）=="
-  docker exec fusionv1 bash -lc '
-python3 - <<"PY"
-import time
-def rd():
-    d={}
-    for line in open("/proc/stat"):
-        p=line.split()
-        if p[0].startswith("cpu") and p[0][3:].isdigit():
-            v=[int(x) for x in p[1:]]
-            d[int(p[0][3:])]=(sum(v), v[3]+(v[4] if len(v)>4 else 0))
-    return d
-a=rd(); time.sleep(1); b=rd()
-res=[]
-for c in a:
-    dt=b[c][0]-a[c][0]; di=b[c][1]-a[c][1]
-    if dt>0: res.append((100.0*(dt-di)/dt, c))
-res.sort(reverse=True)
-print("busy cores (top10):")
-for p,c in res[:10]: print("  cpu%-3d %5.1f%%" % (c,p))
-for c in (0,1,2,3):
-    q=[x for x in res if x[1]==c]
-    print("  target cpu%d: %.1f%%" % (c, q[0][0] if q else -1))
-PY
-' 2>&1 | head -25
+run_pinned() {
+  local bin=$1
+  if command -v taskset >/dev/null 2>&1; then
+    taskset -c 0 "$bin" 1
+  else
+    python3 -c "import os,sys; os.sched_setaffinity(0,{0}); os.execv(sys.argv[1],[sys.argv[1],\"1\"])" "$bin"
+  fi
+}
 
-  echo "== 6. 当前负载与占核进程 =="
-  docker exec fusionv1 bash -lc '
-cat /proc/loadavg
-ps -eo pid,pcpu,psr,comm --sort=-pcpu 2>/dev/null | head -8
-' 2>&1 | head -15
+echo "== 2. 基线（bak_before_neon）=="
+run_pinned ./fusion.unittest.bak_before_neon > /tmp/run_base.log 2>&1
+echo "rc=$?"
+grep "warmup" /tmp/run_base.log | tail -12
+echo "-- 尾部 --"
+tail -5 /tmp/run_base.log
 
-  echo "== 7. 宿主机负载 =="
-  uptime
-  cat /proc/loadavg
+echo "== 3. 优化版（fusion.unittest）=="
+run_pinned ./fusion.unittest > /tmp/run_neon.log 2>&1
+echo "rc=$?"
+grep "warmup" /tmp/run_neon.log | tail -12
+echo "-- 尾部 --"
+tail -5 /tmp/run_neon.log
+
+echo "== 4. Step 9 对比 =="
+echo "-- base --"; grep "warmup" /tmp/run_base.log | tail -1
+echo "-- neon --"; grep "warmup" /tmp/run_neon.log | tail -1
+' 2>&1 | head -80
 
   # ---- 命令结束 ----
 
