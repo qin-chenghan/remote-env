@@ -17,52 +17,31 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  D=/home/huawei_ts_program/litehost_perf_opt
-  TS2=$(date +%Y%m%d-%H%M%S)
-  OLD_TC=/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so
-  NEW_TC=/home/lw/gperftools/.libs/libtcmalloc.so
+  H=/home/huawei_ts_program/litehost_perf_opt
+  TC=/home/lw/gperftools/.libs/libtcmalloc.so
 
-  echo "== patch: python env + tcmalloc path (idempotent) =="
-  for f in vllmBench_lite_base.sh vllmBench_lite_opt.sh; do
-    echo "-- $f"
-    cp -a "$D/$f" "$D/$f.bak-fix-$TS2"
-    python3 - "$D/$f" "$OLD_TC" "$NEW_TC" <<'PY'
-import sys
-p, old_tc, new_tc = sys.argv[1], sys.argv[2], sys.argv[3]
-s = open(p).read()
-edits = [
-    ('CLEAN_ENV=(env -u LD_PRELOAD',
-     'CLEAN_ENV=(env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD'),
-    ('PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}"',
-     'PYTHONPATH="$HOST_TOOLKIT"'),
-    (old_tc, new_tc),
-]
-changed = False
-for old, new in edits:
-    if old in s:
-        print(f"  applied: {old[:60]}")
-        s = s.replace(old, new)
-        changed = True
-    elif new in s:
-        print(f"  already: {new[:60]}")
-    else:
-        print(f"  SKIP (not found): {old[:60]}")
-if changed:
-    open(p, "w").write(s)
-PY
-    bash -n "$D/$f" && echo "  syntax OK"
-  done
+  echo "== gpu free? =="
+  ixsmi 2>&1 | sed -n '5,25p'
 
-  echo "== remaining old-path refs =="
-  grep -rn 'huawei_ts_program/gperftools' "$D" 2>/dev/null | head -10
+  echo "== smoke: base venv, patched env =="
+  docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME \
+    PYTHONPATH="$H" LD_PRELOAD="$H/liblitehost.so:$TC" \
+    /opt/corex311/bin/python3 -c \
+    "import torch,vllm;print('base',torch.__version__,vllm.__version__,torch.__file__)" 2>&1 | tail -4
 
-  echo "== final lines =="
-  grep -n 'CLEAN_ENV=(env\|PYTHONPATH=\|libtcmalloc' "$D"/vllmBench_lite_*.sh 2>&1
+  echo "== smoke: pgo venv, patched env =="
+  docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME \
+    PYTHONPATH="$H" LD_PRELOAD="$H/liblitehost.so:$TC" \
+    /opt/corex311-cpython-vllm/bin/python3 -c \
+    "import torch,vllm;print('pgo',torch.__version__,vllm.__version__,torch.__file__)" 2>&1 | tail -4
 
-  echo "== tcmalloc sanity =="
-  ls -l "$NEW_TC" 2>&1
-  file -b "$NEW_TC" 2>&1
-  env LD_PRELOAD="$NEW_TC" /bin/true; echo "  preload exit=$?"
+  echo "== smoke: worker cls importable =="
+  docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME PYTHONPATH="$H" \
+    /opt/corex311-cpython-vllm/bin/python3 -c \
+    "import light_host_worker;print('worker ok',light_host_worker.LightHostWorker)" 2>&1 | tail -4
+
+  echo "== effective launch env =="
+  grep -n 'CLEAN_ENV=(env\|env_args+=(PYTHONPATH\|LD_PRELOAD=' "$H"/vllmBench_lite_opt.sh 2>&1 | head -6
 
   # ---- 命令结束 ----
 
