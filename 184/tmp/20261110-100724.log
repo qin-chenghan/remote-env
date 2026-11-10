@@ -1,0 +1,110 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T02:07:24Z
+
++ echo '== running vllm =='
+== running vllm ==
++ ps -eo pid,args
++ grep -E 'vllm.entrypoints|Worker_TP'
++ grep -v grep
++ cut -c1-200
++ head -6
++ echo '== running vllm env (PREFIX-ish) =='
+== running vllm env (PREFIX-ish) ==
+++ pgrep -f vllm.entrypoints.openai.api_server
+++ head -1
++ P=
++ '[' -n '' ']'
++ echo 'no vllm server process'
+no vllm server process
++ echo '== interpreter build flags =='
+== interpreter build flags ==
++ for V in /opt/corex311 /opt/corex311-cpython-vllm
++ echo '-- /opt/corex311'
+-- /opt/corex311
++ docker exec corex5-py311 /opt/corex311/bin/python3 -c 'import sys,sysconfig
+print('\''ver'\'',sys.version.split()[0],'\''base'\'',sys.base_prefix)
+print('\''cfg'\'',sysconfig.get_config_var('\''CONFIG_ARGS'\''))
+print('\''py_cflags'\'',sysconfig.get_config_var('\''PY_CFLAGS'\''))
+print('\''pgo_use'\'','\''-fprofile-use'\'' in (sysconfig.get_config_var('\''PY_CFLAGS'\'') or '\'''\''))
+print('\''lto'\'','\''-flto'\'' in (sysconfig.get_config_var('\''PY_CFLAGS'\'') or '\'''\''))'
+ver 3.11.6 base /opt/python-3.11.6
+cfg '--prefix=/opt/python-3.11.6' '--enable-shared' '--enable-optimizations' '--with-ensurepip=install' 'LDFLAGS=-Wl,-rpath,/opt/python-3.11.6/lib' 'CC=/usr/bin/gcc'
+py_cflags -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall
+pgo_use False
+lto False
++ for V in /opt/corex311 /opt/corex311-cpython-vllm
++ echo '-- /opt/corex311-cpython-vllm'
+-- /opt/corex311-cpython-vllm
++ docker exec corex5-py311 /opt/corex311-cpython-vllm/bin/python3 -c 'import sys,sysconfig
+print('\''ver'\'',sys.version.split()[0],'\''base'\'',sys.base_prefix)
+print('\''cfg'\'',sysconfig.get_config_var('\''CONFIG_ARGS'\''))
+print('\''py_cflags'\'',sysconfig.get_config_var('\''PY_CFLAGS'\''))
+print('\''pgo_use'\'','\''-fprofile-use'\'' in (sysconfig.get_config_var('\''PY_CFLAGS'\'') or '\'''\''))
+print('\''lto'\'','\''-flto'\'' in (sysconfig.get_config_var('\''PY_CFLAGS'\'') or '\'''\''))'
+ver 3.11.6 base /opt/cpython-vllm/v1
+cfg '--prefix=/opt/cpython-vllm/v1' '--enable-shared' '--enable-optimizations' '--with-lto' '--with-ensurepip=install' 'CC=/usr/bin/gcc' 'CXX=/usr/bin/g++' 'AR=/usr/bin/gcc-ar' 'RANLIB=/usr/bin/gcc-ranlib' 'LDFLAGS=-Wl,-rpath,/opt/cpython-vllm/v1/lib'
+py_cflags -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall
+pgo_use False
+lto False
++ echo '== vllm patch artifacts =='
+== vllm patch artifacts ==
++ for V in /opt/corex311 /opt/corex311-cpython-vllm
++ echo '-- /opt/corex311'
+-- /opt/corex311
++ sed 's|/opt/corex311/lib/python3.11/site-packages|...|'
++ docker exec corex5-py311 bash -c 'ls -l /opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_native*.so /opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_meta_native*.so /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py 2>&1'
+-rw-r--r--. 1 root root 70752 Nov  6 11:44 .../vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+-rw-r--r--. 1 root root 71224 Nov  6 11:44 .../vllm/_host_opt_native.abi3.so
+-rw-r--r--. 1 root root 28938 Nov  6 11:44 .../vllm/v1/worker/host_fastpath.py
++ docker exec corex5-py311 bash -c 'grep -l '\''DISABLE_DECODE_FASTPATH\|host_fastpath'\'' -r /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/*.py 2>/dev/null | head -5'
++ sed 's|/opt/corex311/lib/python3.11/site-packages|...|'
+.../vllm/v1/worker/gpu_model_runner.py
++ for V in /opt/corex311 /opt/corex311-cpython-vllm
++ echo '-- /opt/corex311-cpython-vllm'
+-- /opt/corex311-cpython-vllm
++ docker exec corex5-py311 bash -c 'ls -l /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_native*.so /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_meta_native*.so /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py 2>&1'
++ sed 's|/opt/corex311-cpython-vllm/lib/python3.11/site-packages|...|'
+ls: cannot access '.../vllm/v1/worker/host_fastpath.py': No such file or directory
+-rw-r--r--. 1 root root 70752 Nov  9 19:25 .../vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+-rw-r--r--. 1 root root 71224 Nov  9 19:25 .../vllm/_host_opt_native.abi3.so
++ docker exec corex5-py311 bash -c 'grep -l '\''DISABLE_DECODE_FASTPATH\|host_fastpath'\'' -r /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/*.py 2>/dev/null | head -5'
++ sed 's|/opt/corex311-cpython-vllm/lib/python3.11/site-packages|...|'
++ echo '== pgo marker inside venv =='
+== pgo marker inside venv ==
++ docker exec corex5-py311 bash -c 'ls -l /opt/cpython-vllm/v1/bin/python3.11; /opt/cpython-vllm/v1/bin/python3.11 -c "import sysconfig;print(sysconfig.get_config_var(\"CONFIG_ARGS\"))"'
+-rwxrwxr-x+ 1 root root 73936 Oct 23 16:28 /opt/cpython-vllm/v1/bin/python3.11
+'--prefix=/opt/cpython-vllm/v1' '--enable-shared' '--enable-optimizations' '--with-lto' '--with-ensurepip=install' 'CC=/usr/bin/gcc' 'CXX=/usr/bin/g++' 'AR=/usr/bin/gcc-ar' 'RANLIB=/usr/bin/gcc-ranlib' 'LDFLAGS=-Wl,-rpath,/opt/cpython-vllm/v1/lib'
++ echo '== vllm/torch versions both venvs =='
+== vllm/torch versions both venvs ==
++ for V in /opt/corex311 /opt/corex311-cpython-vllm
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311/bin/python3 -c 'import importlib.metadata as m
+for n in ('\''vllm'\'','\''torch'\'','\''triton'\'','\''transformers'\'','\''torch-module-attr-fastpath'\'','\''vllm-corex-metadata'\''):
+    try: print(n, m.version(n))
+    except Exception as e: print(n, '\''MISSING'\'')'
++ sed 's|^|/opt/corex311: |'
+/opt/corex311: vllm 0.23.0+corex.5.0.0
+/opt/corex311: torch 2.10.0+corex.5.0.0
+/opt/corex311: triton 3.2.0+corex.5.0.0
+/opt/corex311: transformers 5.5.3
+/opt/corex311: torch-module-attr-fastpath 0.1.0.dev2
+/opt/corex311: vllm-corex-metadata MISSING
++ for V in /opt/corex311 /opt/corex311-cpython-vllm
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python3 -c 'import importlib.metadata as m
+for n in ('\''vllm'\'','\''torch'\'','\''triton'\'','\''transformers'\'','\''torch-module-attr-fastpath'\'','\''vllm-corex-metadata'\''):
+    try: print(n, m.version(n))
+    except Exception as e: print(n, '\''MISSING'\'')'
++ sed 's|^|/opt/corex311-cpython-vllm: |'
+/opt/corex311-cpython-vllm: vllm 0.23.0+corex.5.0.0
+/opt/corex311-cpython-vllm: torch 2.10.0+corex.5.0.0
+/opt/corex311-cpython-vllm: triton 3.2.0+corex.5.0.0
+/opt/corex311-cpython-vllm: transformers 5.5.3
+/opt/corex311-cpython-vllm: torch-module-attr-fastpath 0.1.0.dev2
+/opt/corex311-cpython-vllm: vllm-corex-metadata MISSING
++ echo '== multi engine =='
+== multi engine ==
++ cat /sys/module/iluvatar/parameters/itr_multi_compute_engine
+1
++ set +x
+
+### exit: 0
