@@ -1,0 +1,286 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-10T06:45:10Z
+
++ echo '== 1. 备份源码 vs 当前源码（完整 diff）=='
+== 1. 备份源码 vs 当前源码（完整 diff）==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+diff -u "$P/pillow_fusion_func_v2.cpp.bak_clip_neon" "$P/pillow_fusion_func_v2.cpp"
+echo "-- diff 行数 --"
+diff "$P/pillow_fusion_func_v2.cpp.bak_clip_neon" "$P/pillow_fusion_func_v2.cpp" | wc -l
+'
++ head -120
+--- /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_fusion_func_v2.cpp.bak_clip_neon	2026-10-26 17:42:30.238521350 +0800
++++ /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_fusion_func_v2.cpp	2026-10-26 17:43:00.346521350 +0800
+@@ -30,6 +30,35 @@
+   return (MIN(255, MAX((x>>PRECISION_BITS), 0))); 
+ }
+ 
++// NEON 向量化: 16 个 int32 -> 16 个 uint8（饱和窄化吸收 max/min 钳位）
++static inline uint8x16_t clip_u8_i32_x16(const int32_t* p) {
++    int32x4_t a = vld1q_s32(p + 0);
++    int32x4_t b = vld1q_s32(p + 4);
++    int32x4_t c = vld1q_s32(p + 8);
++    int32x4_t d = vld1q_s32(p + 12);
++    a = vshrq_n_s32(a, PRECISION_BITS);
++    b = vshrq_n_s32(b, PRECISION_BITS);
++    c = vshrq_n_s32(c, PRECISION_BITS);
++    d = vshrq_n_s32(d, PRECISION_BITS);
++    uint16x8_t lo = vcombine_u16(vqmovun_s32(a), vqmovun_s32(b)); // 负值 -> 0
++    uint16x8_t hi = vcombine_u16(vqmovun_s32(c), vqmovun_s32(d));
++    return vcombine_u8(vqmovn_u16(lo), vqmovn_u16(hi));            // >255 -> 255
++}
++
++// NEON 向量化: clip + 归一化融合 (clip*scale0-mean)*scale = clip*A + B
++static inline void clip_norm_x16(const int32_t* src, float* dst,
++                                 float32x4_t vA, float32x4_t vB) {
++    const int32x4_t vzero = vdupq_n_s32(0);
++    const int32x4_t v255  = vdupq_n_s32(255);
++    for (int k = 0; k < 16; k += 4) {
++        int32x4_t v = vshrq_n_s32(vld1q_s32(src + k), PRECISION_BITS);
++        v = vmaxq_s32(v, vzero);
++        v = vminq_s32(v, v255);
++        float32x4_t f = vcvtq_f32_s32(v);
++        vst1q_f32(dst + k, vfmaq_f32(vB, f, vA));   // f*A + B
++    }
++}
++
+ double ttd[10];
+ 
+ static void NormalizeCoeffs(int *dst, const double *src, int length, int nts) {
+@@ -944,10 +973,22 @@
+             tmp2[2*dw + xx] += tmp[(y + ymin) * dw * 3 + xx * 3 + 2] * wv[y];
+           }
+         }
+-        for (int xx = 0; xx < dw; xx ++) {
+-          tmp3[0*dw + xx] = (clip_u8_i32(tmp2[2*dw + xx]) * scale0 - mean[0]) * scale[0];
+-          tmp3[1*dw + xx] = (clip_u8_i32(tmp2[1*dw + xx]) * scale0 - mean[1]) * scale[1];
+-          tmp3[2*dw + xx] = (clip_u8_i32(tmp2[0*dw + xx]) * scale0 - mean[2]) * scale[2];
++        {
++          // NEON 向量化: clip + 归一化融合 (每像素 2 次浮点 -> 1 条 fmla)
++          const float32x4_t vA0 = vdupq_n_f32(scale0 * scale[0]), vB0 = vdupq_n_f32(-mean[0] * scale[0]);
++          const float32x4_t vA1 = vdupq_n_f32(scale0 * scale[1]), vB1 = vdupq_n_f32(-mean[1] * scale[1]);
++          const float32x4_t vA2 = vdupq_n_f32(scale0 * scale[2]), vB2 = vdupq_n_f32(-mean[2] * scale[2]);
++          int xx = 0;
++          for (; xx + 16 <= dw; xx += 16) {
++            clip_norm_x16(tmp2 + 2*dw + xx, tmp3 + 0*dw + xx, vA0, vB0);
++            clip_norm_x16(tmp2 + 1*dw + xx, tmp3 + 1*dw + xx, vA1, vB1);
++            clip_norm_x16(tmp2 + 0*dw + xx, tmp3 + 2*dw + xx, vA2, vB2);
++          }
++          for (; xx < dw; xx ++) {
++            tmp3[0*dw + xx] = (clip_u8_i32(tmp2[2*dw + xx]) * scale0 - mean[0]) * scale[0];
++            tmp3[1*dw + xx] = (clip_u8_i32(tmp2[1*dw + xx]) * scale0 - mean[1]) * scale[1];
++            tmp3[2*dw + xx] = (clip_u8_i32(tmp2[0*dw + xx]) * scale0 - mean[2]) * scale[2];
++          }
+         }
+         transpose.Apply(tmp3 + 0*dw, output, 0, yy, hdim, wdim, b);
+         transpose.Apply(tmp3 + 1*dw, output, 1, yy, hdim, wdim, b);
+@@ -971,10 +1012,19 @@
+             tmp2[2*dw + xx] += tmp[(y + ymin) * dw * 3 + xx * 3 + 2] * wv[y];
+           }
+         }
+-        for (int xx = 0; xx < dw; xx ++) {
+-          tmp4[0*dh*dw + yy*dw + xx] = clip_u8_i32(tmp2[2*dw + xx]);
+-          tmp4[1*dh*dw + yy*dw + xx] = clip_u8_i32(tmp2[1*dw + xx]);
+-          tmp4[2*dh*dw + yy*dw + xx] = clip_u8_i32(tmp2[0*dw + xx]);
++        {
++          // NEON 饱和窄化向量化: 16 像素/次，循环内零比较
++          int xx = 0;
++          for (; xx + 16 <= dw; xx += 16) {
++            vst1q_u8(tmp4 + 0*dh*dw + yy*dw + xx, clip_u8_i32_x16(tmp2 + 2*dw + xx));
++            vst1q_u8(tmp4 + 1*dh*dw + yy*dw + xx, clip_u8_i32_x16(tmp2 + 1*dw + xx));
++            vst1q_u8(tmp4 + 2*dh*dw + yy*dw + xx, clip_u8_i32_x16(tmp2 + 0*dw + xx));
++          }
++          for (; xx < dw; xx ++) {
++            tmp4[0*dh*dw + yy*dw + xx] = clip_u8_i32(tmp2[2*dw + xx]);
++            tmp4[1*dh*dw + yy*dw + xx] = clip_u8_i32(tmp2[1*dw + xx]);
++            tmp4[2*dh*dw + yy*dw + xx] = clip_u8_i32(tmp2[0*dw + xx]);
++          }
+         }
+       }
+       // ttd[2] = GetCurrentTime() - tt;
+-- diff 行数 --
+71
++ echo '== 2. 测试程序测量了哪些函数 =='
+== 2. 测试程序测量了哪些函数 ==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+grep -n "opt_func\|fusion_func\|pillow_opt\|pillow_fusion\|benchmark\|printf" "$P/fusion_test.cpp" | head -40
+'
++ head -45
+18:#include "opt_func.h"
+562:  printf("[%3d] Max Diff %.10le\n", 0, max_diff);
+563:  printf("[%3d] Avg Diff %.10le\n", 0, avg_diff);
+575:  printf("  Detail Time is < %.3lf %.3lf %.3lf %.3lf > \n", tt[1]-tt[0], tt[2]-tt[1], tt[3]-tt[2], tt[4]-tt[3]); 
+629:  //   printf("[%3d] Step %3d Ref Time is %.3lf ms Bandwidth is %10.3lf MB/s \n", gid, s, tt*1e-3, mem/tt);
+644:    printf("warmup [%3d] Step %3d Target Time is %.3lf ms Bandwidth is %10.3lf MB/s \n", gid, s, tt1*1e-3, mem/tt1);
+647:  printf("warmup end\n");
+696:    // printf("[%3d] Step %3d Target Time is %.3lf ms Bandwidth is %10.3lf MB/s \n", gid, s, tt*1e-3, mem/tt);
+698:  // printf("after loop\n");
+702:  // printf("kperf_end\n");
+703:  printf("deAllocPillowFusionV2Var before\n");
+705:  printf("deAllocPillowFusionV2Var after\n");
+716:  // printf("[%3d] Max Diff %.10le\n", 0, max_diff);
+717:  // printf("[%3d] Avg Diff %.10le\n", 0, avg_diff);
+764:  printf("<sh, sw, dh, dw, t> is <%d %d %d %d %d>\n", sh, sw, dh, dw, t);
++ echo '== 2b. 四个 pillow 变体都导出了什么函数 =='
+== 2b. 四个 pillow 变体都导出了什么函数 ==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+for f in pillow_opt_func.cpp pillow_opt_func_v2.cpp pillow_fusion_func.cpp pillow_fusion_func_v2.cpp; do
+  echo "--- $f ---"
+  grep -nE "^[a-zA-Z_][a-zA-Z0-9_ *]*\(" "$P/$f" | grep -v "static inline" | head -12
+done
+'
++ head -60
+--- pillow_opt_func.cpp ---
+57:int compute_single_line(const uint8_t *src, int *dst, int sw, int dw, int *dep, const T4<int> *scale) {
+118:int add_4_lines(const int *s0, const int *s1, const int *s2, const int *s3, uint8_t *dst, int length, int *scale) {
+132:static void NormalizeCoeffs(int *dst, const double *src, int length, int nts) {
+159:int PrecomputeCoeffs(int inSize, int outSize, int **boundsPtr, double **coeffsPtr, int nts)
+212:int resize_bicubic_uint8_opt(const uint8_t *src, uint8_t *dst,
+272:int resize_bicubic_uint8_merge_totensor_opt(const uint8_t *src, uint8_t *dst,
+379:int ToTensor(const IT *src, OT *dst, int h, int w, OT scale, int nts) {
+391:int Norm(const IT *src, OT *dst, int h, int w, OT scale0, OT mean[3], OT scale[3], int nts) {
+412:int Tranpose(const T *src, T *dst, int hdim[3], int wdim[3], int b, int nts) {
+487:int PillowStandard(const uint8_t *src, float *dst, float mean[3], float scale[3], float scale0, int sh, int sw, int dh, int dw, int hdim[3], int wdim[3], int b, int nts) {
+--- pillow_opt_func_v2.cpp ---
+60:int compute_single_line(const uint8_t *src, int *dst, int sw, int dw, int *dep, const T4<int> *scale) {
+121:int add_4_lines(const int *s0, const int *s1, const int *s2, const int *s3, uint8_t *dst, int length, int *scale) {
+135:static void NormalizeCoeffs(int *dst, const double *src, int length, int nts) {
+162:int PrecomputeCoeffs(int inSize, int outSize, int **boundsPtr, double **coeffsPtr, int *realCoeffSize, int nts)
+864:int resize_bicubic_uint8_merge_totensor_opt(const uint8_t *src, uint8_t *dst,
+965:int Norm(const IT *src, OT *dst, int h, int w, OT scale0, OT mean[3], OT scale[3], int nts) {
+986:int Tranpose(const T *src, T *dst, int hdim[3], int wdim[3], int b, int nts) {
+1061:int PillowStandardV2(const uint8_t *src, float *dst, float mean[3], float scale[3], float scale0, int sh, int sw, int dh, int dw, int hdim[3], int wdim[3], int b, int nts) {
+--- pillow_fusion_func.cpp ---
+33:static void NormalizeCoeffs(int *dst, const double *src, int length, int nts) {
+60:int PrecomputeCoeffs(int inSize, int outSize, int **boundsPtr, double **coeffsPtr, int nts)
+159:int resize_bicubic_uint8_fusion(const uint8_t *src, float *dst,
+280:int PillowFusion(const uint8_t *src, float *dst, float mean[3], float scale[3], float scale0, int sh, int sw, int dh, int dw, int hdim[3], int wdim[3], int b, int nts) {
+--- pillow_fusion_func_v2.cpp ---
+64:static void NormalizeCoeffs(int *dst, const double *src, int length, int nts) {
+91:int PrecomputeCoeffs(int inSize, int outSize, int **boundsPtr, double **coeffsPtr, int *realCoeffSize, int nts)
+845:__attribute__((noinline)) int NormSingle(const IT *src, OT *dst, int h, int w, OT scale0, OT mean[3], OT scale[3]) {
+862:__attribute__((noinline)) int TranposeSingle(const T *src, T *dst, int hdim[3], int wdim[3], int b) {
+905:int resize_bicubic_uint8_fusion(const uint8_t *src, float *dst,
+1058:int PillowFusionV2(const uint8_t *src, float *dst, float mean[3], float scale[3], float scale0, int sh, int sw, int dh, int dw, int hdim[3], int wdim[3], int b, int nts,
++ echo '== 2c. 测试程序实际引用了哪些 pillow 符号 =='
+== 2c. 测试程序实际引用了哪些 pillow 符号 ==
++ head -50
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+echo "-- fusion_test.o 未定义符号 --"
+nm -u "$P/fusion_test.o" 2>/dev/null | grep -i pillow | head -20
+echo "-- 最终二进制里的 pillow 符号 --"
+nm -C "$P/fusion.unittest" 2>/dev/null | grep -i "pillow" | grep -E " T | t " | head -20
+'
+-- fusion_test.o 未定义符号 --
+                 U _Z14PillowFusionV2PKhPfS1_S1_fiiiiPiS2_iiPdS3_S2_S2_S2_S2_S2_S2_S1_Ph
+-- 最终二进制里的 pillow 符号 --
+000000000041cd50 T PillowFusion(unsigned char const*, float*, float*, float*, float, int, int, int, int, int*, int*, int, int)
+0000000000421540 T PillowFusionV2(unsigned char const*, float*, float*, float*, float, int, int, int, int, int*, int*, int, int, double*, double*, int*, int*, int*, int*, int*, int*, float*, unsigned char*)
+00000000004156b0 T PillowStandard(unsigned char const*, float*, float*, float*, float, int, int, int, int, int*, int*, int, int)
+0000000000419210 T PillowStandardV2(unsigned char const*, float*, float*, float*, float, int, int, int, int, int*, int*, int, int)
++ echo '== 3. 结果打印格式 =='
+== 3. 结果打印格式 ==
++ head -60
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+grep -n "printf\|cout\|Step" "$P/fusion_test.cpp" | sed -n "1,60p"
+'
+562:  printf("[%3d] Max Diff %.10le\n", 0, max_diff);
+563:  printf("[%3d] Avg Diff %.10le\n", 0, avg_diff);
+575:  printf("  Detail Time is < %.3lf %.3lf %.3lf %.3lf > \n", tt[1]-tt[0], tt[2]-tt[1], tt[3]-tt[2], tt[4]-tt[3]); 
+629:  //   printf("[%3d] Step %3d Ref Time is %.3lf ms Bandwidth is %10.3lf MB/s \n", gid, s, tt*1e-3, mem/tt);
+644:    printf("warmup [%3d] Step %3d Target Time is %.3lf ms Bandwidth is %10.3lf MB/s \n", gid, s, tt1*1e-3, mem/tt1);
+647:  printf("warmup end\n");
+696:    // printf("[%3d] Step %3d Target Time is %.3lf ms Bandwidth is %10.3lf MB/s \n", gid, s, tt*1e-3, mem/tt);
+698:  // printf("after loop\n");
+702:  // printf("kperf_end\n");
+703:  printf("deAllocPillowFusionV2Var before\n");
+705:  printf("deAllocPillowFusionV2Var after\n");
+716:  // printf("[%3d] Max Diff %.10le\n", 0, max_diff);
+717:  // printf("[%3d] Avg Diff %.10le\n", 0, avg_diff);
+764:  printf("<sh, sw, dh, dw, t> is <%d %d %d %d %d>\n", sh, sw, dh, dw, t);
++ echo '== 4. run_fusion.sh =='
+== 4. run_fusion.sh ==
++ head -30
++ docker exec fusionv1 cat /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/run_fusion.sh
+    
+BIND_CORE=3
+BIND_NUMA=0
+EXEC_PATH="/home/g30060303/融合算子操作/opt_fusion_qwen-master/fusion.unittest"  
+FLAMEGRAPH_EXEC_PATH="/home/g30060303/flamegraph.sh"
+
+
+numactl -C  $BIND_CORE    $EXEC_PATH 1  &
+# numactl -C  $BIND_CORE  $EXEC_PATH 1  
+# PID=$!
+# echo "PID of the process: $PID"
+# sleep 0.1
+
+# # step=10
+# real    0m0.399s
+# user    0m0.195s
+# sys     0m0.203s
+
+# # step=100
+# real    0m3.877s
+# user    0m2.271s
+# sys     0m1.600s
+
+# # step=1000
+# real    0m37.993s
+# user    0m21.372s
+# sys     0m16.551s
+/home/g30060303/kperf --raw  --topdown --hotfunc --cache --tlb  --uncore --imix --duration 0.5 --interval 0.1 --iter-num 8  --core  $BIND_CORE   --verbose | tee step1000_kperf_only_fusion.txt
++ echo '== 5. main 函数结构 =='
+== 5. main 函数结构 ==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
++ head -80
+awk "/int main|^main/,0" "$P/fusion_test.cpp" | head -70
+'
+int main(int argc, char **argv) {
+  int sh = 1080;
+  int sw = 1920;
+#if 1
+  int dh = 728;
+  int dw = 1316;
+  int hdim[3] = {14, 2, 26};
+  int wdim[3] = {14, 2, 47};
+  // int dh = 1092;
+  // int dw = 1932;
+  // int hdim[3] = {14, 2, 39};
+  // int wdim[3] = {14, 2, 69};
+  int b = 2;
+#else
+  // int dh = 2*448;
+  // int dw = 4*448;
+  // int hdim[3] = {2, 1, 448};
+  // int wdim[3] = {4, 1, 448};
+  int dh = 1*448;
+  int dw = 1*448;
+  int hdim[3] = {1, 1, 448};
+  int wdim[3] = {1, 1, 448};
+  // int dh = 1*336;
+  // int dw = 1*336;
+  // int hdim[3] = {1, 1, 336};
+  // int wdim[3] = {1, 1, 336};
+  int b = 1;
+#endif
+
+  
+  int t = 1;
+  if (argc > 1) t = atoi(argv[1]);
+
+  printf("<sh, sw, dh, dw, t> is <%d %d %d %d %d>\n", sh, sw, dh, dw, t);
+  test(sh, sw, dh, dw, hdim, wdim, b, t);
+  return 0;
+
+}
++ set +x
+
+### exit: 0
