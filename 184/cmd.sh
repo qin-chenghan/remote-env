@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：追查 64K 内核的构建位置 / devel 产物。
+# 只读：对比 11-09 那次编译用的 devel 树，并判断 64K 内核能否复用同样套路。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,26 +17,31 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== builder shell history =="
-  grep -iE 'make|rpmbuild|64k|kernel|6\.6' /home/l30029702/.bash_history 2>&1 | tail -30
+  echo "== /usr/src/kernels =="
+  ls -la /usr/src/kernels 2>&1
 
-  echo "== root history =="
-  grep -iE '64k|02403|make .*kernel|modules_prepare' /root/.bash_history 2>&1 | tail -20
+  echo "== 11-09 那次的 devel 树 =="
+  D=/usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64
+  ls -l "$D/Module.symvers" "$D/.config" "$D/include/generated/asm-offsets.h" 2>&1
+  rpm -qf "$D/Module.symvers" 2>&1
+  head -3 "$D/.config" 2>&1
 
-  echo "== broad search for devel/02403 =="
-  find / -xdev -iname 'kernel-devel*6.6.02403*' 2>/dev/null | head -5
-  find / -xdev -maxdepth 6 \( -iname '*02403*' -o -iname '*_64K*' \) 2>/dev/null | grep -vE '^/proc|^/sys' | head -15
+  echo "== 5.10 64K 的 devel 树（同名套路参照） =="
+  ls -d /usr/src/kernels/*64k* /usr/src/kernels/*64K* 2>&1
+  ls -l /usr/src/kernels/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb/Module.symvers 2>&1
 
-  echo "== docker overlay kernel sources =="
-  ls -d /home/docker/overlay2/*/diff/usr/src/linux* 2>/dev/null | head -5
-  ls -d /home/docker/overlay2/*/merged/usr/src/linux* 2>/dev/null | head -5
+  echo "== 64K 内核是否要求 MODVERSIONS =="
+  grep -E '^CONFIG_MODVERSIONS|^CONFIG_MODULE_SIG|^CONFIG_ARM64_64K_PAGES' \
+    /boot/config-6.6.02403_sp3-64K 2>&1
 
-  echo "== containers =="
-  docker ps -a --format '{{.Names}}\t{{.Image}}\t{{.Status}}' 2>&1 | head -10
+  echo "== 145 内核同类配置对照 =="
+  grep -E '^CONFIG_MODVERSIONS|^CONFIG_ARM64_64K_PAGES' \
+    /boot/config-6.6.0-145.3.37.168.oe2403sp3.aarch64 2>&1
 
-  echo "== rpm output dirs =="
-  ls -d /root/rpmbuild/RPMS/* /home/*/rpmbuild/RPMS/* 2>/dev/null | head -5
-  find /home/l30029702 -maxdepth 3 -type d 2>/dev/null | head -10
+  echo "== 当前 64K 内核已有的模块 vermagic 参照 =="
+  f=$(find /lib/modules/6.6.02403_sp3-64K -name '*.ko' 2>/dev/null | head -1)
+  echo "sample=$f"
+  [ -n "$f" ] && modinfo -F vermagic "$f" 2>&1
 
   # ---- 命令结束 ----
 
