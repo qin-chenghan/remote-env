@@ -1,0 +1,140 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T07:53:51Z
+
++ echo '== builder dir =='
+== builder dir ==
++ ls -la /home/l30029702/64k
++ head -30
+total 584000
+drwxr-xr-x. 2 root root      4096 Nov 10 14:55 .
+drwxr-xr-x. 4 root root      4096 Nov 10 14:26 ..
+-rw-r--r--. 1 root root 596399669 Nov 10 14:55 kernel-6.6.02403_sp3_64K-6.aarch64.rpm
+-rw-r--r--. 1 root root   1598373 Nov 10 14:55 kernel-headers-6.6.02403_sp3_64K-6.aarch64.rpm
++ echo '== any prepared kernel tree =='
+== any prepared kernel tree ==
++ find /home /opt /usr/src -maxdepth 6 -name Module.symvers
++ head -10
+/home/20250904_bak_zxh/zj_microarchitecture_test/kvm-utils/microbenchmark/ipi-bench/Module.symvers
+/home/20250904_bak_zxh/zj_microarchitecture_test/ipi_benchmark/Module.symvers
+/home/20250904_bak_zxh/zzp/usr/src/linux-headers-5.15.152/Module.symvers
+/opt/mxdriver/kernel_module/4.19.90-89.25.v2401.gfb01.ky10.aarch64/Module.symvers
+/opt/mxdriver/kernel_module/4.19.90-2304.4.0.0198.oe1.aarch64/Module.symvers
+/opt/mxdriver/kernel_module/4.19.90-52.22.v2207.ky10.aarch64/Module.symvers
+/opt/mxdriver/kernel_module/4.19.90-25.17.230.po1.aarch64/Module.symvers
+/opt/mxdriver/kernel_module/5.10.0-298.0.0.200.ile2312sp1.aarch64/Module.symvers
+/opt/mxdriver/kernel_module/4.19.90-2305.1.0.0199.56.uel20.aarch64/Module.symvers
+/opt/mxdriver/kernel_module/5.10.0-136.108.0.188.u167.fos23.aarch64/Module.symvers
++ echo '== any linux source dirs =='
+== any linux source dirs ==
++ find /home /opt /usr/src -maxdepth 5 -type d '(' -name 'linux-*' -o -name linux -o -name '*kernel*src*' ')'
++ head -15
+/home/j00887874/spec2017/tools/bin/linux-sparc
+/home/j00887874/spec2017/tools/bin/linux-ppc
+/home/j00887874/spec2017/tools/bin/linux-armv7l
+/home/j00887874/spec2017/tools/bin/linux-ppc64
+/home/j00887874/spec2017/tools/bin/linux-x86_64
+/home/j00887874/spec2017/tools/bin/linux-aarch64
+/home/j00887874/spec2017/tools/bin/linux-ppc64le
+/home/l50058640/server_pkg/linux
+/home/lw/kernel/scripts/gdb/linux
+/home/lw/kernel/include/linux
+/home/lw/kernel/include/uapi/linux
+/home/lw/kernel/tools/include/linux
+/home/lw/kernel/tools/virtio/linux
+/home/cht/zch/jdk-21/include/linux
+/home/20250904_bak_zxh/zj_microarchitecture_test/synchronization-benchmarks-1.0/ext/linux
++ echo '== 64K config in any tree =='
+== 64K config in any tree ==
+++ find /home /opt /usr/src -maxdepth 6 -name .config
+++ head -20
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/qch/tools/vllm_topdown/rust/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/qch/tools/vllm_topdown_qch/rust/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/qch/tools/vllm/rust/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/s00965207/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/lzy/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/docker/overlay2/fc0dacf639485f9375f8de4ac5037fefdd7ace54ba5d12aae2f1165ceb683283/diff/root/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/docker/overlay2/85f74fef4a5a6cc99e8ce09fb8c26a72260fdc3e7b8441c46a78b5a5f7e59531/diff/root/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/docker/overlay2/b59ecb8787cc7fdbcf4ecae5371ac6d38a2989f239a4571c6c2b1fce541c09ca/diff/root/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/docker/overlay2/2c14ea44a2a4f38706cb0e5324265c95eea95fbfd44ee8ce04d5626d2ab117b9/diff/root/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/docker/overlay2/81130ffc12eec9a8c5670faec39f10113b6c1b2040b1611e81014ce1c8860ba7/diff/root/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/docker/overlay2/0f0286e81f829adb36ffec1fdfcf1932fc3bc3298a4d52045c6a52a60d0a895e/diff/root/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/docker/overlay2/cb8b8954fc7c52e0f64b412f0c69de0ea3c9c6d0ad5ad96706d7d4e8a4427556/diff/root/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/docker/overlay2/f59e3d641930f9786f1abd017c9ca4298d5c949a5ecad2d62307b63ce7697f4e/diff/root/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/docker/overlay2/23af1aa1e8969128e6345592f67768d1dc39f2670222a007453c1317e237be27/diff/root/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/docker/overlay2/8faeb171f50f7a638bb8a4a1477b7c70a2c3f7c1292d3de70876c12c4be75f26/diff/root/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/docker/overlay2/470b18ef25b9a8572197b6ed4cb0b6ba5f2a0b36e9df16f098914f1185e6cee0/diff/root/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/docker/overlay2/e7715cd80e75e5238540c3b4807069336b68174f571cf1f1d2f9eb6141829cac/diff/root/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/docker/overlay2/69ac61b3c46410b29f5199d306b11f609203f0660f0708436d66d1ecbc7e8229/diff/root/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/docker/overlay2/41ac47307102651705169536273c018ec4b1ec15658dc6b714a4d5950ec29501/diff/root/.config
++ for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2> /dev/null | head -20)
++ grep -q CONFIG_ARM64_64K_PAGES=y /home/docker/overlay2/259b5cbb32bab4690e1ec9d9e6867fd313f2ab5b363d3d107760edc66c504c7d/diff/root/.config
++ echo '== rpm contents hint =='
+== rpm contents hint ==
++ rpm -qpl /home/l30029702/64k/kernel-headers-6.6.02403_sp3_64K-6.aarch64.rpm
++ head -15
+/usr/include
+/usr/include/asm
+/usr/include/asm-generic
+/usr/include/asm-generic/auxvec.h
+/usr/include/asm-generic/bitsperlong.h
+/usr/include/asm-generic/bpf_perf_event.h
+/usr/include/asm-generic/errno-base.h
+/usr/include/asm-generic/errno.h
+/usr/include/asm-generic/fcntl.h
+/usr/include/asm-generic/hugetlb_encode.h
+/usr/include/asm-generic/int-l64.h
+/usr/include/asm-generic/int-ll64.h
+/usr/include/asm-generic/ioctl.h
+/usr/include/asm-generic/ioctls.h
+/usr/include/asm-generic/ipcbuf.h
++ echo '--- kernel rpm ---'
+--- kernel rpm ---
++ rpm -qpl /home/l30029702/64k/kernel-6.6.02403_sp3_64K-6.aarch64.rpm
++ grep -E 'build|source|devel'
++ head -10
++ echo '== who built it (history hint) =='
+== who built it (history hint) ==
++ ls -la /home/l30029702
++ head -20
+total 73656
+drwxr-xr-x.  4 root root     4096 Nov 10 14:26 .
+drwxr-xr-x+ 50 root root     4096 Nov 10 10:36 ..
+-rw-r--r--.  1 root root     8899 Nov 10 08:23 261109_oe-2403-sp3_report.txt
+drwxr-xr-x.  2 root root     4096 Nov 10 14:55 64k
+-rw-r--r--.  1 root root 13391244 Nov  4 13:51 collect_script.zip
+-rw-r--r--.  1 root root 51848425 Nov  9 10:49 kernel-6.6.0-132.0.0.111.oe2403sp3.aarch64.rpm
+-rw-r--r--.  1 root root  2358345 Nov  9 10:51 kernel-headers-6.6.0-132.0.0.111.oe2403sp3.aarch64.rpm
+-rw-r--r--.  1 root root  3489280 Nov  4 13:51 libcrypto.so.1.1
+-rwxr-xr-x.  1 root root   658512 Feb 19  2025 libdw-0.185.so
+lrwxrwxrwx.  1 root root       14 Feb 19  2025 libdw.so.1 -> libdw-0.185.so
+lrwxrwxrwx.  1 root root       16 Jun 22  2024 libpopt.so.0 -> libpopt.so.0.0.1
+-rwxr-xr-x.  1 root root    68064 Jun 22  2024 libpopt.so.0.0.1
+-rw-r--r--.  1 root root  3565120 Nov  4 13:51 libpython3.9.so.1.0
+drwxr-xr-x.  4 root root     4096 Nov  4 13:56 script
++ echo '== existing trees for 145 =='
+== existing trees for 145 ==
++ ls -l /usr/src/linux-6.6.0-145.3.37.168.oe2403sp3.aarch64/Module.symvers
+ls: cannot access '/usr/src/linux-6.6.0-145.3.37.168.oe2403sp3.aarch64/Module.symvers': No such file or directory
++ set +x
+
+### exit: 0
