@@ -1,0 +1,52 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-10T01:14:35Z
+
++ echo '== 1. 容器内 ixsmi（全路径）=='
+== 1. 容器内 ixsmi（全路径）==
++ docker exec corex5-py311 bash -lc '
+    ls -l /usr/local/corex/bin/ixsmi /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | head -4
+    /usr/local/corex/bin/ixsmi 2>&1 | head -20
+  '
++ head -30
+ls: cannot access '/usr/local/corex/bin/ixsmi': No such file or directory
+ls: cannot access '/usr/local/corex-5.0.0/bin/ixsmi': No such file or directory
+bash: line 3: /usr/local/corex/bin/ixsmi: No such file or directory
++ echo '== 2. 容器内 torch 识别 GPU =='
+== 2. 容器内 torch 识别 GPU ==
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -c '
+import torch
+print("torch", torch.__version__)
+print("device_count", torch.cuda.device_count())
+for i in range(torch.cuda.device_count()):
+    print(i, torch.cuda.get_device_name(i))
+a = torch.randn(64, 64, device="cuda")
+print("matmul ok", float((a @ a).sum()))
+'
++ tail -12
+torch 2.10.0
+device_count 4
+0 Iluvatar BI-V150
+1 Iluvatar BI-V150
+2 Iluvatar BI-V150
+3 Iluvatar BI-V150
+matmul ok 491.4504089355469
++ echo '== 3. 容器 shm =='
+== 3. 容器 shm ==
++ docker exec corex5-py311 bash -lc 'df -h /dev/shm 2>&1 | tail -1; cat /proc/meminfo | head -2'
+tmpfs           361G     0  361G   0% /dev/shm
+MemTotal:       755088008 kB
+MemFree:        605515380 kB
++ echo '== 4. 容器内 PATH 与 corex 环境 =='
+== 4. 容器内 PATH 与 corex 环境 ==
++ docker exec corex5-py311 bash -lc 'echo "PATH=$PATH"; echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-<empty>}"'
++ head -5
+PATH=/opt/corex311/bin:/usr/local/corex/bin:/usr/local/openmpi/bin:/usr/local/openmpi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+LD_LIBRARY_PATH=/opt/corex-host:/usr/local/corex/lib64:/usr/local/openmpi/lib:/usr/local/lib
++ echo '== 5. 多流参数 =='
+== 5. 多流参数 ==
++ cat /sys/module/iluvatar/parameters/itr_multi_compute_engine
+1
++ set +x
+
+### exit: 0
