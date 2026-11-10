@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：查 64K 内核的构建来源。
+# 只读：确认 /home/lw 的 64k 内核树能否用于编模块。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,26 +17,28 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== build report =="
-  sed -n '1,120p' /home/l30029702/261109_oe-2403-sp3_report.txt 2>&1
+  echo "== /home/lw/20261104-64k =="
+  ls -la /home/lw/20261104-64k 2>&1 | head -20
 
-  echo "== kernel rpm inventory =="
-  R=/home/l30029702/64k/kernel-6.6.02403_sp3_64K-6.aarch64.rpm
-  echo "files: $(rpm -qpl "$R" 2>/dev/null | wc -l)"
-  rpm -qpl "$R" 2>/dev/null | grep -E '^/usr/src|^/lib/modules/.*/build|Module.symvers|^/boot|^/lib/modules' | head -12
-  echo "-- top-level prefixes --"
-  rpm -qpl "$R" 2>/dev/null | sed 's|\(^/[^/]*/[^/]*\).*|\1|' | sort -u | head -12
+  echo "== /home/lw/kernel =="
+  ls -la /home/lw/kernel 2>&1 | head -25
+  sed -n '1,6p' /home/lw/kernel/Makefile 2>&1
 
-  echo "== headers rpm inventory =="
-  rpm -qpl /home/l30029702/64k/kernel-headers-6.6.02403_sp3_64K-6.aarch64.rpm 2>/dev/null \
-    | sed 's|\(^/[^/]*/[^/]*\).*|\1|' | sort -u | head -10
+  echo "== prepared build tree? =="
+  ls -l /home/lw/kernel/Module.symvers /home/lw/kernel/.config /home/lw/kernel/vmlinux 2>&1
+  grep -E 'CONFIG_ARM64_64K_PAGES|CONFIG_LOCALVERSION' /home/lw/kernel/.config 2>&1
+  ls -l /home/lw/kernel/include/generated/asm-offsets.h 2>&1
 
-  echo "== deep search for 64k source =="
-  find /home -maxdepth 8 -type d \( -iname '*6.6*src*' -o -iname 'linux-6.6*' -o -iname '*64K*' \) 2>/dev/null | head -10
-  find / -maxdepth 4 -type d -name 'linux-6.6.02403*' 2>/dev/null | head -5
+  echo "== kernelrelease from tree =="
+  grep -rn 'CONFIG_LOCALVERSION=' /home/lw/kernel/.config 2>&1
+  ls -la /home/lw/20261104-64k/*.rpm 2>&1 | head -5
+  find /home/lw -maxdepth 3 -name 'kernel-devel*.rpm' 2>/dev/null | head -5
 
-  echo "== builder dir tree =="
-  ls -la /home/l30029702/script 2>&1 | head -12
+  echo "== driver kernel dirs available =="
+  ls -1 /home/lw/kernel/arch/arm64/boot 2>&1 | head -5
+
+  echo "== dkms.conf in tree? =="
+  ls -l /home/lw/kernel/.config /home/lw/kernel/Module.symvers 2>&1
 
   # ---- 命令结束 ----
 
