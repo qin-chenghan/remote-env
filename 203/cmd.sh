@@ -18,42 +18,46 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
   K=$(uname -r)
-  X=/tmp/corex-drv
+  SRC=/tmp/corex-drv/kernel
 
-  echo "== 1. 安装器形态 =="
-  file "$X/corex-driver-installer" 2>&1
-  if file "$X/corex-driver-installer" | grep -q ELF; then
-    strings "$X/corex-driver-installer" 2>/dev/null | grep -iE -- '--?(kernel|silent|vGPU|force|uninstall)[a-z-]*' | sort -u | head -20
+  echo "== 1. 编译 iluvatar.ko（在 tmpfs 上，不写 /）=="
+  cd "$SRC" || exit 1
+  make KERNEL_UNAME="$K" -j"$(nproc)" > /tmp/corex-build.log 2>&1
+  RC=$?
+  echo "build rc=$RC"
+  tail -30 /tmp/corex-build.log
+  KO=$(find "$SRC" -name 'iluvatar.ko' -type f 2>/dev/null | head -1)
+  echo "ko path=$KO"
+
+  if [ "$RC" -eq 0 ] && [ -n "$KO" ]; then
+    echo "== 2. 模块信息 =="
+    ls -l "$KO"
+    file "$KO"
+    modinfo "$KO" 2>/dev/null | grep -E '^(version|vermagic|name|license|depends)' | head -6
+
+    echo "== 3. 安装模块 =="
+    install -D -m 644 "$KO" "/lib/modules/$K/updates/iluvatar.ko"
+    echo "install rc=$?"
+    ls -l "/lib/modules/$K/updates/iluvatar.ko"
+    echo iluvatar > /etc/modules-load.d/iluvatar.conf
+    df -h / | tail -1
+
+    echo "== 4. depmod + modprobe =="
+    depmod -a "$K"
+    echo "depmod rc=$?"
+    modprobe iluvatar
+    echo "modprobe rc=$?"
+    lsmod | grep iluvatar || echo "iluvatar NOT loaded"
+    ls -l /dev/iluvatar* 2>&1 | head -6
+
+    echo "== 5. 内核日志 =="
+    dmesg 2>/dev/null | grep -iE 'iluvatar|version magic|module verification' | tail -15
+
+    echo "== 6. ixsmi =="
+    timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | head -25
   else
-    sed -n '1,40p' "$X/corex-driver-installer" 2>&1
+    echo "!! 编译失败或无 .ko，未安装。查看 /tmp/corex-build.log"
   fi
-
-  echo "== 2. VGPU 默认值与 sanity check =="
-  grep -rnI VGPU_ENABLE "$X/kernel" 2>/dev/null | head -15
-  grep -n -B4 -A8 'BUILD_SANITY_CHECKS' "$X/kernel/itr/Kbuild" 2>/dev/null | head -25
-
-  echo "== 3. kernel/Makefile 目标 =="
-  grep -nE '^[a-zA-Z0-9_./-]+:|KERNEL_UNAME|MODULE|install' "$X/kernel/Makefile" 2>/dev/null | head -25
-
-  echo "== 4. firmware 是否已装 =="
-  ls -l /lib/firmware/iluvatar_cp.bin 2>&1
-  ls "$X/firmware" 2>/dev/null
-
-  echo "== 5. 空间评估（先不删旧内核源码）=="
-  du -sh /usr/src /usr/src/kernels 2>/dev/null
-  rpm -q kernel-source 2>&1
-  df -h / | tail -1
-
-  echo "== 6. 安装匹配运行内核的 kernel-devel =="
-  timeout 300 dnf install -y "kernel-devel-$K" 2>&1 | tail -20
-  echo "install rc=$?"
-  df -h / | tail -1
-
-  echo "== 7. 验证 build 目录与 VFIO 配置 =="
-  ls -ld "/lib/modules/$K/build" 2>&1
-  readlink -f "/lib/modules/$K/build" 2>&1
-  grep -E 'CONFIG_VFIO_MDEV' "/usr/src/kernels/$K/.config" 2>/dev/null | head -3
-  df -h / | tail -1
 
   # ---- 命令结束 ----
 
