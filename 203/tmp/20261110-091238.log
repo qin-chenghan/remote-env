@@ -1,0 +1,90 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-10T01:12:38Z
+
++ echo '== 1. 宿主机 GPU 状态 =='
+== 1. 宿主机 GPU 状态 ==
++ lsmod
++ grep iluvatar
+iluvatar             1802240  0
++ wc -l
++ ls /dev/iluvatar0 /dev/iluvatar1 /dev/iluvatar2 /dev/iluvatar3
+4
++ cat /sys/module/iluvatar/parameters/itr_multi_compute_engine
+1
++ echo '== 2. 容器设备配置 =='
+== 2. 容器设备配置 ==
++ docker inspect corex5-py311 --format '{{json .HostConfig.Devices}}'
++ head -5
+[]
++ docker inspect corex5-py311 --format '{{json .HostConfig.DeviceRequests}}'
++ head -5
+null
++ docker inspect corex5-py311 --format '{{range .HostConfig.Binds}}{{.}}{{"\n"}}{{end}}'
++ head -10
+/home:/home:rslave
+/usr/src:/usr/src:ro
+/lib/modules:/lib/modules:ro
+/dev:/dev:rprivate
+/usr/local/corex-5.0.0/lib64:/opt/corex-host:ro
+/data/output:/output:rprivate
+/home/z30059427/corex5-py311-x86_64-20261105:/mnt/corex311-bundle:ro,rprivate
+
++ docker inspect corex5-py311 --format '{{.State.StartedAt}}'
+2026-11-09T12:01:22.041913356Z
++ echo '== 3. 容器内是否看到 GPU =='
+== 3. 容器内是否看到 GPU ==
++ docker exec corex5-py311 bash -lc '
+    echo -n "devices: "; ls /dev/iluvatar* 2>/dev/null | wc -l
+    ixsmi -L 2>&1 | head -8
+  '
++ head -20
+devices: 4
+bash: line 3: ixsmi: command not found
++ echo '== 4. 容器内 venv 与包 =='
+== 4. 容器内 venv 与包 ==
++ docker exec corex5-py311 bash -lc '
+    ls /opt 2>/dev/null
+    for p in /opt/corex311/bin/python /opt/corex311-cpython-vllm/bin/python; do
+      [ -x "$p" ] && echo "$p -> $("$p" -V 2>&1)"
+    done
+    /opt/corex311/bin/pip list 2>/dev/null | grep -iE "^(vllm|torch|ixsys|triton|transformers)"
+  '
++ head -30
+build-python311.UyjFuk
+corex311
+corex311-manifest
+corex-host
+pip
+python-3.11.6
+/opt/corex311/bin/python -> Python 3.11.6
+torch                                    2.10.0+corex.5.0.0
+torchaudio                               2.10.0+corex.5.0.0
+torchdebug                               5.0.0+corex.5.0.0
+torchvision                              0.25.0+corex.5.0.0
+transformers                             5.5.3
+triton                                   3.2.0+corex.5.0.0
+vllm                                     0.23.0+corex.5.0.0
++ echo '== 5. 容器内 corex =='
+== 5. 容器内 corex ==
++ docker exec corex5-py311 bash -lc 'ls /usr/local | head -10; echo "COREX_VERSION=${COREX_VERSION:-<empty>}"'
++ head -15
+bin
+corex
+corex-5.0.0
+doc
+etc
+games
+include
+lib
+man
+openmpi
+COREX_VERSION=5.0.0
++ echo '== 6. 空间 =='
+== 6. 空间 ==
++ df -h /
++ tail -1
+/dev/mapper/openeuler-root   69G   64G  1.2G  99% /
++ set +x
+
+### exit: 0
