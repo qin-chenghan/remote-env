@@ -17,52 +17,50 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== 1. 备份源码 vs 当前源码（完整 diff）=="
-  docker exec fusionv1 bash -lc '
-P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
-diff -u "$P/pillow_fusion_func_v2.cpp.bak_clip_neon" "$P/pillow_fusion_func_v2.cpp"
-echo "-- diff 行数 --"
-diff "$P/pillow_fusion_func_v2.cpp.bak_clip_neon" "$P/pillow_fusion_func_v2.cpp" | wc -l
-' 2>&1 | head -120
+  # 构建两个二进制：基线（.bak_clip_neon）与优化版（当前源码），各跑一次。
 
-  echo "== 2. 测试程序测量了哪些函数 =="
   docker exec fusionv1 bash -lc '
+set -uo pipefail
 P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
-grep -n "opt_func\|fusion_func\|pillow_opt\|pillow_fusion\|benchmark\|printf" "$P/fusion_test.cpp" | head -40
-' 2>&1 | head -45
+cd "$P" || exit 1
 
-  echo "== 2b. 四个 pillow 变体都导出了什么函数 =="
-  docker exec fusionv1 bash -lc '
-P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
-for f in pillow_opt_func.cpp pillow_opt_func_v2.cpp pillow_fusion_func.cpp pillow_fusion_func_v2.cpp; do
-  echo "--- $f ---"
-  grep -nE "^[a-zA-Z_][a-zA-Z0-9_ *]*\(" "$P/$f" | grep -v "static inline" | head -12
-done
-' 2>&1 | head -60
+SRC=pillow_fusion_func_v2.cpp
+BAK=pillow_fusion_func_v2.cpp.bak_clip_neon
 
-  echo "== 2c. 测试程序实际引用了哪些 pillow 符号 =="
-  docker exec fusionv1 bash -lc '
-P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
-echo "-- fusion_test.o 未定义符号 --"
-nm -u "$P/fusion_test.o" 2>/dev/null | grep -i pillow | head -20
-echo "-- 最终二进制里的 pillow 符号 --"
-nm -C "$P/fusion.unittest" 2>/dev/null | grep -i "pillow" | grep -E " T | t " | head -20
-' 2>&1 | head -50
+echo "== 0. 起始状态 =="
+md5sum "$SRC" "$BAK"
+ls -l fusion.unittest fusion.unittest.bak_before_neon 2>&1
 
-  echo "== 3. 结果打印格式 =="
-  docker exec fusionv1 bash -lc '
-P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
-grep -n "printf\|cout\|Step" "$P/fusion_test.cpp" | sed -n "1,60p"
-' 2>&1 | head -60
+echo "== 1. 保存当前优化版源码到 tmp =="
+cp -a "$SRC" /tmp/pillow_neon_src.cpp
+md5sum /tmp/pillow_neon_src.cpp
 
-  echo "== 4. run_fusion.sh =="
-  docker exec fusionv1 cat /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/run_fusion.sh 2>&1 | head -30
+echo "== 2. 构建基线 =="
+cp -a "$BAK" "$SRC"
+md5sum "$SRC"
+make clean > /tmp/make_clean_base.log 2>&1; echo "clean rc=$?"
+make -j > /tmp/make_base.log 2>&1; echo "make rc=$?"
+tail -5 /tmp/make_base.log
+cp -a fusion.unittest fusion.unittest.base_rebuild && ls -l fusion.unittest.base_rebuild
 
-  echo "== 5. main 函数结构 =="
-  docker exec fusionv1 bash -lc '
-P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
-awk "/int main|^main/,0" "$P/fusion_test.cpp" | head -70
-' 2>&1 | head -80
+echo "== 3. 恢复优化版源码并构建 =="
+cp -a /tmp/pillow_neon_src.cpp "$SRC"
+md5sum "$SRC"
+make clean > /tmp/make_clean_neon.log 2>&1; echo "clean rc=$?"
+make -j > /tmp/make_neon.log 2>&1; echo "make rc=$?"
+tail -5 /tmp/make_neon.log
+cp -a fusion.unittest fusion.unittest.neon_rebuild && ls -l fusion.unittest.neon_rebuild
+
+echo "== 4. 源码已还原确认 =="
+md5sum "$SRC" /tmp/pillow_neon_src.cpp
+grep -c clip_u8_i32_x16 "$SRC"
+
+echo "== 5. 基线跑一次 =="
+numactl -C 3 ./fusion.unittest.base_rebuild 1 2>&1 | tail -25
+
+echo "== 6. 优化版跑一次 =="
+numactl -C 3 ./fusion.unittest.neon_rebuild 1 2>&1 | tail -25
+' 2>&1 | head -140
 
   # ---- 命令结束 ----
 
