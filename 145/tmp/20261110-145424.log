@@ -1,0 +1,304 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-10T06:54:24Z
+
++ echo '== 1. Makefile 全文（含 clean 目标）=='
+== 1. Makefile 全文（含 clean 目标）==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+cat -n "$P/Makefile"
+'
++ head -120
+     1	default: fusion.unittest
+     2	
+     3	CXX = g++
+     4	
+     5	CFLAGS0 = -O3 --std=c++17 -fopenmp -fPIC -g
+     6	CLIBS0 = -O3 --std=c++17 -fopenmp -fPIC -g
+     7	# CFLAGS0 = -O3 --std=c++17 -march=armv8.4-a+sve -msve-vector-bits=256 -fopenmp -fPIC
+     8	# CLIBS0 = -O3 --std=c++17 -march=armv8.4-a+sve -msve-vector-bits=256 -fopenmp -fPIC
+     9	
+    10	CFLAGS = $(CFLAGS0) ${CV_INC_FLAG}
+    11	CLIBS = $(CLIBS0) ${CV_LIB_FLAG}
+    12	
+    13	# libkperf插桩使用
+    14	LIBRARY_PATH = /home/workspace/tensor/files/libkperf
+    15	LIBRARY_NAME = kperf  # 对应libyourlibrary.so
+    16	
+    17	CFLAGS += -I$(LIBRARY_PATH) 
+    18	LDFLAGS += -L$(LIBRARY_PATH)
+    19	LDLIBS += -l$(LIBRARY_NAME)
+    20	RPATH = -Wl,-rpath,$(LIBRARY_PATH)
+    21	
+    22	
+    23	
+    24	fusion.unittest: fusion_test.o opt_func.o opt_func_v2.o opt_func_v3.o fusion_func.o fusion_func_v2.o pillow_opt_func.o pillow_opt_func_v2.o pillow_fusion_func.o pillow_fusion_func_v2.o
+    25		$(CXX) $(CLIBS) $^ -o $@ $(LDFLAGS) $(LDLIBS) $(RPATH)
+    26	# [hzy]新添加的库配置
+    27	
+    28	# fusion.unittest: fusion_test.o opt_func.o opt_func_v2.o opt_func_v3.o fusion_func.o fusion_func_v2.o pillow_opt_func.o pillow_opt_func_v2.o pillow_fusion_func.o pillow_fusion_func_v2.o
+    29	# 	$(CXX) $(CLIBS) $^ -o $@
+    30	
+    31	fusion_test.o: fusion_test.cpp ${INC}
+    32		$(CXX) $(CFLAGS)  $< -c -o $@
+    33		$(CXX) $(CFLAGS)  $< -S -o fusion_test.S
+    34	
+    35	opt_func.o: opt_func.cpp
+    36		$(CXX) $(CFLAGS) $< -c -o $@
+    37		$(CXX) $(CFLAGS) $< -S -o opt_func.S
+    38	
+    39	opt_func_v2.o: opt_func_v2.cpp
+    40		$(CXX) $(CFLAGS) $< -c -o $@
+    41		$(CXX) $(CFLAGS) $< -S -o opt_func_v2.S
+    42	
+    43	opt_func_v3.o: opt_func_v3.cpp
+    44		$(CXX) $(CFLAGS) $< -c -o $@
+    45		$(CXX) $(CFLAGS) $< -S -o opt_func_v3.S
+    46	
+    47	fusion_func.o: fusion_func.cpp
+    48		$(CXX) $(CFLAGS) $< -c -o $@
+    49		$(CXX) $(CFLAGS) $< -S -o fusion_func.S
+    50	
+    51	fusion_func_v2.o: fusion_func_v2.cpp
+    52		$(CXX) $(CFLAGS) $< -c -o $@
+    53		$(CXX) $(CFLAGS) $< -S -o fusion_func_v2.S
+    54	
+    55	pillow_opt_func.o: pillow_opt_func.cpp
+    56		$(CXX) $(CFLAGS) $< -c -o $@
+    57		$(CXX) $(CFLAGS) $< -S -o pillow_opt_func.S
+    58	
+    59	pillow_opt_func_v2.o: pillow_opt_func_v2.cpp
+    60		$(CXX) $(CFLAGS) $< -c -o $@
+    61		$(CXX) $(CFLAGS) $< -S -o pillow_opt_func_v2.S
+    62	
+    63	pillow_fusion_func.o: pillow_fusion_func.cpp
+    64		$(CXX) $(CFLAGS) $< -c -o $@
+    65		$(CXX) $(CFLAGS) $< -S -o pillow_fusion_func.S
+    66	
+    67	pillow_fusion_func_v2.o: pillow_fusion_func_v2.cpp
+    68		$(CXX) $(CFLAGS) $< -c -o $@
+    69		$(CXX) $(CFLAGS) $< -S -o pillow_fusion_func_v2.S
+    70	
+    71	run: fusion.unittest
+    72		numactl -C 0 -N 0 ./fusion.unittest 1 
+    73	
+    74	clean:
+    75		rm -rf *.o ./*.unittest 
++ echo '== 2. test() 函数：warmup 与测量循环 =='
+== 2. test() 函数：warmup 与测量循环 ==
++ head -180
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+sed -n "560,720p" "$P/fusion_test.cpp" | cat -n
+'
+     1	  }
+     2	  avg_diff /= (3*dh*dw);
+     3	  printf("[%3d] Max Diff %.10le\n", 0, max_diff);
+     4	  printf("[%3d] Avg Diff %.10le\n", 0, avg_diff);
+     5	#endif
+     6	  tt[cc++] = GetCurrentTime();
+     7	  norm(buf1, buf2, dh, dw, mean, scale, nts);
+     8	  tt[cc++] = GetCurrentTime();
+     9	  // for (int s = 1; s < b; s ++) {
+    10	  //   copy(dst, dst + s * dh * dw * 3, dh * dw * 3, nts);
+    11	  // }
+    12	  tranpose(buf2, dst, hdim, wdim, b, nts);
+    13	  tt[cc++] = GetCurrentTime();
+    14	
+    15	#ifdef DETAIL
+    16	  printf("  Detail Time is < %.3lf %.3lf %.3lf %.3lf > \n", tt[1]-tt[0], tt[2]-tt[1], tt[3]-tt[2], tt[4]-tt[3]); 
+    17	#endif
+    18	
+    19	  free(buf0);
+    20	  free(buf1);
+    21	  free(buf2);
+    22	  return 0;
+    23	}
+    24	
+    25	int test(int sh, int sw, int dh, int dw, int hdim[3], int wdim[3], int b, int t) {
+    26	  assert(dw == wdim[0] * wdim[1] * wdim[2]);
+    27	  assert(dh == hdim[0] * hdim[1] * hdim[2]); 
+    28	  std::vector<uint8_t> src(sh * sw * 3);
+    29	  for (int i = 0; i < sh * sw * 3; i ++) {
+    30	    src[i] = (i+13)%256;
+    31	    // src[i] = 255;
+    32	  }
+    33	  
+    34	  std::vector<uint8_t*> src0(STEPS);
+    35	  std::vector<uint8_t*> src1(STEPS);
+    36	  std::vector<float*> dst0(STEPS);
+    37	  std::vector<float*> dst1(STEPS);
+    38	//  2222eeeee  x=14144
+    39	  #pragma omp parallel for num_threads(t)
+    40	  for (int i = 0; i < STEPS; i ++) {
+    41	    src0[i] = (uint8_t*)aligned_alloc(256, sh * sw * 3 * sizeof(uint8_t));
+    42	    src1[i] = (uint8_t*)aligned_alloc(256, sh * sw * 3 * sizeof(uint8_t));
+    43	    dst0[i] = (float*)aligned_alloc(256, b * dh * dw * 3 * sizeof(float));
+    44	    dst1[i] = (float*)aligned_alloc(256, b * dh * dw * 3 * sizeof(float));
+    45	    for (int j = 0; j < sh * sw * 3; j ++) {
+    46	      src0[i][j] = src1[i][j] = src[j];
+    47	    }
+    48	    for (int j = 0; j < b * dh * dw * 3; j ++) {
+    49	      dst0[i][j] = dst1[i][j] = 0;
+    50	    }
+    51	  }
+    52	
+    53	  float mean[3] = {0.5, 0.5, 0.5};
+    54	  float scale[3] = {2, 2, 2};
+    55	  float scale0 = 1.0 / 255.0;
+    56	
+    57	  double mem = sizeof(uint8_t) * 3 * sh * sw
+    58	             + sizeof(float) * 3 * dh * dw * b;
+    59	  int gid = 0;
+    60	
+    61	// 可注释掉非融合
+    62	
+    63	  // for (int s = 0; s < STEPS; s ++) {
+    64	  //   double tt = GetCurrentTime();
+    65	  //   // Ref(src0[s], dst0[s], mean, scale, scale0, sh, sw, dh, dw, hdim, wdim, b, t);
+    66	  //   // Standard(src0[s], dst0[s], mean, scale, scale0, sh, sw, dh, dw, hdim, wdim, b, t);
+    67	  //   // PillowStandard(src0[s], dst0[s], mean, scale, scale0, sh, sw, dh, dw, hdim, wdim, b, t);
+    68	  //   PillowStandardV2(src0[s], dst0[s], mean, scale, scale0, sh, sw, dh, dw, hdim, wdim, b, t);
+    69	  //   tt = GetCurrentTime() - tt;
+    70	  //   printf("[%3d] Step %3d Ref Time is %.3lf ms Bandwidth is %10.3lf MB/s \n", gid, s, tt*1e-3, mem/tt);
+    71	  // }
+    72	  allocPillowFusionV2Var(sh,sw,dh,dw, t);
+    73	  
+    74	  // warmup
+    75	  for (int s = 0; s < WARMUP_STEPS; s ++) {
+    76	    double tt1 = GetCurrentTime();
+    77	    #if 0
+    78	        FusionV2(src1[s], dst1[s], mean, scale, scale0, sh, sw, dh, dw, hdim, wdim, b, t);
+    79	    #else
+    80	        // Standard(src1[s], dst1[s], mean, scale, scale0, sh, sw, dh, dw, hdim, wdim, b, t);
+    81	        // PillowStandardV2(src1[s], dst1[s], mean, scale, scale0, sh, sw, dh, dw, hdim, wdim, b, t);
+    82	        PillowFusionV2(src1[s], dst1[s], mean, scale, scale0, sh, sw, dh, dw, hdim, wdim, b, t, coeffsX_F, coeffsY_F, coeffsX, coeffsY, boundsX, boundsY, tmp, tmp2_, tmp3_, tmp4);
+    83	    #endif
+    84	    tt1 = GetCurrentTime() - tt1;
+    85	    printf("warmup [%3d] Step %3d Target Time is %.3lf ms Bandwidth is %10.3lf MB/s \n", gid, s, tt1*1e-3, mem/tt1);
+    86	  }
+    87	
+    88	  printf("warmup end\n");
+    89	  
+    90	  // kperf_struct *in = init_kperf_struct();
+    91	  // in->is_stdout=1;
+    92	  // // in->useronly=1;
+    93	  // in->type = KUNPENG920_IMIX_PMI;
+    94	  // in->raw = 0;
+    95	  // strcpy(in->file_name,"/home/g30060303/KUNPENG920_IMIX_PMI_PillowFusionV2_steps10_重启2.txt");
+    96	
+    97	  // kperf_struct *in = init_kperf_struct();
+    98	  // in->is_stdout=1;
+    99	  // in->type = KUNPENG920_TOPDOWN_PMI;
+   100	  // in->raw = 1;
+   101	  // strcpy(in->file_name,"/home/g30060303/KUNPENG920_TOPDOWN_PMI_PillowFusionV2_steps10_重启2_user.tx");
+   102	
+   103	
+   104	  // kperf_struct *in = init_kperf_struct();
+   105	  // in->is_stdout=1;
+   106	  // in->type = KUNPENG920_MISS_PMI;
+   107	  // in->raw = 1;
+   108	  // strcpy(in->file_name,"/home/g30060303/KUNPENG920_MISS_PMI_PillowFusionV2_steps10_重启2_user.txt");
+   109	
+   110	
+   111	  // kperf_struct *in = init_kperf_struct();
+   112	  // in->is_stdout=1;
+   113	  //   in->useronly=1;
+   114	  
+   115	  // in->type = KUNPENG920_TOPDOWN;
+   116	  // in->raw = 0;
+   117	  // strcpy(in->file_name,"/home/g30060303/KUNPENG920_TOPDOWN_PillowFusionV2_steps10_mv_user.txt");
+   118	  // kperf_start();
+   119	
+   120	
+   121	  kperf_start_hint9();
+   122	
+   123	  for (int s = WARMUP_STEPS; s < STEPS; s ++) {
+   124	
+   125	
+   126	    // double tt = GetCurrentTime();
+   127	#if 0
+   128	    FusionV2(src1[s], dst1[s], mean, scale, scale0, sh, sw, dh, dw, hdim, wdim, b, t);
+   129	#else
+   130	    // Standard(src1[s], dst1[s], mean, scale, scale0, sh, sw, dh, dw, hdim, wdim, b, t);
+   131	    // PillowStandardV2(src1[s], dst1[s], mean, scale, scale0, sh, sw, dh, dw, hdim, wdim, b, t);
+   132	
+   133	    PillowFusionV2(src1[s], dst1[s], mean, scale, scale0, sh, sw, dh, dw, hdim, wdim, b, t, coeffsX_F, coeffsY_F, coeffsX, coeffsY, boundsX, boundsY, tmp, tmp2_, tmp3_, tmp4);
+   134	
+   135	#endif
+   136	    // tt = GetCurrentTime() - tt;
+   137	    // printf("[%3d] Step %3d Target Time is %.3lf ms Bandwidth is %10.3lf MB/s \n", gid, s, tt*1e-3, mem/tt);
+   138	  }
+   139	  // printf("after loop\n");
+   140	  kperf_save_maps();
+   141	  kperf_end_hint();
+   142	  // kperf_end();
+   143	  // printf("kperf_end\n");
+   144	  printf("deAllocPillowFusionV2Var before\n");
+   145	  deAllocPillowFusionV2Var();
+   146	  printf("deAllocPillowFusionV2Var after\n");
+   147	// 对比代码  可注释
+   148	  // int s = STEPS/2;
+   149	  // double max_diff = 0;
+   150	  // double avg_diff = 0;
+   151	  // for (int i = 0; i < 3*dh*dw*b; i ++) {
+   152	  //   double vv = std::abs(dst0[s][i] - dst1[s][i]);
+   153	  //   max_diff = std::max(vv, max_diff);
+   154	  //   avg_diff += vv;
+   155	  // }
+   156	  // avg_diff /= (3*dh*dw*b);
+   157	  // printf("[%3d] Max Diff %.10le\n", 0, max_diff);
+   158	  // printf("[%3d] Avg Diff %.10le\n", 0, avg_diff);
+   159	
+   160	  
+   161	
++ echo '== 3. 是否有 NEON 开关宏 =='
+== 3. 是否有 NEON 开关宏 ==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+grep -n "#if\|#ifdef\|#define" "$P/pillow_fusion_func_v2.cpp" | grep -iE "neon|simd|opt|asm|arm" | head -20
+echo "-- Makefile 里的宏 --"
++ head -30
+grep -n "D[A-Z_]*=" "$P/Makefile" | head -20
+'
+-- Makefile 里的宏 --
++ echo '== 4. 现有产物清单（确认哪些文件会被 clean 影响）=='
+== 4. 现有产物清单（确认哪些文件会被 clean 影响）==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+ls -l "$P"/*.o "$P"/*.S "$P"/fusion.unittest* 2>/dev/null
+'
++ head -40
+-rwxr-xr-x. 1 root root 1279672 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion.unittest
+-rwxr-xr-x. 1 root root 1252232 Oct 26 17:43 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion.unittest.bak_before_neon
+-rw-r--r--. 1 root root  340281 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion_func.S
+-rw-r--r--. 1 root root   83664 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion_func.o
+-rw-r--r--. 1 root root  865070 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion_func_v2.S
+-rw-r--r--. 1 root root  374008 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion_func_v2.o
+-rw-r--r--. 1 root root 1187959 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion_test.S
+-rw-r--r--. 1 root root  543896 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion_test.o
+-rw-r--r--. 1 root root  440124 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/opt_func.S
+-rw-r--r--. 1 root root  105752 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/opt_func.o
+-rw-r--r--. 1 root root 1493372 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/opt_func_v2.S
+-rw-r--r--. 1 root root  388920 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/opt_func_v2.o
+-rw-r--r--. 1 root root  401226 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/opt_func_v3.S
+-rw-r--r--. 1 root root   92224 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/opt_func_v3.o
+-rw-r--r--. 1 root root  409710 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_fusion_func.S
+-rw-r--r--. 1 root root  108048 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_fusion_func.o
+-rw-r--r--. 1 root root  724587 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_fusion_func_v2.S
+-rw-r--r--. 1 root root  296744 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_fusion_func_v2.o
+-rw-r--r--. 1 root root  416434 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_opt_func.S
+-rw-r--r--. 1 root root  107952 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_opt_func.o
+-rw-r--r--. 1 root root  562281 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_opt_func_v2.S
+-rw-r--r--. 1 root root  219648 Oct 26 17:44 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_opt_func_v2.o
++ echo '== 5. make 变量与实际规则（dry run，不执行）=='
+== 5. make 变量与实际规则（dry run，不执行）==
++ head -30
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+cd "$P" && make -n clean 2>&1 | head -20
+'
+rm -rf *.o ./*.unittest 
++ set +x
+
+### exit: 0
