@@ -1,0 +1,176 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T07:56:31Z
+
++ echo '== build report =='
+== build report ==
++ sed -n 1,120p /home/l30029702/261109_oe-2403-sp3_report.txt
+H = T - S + S * 0/100. Formal scopes only. Unit = SECONDS.
+G = sum(start_next - end_current) across adjacent formal scopes on EACH rank.
+H+G = H_total + G_total (gap wall time included; sync/idle within G NOT removed).
+Primary H remains unchanged; four-rank means are TOTAL seconds, NOT per iteration or instance latency.
+
+CASE: bs8_in1024_out1024  run_id=a50af23962c04db58c4ec3be106048c2
+  rank0 pid=1142613 formal=13342 warmup_excluded=2058 T_total=505.427963s S_total=484.020706s H_total=21.407257s G_total=8.457445s H+G=29.864702s
+  rank1 pid=1142614 formal=13342 warmup_excluded=2058 T_total=505.386427s S_total=485.263408s H_total=20.123019s G_total=8.498923s H+G=28.621942s
+  rank2 pid=1142615 formal=13342 warmup_excluded=2058 T_total=504.759045s S_total=483.538884s H_total=21.220161s G_total=9.126303s H+G=30.346464s
+  rank3 pid=1142616 formal=13342 warmup_excluded=2058 T_total=504.798900s S_total=483.863026s H_total=20.935874s G_total=9.086488s H+G=30.022362s
+  all_formal       four_rank_mean_total_H_s=20.921578
+  graph_formal     four_rank_mean_total_H_s=17.141953
+  no_graph_formal  four_rank_mean_total_H_s=3.779625
+FINAL [bs8_in1024_out1024]: four_rank_mean_total_H_s = 20.921578 s G_total=8.792290s H+G=29.713867s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in1024_out128  run_id=4e5e89367c3e49759a70176541e6be71
+  rank0 pid=1142613 formal=1694 warmup_excluded=266 T_total=79.900427s S_total=74.021447s H_total=5.878980s G_total=1.126306s H+G=7.005286s
+  rank1 pid=1142614 formal=1694 warmup_excluded=266 T_total=79.905622s S_total=73.914747s H_total=5.990874s G_total=1.121136s H+G=7.112010s
+  rank2 pid=1142615 formal=1694 warmup_excluded=266 T_total=79.857308s S_total=73.963975s H_total=5.893333s G_total=1.169400s H+G=7.062733s
+  rank3 pid=1142616 formal=1694 warmup_excluded=266 T_total=79.851795s S_total=74.003000s H_total=5.848795s G_total=1.174879s H+G=7.023673s
+  all_formal       four_rank_mean_total_H_s=5.902995
+  graph_formal     four_rank_mean_total_H_s=2.143886
+  no_graph_formal  four_rank_mean_total_H_s=3.759109
+FINAL [bs8_in1024_out128]: four_rank_mean_total_H_s = 5.902995 s G_total=1.147930s H+G=7.050925s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in1024_out2048  run_id=96771e1b94044b4ebaa92f3a0a0819a0
+  rank0 pid=1142613 formal=26654 warmup_excluded=4106 T_total=985.090007s S_total=945.957070s H_total=39.132937s G_total=16.874666s H+G=56.007603s
+  rank1 pid=1142614 formal=26654 warmup_excluded=4106 T_total=984.890750s S_total=947.653329s H_total=37.237421s G_total=17.073911s H+G=54.311332s
+  rank2 pid=1142615 formal=26654 warmup_excluded=4106 T_total=983.931604s S_total=945.514724s H_total=38.416880s G_total=18.033039s H+G=56.449919s
+  rank3 pid=1142616 formal=26654 warmup_excluded=4106 T_total=983.742872s S_total=945.659603s H_total=38.083269s G_total=18.221763s H+G=56.305033s
+  all_formal       four_rank_mean_total_H_s=38.217627
+  graph_formal     four_rank_mean_total_H_s=34.443690
+  no_graph_formal  four_rank_mean_total_H_s=3.773937
+FINAL [bs8_in1024_out2048]: four_rank_mean_total_H_s = 38.217627 s G_total=17.550845s H+G=55.768472s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in128_out1024  run_id=90f9fd7b6c0644dc93667054aeb92407
+  rank0 pid=1142613 formal=13340 warmup_excluded=2054 T_total=477.308540s S_total=458.515968s H_total=18.792572s G_total=7.830242s H+G=26.622815s
+  rank1 pid=1142614 formal=13340 warmup_excluded=2054 T_total=476.339832s S_total=458.314209s H_total=18.025623s G_total=8.798903s H+G=26.824526s
+  rank2 pid=1142615 formal=13340 warmup_excluded=2054 T_total=476.046817s S_total=457.563272s H_total=18.483545s G_total=9.091918s H+G=27.575463s
+  rank3 pid=1142616 formal=13340 warmup_excluded=2054 T_total=476.057253s S_total=457.662064s H_total=18.395189s G_total=9.081498s H+G=27.476687s
+  all_formal       four_rank_mean_total_H_s=18.424232
+  graph_formal     four_rank_mean_total_H_s=17.397795
+  no_graph_formal  four_rank_mean_total_H_s=1.026437
+FINAL [bs8_in128_out1024]: four_rank_mean_total_H_s = 18.424232 s G_total=8.700640s H+G=27.124873s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in128_out128  run_id=7bcadd562ea043888479cbac8ea6fdac
+  rank0 pid=1142613 formal=1692 warmup_excluded=262 T_total=61.036831s S_total=57.733025s H_total=3.303806s G_total=1.076582s H+G=4.380387s
+  rank1 pid=1142614 formal=1692 warmup_excluded=262 T_total=61.004310s S_total=57.958758s H_total=3.045551s G_total=1.109101s H+G=4.154652s
+  rank2 pid=1142615 formal=1692 warmup_excluded=262 T_total=60.928061s S_total=57.776654s H_total=3.151408s G_total=1.185350s H+G=4.336758s
+  rank3 pid=1142616 formal=1692 warmup_excluded=262 T_total=60.936957s S_total=57.787207s H_total=3.149750s G_total=1.176471s H+G=4.326221s
+  all_formal       four_rank_mean_total_H_s=3.162629
+  graph_formal     four_rank_mean_total_H_s=2.149291
+  no_graph_formal  four_rank_mean_total_H_s=1.013337
+FINAL [bs8_in128_out128]: four_rank_mean_total_H_s = 3.162629 s G_total=1.136876s H+G=4.299505s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in128_out2048  run_id=04a1017d14074b2fa1d7d1d9470db2c1
+  rank0 pid=1142613 formal=26652 warmup_excluded=4102 T_total=962.496221s S_total=925.816758s H_total=36.679463s G_total=16.292013s H+G=52.971476s
+  rank1 pid=1142614 formal=26652 warmup_excluded=4102 T_total=961.709095s S_total=927.601868s H_total=34.107227s G_total=17.085861s H+G=51.193088s
+  rank2 pid=1142615 formal=26652 warmup_excluded=4102 T_total=960.902610s S_total=925.320727s H_total=35.581884s G_total=17.892315s H+G=53.474199s
+  rank3 pid=1142616 formal=26652 warmup_excluded=4102 T_total=960.852967s S_total=925.810061s H_total=35.042907s G_total=17.941965s H+G=52.984872s
+  all_formal       four_rank_mean_total_H_s=35.352870
+  graph_formal     four_rank_mean_total_H_s=34.341697
+  no_graph_formal  four_rank_mean_total_H_s=1.011173
+FINAL [bs8_in128_out2048]: four_rank_mean_total_H_s = 35.352870 s G_total=17.303038s H+G=52.655909s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in2048_out1024  run_id=3a4e23d154c04515bf3451205a15053b
+  rank0 pid=1142613 formal=13355 warmup_excluded=2062 T_total=520.636148s S_total=498.284704s H_total=22.351444s G_total=8.231054s H+G=30.582497s
+  rank1 pid=1142614 formal=13355 warmup_excluded=2062 T_total=520.185951s S_total=498.161266s H_total=22.024685s G_total=8.681272s H+G=30.705957s
+  rank2 pid=1142615 formal=13355 warmup_excluded=2062 T_total=520.197254s S_total=497.677098s H_total=22.520156s G_total=8.669970s H+G=31.190126s
+  rank3 pid=1142616 formal=13355 warmup_excluded=2062 T_total=520.050682s S_total=497.833839s H_total=22.216843s G_total=8.816527s H+G=31.033370s
+  all_formal       four_rank_mean_total_H_s=22.278282
+  graph_formal     four_rank_mean_total_H_s=17.151992
+  no_graph_formal  four_rank_mean_total_H_s=5.126290
+FINAL [bs8_in2048_out1024]: four_rank_mean_total_H_s = 22.278282 s G_total=8.599705s H+G=30.877987s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in2048_out128  run_id=b571a3b3440644d7a568d071a1e82464
+  rank0 pid=1142613 formal=1707 warmup_excluded=270 T_total=100.762947s S_total=93.724789s H_total=7.038158s G_total=1.141728s H+G=8.179886s
+  rank1 pid=1142614 formal=1707 warmup_excluded=270 T_total=100.746328s S_total=93.542782s H_total=7.203546s G_total=1.158296s H+G=8.361842s
+  rank2 pid=1142615 formal=1707 warmup_excluded=270 T_total=100.755498s S_total=93.536730s H_total=7.218768s G_total=1.149150s H+G=8.367919s
+  rank3 pid=1142616 formal=1707 warmup_excluded=270 T_total=100.678416s S_total=93.348590s H_total=7.329826s G_total=1.226205s H+G=8.556031s
+  all_formal       four_rank_mean_total_H_s=7.197575
+  graph_formal     four_rank_mean_total_H_s=2.055658
+  no_graph_formal  four_rank_mean_total_H_s=5.141917
+FINAL [bs8_in2048_out128]: four_rank_mean_total_H_s = 7.197575 s G_total=1.168845s H+G=8.366419s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in2048_out2048  run_id=c470cb94f70b4552b8b373d9a4a03cda
+  rank0 pid=1142613 formal=26667 warmup_excluded=4110 T_total=1005.379436s S_total=964.804117s H_total=40.575318s G_total=17.076277s H+G=57.651596s
+  rank1 pid=1142614 formal=26667 warmup_excluded=4110 T_total=1005.380029s S_total=966.638536s H_total=38.741493s G_total=17.075630s H+G=55.817123s
+  rank2 pid=1142615 formal=26667 warmup_excluded=4110 T_total=1004.236159s S_total=964.835102s H_total=39.401057s G_total=18.219524s H+G=57.620581s
+  rank3 pid=1142616 formal=26667 warmup_excluded=4110 T_total=1004.837568s S_total=965.392929s H_total=39.444639s G_total=17.618100s H+G=57.062739s
+  all_formal       four_rank_mean_total_H_s=39.540627
+  graph_formal     four_rank_mean_total_H_s=34.370709
+  no_graph_formal  four_rank_mean_total_H_s=5.169918
+FINAL [bs8_in2048_out2048]: four_rank_mean_total_H_s = 39.540627 s G_total=17.497383s H+G=57.038010s (all_formal, no warmup, gap sync NOT subtracted)
+
++ echo '== kernel rpm inventory =='
+== kernel rpm inventory ==
++ R=/home/l30029702/64k/kernel-6.6.02403_sp3_64K-6.aarch64.rpm
+++ rpm -qpl /home/l30029702/64k/kernel-6.6.02403_sp3_64K-6.aarch64.rpm
+++ wc -l
++ echo 'files: 2328'
+files: 2328
++ rpm -qpl /home/l30029702/64k/kernel-6.6.02403_sp3_64K-6.aarch64.rpm
++ grep -E '^/usr/src|^/lib/modules/.*/build|Module.symvers|^/boot|^/lib/modules'
++ head -12
+/boot/System.map-6.6.02403_sp3-64K
+/boot/config-6.6.02403_sp3-64K
+/boot/vmlinuz-6.6.02403_sp3-64K
+/lib/modules/6.6.02403_sp3-64K
+/lib/modules/6.6.02403_sp3-64K/kernel
+/lib/modules/6.6.02403_sp3-64K/kernel/arch
+/lib/modules/6.6.02403_sp3-64K/kernel/arch/arm64
+/lib/modules/6.6.02403_sp3-64K/kernel/arch/arm64/crypto
+/lib/modules/6.6.02403_sp3-64K/kernel/arch/arm64/crypto/aes-ce-blk.ko
+/lib/modules/6.6.02403_sp3-64K/kernel/arch/arm64/crypto/aes-ce-ccm.ko
+/lib/modules/6.6.02403_sp3-64K/kernel/arch/arm64/crypto/aes-ce-cipher.ko
+/lib/modules/6.6.02403_sp3-64K/kernel/arch/arm64/crypto/aes-neon-blk.ko
++ echo '-- top-level prefixes --'
+-- top-level prefixes --
++ rpm -qpl /home/l30029702/64k/kernel-6.6.02403_sp3_64K-6.aarch64.rpm
++ sed 's|\(^/[^/]*/[^/]*\).*|\1|'
++ sort -u
++ head -12
+/boot/config-6.6.02403_sp3-64K
+/boot/System.map-6.6.02403_sp3-64K
+/boot/vmlinuz-6.6.02403_sp3-64K
+/lib/modules
++ echo '== headers rpm inventory =='
+== headers rpm inventory ==
++ rpm -qpl /home/l30029702/64k/kernel-headers-6.6.02403_sp3_64K-6.aarch64.rpm
++ sed 's|\(^/[^/]*/[^/]*\).*|\1|'
++ sort -u
++ head -10
+/usr/include
++ echo '== deep search for 64k source =='
+== deep search for 64k source ==
++ find /home -maxdepth 8 -type d '(' -iname '*6.6*src*' -o -iname 'linux-6.6*' -o -iname '*64K*' ')'
++ head -10
+/home/l30029702/64k
+/home/lw/20261104-64k
+/home/docker/overlay2/4e690d4e7dd5b575aabaf3d12f43031b761cdc8e957be69833bb57e9c7e9ed6d/diff/nix/store/flaqh5qdn9y18bglpkx5inx8i27j164k-gawk-5.2.2
+/home/docker/overlay2/259b5cbb32bab4690e1ec9d9e6867fd313f2ab5b363d3d107760edc66c504c7d/diff/tmp/tmpoawa64ke
+/home/docker/overlay2/7a66c79e80727892ee3fbb59846e32da20633af371651f07ba37d4b9c8e76ce4/diff/nix/store/flaqh5qdn9y18bglpkx5inx8i27j164k-gawk-5.2.2
+/home/docker/overlay2/1bb33e2b65555d73a58658d4e747720e038ef9963e33b9d26758d4631ac82dc7/merged/nix/store/flaqh5qdn9y18bglpkx5inx8i27j164k-gawk-5.2.2
+/home/docker/overlay2/44229acacbbc5ffda77bd2b3d3ac098bd1f05c39a1279482b0a328c854a42e7f/diff/nix/store/flaqh5qdn9y18bglpkx5inx8i27j164k-gawk-5.2.2
+/home/s00806700/BiShengCompiler-5.3.0-aarch64-linux/bin/jemalloc-64kbpage
+/home/s00806700/BiShengCompiler-5.3.0-aarch64-linux/lib/kqmalloc-64kbpage
+/home/s00806700/BiShengCompiler-5.3.0-aarch64-linux/lib/jemalloc-64kbpage
++ find / -maxdepth 4 -type d -name 'linux-6.6.02403*'
++ head -5
++ echo '== builder dir tree =='
+== builder dir tree ==
++ ls -la /home/l30029702/script
++ head -12
+total 13376
+drwxr-xr-x. 4 root    root       4096 Nov  4 13:56 .
+drwxr-xr-x. 4 root    root       4096 Nov 10 14:26 ..
+drwxr-xr-x. 3 8512680 1049089    4096 Feb 18  2025 FlameGraph-master
+-rw-r--r--. 1 root    root     150615 Apr  2  2025 flamegraph.tar.gz
+-rw-r--r--. 1 root    root       1276 Apr  3  2025 guest_collect.sh
+-rw-r--r--. 1 root    root      18115 Oct 25  2024 kperf_c_920c.py
+-rw-r--r--. 1 root    root      61509 Nov  7  2023 kperf_c.py
+-rw-r--r--. 1 root    root        522 Aug 14  2024 kperf_kvm_interval60.sh
+drwx------. 3 root    root       4096 Oct 12  2023 perf
+-rw-r--r--. 1 root    root    4305352 May 15  2024 perf-5.10.0-60.18.0.50.h966.eulerosv2r11.aarch64.tar.gz
+-rw-r--r--. 1 root    root    9120763 Apr  2  2025 perl.tar.gz
++ set +x
+
+### exit: 0
