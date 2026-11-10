@@ -1,0 +1,60 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T08:05:11Z
+
++ echo '== /usr/src/kernels =='
+== /usr/src/kernels ==
++ ls -la /usr/src/kernels
+total 16
+drwxr-xr-x.  4 root root 4096 Nov  9 14:42 .
+drwxr-xr-x.  8 root root 4096 Nov  9 14:38 ..
+drwxr-xr-x. 24 root root 4096 Nov  2 15:25 5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
+drwxr-xr-x. 25 root root 4096 Nov  9 14:37 6.6.0-145.3.37.168.oe2403sp3.aarch64
++ echo '== 11-09 那次的 devel 树 =='
+== 11-09 那次的 devel 树 ==
++ D=/usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64
++ ls -l /usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64/Module.symvers /usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64/.config /usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64/include/generated/asm-offsets.h
+-rw-r--r--. 1 root root  215546 Nov  2 19:15 /usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64/.config
+-rw-r--r--. 1 root root    9734 Nov  2 19:05 /usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64/include/generated/asm-offsets.h
+-rw-r--r--. 1 root root 1405117 Nov  2 19:15 /usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64/Module.symvers
++ rpm -qf /usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64/Module.symvers
+kernel-devel-6.6.0-145.3.37.168.oe2403sp3.aarch64
++ head -3 /usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64/.config
+#
+# Automatically generated file; DO NOT EDIT.
+# Linux/arm64 6.6.0-145.3.37.168.oe2403sp3.aarch64 Kernel Configuration
++ echo '== 5.10 64K 的 devel 树（同名套路参照） =='
+== 5.10 64K 的 devel 树（同名套路参照） ==
++ ls -d /usr/src/kernels/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb '/usr/src/kernels/*64K*'
+ls: cannot access '/usr/src/kernels/*64K*': No such file or directory
+/usr/src/kernels/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
++ ls -l /usr/src/kernels/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb/Module.symvers
+-rw-r--r--. 1 root root 1178420 Sep  4  2024 /usr/src/kernels/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb/Module.symvers
++ echo '== 64K 内核是否要求 MODVERSIONS =='
+== 64K 内核是否要求 MODVERSIONS ==
++ grep -E '^CONFIG_MODVERSIONS|^CONFIG_MODULE_SIG|^CONFIG_ARM64_64K_PAGES' /boot/config-6.6.02403_sp3-64K
+CONFIG_ARM64_64K_PAGES=y
+CONFIG_MODULE_SIG_FORMAT=y
+CONFIG_MODVERSIONS=y
+CONFIG_MODULE_SIG=y
+CONFIG_MODULE_SIG_SHA256=y
+CONFIG_MODULE_SIG_HASH="sha256"
+CONFIG_MODULE_SIG_KEY=""
+CONFIG_MODULE_SIG_KEY_TYPE_RSA=y
++ echo '== 145 内核同类配置对照 =='
+== 145 内核同类配置对照 ==
++ grep -E '^CONFIG_MODVERSIONS|^CONFIG_ARM64_64K_PAGES' /boot/config-6.6.0-145.3.37.168.oe2403sp3.aarch64
+CONFIG_MODVERSIONS=y
++ echo '== 当前 64K 内核已有的模块 vermagic 参照 =='
+== 当前 64K 内核已有的模块 vermagic 参照 ==
+++ find /lib/modules/6.6.02403_sp3-64K -name '*.ko'
+++ head -1
++ f=/lib/modules/6.6.02403_sp3-64K/kernel/crypto/xxhash_generic.ko
++ echo sample=/lib/modules/6.6.02403_sp3-64K/kernel/crypto/xxhash_generic.ko
+sample=/lib/modules/6.6.02403_sp3-64K/kernel/crypto/xxhash_generic.ko
++ '[' -n /lib/modules/6.6.02403_sp3-64K/kernel/crypto/xxhash_generic.ko ']'
++ modinfo -F vermagic /lib/modules/6.6.02403_sp3-64K/kernel/crypto/xxhash_generic.ko
+6.6.02403_sp3-64K SMP mod_unload modversions aarch64
++ set +x
+
+### exit: 0
