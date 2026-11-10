@@ -17,50 +17,40 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 构建两个二进制：基线（.bak_clip_neon）与优化版（当前源码），各跑一次。
+  # 只读：确认 make clean 的删除范围、warmup/测量循环、以及可用的切换开关。
+  # 不编译、不运行二进制、不改任何文件。
 
+  echo "== 1. Makefile 全文（含 clean 目标）=="
   docker exec fusionv1 bash -lc '
-set -uo pipefail
 P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
-cd "$P" || exit 1
+cat -n "$P/Makefile"
+' 2>&1 | head -120
 
-SRC=pillow_fusion_func_v2.cpp
-BAK=pillow_fusion_func_v2.cpp.bak_clip_neon
+  echo "== 2. test() 函数：warmup 与测量循环 =="
+  docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+sed -n "560,720p" "$P/fusion_test.cpp" | cat -n
+' 2>&1 | head -180
 
-echo "== 0. 起始状态 =="
-md5sum "$SRC" "$BAK"
-ls -l fusion.unittest fusion.unittest.bak_before_neon 2>&1
+  echo "== 3. 是否有 NEON 开关宏 =="
+  docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+grep -n "#if\|#ifdef\|#define" "$P/pillow_fusion_func_v2.cpp" | grep -iE "neon|simd|opt|asm|arm" | head -20
+echo "-- Makefile 里的宏 --"
+grep -n "D[A-Z_]*=" "$P/Makefile" | head -20
+' 2>&1 | head -30
 
-echo "== 1. 保存当前优化版源码到 tmp =="
-cp -a "$SRC" /tmp/pillow_neon_src.cpp
-md5sum /tmp/pillow_neon_src.cpp
+  echo "== 4. 现有产物清单（确认哪些文件会被 clean 影响）=="
+  docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+ls -l "$P"/*.o "$P"/*.S "$P"/fusion.unittest* 2>/dev/null
+' 2>&1 | head -40
 
-echo "== 2. 构建基线 =="
-cp -a "$BAK" "$SRC"
-md5sum "$SRC"
-make clean > /tmp/make_clean_base.log 2>&1; echo "clean rc=$?"
-make -j > /tmp/make_base.log 2>&1; echo "make rc=$?"
-tail -5 /tmp/make_base.log
-cp -a fusion.unittest fusion.unittest.base_rebuild && ls -l fusion.unittest.base_rebuild
-
-echo "== 3. 恢复优化版源码并构建 =="
-cp -a /tmp/pillow_neon_src.cpp "$SRC"
-md5sum "$SRC"
-make clean > /tmp/make_clean_neon.log 2>&1; echo "clean rc=$?"
-make -j > /tmp/make_neon.log 2>&1; echo "make rc=$?"
-tail -5 /tmp/make_neon.log
-cp -a fusion.unittest fusion.unittest.neon_rebuild && ls -l fusion.unittest.neon_rebuild
-
-echo "== 4. 源码已还原确认 =="
-md5sum "$SRC" /tmp/pillow_neon_src.cpp
-grep -c clip_u8_i32_x16 "$SRC"
-
-echo "== 5. 基线跑一次 =="
-numactl -C 3 ./fusion.unittest.base_rebuild 1 2>&1 | tail -25
-
-echo "== 6. 优化版跑一次 =="
-numactl -C 3 ./fusion.unittest.neon_rebuild 1 2>&1 | tail -25
-' 2>&1 | head -140
+  echo "== 5. make 变量与实际规则（dry run，不执行）=="
+  docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+cd "$P" && make -n clean 2>&1 | head -20
+' 2>&1 | head -30
 
   # ---- 命令结束 ----
 
