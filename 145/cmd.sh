@@ -17,33 +17,31 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 只读：在容器内全局搜索 clamp_to_u8 / kUint8ToFloatDivisor。
+  # 只读：在 145 宿主机（容器外）与其它运行中的容器里搜 clamp_to_u8。
 
-  echo "== 1. 全盘搜 clamp_to_u8 =="
-  docker exec fusionv1 bash -lc '
-grep -rn "clamp_to_u8" /home/workspace /home/qch /opt 2>/dev/null | head -20
-' 2>&1 | head -25
+  echo "== 1. 宿主机搜索（跳过 docker 存储目录）=="
+  timeout 120 grep -rln "clamp_to_u8\|kUint8ToFloatDivisor" \
+    /home /opt /data /root /usr/local \
+    --exclude-dir=docker --exclude-dir=overlay2 --exclude-dir=containerd 2>/dev/null | head -10
+  echo "host_search_done"
 
-  echo "== 2. 搜 kUint8ToFloatDivisor =="
-  docker exec fusionv1 bash -lc '
-grep -rn "kUint8ToFloatDivisor" /home/workspace /home/qch /opt 2>/dev/null | head -10
-' 2>&1 | head -15
+  echo "== 2. 运行中的容器 =="
+  docker ps --format '{{.Names}}	{{.Image}}' 2>&1 | head -20
 
-  echo "== 3. workspace 结构 =="
-  docker exec fusionv1 bash -lc '
-ls /home/workspace/tensor 2>/dev/null
-echo "-- files --"; ls /home/workspace/tensor/files 2>/dev/null | head -20
-' 2>&1 | head -30
+  echo "== 3. 其它容器内搜索（限源码类文件）=="
+  for c in $(docker ps --format '{{.Names}}' 2>/dev/null); do
+    R=$(timeout 40 docker exec "$c" bash -lc \
+      'grep -rln --include=*.cpp --include=*.h --include=*.cc --include=*.hpp clamp_to_u8 /opt /home 2>/dev/null | head -3' 2>/dev/null)
+    if [ -n "$R" ]; then
+      echo "--- $c ---"
+      echo "$R"
+    fi
+  done
+  echo "container_search_done"
 
-  echo "== 4. 最近修改的 cpp/h（近 7 天）=="
-  docker exec fusionv1 bash -lc '
-find /home/workspace /home/qch -name "*.cpp" -o -name "*.h" 2>/dev/null | xargs -r ls -lt 2>/dev/null | head -15
-' 2>&1 | head -20
-
-  echo "== 5. 任何含 uint8 转换的源文件 =="
-  docker exec fusionv1 bash -lc '
-grep -rln "static_cast<uint8_t>" /home/workspace /home/qch 2>/dev/null | head -10
-' 2>&1 | head -15
+  echo "== 4. 宿主机 /home 下近期改动的源码 =="
+  find /home -maxdepth 4 \( -name '*.cpp' -o -name '*.h' \) -newermt '-14 days' 2>/dev/null | head -10
+  echo "recent_done"
 
   # ---- 命令结束 ----
 
