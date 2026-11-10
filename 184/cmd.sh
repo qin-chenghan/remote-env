@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：对比 11-09 那次编译用的 devel 树，并判断 64K 内核能否复用同样套路。
+# 只读：评估"自行重建内核产生 Module.symvers"是否可行。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,31 +17,30 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== /usr/src/kernels =="
-  ls -la /usr/src/kernels 2>&1
+  echo "== module signing policy =="
+  grep -E '^CONFIG_MODULE_SIG_FORCE|^CONFIG_MODULE_COMPRESS' /boot/config-6.6.02403_sp3-64K 2>&1
+  echo "modules_disabled=$(cat /proc/sys/kernel/modules_disabled 2>&1)"
 
-  echo "== 11-09 那次的 devel 树 =="
-  D=/usr/src/kernels/6.6.0-145.3.37.168.oe2403sp3.aarch64
-  ls -l "$D/Module.symvers" "$D/.config" "$D/include/generated/asm-offsets.h" 2>&1
-  rpm -qf "$D/Module.symvers" 2>&1
-  head -3 "$D/.config" 2>&1
+  echo "== existing iluvatar module on 145 (for comparison) =="
+  modinfo -F vermagic /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/updates/iluvatar.ko.xz 2>&1
+  modinfo -F sig_id /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/updates/iluvatar.ko.xz 2>&1
 
-  echo "== 5.10 64K 的 devel 树（同名套路参照） =="
-  ls -d /usr/src/kernels/*64k* /usr/src/kernels/*64K* 2>&1
-  ls -l /usr/src/kernels/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb/Module.symvers 2>&1
+  echo "== local kernel source trees =="
+  rpm -qa 'kernel-source*' 2>&1
+  ls -d /usr/src/linux-* 2>&1
+  S=/usr/src/linux-6.6.0-145.3.37.168.oe2403sp3.aarch64
+  sed -n '1,6p' "$S/Makefile" 2>&1
+  echo "-- patches applied? --"
+  ls "$S" 2>&1 | head -20
 
-  echo "== 64K 内核是否要求 MODVERSIONS =="
-  grep -E '^CONFIG_MODVERSIONS|^CONFIG_MODULE_SIG|^CONFIG_ARM64_64K_PAGES' \
-    /boot/config-6.6.02403_sp3-64K 2>&1
+  echo "== disk space =="
+  df -h / /home /usr/src 2>&1 | tail -4
 
-  echo "== 145 内核同类配置对照 =="
-  grep -E '^CONFIG_MODVERSIONS|^CONFIG_ARM64_64K_PAGES' \
-    /boot/config-6.6.0-145.3.37.168.oe2403sp3.aarch64 2>&1
+  echo "== gcc version =="
+  gcc --version 2>&1 | head -2
 
-  echo "== 当前 64K 内核已有的模块 vermagic 参照 =="
-  f=$(find /lib/modules/6.6.02403_sp3-64K -name '*.ko' 2>/dev/null | head -1)
-  echo "sample=$f"
-  [ -n "$f" ] && modinfo -F vermagic "$f" 2>&1
+  echo "== any oe kernel src rpm on disk =="
+  find /home /root -maxdepth 4 -iname 'kernel-*src.rpm' 2>/dev/null | head -5
 
   # ---- 命令结束 ----
 
