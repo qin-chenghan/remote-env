@@ -1,0 +1,87 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-10T00:55:43Z
+
+++ uname -r
++ K=6.6.0-132.0.0.111.oe2403sp3.x86_64
++ RUN=/home/qch/transfer/corex-driver-linux64-5.0.0_x86_64.run
++ echo '== 1. 解包驱动到 tmpfs（不写 /）=='
+== 1. 解包驱动到 tmpfs（不写 /）==
++ X=/tmp/corex-drv
++ rm -rf /tmp/corex-drv
++ sh /home/qch/transfer/corex-driver-linux64-5.0.0_x86_64.run --noexec --keep --target /tmp/corex-drv
++ tail -5
+Creating directory /tmp/corex-drv
+Verifying archive integrity...     0%    46%    93%  100%   All good.
+Uncompressing Corex Driver     0%    46%    93%  100%  
++ find /tmp/corex-drv -maxdepth 2
++ head -25
+/tmp/corex-drv
+/tmp/corex-drv/corex
+/tmp/corex-drv/corex/lib64
+/tmp/corex-drv/corex/EULA.txt
+/tmp/corex-drv/corex/bin
+/tmp/corex-drv/corex/copyright
+/tmp/corex-drv/corex-driver-installer
+/tmp/corex-drv/kernel
+/tmp/corex-drv/kernel/version.h
+/tmp/corex-drv/kernel/itr_fs
+/tmp/corex-drv/kernel/Makefile
+/tmp/corex-drv/kernel/dkms.conf
+/tmp/corex-drv/kernel/itr
+/tmp/corex-drv/kernel/itr_peer_mem
+/tmp/corex-drv/conf
+/tmp/corex-drv/conf/iluvatarcorex-init@.service
+/tmp/corex-drv/firmware
+/tmp/corex-drv/firmware/zk100_vdec.bin
+/tmp/corex-drv/firmware/sd_vdec.bin
+/tmp/corex-drv/firmware/zk100_dcpu.bin
+/tmp/corex-drv/firmware/sd_dcpu.bin
+/tmp/corex-drv/firmware/sd_venc.bin
+/tmp/corex-drv/firmware/iluvatar_cp.bin
+/tmp/corex-drv/bin
+/tmp/corex-drv/bin/pci_timeout.sh
++ echo '-- dkms.conf 的 vGPU 开关 --'
+-- dkms.conf 的 vGPU 开关 --
++ grep -nE 'VGPU_ENABLE|_BUILDOPT|MAKE\[0\]' /tmp/corex-drv/kernel/dkms.conf
++ head -10
+5:_BUILDOPT=""
+30:EXTRA_BUILD="${EXTRA_BUILD} && KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) itr_peer_mem OFA_KERNEL=${OFED_SOURCE_DIR}"
+40:EXTRA_BUILD="${EXTRA_BUILD} && KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) itr_fs"
+48:MAKE[0]="KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) ${EXTRA_BUILD}"
++ echo '-- 安装脚本支持的内核参数 --'
+-- 安装脚本支持的内核参数 --
++ grep -nE 'KERNEL_ONLY|NO_KERNEL|--kernel|VGPU|silent|silent_option' /tmp/corex-drv/corex-driver-installer
++ head -15
++ echo '== 2. 清理缓存腾空间 =='
+== 2. 清理缓存腾空间 ==
++ df -h /
++ tail -1
+/dev/mapper/openeuler-root   69G   65G     0 100% /
++ dnf clean all
++ tail -3
+691 files removed
++ journalctl --vacuum-size=100M
++ tail -2
+Vacuuming done, freed 0B of archived journals from /run/log/journal.
+Vacuuming done, freed 0B of archived journals from /run/log/journal/6d4243971f334440b5ee3d87dc6c89f8.
++ df -h /
++ tail -1
+/dev/mapper/openeuler-root   69G   64G  1.4G  98% /
+++ df -m /
+++ awk 'NR==2{print $4}'
++ AVAIL=1397
++ echo avail_mb=1397
+avail_mb=1397
++ echo '== 3. dkms 仓库可见性 =='
+== 3. dkms 仓库可见性 ==
++ timeout 60 dnf list available dkms
++ tail -5
+oe2403-sp3-os                                   745 kB/s | 2.8 MB     00:03    
+oe2403-sp3-everything                           1.1 MB/s |  16 MB     00:14    
++ '[' 1397 -lt 2000 ']'
++ echo '!! 可用空间不足 2000MB，跳过安装。需要先清理 / 。'
+!! 可用空间不足 2000MB，跳过安装。需要先清理 / 。
++ set +x
+
+### exit: 0
