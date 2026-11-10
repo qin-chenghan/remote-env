@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读诊断：184 重启后 iluvatar 驱动失效。
+# 只读：确认当前 64K 内核能否编译驱动，以及能否回退到有驱动的内核。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,45 +17,30 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== os / kernel =="
-  head -2 /etc/os-release
-  uname -r
-  uptime
-  echo "installed kernels:"
-  ls -1 /lib/modules/ 2>&1
+  K=$(uname -r)
 
-  echo "== module state =="
-  lsmod | grep -iE 'iluvatar|corex' || echo "  no iluvatar module loaded"
-  ls -l /dev/iluvatar* 2>&1
-  modinfo iluvatar 2>&1 | head -8
+  echo "== current kernel provenance =="
+  cat /proc/cmdline
+  ls -la "/lib/modules/$K" 2>&1 | head -12
+  readlink -f "/lib/modules/$K/build" 2>&1
+  readlink -f "/lib/modules/$K/source" 2>&1
+  rpm -qf "/lib/modules/$K" 2>&1
+  rpm -qa | grep -iE '^kernel-(64k|core|devel|modules)' | sort | head -20
 
-  echo "== built modules on disk =="
-  find /lib/modules -name 'iluvatar*.ko*' 2>/dev/null | head -10
-  echo "-- current kernel dir --"
-  ls -la "/lib/modules/$(uname -r)/extra" 2>&1 | head -10
+  echo "== boot entries =="
+  grubby --default-kernel 2>&1
+  grubby --info=ALL 2>&1 | grep -E '^(index|kernel|title)=' | head -30
 
-  echo "== dkms =="
-  dkms status 2>&1 | head -10
-  ls -la /var/lib/dkms/corex 2>&1 | head -8
+  echo "== available kernel-devel =="
+  dnf list --available 'kernel-devel*' 2>&1 | tail -12
+  dnf list --installed 'kernel-devel*' 2>&1 | tail -8
 
-  echo "== dkms.conf BUILDOPT =="
-  grep -n '_BUILDOPT' /usr/src/corex-5.0.0/dkms.conf 2>&1
+  echo "== source trees =="
+  ls -d /usr/src/kernels/* /usr/src/linux-* 2>&1 | head
+  ls -l /usr/src/corex-5.0.0 2>&1 | head -8
 
-  echo "== kernel-devel =="
-  rpm -q "kernel-devel-$(uname -r)" 2>&1
-  ls -d /usr/src/kernels/* 2>&1
-
-  echo "== dmesg (driver) =="
-  dmesg 2>/dev/null | grep -iE 'iluvatar|corex' | tail -20
-
-  echo "== try modprobe (no-op check) =="
-  modprobe -n iluvatar 2>&1; echo "modprobe -n rc=$?"
-
-  echo "== ixsmi =="
-  ixsmi 2>&1 | head -12
-
-  echo "== services =="
-  systemctl list-units --type=service 2>/dev/null | grep -iE 'iluvatar|corex|dkms' | head -5
+  echo "== driver dirs for other kernels =="
+  ls -l /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/updates/ 2>&1 | head -8
 
   # ---- 命令结束 ----
 
