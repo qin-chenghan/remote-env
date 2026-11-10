@@ -1,0 +1,67 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T01:58:44Z
+
++ D=/home/huawei_ts_program/litehost_perf_opt
+++ date +%Y%m%d-%H%M%S
++ TS2=20261110-095844
++ OLD_TC=/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so
++ NEW_TC=/home/lw/gperftools/.libs/libtcmalloc.so
++ echo '== patch: python env + tcmalloc path (idempotent) =='
+== patch: python env + tcmalloc path (idempotent) ==
++ for f in vllmBench_lite_base.sh vllmBench_lite_opt.sh
++ echo '-- vllmBench_lite_base.sh'
+-- vllmBench_lite_base.sh
++ cp -a /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh.bak-fix-20261110-095844
++ python3 - /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh /home/huawei_ts_program/gperftools/.libs/libtcmalloc.so /home/lw/gperftools/.libs/libtcmalloc.so
+  applied: CLEAN_ENV=(env -u LD_PRELOAD
+  applied: PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}"
+  SKIP (not found): /home/huawei_ts_program/gperftools/.libs/libtcmalloc.so
++ bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
++ echo '  syntax OK'
+  syntax OK
++ for f in vllmBench_lite_base.sh vllmBench_lite_opt.sh
++ echo '-- vllmBench_lite_opt.sh'
+-- vllmBench_lite_opt.sh
++ cp -a /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-fix-20261110-095844
++ python3 - /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh /home/huawei_ts_program/gperftools/.libs/libtcmalloc.so /home/lw/gperftools/.libs/libtcmalloc.so
+  applied: CLEAN_ENV=(env -u LD_PRELOAD
+  applied: PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}"
+  applied: /home/huawei_ts_program/gperftools/.libs/libtcmalloc.so
++ bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ echo '  syntax OK'
+  syntax OK
++ echo '== remaining old-path refs =='
+== remaining old-path refs ==
++ grep -rn huawei_ts_program/gperftools /home/huawei_ts_program/litehost_perf_opt
++ head -10
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-modelpath-20261109-193513:152:            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-r10-20261109-192734:145:            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-fix-20261110-095844:152:            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-20261109-105413:254:            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log:1:ERROR: ld.so: object '/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so' from LD_PRELOAD cannot be preloaded (cannot open shared object file): ignored.
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log:2:ERROR: ld.so: object '/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so' from LD_PRELOAD cannot be preloaded (cannot open shared object file): ignored.
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log:3:ERROR: ld.so: object '/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so' from LD_PRELOAD cannot be preloaded (cannot open shared object file): ignored.
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log:26:ERROR: ld.so: object '/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so' from LD_PRELOAD cannot be preloaded (cannot open shared object file): ignored.
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log:27:ERROR: ld.so: object '/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so' from LD_PRELOAD cannot be preloaded (cannot open shared object file): ignored.
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log:39:ERROR: ld.so: object '/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so' from LD_PRELOAD cannot be preloaded (cannot open shared object file): ignored.
++ echo '== final lines =='
+== final lines ==
++ grep -n 'CLEAN_ENV=(env\|PYTHONPATH=\|libtcmalloc' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:70:CLEAN_ENV=(env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:143:        env_args+=(PYTHONPATH="$HOST_TOOLKIT"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:78:CLEAN_ENV=(env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:151:        env_args+=(PYTHONPATH="$HOST_TOOLKIT"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:152:            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/lw/gperftools/.libs/libtcmalloc.so"
++ echo '== tcmalloc sanity =='
+== tcmalloc sanity ==
++ ls -l /home/lw/gperftools/.libs/libtcmalloc.so
+lrwxrwxrwx. 1 root root 20 Oct 27 10:05 /home/lw/gperftools/.libs/libtcmalloc.so -> libtcmalloc.so.4.6.8
++ file -b /home/lw/gperftools/.libs/libtcmalloc.so
+symbolic link to libtcmalloc.so.4.6.8
++ env LD_PRELOAD=/home/lw/gperftools/.libs/libtcmalloc.so /bin/true
++ echo '  preload exit=0'
+  preload exit=0
++ set +x
+
+### exit: 0
