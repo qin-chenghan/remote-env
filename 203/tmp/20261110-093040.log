@@ -1,0 +1,114 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-10T01:30:40Z
+
++ echo '== 1. GPU 的 NUMA 归属 =='
+== 1. GPU 的 NUMA 归属 ==
++ for b in 0000:10:00.0 0000:13:00.0 0000:19:00.0 0000:1c:00.0
+++ cat /sys/bus/pci/devices/0000:10:00.0/numa_node
++ printf '%s numa_node=%s\n' 0000:10:00.0 0
+0000:10:00.0 numa_node=0
++ for b in 0000:10:00.0 0000:13:00.0 0000:19:00.0 0000:1c:00.0
+++ cat /sys/bus/pci/devices/0000:13:00.0/numa_node
++ printf '%s numa_node=%s\n' 0000:13:00.0 0
+0000:13:00.0 numa_node=0
++ for b in 0000:10:00.0 0000:13:00.0 0000:19:00.0 0000:1c:00.0
+++ cat /sys/bus/pci/devices/0000:19:00.0/numa_node
++ printf '%s numa_node=%s\n' 0000:19:00.0 0
+0000:19:00.0 numa_node=0
++ for b in 0000:10:00.0 0000:13:00.0 0000:19:00.0 0000:1c:00.0
+++ cat /sys/bus/pci/devices/0000:1c:00.0/numa_node
++ printf '%s numa_node=%s\n' 0000:1c:00.0 0
+0000:1c:00.0 numa_node=0
++ echo '== 2. 容器内依赖 =='
+== 2. 容器内依赖 ==
++ docker exec corex5-py311 bash -lc 'command -v curl || echo NO_CURL; command -v taskset || echo NO_TASKSET'
+/usr/bin/curl
+/usr/bin/taskset
+++ docker exec corex5-py311 bash -lc 'command -v curl >/dev/null && echo yes || echo no'
++ CURL_OK=yes
++ echo curl_ok=yes
+curl_ok=yes
++ '[' yes '!=' yes ']'
++ echo '== 3. 基线运行：HOST_MEASURE=off，单 case 128/2048 =='
+== 3. 基线运行：HOST_MEASURE=off，单 case 128/2048 ==
+++ date +%H%M%S
++ TID=baseline_093041
++ timeout 1500 docker exec -e HOST_MEASURE=off -e NUM_PROMPTS=32 -e NUM_WARMUPS=4 -e CASE_INTERVAL=0 -e TEST_ID=baseline_093041 -e CASES_FILE=/tmp/cases_one.txt corex5-py311 bash -lc '
+        printf "128 2048\n" > /tmp/cases_one.txt
+        cd /home/qch/scripts/litehost_perf && bash vllmBench_lite_base.sh
+      '
++ tail -50
+[2026-11-10 09:30:41] TEST_ID=baseline_093041 | MODE=off | WARMUP=4 | CPU_RANGE=0-15,128-143
+[2026-11-10 09:30:41] prefix cache=OFF | backend=vllm | 同一服务运行 1 个 case | RUN_DIR=/home/qch/scripts/litehost_perf/vllmBench/baseline_093041
+[2026-11-10 09:30:41] WARNING: ixsmi 不可用，跳过显存预检
+[2026-11-10 09:30:41] 服务 PID=1330173；所有 case 复用；日志=/home/qch/scripts/litehost_perf/vllmBench/baseline_093041/logs/server.log
+[2026-11-10 09:32:01] 服务就绪 (80s)
+[2026-11-10 09:32:01] ==== bs8_in128_out2048 | mode=off | warmup=4 | 同一服务 ====
+[2026-11-10 09:36:12] 完成 bs8_in128_out2048 → /home/qch/scripts/litehost_perf/vllmBench/baseline_093041/bs8_in128_out2048.json
+[2026-11-10 09:36:12] 停止本次服务 PID=1330173（不使用全局 pkill）
+[2026-11-10 09:36:22] ========== 所有 case 最终结果（仅此处打印一次） ==========
+===== Benchmark：吞吐与延迟（全部 case）=====
+bs8_in128_out2048: output_tok/s=352.461 TTFT_mean=225.336ms TPOT_mean=22.597ms ITL_mean=22.597ms
+[2026-11-10 09:36:22] 全部完成 | benchmark=/home/qch/scripts/litehost_perf/vllmBench/baseline_093041/summary.csv | host=OFF/未采集
++ echo 'run rc=0'
+run rc=0
++ R=/home/qch/scripts/litehost_perf/vllmBench/baseline_093041
++ echo '== 4. 结果 =='
+== 4. 结果 ==
++ ls -la /home/qch/scripts/litehost_perf/vllmBench/baseline_093041
++ head -10
+total 28
+drwxr-xr-x.  3 root root 4096 Nov 10 09:36 .
+drwxr-xr-x. 10 root root 4096 Nov 10 09:30 ..
+-rw-------.  1 root root   84 Nov 10 09:32 bench.process.json
+-rw-r--r--.  1 root root 1035 Nov 10 09:36 bs8_in128_out2048.json
+drwxr-xr-x.  2 root root 4096 Nov 10 09:36 logs
+-rw-------.  1 root root   84 Nov 10 09:30 server.process.json
+-rw-r--r--.  1 root root  536 Nov 10 09:36 summary.csv
++ head -5 /home/qch/scripts/litehost_perf/vllmBench/baseline_093041/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+baseline_093041,bs8_in128_out2048,32,185.9383222299948,0.1721000792962834,352.4609623987884,374.48977254871266,225.33573603141122,238.51643299713032,266.91838839746197,22.597451786439485,22.595436765994354,22.676074044807464,22.597451879411654,22.5781699991785,23.46161310764728
++ echo '== 服务日志尾部 =='
+== 服务日志尾部 ==
++ tail -20 /home/qch/scripts/litehost_perf/vllmBench/baseline_093041/logs/server.log
++ head -25
+(APIServer pid=1330173) WARNING 11-10 09:36:12 [utils.py:607] [shutdown] Process manager: force killing remaining processes count=1
+(EngineCore pid=1330517) INFO 11-10 09:36:12 [core.py:1218] [shutdown] EngineCore: trigger received signal=SIGTERM
+(EngineCore pid=1330517) INFO 11-10 09:36:12 [core.py:1337] [shutdown] EngineCore: start mode=abort timeout=0s
+(EngineCore pid=1330517) INFO 11-10 09:36:12 [core.py:1368] [shutdown] EngineCore: request processing complete; starting resource teardown
+(EngineCore pid=1330517) INFO 11-10 09:36:12 [core.py:1231] [shutdown] EngineCore: exiting busy loop
+(EngineCore pid=1330517) INFO 11-10 09:36:12 [multiproc_executor.py:426] [shutdown] Executor: waiting for worker exit count=4
+(APIServer pid=1330173) INFO:     Shutting down
+(APIServer pid=1330173) INFO 11-10 09:36:12 [core_client.py:659] [shutdown] MPClient: engine manager stopped
+(APIServer pid=1330173) INFO 11-10 09:36:12 [core_client.py:660] [shutdown] MPClient: cleaning up background resources
+(APIServer pid=1330173) INFO 11-10 09:36:12 [core_client.py:662] [shutdown] MPClient: complete
+(APIServer pid=1330173) INFO 11-10 09:36:12 [launcher.py:125] [shutdown] API server: engine client stopped
+(APIServer pid=1330173) INFO 11-10 09:36:12 [launcher.py:128] [shutdown] API server: signalling HTTP server shutdown
+(APIServer pid=1330173) INFO 11-10 09:36:14 [launcher.py:149] [shutdown] API server: shutting down FastAPI HTTP server
+(APIServer pid=1330173) INFO:     Shutting down
+(APIServer pid=1330173) INFO:     Waiting for application shutdown.
+(APIServer pid=1330173) INFO:     Application shutdown complete.
+(APIServer pid=1330173) /opt/python-3.11.6/lib/python3.11/asyncio/runners.py:118: ResourceWarning: Unclosed context <zmq.Context() at 0x7fcf7ef44770>
+(APIServer pid=1330173)   return self._loop.run_until_complete(task)
+(APIServer pid=1330173) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(APIServer pid=1330173) sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ echo '== 5. 收尾确认 =='
+== 5. 收尾确认 ==
++ docker exec corex5-py311 bash -c 'pgrep -af vllm | head -5 || echo "no vllm left"'
+1337850 docker exec corex5-py311 bash -c pgrep -af vllm | head -5 || echo "no vllm left"
+1337872 bash -c pgrep -af vllm | head -5 || echo "no vllm left"
++ timeout 20 /usr/local/corex-5.0.0/bin/ixsmi
++ grep 'MiB /'
++ head -5
+| N/A  48C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  47C   P0       56W / 350W   | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  42C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  42C   P0       57W / 350W   | 66MiB / 32768MiB     | 0%        Default    |
++ df -h / /home
++ tail -2
+/dev/mapper/openeuler-root   69G   64G  1.2G  99% /
+/dev/mapper/openeuler-home  804G  731G   33G  96% /home
++ set +x
+
+### exit: 0
