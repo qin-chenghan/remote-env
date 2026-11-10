@@ -1,0 +1,167 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T01:49:40Z
+
++ echo '== host os =='
+== host os ==
++ head -2 /etc/os-release
+NAME="openEuler"
+VERSION="24.03 (LTS-SP3)"
++ uname -r
+6.6.0-145.3.37.168.oe2403sp3.aarch64
++ uptime
+ 09:49:40 up 44 min,  6 users,  load average: 0.77, 0.84, 0.82
++ echo '== docker state =='
+== docker state ==
++ docker ps --format '{{.Names}}\t{{.Status}}'
++ head -5
+corex5-py311	Up 31 minutes
+supabase_db_agentpress	Up 43 minutes (healthy)
+supabase_studio_agentpress	Up 43 minutes (healthy)
+supabase_pg_meta_agentpress	Up 43 minutes (healthy)
+supabase_imgproxy_agentpress	Up 43 minutes (healthy)
++ docker inspect -f 'name={{.Name}} started={{.State.StartedAt}} image={{.Config.Image}} restarts={{.RestartCount}}' corex5-py311
+name=/corex5-py311 started=2026-11-10T01:18:32.06412517Z image=corex5-py311:with-python311 restarts=0
++ echo '== failed run =='
+== failed run ==
++ ls -ld /home/s00806700/vllmBench/litehost_gap_20261110_093301
+drwxr-xr-x. 3 root root 4096 Nov 10 09:33 /home/s00806700/vllmBench/litehost_gap_20261110_093301
++ sed -n 1,12p /home/s00806700/vllmBench/litehost_gap_20261110_093301/logs/server.log
+ERROR: ld.so: object '/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so' from LD_PRELOAD cannot be preloaded (cannot open shared object file): ignored.
+ERROR: ld.so: object '/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so' from LD_PRELOAD cannot be preloaded (cannot open shared object file): ignored.
+ERROR: ld.so: object '/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so' from LD_PRELOAD cannot be preloaded (cannot open shared object file): ignored.
+Traceback (most recent call last):
+  File "<frozen runpy>", line 189, in _run_module_as_main
+  File "<frozen runpy>", line 112, in _get_module_details
+  File "/usr/local/lib/python3.12/site-packages/vllm/__init__.py", line 24, in <module>
+    import vllm.env_override  # noqa: F401
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/vllm/env_override.py", line 87, in <module>
+    import torch
+  File "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch_module_attr_fastpath_bootstrap.py", line 36, in exec_module
++ echo '== tcmalloc =='
+== tcmalloc ==
++ ls -l /home/huawei_ts_program/gperftools/.libs/libtcmalloc.so
+ls: cannot access '/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so': No such file or directory
++ ls -ld /home/huawei_ts_program/gperftools
+ls: cannot access '/home/huawei_ts_program/gperftools': No such file or directory
++ find /home/huawei_ts_program -maxdepth 4 -name 'libtcmalloc.so*'
++ head -5
++ echo '== container env =='
+== container env ==
++ docker exec corex5-py311 env
++ grep -E '^(PYTHON|LD_|VIRTUAL_ENV|PATH=)'
++ sort
+LD_LIBRARY_PATH=/opt/corex-host:/usr/local/corex/lib64:/usr/local/openmpi/lib:/usr/local/lib
+PATH=/usr/local/corex/bin:/usr/local/lib/python3.12/site-packages/bin:/usr/local/openmpi/bin:/usr/local/openmpi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+PYTHONPATH=/usr/local/lib/python3.12/site-packages
++ echo '== PYTHONPATH sources =='
+== PYTHONPATH sources ==
++ head -20
++ docker exec corex5-py311 grep -rn PYTHONPATH /etc/profile /etc/profile.d /etc/environment /etc/bashrc /root/.bashrc /opt/use-corex311.sh
+/opt/use-corex311.sh:1:unset PYTHONHOME PYTHONPATH PIP_TARGET PIP_PREFIX PIP_USER
++ echo '== use-corex311.sh =='
+== use-corex311.sh ==
++ docker exec corex5-py311 cat /opt/use-corex311.sh
++ head -40
+unset PYTHONHOME PYTHONPATH PIP_TARGET PIP_PREFIX PIP_USER
+export PYTHONNOUSERSITE=1
+source /opt/corex311/bin/activate
+hash -r
++ echo '== interpreter identity =='
+== interpreter identity ==
++ docker exec corex5-py311 readlink -f /opt/corex311/bin/python3
+/opt/python-3.11.6/bin/python3.11
++ docker exec corex5-py311 readlink -f /opt/corex311-cpython-vllm/bin/python3
+/opt/cpython-vllm/v1/bin/python3.11
++ docker exec corex5-py311 /opt/corex311/bin/python3 -c 'import sys,sysconfig;print('\''base exe'\'',sys.executable);print('\''ver'\'',sys.version.split()[0]);print('\''base_prefix'\'',sys.base_prefix);print('\''cfg'\'',sysconfig.get_config_var('\''CONFIG_ARGS'\''))'
+base exe /opt/corex311/bin/python3
+ver 3.11.6
+base_prefix /opt/python-3.11.6
+cfg '--prefix=/opt/python-3.11.6' '--enable-shared' '--enable-optimizations' '--with-ensurepip=install' 'LDFLAGS=-Wl,-rpath,/opt/python-3.11.6/lib' 'CC=/usr/bin/gcc'
++ docker exec corex5-py311 /opt/corex311-cpython-vllm/bin/python3 -c 'import sys,sysconfig;print('\''pgo exe'\'',sys.executable);print('\''ver'\'',sys.version.split()[0]);print('\''base_prefix'\'',sys.base_prefix);print('\''cfg'\'',sysconfig.get_config_var('\''CONFIG_ARGS'\''))'
+pgo exe /opt/corex311-cpython-vllm/bin/python3
+ver 3.11.6
+base_prefix /opt/cpython-vllm/v1
+cfg '--prefix=/opt/cpython-vllm/v1' '--enable-shared' '--enable-optimizations' '--with-lto' '--with-ensurepip=install' 'CC=/usr/bin/gcc' 'CXX=/usr/bin/g++' 'AR=/usr/bin/gcc-ar' 'RANLIB=/usr/bin/gcc-ranlib' 'LDFLAGS=-Wl,-rpath,/opt/cpython-vllm/v1/lib'
++ echo '== venv cfg =='
+== venv cfg ==
++ docker exec corex5-py311 cat /opt/corex311/pyvenv.cfg
+home = /opt/python-3.11.6/bin
+include-system-site-packages = false
+version = 3.11.6
+executable = /opt/python-3.11.6/bin/python3.11
+command = /opt/python-3.11.6/bin/python3.11 -m venv /opt/corex311
++ docker exec corex5-py311 cat /opt/corex311-cpython-vllm/pyvenv.cfg
+home = /opt/cpython-vllm/v1/bin
+include-system-site-packages = false
+version = 3.11.6
+executable = /opt/cpython-vllm/v1/bin/python3.11
+command = /opt/cpython-vllm/v1/bin/python3.11 -m venv /opt/corex311-cpython-vllm
++ echo '== pth files =='
+== pth files ==
++ docker exec corex5-py311 bash -c 'for f in /opt/corex311/lib/python3.11/site-packages/*.pth /opt/corex311-cpython-vllm/lib/python3.11/site-packages/*.pth; do [ -f "$f" ] && { echo "--- $f"; cat "$f"; }; done'
++ head -40
+--- /opt/corex311/lib/python3.11/site-packages/distutils-precedence.pth
+import os; var = 'SETUPTOOLS_USE_DISTUTILS'; enabled = os.environ.get(var, 'local') == 'local'; enabled and __import__('_distutils_hack').add_shim(); 
+--- /opt/corex311/lib/python3.11/site-packages/torch_module_attr_fastpath.pth
+import torch_module_attr_fastpath_bootstrap; torch_module_attr_fastpath_bootstrap.start()
+--- /opt/corex311-cpython-vllm/lib/python3.11/site-packages/distutils-precedence.pth
+import os; var = 'SETUPTOOLS_USE_DISTUTILS'; enabled = os.environ.get(var, 'local') == 'local'; enabled and __import__('_distutils_hack').add_shim(); 
+--- /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch_module_attr_fastpath.pth
+import torch_module_attr_fastpath_bootstrap; torch_module_attr_fastpath_bootstrap.start()
++ docker exec corex5-py311 grep -l python3.12 '/opt/corex311/lib/python3.11/site-packages/*.pth' '/opt/corex311-cpython-vllm/lib/python3.11/site-packages/*.pth'
++ echo '== sys.path order =='
+== sys.path order ==
++ docker exec corex5-py311 /opt/corex311-cpython-vllm/bin/python3 -c 'import sys;[print(p) for p in sys.path]'
+
+/usr/local/lib/python3.12/site-packages
+/opt/cpython-vllm/v1/lib/python311.zip
+/opt/cpython-vllm/v1/lib/python3.11
+/opt/cpython-vllm/v1/lib/python3.11/lib-dynload
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages
++ echo '== torch import, polluted env =='
+== torch import, polluted env ==
++ docker exec corex5-py311 /opt/corex311/bin/python3 -c 'import torch;print('\''base torch'\'',torch.__version__,torch.__file__)'
++ tail -5
+        $ python -m pip install --no-build-isolation -v . && python -c "import torch"
+
+    This error can generally be solved using the `develop` workflow
+        $ python -m pip install --no-build-isolation -v -e . && python -c "import torch"  # This should succeed
+    or by running Python from a different directory.
++ docker exec corex5-py311 /opt/corex311-cpython-vllm/bin/python3 -c 'import torch;print('\''pgo torch'\'',torch.__version__,torch.__file__)'
++ tail -5
+        $ python -m pip install --no-build-isolation -v . && python -c "import torch"
+
+    This error can generally be solved using the `develop` workflow
+        $ python -m pip install --no-build-isolation -v -e . && python -c "import torch"  # This should succeed
+    or by running Python from a different directory.
++ echo '== torch import, clean env =='
+== torch import, clean env ==
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME -u VIRTUAL_ENV -u LD_PRELOAD /opt/corex311/bin/python3 -c 'import torch;print('\''base clean torch'\'',torch.__version__,torch.__file__)'
++ tail -5
+base clean torch 2.10.0 /opt/corex311/lib/python3.11/site-packages/torch/__init__.py
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME -u VIRTUAL_ENV -u LD_PRELOAD /opt/corex311-cpython-vllm/bin/python3 -c 'import torch;print('\''pgo clean torch'\'',torch.__version__,torch.__file__)'
++ tail -5
+pgo clean torch 2.10.0 /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/__init__.py
++ echo '== 3.12 tree =='
+== 3.12 tree ==
++ docker exec corex5-py311 ls -ld /usr/local/lib/python3.12/site-packages/torch
+drwxrwxr-x+ 1 root root 4096 Sep  8 20:02 /usr/local/lib/python3.12/site-packages/torch
++ docker exec corex5-py311 ls /usr/local/lib/python3.12/site-packages/torch/_C
++ head -5
+_acc
+_aoti.pyi
+_autograd.pyi
+_cpu.pyi
+_cudnn.pyi
++ head -3
++ docker exec corex5-py311 ls -l '/usr/local/lib/python3.12/site-packages/torch/_C*.so'
+ls: cannot access '/usr/local/lib/python3.12/site-packages/torch/_C*.so': No such file or directory
++ docker exec corex5-py311 /usr/local/bin/python3 -V
+Python 3.12.11
++ docker exec corex5-py311 python3 -V
+Python 3.12.11
++ set +x
+
+### exit: 0
