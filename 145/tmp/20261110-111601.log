@@ -1,0 +1,153 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-10T03:16:01Z
+
++ echo '== 1. 宿主 =='
+== 1. 宿主 ==
++ uname -a
+Linux localhost.localdomain 6.6.0-132.0.0.111.oe2403sp3.aarch64 #1 SMP Mon Dec 29 23:09:17 CST 2025 aarch64 aarch64 aarch64 GNU/Linux
++ head -4 /etc/os-release
+NAME="openEuler"
+VERSION="24.03 (LTS-SP3)"
+ID="openEuler"
+VERSION_ID="24.03"
++ lscpu
++ grep -E 'Model name|CPU\(s\)|Socket|Thread|NUMA node'
++ head -8
+CPU(s):                               256
+On-line CPU(s) list:                  0-255
+Model name:                           Kunpeng 920 7270Z To be filled by O.E.M. CPU @ 2.9GHz
+BIOS Model name:                      Kunpeng 920 7270Z To be filled by O.E.M. CPU @ 2.9GHz
+Thread(s) per core:                   2
+Socket(s):                            2
+CPU(s) scaling MHz:                   100%
+NUMA node(s):                         4
++ free -g
++ head -2
+               total        used        free      shared  buff/cache   available
+Mem:             502          52         418           9          43         449
++ echo '== 2. 容器的存在性 =='
+== 2. 容器的存在性 ==
++ for r in docker podman nerdctl
++ command -v docker
++ echo 'runtime: docker'
+runtime: docker
++ docker ps -a --format '{{.Names}}\t{{.Image}}\t{{.Status}}'
++ head -15
+pedantic_joliot	feedinfo:latest	Created
+agent_doc	agent_doc	Up 3 days
+nginx_old	nginx_old:latest	Up 3 days
+nginx	dd60e1997134	Up 17 hours
+faiss25122	faiss:2512	Up 4 days
+sonico-go-opt	sonic-go:v1	Up 6 days
+faiss_2512	faiss:2512	Up 4 days
+db-service2	db-service:latest	Exited (137) 11 days ago
+redis-ks2	redis-ks:latest	Exited (137) 11 days ago
+mysql-ks2	mysql-ks:latest	Exited (137) 11 days ago
+api-service2	api-service:latest	Exited (137) 11 days ago
+zstd	zstd:latest	Up 13 days
+faiss_2609	faiss:2609	Up 4 days
+api-service	feedinfo:dragonwell17	Exited (143) 4 days ago
+db-service	feedinfo:dragonwell17	Exited (143) 4 days ago
++ for r in docker podman nerdctl
++ command -v podman
++ continue
++ for r in docker podman nerdctl
++ command -v nerdctl
++ continue
++ echo '== 3. fusionv1 概况 =='
+== 3. fusionv1 概况 ==
++ docker inspect fusionv1 --format '{{.State.Status}} started={{.State.StartedAt}} image={{.Config.Image}}'
+running started=2026-10-26T09:19:29.31441036Z image=fusion:v1
++ docker inspect fusionv1 --format '{{range .HostConfig.Binds}}{{.}}{{"\n"}}{{end}}'
++ head -10
+
++ docker exec fusionv1 bash -lc 'echo "host: $(hostname)"; echo "user: $(id -un)"; echo "pwd: $(pwd)"; ls /home/workspace 2>&1 | head -10'
++ head -20
+bash: line 1: hostname: command not found
+host: 
+user: root
+pwd: /workspace
+tensor
++ echo '== 4. 目标工作区目录 =='
+== 4. 目标工作区目录 ==
++ W=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
++ ls -la /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
++ head -30
+ls: cannot access '/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro': No such file or directory
++ echo '-- 目录规模 --'
+-- 目录规模 --
++ du -sh /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+du: cannot access '/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro': No such file or directory
++ find /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro -maxdepth 2 -type f
++ head -20
++ echo '== 5. 目标文件 =='
+== 5. 目标文件 ==
++ F=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_fusion_func_v2.cpp
++ ls -l /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_fusion_func_v2.cpp
+ls: cannot access '/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_fusion_func_v2.cpp': No such file or directory
++ wc -l /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_fusion_func_v2.cpp
+wc: /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_fusion_func_v2.cpp: No such file or directory
++ head -60 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_fusion_func_v2.cpp
+head: cannot open '/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_fusion_func_v2.cpp' for reading: No such file or directory
++ echo '== 6. 容器内工具链 =='
+== 6. 容器内工具链 ==
++ docker exec fusionv1 bash -lc '
+    for c in gcc g++ clang make cmake ninja python python3 pip git; do
+      printf "%-8s " "$c"; command -v "$c" || echo missing
+    done
+    gcc --version 2>/dev/null | head -1
+    cmake --version 2>/dev/null | head -1
+    python3 -V 2>&1
+    nproc
+  '
++ head -30
+gcc      /usr/bin/gcc
+g++      /usr/bin/g++
+clang    missing
+make     /usr/bin/make
+cmake    /usr/bin/cmake
+ninja    missing
+python   missing
+python3  /usr/bin/python3
+pip      missing
+git      missing
+gcc (GCC) 10.3.1
+cmake version 3.22.0
+Python 3.9.9
+256
++ echo '== 7. 容器内 python 包（与算子/融合相关）=='
+== 7. 容器内 python 包（与算子/融合相关）==
++ docker exec fusionv1 bash -lc '
+    python3 -m pip list 2>/dev/null | grep -iE "torch|triton|numpy|pillow|transformers|vllm|flash|apex|cupy" | head -15
+  '
++ head -20
++ echo '== 8. 是否 git 仓库 =='
+== 8. 是否 git 仓库 ==
++ git -C /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro rev-parse --is-inside-work-tree
++ head -3
+fatal: cannot change to '/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro': No such file or directory
++ git -C /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro log --oneline -3
++ head -5
+fatal: cannot change to '/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro': No such file or directory
++ git -C /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro status --short
++ head -10
+fatal: cannot change to '/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro': No such file or directory
++ echo '== 9. 用户目录与仓库 =='
+== 9. 用户目录与仓库 ==
++ ls /home/qch
++ head -15
+env
+tools
++ ls -d /home/qch/tools/remote-env
+/home/qch/tools/remote-env
++ echo '== 10. 磁盘 =='
+== 10. 磁盘 ==
++ df -h / /home
++ tail -3
+Filesystem                  Size  Used Avail Use% Mounted on
+/dev/mapper/openeuler-root   69G   64G  1.6G  98% /
+/dev/mapper/openeuler-home  6.9T  6.5T  342G  96% /home
++ set +x
+
+### exit: 0
