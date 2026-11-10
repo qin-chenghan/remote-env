@@ -1,0 +1,71 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T02:20:24Z
+
++ SITE=/opt/corex311/lib/python3.11/site-packages
++ PY=/opt/corex311/bin/python3
++ R10=/home/qch/transfer/host-opt-pr-validation-20261106-r10
++ echo '== cleanup empty backup =='
+== cleanup empty backup ==
++ ls -l /home/qch/backup/corex311-vllm-pre-r10-20261110-101804.tar.gz
+-rw-r--r--. 1 root root 20 Nov 10 10:18 /home/qch/backup/corex311-vllm-pre-r10-20261110-101804.tar.gz
+++ stat -c %s /home/qch/backup/corex311-vllm-pre-r10-20261110-101804.tar.gz
++ '[' 20 -lt 100 ']'
++ rm -f /home/qch/backup/corex311-vllm-pre-r10-20261110-101804.tar.gz
++ echo 'removed empty gz'
+removed empty gz
++ ls -l /home/qch/backup/
++ head
+total 0
++ echo '== real backup (inside container) =='
+== real backup (inside container) ==
++ docker exec corex5-py311 tar -czf /home/qch/backup/corex311-vllm-r10-20261110-102024.tar.gz -C /opt/corex311/lib/python3.11/site-packages vllm .host-opt-pr-backup
++ tail -5
++ echo rc=0
+rc=0
++ ls -lh /home/qch/backup/corex311-vllm-r10-20261110-102024.tar.gz
+-rw-r--r--. 1 root root 12M Nov 10 10:20 /home/qch/backup/corex311-vllm-r10-20261110-102024.tar.gz
++ echo '== verify r10 on base venv =='
+== verify r10 on base venv ==
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311/bin/python3 /home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/verify.py --root /opt/corex311/lib/python3.11/site-packages
++ tail -30
+    },
+    "vllm.v1.worker.compact_greedy": {
+      "path": "/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy.py",
+      "sha256": "4776461a00ba62037f22baa9ad39a97e09c2e2144bb4b697783f43b95c534ce3"
+    },
+    "vllm.v1.worker.sample_logits_graph": {
+      "path": "/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/sample_logits_graph.py",
+      "sha256": "8cacf0db26ba33e3bfa76b163ac99b00dc9bd63d4de34cc5bf7e361650bec1aa"
+    },
+    "vllm.v1.worker.gpu_model_runner": {
+      "path": "/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py",
+      "sha256": "b1bc3b00a8c09cceeb49111c864584018f84ea10440ef400d6dd2c8fb6e24a5e"
+    },
+    "vllm.v1.attention.backends.ilu_flash_attn": {
+      "path": "/opt/corex311/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py",
+      "sha256": "04049f511f8b2f3d0986d3494f70f5d596a409edc0ad3329aa48acd6e1b6a945"
+    }
+  },
+  "pytest_exit_code": 0,
+  "default_features": {
+    "inputs": false,
+    "arena": false,
+    "bookkeeping": false
+  },
+  "default_metadata": "off",
+  "default_compact_greedy": "off",
+  "default_sample_logits_graph": "off",
+  "scope": "container native build, CPU tests and metadata differential; no model run"
+}
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ echo 'verify rc=0'
+verify rc=0
++ echo '== final check =='
+== final check ==
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311/bin/python3 /home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/install.py --root /opt/corex311/lib/python3.11/site-packages --check
++ tail -4
+installed source digests and both built modules: PASS
++ set +x
+
+### exit: 0
