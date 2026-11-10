@@ -17,44 +17,43 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 容器内没有 numactl，改用 taskset / python sched_setaffinity 绑到 cpu0。
-  # 先跑一次基线、一次优化版，看输出格式并取 Step 9。
+  echo "== 1. STEPS / WARMUP_STEPS 定义 =="
+  docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+grep -rn "STEPS" "$P"/*.cpp "$P"/*.h 2>/dev/null | grep -iE "define|const|=" | head -10
+' 2>&1 | head -15
 
+  echo "== 2. 交替测量 3 轮（绑 cpu0）=="
   docker exec fusionv1 bash -lc '
 P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
 cd "$P" || exit 1
+: > /tmp/res_base.txt
+: > /tmp/res_neon.txt
+for i in 1 2 3; do
+  taskset -c 0 ./fusion.unittest.bak_before_neon 1 2>&1 | grep -E "warmup .*Step +9 " | tail -1 >> /tmp/res_base.txt
+  taskset -c 0 ./fusion.unittest                 1 2>&1 | grep -E "warmup .*Step +9 " | tail -1 >> /tmp/res_neon.txt
+done
 
-echo "== 1. 绑核工具 =="
-command -v taskset || echo NO_TASKSET
-command -v numactl || echo NO_NUMACTL
+echo "-- 基线 3 轮 --"; cat /tmp/res_base.txt
+echo "-- 优化 3 轮 --"; cat /tmp/res_neon.txt
 
-run_pinned() {
-  local bin=$1
-  if command -v taskset >/dev/null 2>&1; then
-    taskset -c 0 "$bin" 1
-  else
-    python3 -c "import os,sys; os.sched_setaffinity(0,{0}); os.execv(sys.argv[1],[sys.argv[1],\"1\"])" "$bin"
-  fi
-}
-
-echo "== 2. 基线（bak_before_neon）=="
-run_pinned ./fusion.unittest.bak_before_neon > /tmp/run_base.log 2>&1
-echo "rc=$?"
-grep "warmup" /tmp/run_base.log | tail -12
-echo "-- 尾部 --"
-tail -5 /tmp/run_base.log
-
-echo "== 3. 优化版（fusion.unittest）=="
-run_pinned ./fusion.unittest > /tmp/run_neon.log 2>&1
-echo "rc=$?"
-grep "warmup" /tmp/run_neon.log | tail -12
-echo "-- 尾部 --"
-tail -5 /tmp/run_neon.log
-
-echo "== 4. Step 9 对比 =="
-echo "-- base --"; grep "warmup" /tmp/run_base.log | tail -1
-echo "-- neon --"; grep "warmup" /tmp/run_neon.log | tail -1
-' 2>&1 | head -80
+echo "-- 统计 --"
+python3 - <<"PY"
+import re
+for name, f in (("base", "/tmp/res_base.txt"), ("neon", "/tmp/res_neon.txt")):
+    ms, bw = [], []
+    for line in open(f):
+        m = re.search(r"Target Time is (\S+) ms Bandwidth is (\S+) MB/s", line)
+        if m:
+            ms.append(float(m.group(1)))
+            bw.append(float(m.group(2)))
+    if ms:
+        print("%s: n=%d mean_ms=%.3f min_ms=%.3f mean_bw=%.1f" %
+              (name, len(ms), sum(ms)/len(ms), min(ms), sum(bw)/len(bw)))
+    else:
+        print("%s: no sample" % name)
+PY
+' 2>&1 | head -30
 
   # ---- 命令结束 ----
 
