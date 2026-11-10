@@ -1,0 +1,143 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T02:18:04Z
+
++ SITE=/opt/corex311/lib/python3.11/site-packages
++ PY=/opt/corex311/bin/python3
+++ find /home -maxdepth 4 -type d -name 'host-opt-pr-validation-*r3*'
+++ head -1
++ R3=/home/qch/transfer/host-opt-pr-validation-20261103-r3
++ R10=/home/qch/transfer/host-opt-pr-validation-20261106-r10
++ echo '== preflight: any model service running? =='
+== preflight: any model service running? ==
++ ps -eo pid,args
++ grep -E 'vllm.entrypoints.openai.api_server|bench_driver.py'
++ grep -v grep
++ cut -c1-160
++ ps -eo pid,args
++ grep -E 'vllm.entrypoints.openai.api_server|bench_driver.py'
++ grep -v grep
++ echo '== locate packages =='
+== locate packages ==
++ echo R3=/home/qch/transfer/host-opt-pr-validation-20261103-r3
+R3=/home/qch/transfer/host-opt-pr-validation-20261103-r3
++ echo R10=/home/qch/transfer/host-opt-pr-validation-20261106-r10
+R10=/home/qch/transfer/host-opt-pr-validation-20261106-r10
++ ls -d /home/qch/transfer/host-opt-pr-validation-20261103-r3/scripts/install.py /home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/install.py
+/home/qch/transfer/host-opt-pr-validation-20261103-r3/scripts/install.py
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/install.py
++ echo '== r3 uninstall support =='
+== r3 uninstall support ==
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311/bin/python3 /home/qch/transfer/host-opt-pr-validation-20261103-r3/scripts/install.py --help
++ grep -iE 'uninstall|restore|check|root'
++ head -10
+usage: install.py [-h] --root ROOT [--dry-run] [--uninstall] [--check]
+Digest-checked install/uninstall into an explicitly selected package root. The
+root contains vllm/, rather than being vllm/ itself. Build output and backups
+stay under this root. No feature is enabled by this installer.
+  --root ROOT
+  --uninstall
+  --check
++ echo '== backup base vllm =='
+== backup base vllm ==
++ mkdir -p /home/qch/backup
++ tar -czf /home/qch/backup/corex311-vllm-pre-r10-20261110-101804.tar.gz -C /opt/corex311/lib/python3.11/site-packages vllm
++ tail -3
+tar: /opt/corex311/lib/python3.11/site-packages: Cannot open: No such file or directory
+tar: Error is not recoverable: exiting now
++ ls -lh /home/qch/backup/corex311-vllm-pre-r10-20261110-101804.tar.gz
+-rw-r--r--. 1 root root 20 Nov 10 10:18 /home/qch/backup/corex311-vllm-pre-r10-20261110-101804.tar.gz
++ echo '== state before =='
+== state before ==
++ docker exec corex5-py311 bash -c 'ls $0/vllm/v1/worker/host_fastpath.py $0/vllm/.host-opt-pr-backup 2>&1; ls $0/vllm/_host_opt_native*.so 2>&1' /opt/corex311/lib/python3.11/site-packages
+ls: cannot access '/opt/corex311/lib/python3.11/site-packages/vllm/.host-opt-pr-backup': No such file or directory
+/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py
+/opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
++ echo '== uninstall r3 =='
+== uninstall r3 ==
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311/bin/python3 /home/qch/transfer/host-opt-pr-validation-20261103-r3/scripts/install.py --root /opt/corex311/lib/python3.11/site-packages --uninstall
++ tail -20
+uninstalled: restored the exact pre-install files
++ RC_OFF=0
++ echo 'uninstall rc=0'
+uninstall rc=0
++ echo '== state after uninstall =='
+== state after uninstall ==
++ docker exec corex5-py311 bash -c 'ls $0/vllm/v1/worker/host_fastpath.py $0/vllm/.host-opt-pr-backup 2>&1; ls $0/vllm/_host_opt_native*.so $0/vllm/_host_opt_meta_native*.so 2>&1' /opt/corex311/lib/python3.11/site-packages
+ls: cannot access '/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py': No such file or directory
+ls: cannot access '/opt/corex311/lib/python3.11/site-packages/vllm/.host-opt-pr-backup': No such file or directory
+ls: cannot access '/opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_native*.so': No such file or directory
+ls: cannot access '/opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_meta_native*.so': No such file or directory
++ echo '== r10 dry-run (baseline must match) =='
+== r10 dry-run (baseline must match) ==
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311/bin/python3 /home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/install.py --root /opt/corex311/lib/python3.11/site-packages --dry-run
++ tail -15
++ /opt/corex311/bin/python3 /home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/apply_patch.py --root /opt/corex311/lib/python3.11/site-packages --check /home/qch/transfer/host-opt-pr-validation-20261106-r10/container/patches/0001-host-paths.patch /home/qch/transfer/host-opt-pr-validation-20261106-r10/container/patches/0002-ilu-metadata.patch /home/qch/transfer/host-opt-pr-validation-20261106-r10/container/patches/0003-compact-greedy.patch
+would apply 0001-host-paths.patch
+would apply 0002-ilu-metadata.patch
+would apply 0003-compact-greedy.patch
+dry run: baseline and patches PASS; nothing changed
++ RC_DRY=0
++ echo 'dry-run rc=0'
+dry-run rc=0
++ '[' 0 -ne 0 ']'
++ echo '== install r10 =='
+== install r10 ==
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME VLLM_R10_PACKAGE_DIR=/home/qch/transfer/host-opt-pr-validation-20261106-r10 VLLM_SITE_ROOT=/opt/corex311/lib/python3.11/site-packages /opt/corex311/bin/python3 /home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/install.py --root /opt/corex311/lib/python3.11/site-packages
++ tail -25
+[100%] Linking CXX shared module _host_opt_native.abi3.so
+[100%] Built target _host_opt_native
++ cmake --install /opt/corex311/lib/python3.11/site-packages/.host-opt-pr-build/pr1 --component _host_opt_native
+-- Install configuration: "Release"
+-- Installing: /opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
++ cmake -S /home/qch/transfer/host-opt-pr-validation-20261106-r10/source/pr2/CoreX-5.0.0/native -B /opt/corex311/lib/python3.11/site-packages/.host-opt-pr-build/pr2 -DCMAKE_BUILD_TYPE=Release -DPython_EXECUTABLE=/opt/corex311/bin/python3 -DVLLM_PACKAGE_DIR=/opt/corex311/lib/python3.11/site-packages/vllm
+-- The C compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Found Python: /opt/corex311/bin/python3 (found suitable version "3.11.6", minimum required is "3.11") found components: Interpreter Development.Module
+-- vLLM package directory: /opt/corex311/lib/python3.11/site-packages/vllm
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
+-- Build files have been written to: /opt/corex311/lib/python3.11/site-packages/.host-opt-pr-build/pr2
++ cmake --build /opt/corex311/lib/python3.11/site-packages/.host-opt-pr-build/pr2 -j2
+[ 50%] Building C object CMakeFiles/_host_opt_meta_native.dir/native.c.o
+[100%] Linking C shared module _host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+[100%] Built target _host_opt_meta_native
++ cmake --install /opt/corex311/lib/python3.11/site-packages/.host-opt-pr-build/pr2
+-- Install configuration: "Release"
+-- Installing: /opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+installed: defaults remain off; run scripts/verify.py separately
++ RC_INST=0
++ echo 'install rc=0'
+install rc=0
++ echo '== check r10 =='
+== check r10 ==
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311/bin/python3 /home/qch/transfer/host-opt-pr-validation-20261106-r10/scripts/install.py --root /opt/corex311/lib/python3.11/site-packages --check
++ tail -8
+installed source digests and both built modules: PASS
++ echo '== hashes (base, should equal r10 MANIFEST.patched) =='
+== hashes (base, should equal r10 MANIFEST.patched) ==
++ docker exec corex5-py311 bash -c 'cd $0 && sha256sum     vllm/v1/worker/gpu_model_runner.py vllm/envs.py vllm/v1/attention/backends/ilu_flash_attn.py     vllm/v1/worker/host_opt.py vllm/v1/worker/compact_greedy.py vllm/v1/worker/sample_logits_graph.py     vllm/config/compilation.py vllm/config/vllm.py     vllm/model_executor/models/llama.py vllm/model_executor/models/qwen2.py vllm/model_executor/models/qwen3.py' /opt/corex311/lib/python3.11/site-packages
+b1bc3b00a8c09cceeb49111c864584018f84ea10440ef400d6dd2c8fb6e24a5e  vllm/v1/worker/gpu_model_runner.py
+61d00716c878c25c800f1fdce1deb0bdd8e4a53e218b2c79d80d51cb7f82d327  vllm/envs.py
+04049f511f8b2f3d0986d3494f70f5d596a409edc0ad3329aa48acd6e1b6a945  vllm/v1/attention/backends/ilu_flash_attn.py
+2f1943f6557374abfcec4ecf7ef130e1734618f9391126b6f714ffca29712667  vllm/v1/worker/host_opt.py
+4776461a00ba62037f22baa9ad39a97e09c2e2144bb4b697783f43b95c534ce3  vllm/v1/worker/compact_greedy.py
+8cacf0db26ba33e3bfa76b163ac99b00dc9bd63d4de34cc5bf7e361650bec1aa  vllm/v1/worker/sample_logits_graph.py
+caf93a67b5ef6f2fb09d345d1f4f1f585f02f5dee8f189523b61781a9e65554e  vllm/config/compilation.py
+19cdd32ad89e5f521aefd9fbfed06359dc976bf42c6682d73fbefd2abc59a08b  vllm/config/vllm.py
+05ca750be091c8a9c6fc21cfe3751b630b4a0fb4c5b63be85defdc659d773b19  vllm/model_executor/models/llama.py
+4cf8a9ce36f266689d03de7643f5eff59ad5a899fa0ecf1e854b78d8571c9523  vllm/model_executor/models/qwen2.py
+7ea30647dd3bf507099c0a1a4c0792681e1e1e1db50f6141e5e5ea2d9646babc  vllm/model_executor/models/qwen3.py
++ echo '== import smoke =='
+== import smoke ==
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311/bin/python3 -c 'import vllm, torch; print('\''vllm'\'', vllm.__version__); print('\''torch'\'', torch.__version__)'
++ tail -4
+vllm 0.23.0
+torch 2.10.0
++ set +x
+
+### exit: 0
