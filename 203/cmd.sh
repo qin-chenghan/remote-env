@@ -18,44 +18,42 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
   K=$(uname -r)
-  RUN=/home/qch/transfer/corex-driver-linux64-5.0.0_x86_64.run
-
-  echo "== 1. 解包驱动到 tmpfs（不写 /）=="
   X=/tmp/corex-drv
-  rm -rf "$X"
-  sh "$RUN" --noexec --keep --target "$X" 2>&1 | tail -5
-  find "$X" -maxdepth 2 2>/dev/null | head -25
-  echo "-- dkms.conf 的 vGPU 开关 --"
-  grep -nE 'VGPU_ENABLE|_BUILDOPT|MAKE\[0\]' "$X/kernel/dkms.conf" 2>/dev/null | head -10
-  echo "-- 安装脚本支持的内核参数 --"
-  grep -nE 'KERNEL_ONLY|NO_KERNEL|--kernel|VGPU|silent|silent_option' "$X/corex-driver-installer" 2>/dev/null | head -15
 
-  echo "== 2. 清理缓存腾空间 =="
-  df -h / | tail -1
-  dnf clean all 2>&1 | tail -3
-  journalctl --vacuum-size=100M 2>&1 | tail -2
-  df -h / | tail -1
-  AVAIL=$(df -m / | awk 'NR==2{print $4}')
-  echo "avail_mb=$AVAIL"
-
-  echo "== 3. dkms 仓库可见性 =="
-  timeout 60 dnf list available dkms 2>&1 | tail -5
-
-  if [ "$AVAIL" -lt 2000 ]; then
-    echo "!! 可用空间不足 2000MB，跳过安装。需要先清理 / 。"
+  echo "== 1. 安装器形态 =="
+  file "$X/corex-driver-installer" 2>&1
+  if file "$X/corex-driver-installer" | grep -q ELF; then
+    strings "$X/corex-driver-installer" 2>/dev/null | grep -iE -- '--?(kernel|silent|vGPU|force|uninstall)[a-z-]*' | sort -u | head -20
   else
-    echo "== 4. 安装与运行内核匹配的 kernel-devel + dkms =="
-    timeout 300 dnf install -y "kernel-devel-$K" dkms 2>&1 | tail -25
-    echo "install rc=$?"
-
-    echo "== 5. 验证 =="
-    ls -ld "/lib/modules/$K/build" 2>&1
-    readlink -f "/lib/modules/$K/build" 2>&1
-    command -v dkms && dkms --version
-    echo "-- 内核 VFIO 配置（判断是否需要关 vGPU）--"
-    grep -E 'CONFIG_VFIO_MDEV|CONFIG_VFIO=|CONFIG_VFIO_GROUP' "/usr/src/kernels/$K/.config" 2>/dev/null | head -5
-    df -h / | tail -1
+    sed -n '1,40p' "$X/corex-driver-installer" 2>&1
   fi
+
+  echo "== 2. VGPU 默认值与 sanity check =="
+  grep -rnI VGPU_ENABLE "$X/kernel" 2>/dev/null | head -15
+  grep -n -B4 -A8 'BUILD_SANITY_CHECKS' "$X/kernel/itr/Kbuild" 2>/dev/null | head -25
+
+  echo "== 3. kernel/Makefile 目标 =="
+  grep -nE '^[a-zA-Z0-9_./-]+:|KERNEL_UNAME|MODULE|install' "$X/kernel/Makefile" 2>/dev/null | head -25
+
+  echo "== 4. firmware 是否已装 =="
+  ls -l /lib/firmware/iluvatar_cp.bin 2>&1
+  ls "$X/firmware" 2>/dev/null
+
+  echo "== 5. 空间评估（先不删旧内核源码）=="
+  du -sh /usr/src /usr/src/kernels 2>/dev/null
+  rpm -q kernel-source 2>&1
+  df -h / | tail -1
+
+  echo "== 6. 安装匹配运行内核的 kernel-devel =="
+  timeout 300 dnf install -y "kernel-devel-$K" 2>&1 | tail -20
+  echo "install rc=$?"
+  df -h / | tail -1
+
+  echo "== 7. 验证 build 目录与 VFIO 配置 =="
+  ls -ld "/lib/modules/$K/build" 2>&1
+  readlink -f "/lib/modules/$K/build" 2>&1
+  grep -E 'CONFIG_VFIO_MDEV' "/usr/src/kernels/$K/.config" 2>/dev/null | head -3
+  df -h / | tail -1
 
   # ---- 命令结束 ----
 
