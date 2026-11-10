@@ -17,58 +17,66 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 只读：在容器 fusionv1 内定位工作区与目标 cpp。
+  # 只读：确认工作区当前状态、备份文件、构建方式，为"基线 vs 优化"对比做准备。
 
-  echo "== 1. workspace 顶层 =="
+  echo "== 1. 定位工作区 =="
   docker exec fusionv1 bash -lc '
-    ls -la /home/workspace 2>&1 | head -15
-    echo "-- tensor --"
-    ls -la /home/workspace/tensor 2>&1 | head -20
-    echo "-- tensor/files --"
-    ls /home/workspace/tensor/files 2>&1 | head -30
+    find /home/workspace -maxdepth 5 -type f -name "pillow_fusion_func_v2.cpp" 2>/dev/null | head -5
+    find /home/workspace -maxdepth 5 -type f -name "*.bak*" -o -maxdepth 5 -type f -name "fusion.unittest*" 2>/dev/null | head -10
+  ' 2>&1 | head -20
+
+  echo "== 2. 目标目录清单 =="
+  docker exec fusionv1 bash -lc '
+    W=$(dirname "$(find /home/workspace -maxdepth 5 -type f -name "pillow_fusion_func_v2.cpp" 2>/dev/null | head -1)")
+    echo "W=$W"
+    [ -d "$W" ] && ls -la "$W" | head -40
+  ' 2>&1 | head -50
+
+  echo "== 3. 当前源码是否已含 NEON 优化 =="
+  docker exec fusionv1 bash -lc '
+    W=$(dirname "$(find /home/workspace -maxdepth 5 -type f -name "pillow_fusion_func_v2.cpp" 2>/dev/null | head -1)")
+    F=$W/pillow_fusion_func_v2.cpp
+    echo "hit clip_u8_i32_x16: $(grep -c clip_u8_i32_x16 "$F" 2>/dev/null)"
+    echo "hit clip_norm_x16:    $(grep -c clip_norm_x16 "$F" 2>/dev/null)"
+    echo "hit vqmovun_s32:      $(grep -c vqmovun_s32 "$F" 2>/dev/null)"
+    wc -l "$F"
+    ls -l "$W"/*.bak* 2>/dev/null | head -5
+  ' 2>&1 | head -20
+
+  echo "== 4. 备份源码与当前源码的差异规模 =="
+  docker exec fusionv1 bash -lc '
+    W=$(dirname "$(find /home/workspace -maxdepth 5 -type f -name "pillow_fusion_func_v2.cpp" 2>/dev/null | head -1)")
+    B=$W/pillow_fusion_func_v2.cpp.bak_clip_neon
+    if [ -f "$B" ]; then
+      diff -u "$B" "$W/pillow_fusion_func_v2.cpp" | head -80
+      echo "--- diff 行数 ---"
+      diff "$B" "$W/pillow_fusion_func_v2.cpp" | wc -l
+    else
+      echo "no backup $B"
+    fi
+  ' 2>&1 | head -100
+
+  echo "== 5. Makefile =="
+  docker exec fusionv1 bash -lc '
+    W=$(dirname "$(find /home/workspace -maxdepth 5 -type f -name "pillow_fusion_func_v2.cpp" 2>/dev/null | head -1)")
+    cat "$W/Makefile" 2>&1 | head -60
   ' 2>&1 | head -70
 
-  echo "== 2. 找目标目录 =="
+  echo "== 6. 测试程序用法 =="
   docker exec fusionv1 bash -lc '
-    find /home/workspace -maxdepth 4 -type d -name "*opt_fusion*" 2>/dev/null | head -10
-    find /home/workspace -maxdepth 5 -type f -name "pillow_fusion_func_v2.cpp" 2>/dev/null | head -10
-  ' 2>&1 | head -20
+    W=$(dirname "$(find /home/workspace -maxdepth 5 -type f -name "pillow_fusion_func_v2.cpp" 2>/dev/null | head -1)")
+    ls -l "$W/fusion.unittest"* 2>/dev/null
+    grep -rn "argv\|argc\|usage\|Usage\|step" "$W" --include="*.cpp" --include="*.h" 2>/dev/null | head -20
+  ' 2>&1 | head -30
 
-  echo "== 3. 目标目录内容 =="
+  echo "== 7. benchmark 文档 =="
   docker exec fusionv1 bash -lc '
-    W=$(find /home/workspace -maxdepth 4 -type d -name "*opt_fusion*" 2>/dev/null | head -1)
-    echo "W=$W"
-    [ -n "$W" ] && ls -la "$W" | head -25
-    [ -n "$W" ] && du -sh "$W"
-  ' 2>&1 | head -40
-
-  echo "== 4. 目标文件 =="
-  docker exec fusionv1 bash -lc '
-    F=$(find /home/workspace -maxdepth 5 -type f -name "pillow_fusion_func_v2.cpp" 2>/dev/null | head -1)
-    echo "F=$F"
-    if [ -n "$F" ]; then
-      wc -l "$F"; head -70 "$F"
-    fi
-  ' 2>&1 | head -85
-
-  echo "== 5. 构建与依赖 =="
-  docker exec fusionv1 bash -lc '
-    W=$(find /home/workspace -maxdepth 4 -type d -name "*opt_fusion*" 2>/dev/null | head -1)
-    [ -n "$W" ] && ls -la "$W" | grep -iE "CMakeLists|Makefile|setup.py|requirements|build|test|README" | head -15
-    echo "-- 上层目录 --"
-    [ -n "$W" ] && ls -la "$(dirname "$W")" | head -20
-  ' 2>&1 | head -40
-
-  echo "== 6. 其他 python 环境 =="
-  docker exec fusionv1 bash -lc '
-    ls /opt 2>/dev/null | head -10
-    command -v conda || echo no-conda
-    python3 -c "import sys;print(sys.executable)" 2>&1
-    python3 -m pip --version 2>&1 | head -2
-  ' 2>&1 | head -20
-
-  echo "== 7. 容器 resource limits =="
-  docker inspect fusionv1 --format '{{.HostConfig.NanoCpus}} {{.HostConfig.Memory}} {{json .HostConfig.CpusetCpus}}' 2>&1
+    W=$(dirname "$(find /home/workspace -maxdepth 5 -type f -name "pillow_fusion_func_v2.cpp" 2>/dev/null | head -1)")
+    ls "$W"/*.md 2>/dev/null
+    for f in "$W/benchmark.md" "$W"/*benchmark*.md; do
+      [ -f "$f" ] && { echo "--- $f ---"; head -80 "$f"; }
+    done
+  ' 2>&1 | head -100
 
   # ---- 命令结束 ----
 
