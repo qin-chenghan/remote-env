@@ -1,0 +1,66 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T08:00:36Z
+
++ echo '== builder shell history =='
+== builder shell history ==
++ grep -iE 'make|rpmbuild|64k|kernel|6\.6' /home/l30029702/.bash_history
++ tail -30
+grep: /home/l30029702/.bash_history: No such file or directory
++ echo '== root history =='
+== root history ==
++ grep -iE '64k|02403|make .*kernel|modules_prepare' /root/.bash_history
++ tail -20
+rpm -ivh kernel-64kb-5.10.0-225.0.0.124.oe2203sp4.aarch64.rpm kernel-64kb-debuginfo-5.10.0-225.0.0.124.oe2203sp4.aarch64.rpm kernel-64kb-debugsource-5.10.0-225.0.0.124.oe2203sp4.aarch64.rpm kernel-64kb-devel-5.10.0-225.0.0.124.oe2203sp4.aarch64.rpm kernel-64kb-headers-5.10.0-225.0.0.124.oe2203sp4.aarch64.rpm
+rpm -ivh kernel-64kb-5.10.0-225.0.0.124.oe2203sp4.aarch64.rpm kernel-64kb-debuginfo-5.10.0-225.0.0.124.oe2203sp4.aarch64.rpm kernel-64kb-debugsource-5.10.0-225.0.0.124.oe2203sp4.aarch64.rpm kernel-64kb-devel-5.10.0-225.0.0.124.oe2203sp4.aarch64.rpm
+rm -f perf-5.10.0-330.0.0.231.oe2203sp464kb.aarch64.rpm 
+mkdir 64k
+cd 64k/
+rpm -ivh kernel-6.6.02403_sp3_64K-6.aarch64.rpm --force
+rpm -ivh kernel-headers-6.6.02403_sp3_64K-6.aarch64.rpm --force
++ echo '== broad search for devel/02403 =='
+== broad search for devel/02403 ==
++ find / -xdev -iname 'kernel-devel*6.6.02403*'
++ head -5
++ find / -xdev -maxdepth 6 '(' -iname '*02403*' -o -iname '*_64K*' ')'
++ grep -vE '^/proc|^/sys'
++ head -15
+/usr/lib/modules/6.6.02403_sp3-64K
+/usr/src/linux-6.6.0-145.1.28.165.oe2403sp1.aarch64/include/config/PAGE_SIZE_LESS_THAN_64KB
+/root/miniconda3/lib/python3.13/site-packages/types_toml-0.10.8.20240310.dist-info
++ echo '== docker overlay kernel sources =='
+== docker overlay kernel sources ==
++ head -5
++ ls -d '/home/docker/overlay2/*/diff/usr/src/linux*'
++ head -5
++ ls -d '/home/docker/overlay2/*/merged/usr/src/linux*'
++ echo '== containers =='
+== containers ==
++ docker ps -a --format '{{.Names}}\t{{.Image}}\t{{.Status}}'
++ head -10
+corex5-py311-s00965207	corex5-py311-s00965207:latest	Exited (137) 5 days ago
+minio	pgsty/silo:RELEASE.2026-09-16T00-00-00Z	Exited (0) 8 days ago
+corex5-py311-csz	corex5-py311-csz:latest	Exited (255) 8 days ago
+corex5-v0.23.0	corex:5.0.0	Exited (137) 5 days ago
+corex5-py311-lzy	corex5-py311-lzy:latest	Exited (137) 13 days ago
+corex5-py311-ssh_tst1	corex5-py311-ssh_tst1:latest	Exited (137) 3 days ago
+corex5-py311-ssh_tst_new	corex5-py311-ssh_tst_new:latest	Exited (137) 3 weeks ago
+corex5-py311-ssh_tst	corex5-py311-ssh_tst:latest	Exited (137) 3 weeks ago
+corex5-py311-g30061491	corex5-py311-1014-commit:v1	Exited (137) 13 days ago
+corex5-py311	corex5-py311:with-python311	Up 24 minutes
++ echo '== rpm output dirs =='
+== rpm output dirs ==
++ head -5
++ ls -d '/root/rpmbuild/RPMS/*' '/home/*/rpmbuild/RPMS/*'
++ find /home/l30029702 -maxdepth 3 -type d
++ head -10
+/home/l30029702
+/home/l30029702/64k
+/home/l30029702/script
+/home/l30029702/script/perf
+/home/l30029702/script/perf/usr
+/home/l30029702/script/FlameGraph-master
+/home/l30029702/script/FlameGraph-master/dev
++ set +x
+
+### exit: 0
