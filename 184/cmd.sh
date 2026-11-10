@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：确认 /home/lw 的 64k 内核树能否用于编模块。
+# 只读：追查 64K 内核的构建位置 / devel 产物。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,28 +17,26 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== /home/lw/20261104-64k =="
-  ls -la /home/lw/20261104-64k 2>&1 | head -20
+  echo "== builder shell history =="
+  grep -iE 'make|rpmbuild|64k|kernel|6\.6' /home/l30029702/.bash_history 2>&1 | tail -30
 
-  echo "== /home/lw/kernel =="
-  ls -la /home/lw/kernel 2>&1 | head -25
-  sed -n '1,6p' /home/lw/kernel/Makefile 2>&1
+  echo "== root history =="
+  grep -iE '64k|02403|make .*kernel|modules_prepare' /root/.bash_history 2>&1 | tail -20
 
-  echo "== prepared build tree? =="
-  ls -l /home/lw/kernel/Module.symvers /home/lw/kernel/.config /home/lw/kernel/vmlinux 2>&1
-  grep -E 'CONFIG_ARM64_64K_PAGES|CONFIG_LOCALVERSION' /home/lw/kernel/.config 2>&1
-  ls -l /home/lw/kernel/include/generated/asm-offsets.h 2>&1
+  echo "== broad search for devel/02403 =="
+  find / -xdev -iname 'kernel-devel*6.6.02403*' 2>/dev/null | head -5
+  find / -xdev -maxdepth 6 \( -iname '*02403*' -o -iname '*_64K*' \) 2>/dev/null | grep -vE '^/proc|^/sys' | head -15
 
-  echo "== kernelrelease from tree =="
-  grep -rn 'CONFIG_LOCALVERSION=' /home/lw/kernel/.config 2>&1
-  ls -la /home/lw/20261104-64k/*.rpm 2>&1 | head -5
-  find /home/lw -maxdepth 3 -name 'kernel-devel*.rpm' 2>/dev/null | head -5
+  echo "== docker overlay kernel sources =="
+  ls -d /home/docker/overlay2/*/diff/usr/src/linux* 2>/dev/null | head -5
+  ls -d /home/docker/overlay2/*/merged/usr/src/linux* 2>/dev/null | head -5
 
-  echo "== driver kernel dirs available =="
-  ls -1 /home/lw/kernel/arch/arm64/boot 2>&1 | head -5
+  echo "== containers =="
+  docker ps -a --format '{{.Names}}\t{{.Image}}\t{{.Status}}' 2>&1 | head -10
 
-  echo "== dkms.conf in tree? =="
-  ls -l /home/lw/kernel/.config /home/lw/kernel/Module.symvers 2>&1
+  echo "== rpm output dirs =="
+  ls -d /root/rpmbuild/RPMS/* /home/*/rpmbuild/RPMS/* 2>/dev/null | head -5
+  find /home/l30029702 -maxdepth 3 -type d 2>/dev/null | head -10
 
   # ---- 命令结束 ----
 
