@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 注意：本脚本在宿主机执行；/opt 属于容器，必须走 docker exec。
+# 注意：本脚本在宿主机执行；/opt 属于容器，必须走 docker exec。只读。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,43 +18,53 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== inspect activate PYTHONPATH handling =="
-  docker exec corex5-py311 bash -c 'for A in /opt/corex311/bin/activate /opt/corex311-cpython-vllm/bin/activate; do
-    echo "-- $A"
-    grep -n "PYTHONPATH" "$A" | head -12
-    echo "   size=$(stat -c %s "$A")  sha=$(sha256sum "$A" | cut -c1-12)"
-  done' 2>&1
+  echo "== running vllm =="
+  ps -eo pid,args 2>/dev/null | grep -E 'vllm.entrypoints|Worker_TP' | grep -v grep | cut -c1-200 | head -6
 
-  echo "== patch inside container =="
-  docker exec -i corex5-py311 bash -s "$TS" <<'SH' 2>&1
-set -x
-TS=$1
-MARK='# 184: strip container-level PYTHONPATH pollution'
-for V in /opt/corex311 /opt/corex311-cpython-vllm; do
-  A="$V/bin/activate"
-  echo "-- $A"
-  if grep -q "$MARK" "$A" 2>/dev/null; then
-    echo "  already patched"
+  echo "== running vllm env (PREFIX-ish) =="
+  P=$(pgrep -f 'vllm.entrypoints.openai.api_server' 2>/dev/null | head -1)
+  if [ -n "$P" ]; then
+    echo "pid=$P cwd=$(readlink /proc/$P/cwd 2>/dev/null)"
+    tr '\0' '\n' < "/proc/$P/environ" 2>/dev/null | grep -E 'PYTHONPATH|VIRTUAL_ENV|VLLM_|TORCH_|LIGHTHOST|LD_PRELOAD|UMD_' | sort
+    echo "-- argv --"
+    tr '\0' ' ' < "/proc/$P/cmdline" 2>/dev/null | cut -c1-400; echo
   else
-    cp -a "$A" "$A.bak-pyenv-$TS" || exit 1
-    printf '\n%s\n%s\n%s\n' "$MARK" 'unset PYTHONPATH PYTHONHOME' 'hash -r' >> "$A"
-    echo "  appended"
+    echo "no vllm server process"
   fi
-  tail -5 "$A"
-done
-SH
 
-  echo "== verify from polluted env =="
+  echo "== interpreter build flags =="
   for V in /opt/corex311 /opt/corex311-cpython-vllm; do
     echo "-- $V"
-    docker exec -e PYTHONPATH=/usr/local/lib/python3.12/site-packages corex5-py311 \
-      bash -c "source $V/bin/activate
-        echo -n 'PYTHONPATH='; echo \"\${PYTHONPATH:-<unset>}\"
-        python -c 'import sys, torch, vllm; print(\"torch\", torch.__version__, torch.__file__); print(\"vllm\", vllm.__version__)'" 2>&1 | tail -5
+    docker exec corex5-py311 "$V/bin/python3" -c \
+      "import sys,sysconfig
+print('ver',sys.version.split()[0],'base',sys.base_prefix)
+print('cfg',sysconfig.get_config_var('CONFIG_ARGS'))
+print('py_cflags',sysconfig.get_config_var('PY_CFLAGS'))
+print('pgo_use','-fprofile-use' in (sysconfig.get_config_var('PY_CFLAGS') or ''))
+print('lto','-flto' in (sysconfig.get_config_var('PY_CFLAGS') or ''))" 2>&1
   done
 
-  echo "== deactivate check =="
-  docker exec corex5-py311 bash -c 'source /opt/corex311/bin/activate; deactivate; echo "after=${PYTHONPATH:-<unset>}"' 2>&1 | tail -2
+  echo "== vllm patch artifacts =="
+  for V in /opt/corex311 /opt/corex311-cpython-vllm; do
+    echo "-- $V"
+    docker exec corex5-py311 bash -c "ls -l $V/lib/python3.11/site-packages/vllm/_host_opt_native*.so $V/lib/python3.11/site-packages/vllm/_host_opt_meta_native*.so $V/lib/python3.11/site-packages/vllm/v1/worker/host_fastpath.py 2>&1" | sed "s|$V/lib/python3.11/site-packages|...|"
+    docker exec corex5-py311 bash -c "grep -l 'DISABLE_DECODE_FASTPATH\|host_fastpath' -r $V/lib/python3.11/site-packages/vllm/v1/worker/*.py 2>/dev/null | head -5" | sed "s|$V/lib/python3.11/site-packages|...|"
+  done
+
+  echo "== pgo marker inside venv =="
+  docker exec corex5-py311 bash -c 'ls -l /opt/cpython-vllm/v1/bin/python3.11; /opt/cpython-vllm/v1/bin/python3.11 -c "import sysconfig;print(sysconfig.get_config_var(\"CONFIG_ARGS\"))"' 2>&1
+
+  echo "== vllm/torch versions both venvs =="
+  for V in /opt/corex311 /opt/corex311-cpython-vllm; do
+    docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME "$V/bin/python3" -c \
+      "import importlib.metadata as m
+for n in ('vllm','torch','triton','transformers','torch-module-attr-fastpath','vllm-corex-metadata'):
+    try: print(n, m.version(n))
+    except Exception as e: print(n, 'MISSING')" 2>&1 | sed "s|^|$V: |"
+  done
+
+  echo "== multi engine =="
+  cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>&1
 
   # ---- 命令结束 ----
 
