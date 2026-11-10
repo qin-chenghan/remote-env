@@ -47,12 +47,21 @@ for n in ('vllm._host_opt_native','vllm._host_opt_meta_native'):
     docker exec corex5-py311 bash -c "grep -rln 'VLLM_HOST_FASTPATH\|host_fastpath' $V/lib/python3.11/site-packages/vllm/ 2>/dev/null | head -8" | sed "s|$V/lib/python3.11/site-packages|...|"
   done
 
-  echo "== transformers history hint =="
+  echo "== transformers version + install time =="
   docker exec corex5-py311 bash -c '
     for V in /opt/corex311 /opt/corex311-cpython-vllm; do
-      d=$V/lib/python3.11/site-packages/transformers-*.dist-info
-      echo "$V: $(basename "$d" 2>/dev/null)"
+      for d in $V/lib/python3.11/site-packages/transformers-*.dist-info; do
+        echo "$V: $(basename "$d") mtime=$(stat -c %y "$d" 2>/dev/null)"
+      done
+      ls -l --time-style=long-iso $V/lib/python3.11/site-packages/transformers/version.py 2>/dev/null
     done' 2>&1
+
+  echo "== bundle pin =="
+  grep -n '^transformers' /home/z30059427/corex5-py311-20261009/requirements-py311.txt 2>&1
+  grep -n 'transformers' /home/z30059427/corex5-py311-20261009/requirements-vendor-py311.txt 2>&1 | head -5
+
+  echo "== pip check =="
+  docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python3 -m pip check 2>&1 | tail -5
 
   # ---- 命令结束 ----
 
