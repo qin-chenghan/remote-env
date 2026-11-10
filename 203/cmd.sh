@@ -17,37 +17,32 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== 1. 宿主机 GPU 状态 =="
-  lsmod | grep iluvatar
-  ls /dev/iluvatar* | wc -l
-  cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>/dev/null || echo "no multi_engine param"
-
-  echo "== 2. 容器设备配置 =="
-  docker inspect corex5-py311 --format '{{json .HostConfig.Devices}}' 2>&1 | head -5
-  docker inspect corex5-py311 --format '{{json .HostConfig.DeviceRequests}}' 2>&1 | head -5
-  docker inspect corex5-py311 --format '{{range .HostConfig.Binds}}{{.}}{{"\n"}}{{end}}' 2>&1 | head -10
-  docker inspect corex5-py311 --format '{{.State.StartedAt}}' 2>&1
-
-  echo "== 3. 容器内是否看到 GPU =="
+  echo "== 1. 容器内 ixsmi（全路径）=="
   docker exec corex5-py311 bash -lc '
-    echo -n "devices: "; ls /dev/iluvatar* 2>/dev/null | wc -l
-    ixsmi -L 2>&1 | head -8
-  ' 2>&1 | head -20
-
-  echo "== 4. 容器内 venv 与包 =="
-  docker exec corex5-py311 bash -lc '
-    ls /opt 2>/dev/null
-    for p in /opt/corex311/bin/python /opt/corex311-cpython-vllm/bin/python; do
-      [ -x "$p" ] && echo "$p -> $("$p" -V 2>&1)"
-    done
-    /opt/corex311/bin/pip list 2>/dev/null | grep -iE "^(vllm|torch|ixsys|triton|transformers)"
+    ls -l /usr/local/corex/bin/ixsmi /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | head -4
+    /usr/local/corex/bin/ixsmi 2>&1 | head -20
   ' 2>&1 | head -30
 
-  echo "== 5. 容器内 corex =="
-  docker exec corex5-py311 bash -lc 'ls /usr/local | head -10; echo "COREX_VERSION=${COREX_VERSION:-<empty>}"' 2>&1 | head -15
+  echo "== 2. 容器内 torch 识别 GPU =="
+  docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 \
+    /opt/corex311/bin/python -c '
+import torch
+print("torch", torch.__version__)
+print("device_count", torch.cuda.device_count())
+for i in range(torch.cuda.device_count()):
+    print(i, torch.cuda.get_device_name(i))
+a = torch.randn(64, 64, device="cuda")
+print("matmul ok", float((a @ a).sum()))
+' 2>&1 | tail -12
 
-  echo "== 6. 空间 =="
-  df -h / | tail -1
+  echo "== 3. 容器 shm =="
+  docker exec corex5-py311 bash -lc 'df -h /dev/shm 2>&1 | tail -1; cat /proc/meminfo | head -2' 2>&1
+
+  echo "== 4. 容器内 PATH 与 corex 环境 =="
+  docker exec corex5-py311 bash -lc 'echo "PATH=$PATH"; echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-<empty>}"' 2>&1 | head -5
+
+  echo "== 5. 多流参数 =="
+  cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>&1
 
   # ---- 命令结束 ----
 
