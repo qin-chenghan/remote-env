@@ -23,10 +23,6 @@ mkdir -p "$DIR/tmp"
   MODEL=/home/models/Qwen3-32B-W8A8
   echo "MODEL=$MODEL"
   ls "$MODEL" 2>&1 | head -10
-  if [ -z "$MODEL" ]; then
-    echo "!! 未找到模型，停止"
-    exit 0
-  fi
   du -sh "$MODEL" 2>/dev/null
 
   echo "== 2. 启动基线 vLLM（端口 8899）=="
