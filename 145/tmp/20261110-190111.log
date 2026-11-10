@@ -1,0 +1,75 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-10T11:01:11Z
+
++ echo '== 1. 宿主机仓库内容（两层）=='
+== 1. 宿主机仓库内容（两层）==
++ find /home/qch/projects/vllm -maxdepth 2 -type d
++ head -20
+/home/qch/projects/vllm
+/home/qch/projects/vllm/.git
+/home/qch/projects/vllm/.git/logs
+/home/qch/projects/vllm/.git/objects
+/home/qch/projects/vllm/.git/hooks
+/home/qch/projects/vllm/.git/branches
+/home/qch/projects/vllm/.git/refs
+/home/qch/projects/vllm/.git/info
+/home/qch/projects/vllm/docs
+/home/qch/projects/vllm/docs/figures
+/home/qch/projects/vllm/workplace
+/home/qch/projects/vllm/workplace/edition1
+/home/qch/projects/vllm/vllm
+/home/qch/projects/vllm/vllm/csrc
+/home/qch/projects/vllm/vllm/vllm
++ echo '-- workplace --'
+-- workplace --
++ ls -la /home/qch/projects/vllm/workplace
++ head -15
+total 60
+drwxr-xr-x. 3 root root  4096 Nov 10 16:52 .
+drwxr-xr-x. 6 root root  4096 Nov 10 16:52 ..
+drwxr-xr-x. 2 root root  4096 Nov 10 16:52 edition1
+-rw-r--r--. 1 root root 17869 Nov 10 16:52 lib_preprocess.cpp
+-rw-r--r--. 1 root root 23424 Nov 10 16:52 openvla_preprocess_pipeline.py
+-rw-r--r--. 1 root root   758 Nov 10 16:52 README.md
++ echo '-- edition1 --'
+-- edition1 --
++ ls -la /home/qch/projects/vllm/workplace/edition1
++ head -10
+total 32
+drwxr-xr-x. 2 root root 4096 Nov 10 16:52 .
+drwxr-xr-x. 3 root root 4096 Nov 10 16:52 ..
+-rw-r--r--. 1 root root 5758 Nov 10 16:52 bench_all.py
+-rw-r--r--. 1 root root 2880 Nov 10 16:52 e2e_verify.py
+-rw-r--r--. 1 root root 6540 Nov 10 16:52 step_breakdown.py
+-rw-r--r--. 1 root root 3335 Nov 10 16:52 test_torch_op.py
++ echo '-- 文件计数 --'
+-- 文件计数 --
++ find /home/qch/projects/vllm -type f
++ wc -l
+49
++ echo '== 2. 容器内仓库内容 =='
+== 2. 容器内仓库内容 ==
++ docker exec fusionv1 bash -lc '
+find /home/qch/projects/vllm -maxdepth 2 2>/dev/null | head -20
+echo "-- 文件计数 --"
+find /home/qch/projects/vllm -type f 2>/dev/null | wc -l
+echo "-- 关键文件 --"
+ls -l /home/qch/projects/vllm/workplace/lib_preprocess.cpp 2>&1
+'
++ head -30
+-- 文件计数 --
+0
+-- 关键文件 --
+-rw-r--r--. 1 root root 17869 Nov 10 16:52 /home/qch/projects/vllm/workplace/lib_preprocess.cpp
++ echo '== 3. 挂载关系 =='
+== 3. 挂载关系 ==
++ docker inspect fusionv1 --format '{{range .HostConfig.Binds}}{{.}}{{"\n"}}{{end}}'
++ head -10
+
++ docker exec fusionv1 bash -lc 'stat -c "%d %i %n" /home/qch 2>/dev/null; ls -di /home/qch'
+208 63189071 /home/qch
+63189071 /home/qch
++ set +x
+
+### exit: 0
