@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：为 6.6.02403_sp3-64K 找 kernel-devel / 源码。
+# 只读：查找 6.6.02403_sp3-64K 的内核源码/构建树。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,40 +17,30 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  K=6.6.02403_sp3-64K
+  echo "== builder dir =="
+  ls -la /home/l30029702/64k 2>&1 | head -30
 
-  echo "== repos =="
-  dnf repolist 2>&1 | head -25
+  echo "== any prepared kernel tree =="
+  find /home /opt /usr/src -maxdepth 6 -name 'Module.symvers' 2>/dev/null | head -10
 
-  echo "== available kernel devel (skip broken repo) =="
-  dnf --disablerepo='OpenStack_Wallaby' --disablerepo='OpenStack_Wallaby*' \
-      list --available 'kernel-devel*' 'kernel*64K*' 'kernel*64kb*' 2>&1 | tail -20
+  echo "== any linux source dirs =="
+  find /home /opt /usr/src -maxdepth 5 -type d \( -name 'linux-*' -o -name 'linux' -o -name '*kernel*src*' \) 2>/dev/null | head -15
 
-  echo "== search 6.6.02403 =="
-  dnf --disablerepo='OpenStack_Wallaby' --disablerepo='OpenStack_Wallaby*' \
-      search '6.6.02403' 2>&1 | head -20
+  echo "== 64K config in any tree =="
+  for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2>/dev/null | head -20); do
+    grep -q 'CONFIG_ARM64_64K_PAGES=y' "$f" 2>/dev/null && echo "64K: $f  ($(stat -c %y "$f"))"
+  done
 
-  echo "== local rpm files =="
-  find /home /root /opt /tmp /var/tmp -maxdepth 4 -iname 'kernel*.rpm' 2>/dev/null | head -10
-  ls -l /boot | grep -iE '64K|02403' 2>&1 | head -10
+  echo "== rpm contents hint =="
+  rpm -qpl /home/l30029702/64k/kernel-headers-6.6.02403_sp3_64K-6.aarch64.rpm 2>&1 | head -15
+  echo "--- kernel rpm ---"
+  rpm -qpl /home/l30029702/64k/kernel-6.6.02403_sp3_64K-6.aarch64.rpm 2>&1 | grep -E 'build|source|devel' | head -10
 
-  echo "== build target exists? =="
-  ls -la /usr/lib/modules/$K 2>&1 | head -10
-  ls -l /usr/lib/modules/$K/build 2>&1
-  ls -l /boot/config-$K /boot/System.map-$K 2>&1 | head -4
+  echo "== who built it (history hint) =="
+  ls -la /home/l30029702 2>&1 | head -20
 
-  echo "== source trees =="
-  ls -d /usr/src/* 2>&1 | head -10
-  find /usr/src /opt /home -maxdepth 3 -type f -name 'Makefile' -path '*linux*' 2>/dev/null | head -5
-
-  echo "== kernel meta =="
-  uname -v
-  grep -E 'CONFIG_ARM64_64K_PAGES|CONFIG_LOCALVERSION' /boot/config-$K 2>/dev/null
-  ls -l /boot/vmlinuz-$K 2>&1
-
-  echo "== rpmdb health =="
-  rpm -qa 2>/dev/null | wc -l
-  rpm -q "kernel-6.6.02403_sp3_64K" 2>&1
+  echo "== existing trees for 145 =="
+  ls -l /usr/src/linux-6.6.0-145.3.37.168.oe2403sp3.aarch64/Module.symvers 2>&1
 
   # ---- 命令结束 ----
 
