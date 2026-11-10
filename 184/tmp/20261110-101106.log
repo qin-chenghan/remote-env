@@ -1,0 +1,99 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T02:11:06Z
+
++ echo '== build flags (all vars) =='
+== build flags (all vars) ==
++ docker exec corex5-py311 /opt/corex311-cpython-vllm/bin/python3 -c 'import sysconfig
+for k in ('\''CFLAGS'\'','\''PY_CFLAGS'\'','\''PY_CFLAGS_NODIST'\'','\''LDFLAGS'\'','\''PY_LDFLAGS'\'','\''CONFIGURE_CFLAGS'\'','\''OPT'\''):
+    print(k,'\''='\'',sysconfig.get_config_var(k))'
+CFLAGS = -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall
+PY_CFLAGS = -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall
+PY_CFLAGS_NODIST = -fno-semantic-interposition -flto -fuse-linker-plugin -ffat-lto-objects -flto-partition=none -g -std=c11 -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -Werror=implicit-function-declaration -fvisibility=hidden -fprofile-use -fprofile-correction -fopt-info-inline-optimized-missed -I/home/g30061491/cpy311_vllm_pgo/build/G1/20261020T032332Z_93f44857/source/Python-3.11.6/Include/internal
+LDFLAGS = -Wl,-rpath,/opt/cpython-vllm/v1/lib -Wl,-rpath,/opt/cpython-vllm/v1/lib
+PY_LDFLAGS = -Wl,-rpath,/opt/cpython-vllm/v1/lib -Wl,-rpath,/opt/cpython-vllm/v1/lib
+CONFIGURE_CFLAGS = 
+OPT = -DNDEBUG -g -fwrapv -O3 -Wall
++ echo '== build Makefile flags =='
+== build Makefile flags ==
++ docker exec corex5-py311 bash -c '
+    M=$(ls /opt/cpython-vllm/v1/lib/python3.11/config-*/Makefile 2>/dev/null | head -1)
+    echo "makefile=$M"
+    [ -n "$M" ] && grep -nE "^CFLAGS=|^PY_CFLAGS=|^LDFLAGS=|^PY_LDFLAGS=|fprofile-use|fprofile-generate|flto" "$M" | head -12
+    echo "-- .gcda/.gcno --"
+    find /opt/cpython-vllm/v1 -name "*.gcda" -o -name "*.gcno" 2>/dev/null | head -3'
+makefile=/opt/cpython-vllm/v1/lib/python3.11/config-3.11-aarch64-linux-gnu/Makefile
+2:CFLAGS_NODIST = -fprofile-use -fprofile-correction -fopt-info-inline-optimized-missed
+3:LDFLAGS_NODIST = -fprofile-use -fprofile-correction -fopt-info-inline-optimized-missed -v
+53:PGO_PROF_GEN_FLAG=-fprofile-generate
+54:PGO_PROF_USE_FLAG=-fprofile-use -fprofile-correction
+92:CONFIGURE_CFLAGS_NODIST= -fno-semantic-interposition -flto -fuse-linker-plugin -ffat-lto-objects -flto-partition=none -g -std=c11 -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -Werror=implicit-function-declaration -fvisibility=hidden
+96:CONFIGURE_LDFLAGS_NODIST= -fno-semantic-interposition -flto -fuse-linker-plugin -ffat-lto-objects -flto-partition=none -g
+105:PY_CFLAGS=	$(BASECFLAGS) $(OPT) $(CONFIGURE_CFLAGS) $(CFLAGS) $(EXTRA_CFLAGS)
+111:PY_LDFLAGS=	$(CONFIGURE_LDFLAGS) $(LDFLAGS)
+-- .gcda/.gcno --
++ echo '== link-test the native .so =='
+== link-test the native .so ==
++ for V in /opt/corex311 /opt/corex311-cpython-vllm
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311/bin/python3 -c 'import importlib
+for n in ('\''vllm._host_opt_native'\'','\''vllm._host_opt_meta_native'\''):
+    try:
+        m=importlib.import_module(n); print(n,'\''OK'\'',getattr(m,'\''__file__'\'','\'''\''))
+    except Exception as e: print(n,'\''FAIL'\'',type(e).__name__,e)'
++ sed 's|^|/opt/corex311: |'
+/opt/corex311: vllm._host_opt_native OK /opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
+/opt/corex311: vllm._host_opt_meta_native OK /opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
++ for V in /opt/corex311 /opt/corex311-cpython-vllm
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python3 -c 'import importlib
+for n in ('\''vllm._host_opt_native'\'','\''vllm._host_opt_meta_native'\''):
+    try:
++ sed 's|^|/opt/corex311-cpython-vllm: |'
+        m=importlib.import_module(n); print(n,'\''OK'\'',getattr(m,'\''__file__'\'','\'''\''))
+    except Exception as e: print(n,'\''FAIL'\'',type(e).__name__,e)'
+/opt/corex311-cpython-vllm: vllm._host_opt_native OK /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
+/opt/corex311-cpython-vllm: vllm._host_opt_meta_native OK /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
++ echo '== host fastpath wiring =='
+== host fastpath wiring ==
++ for V in /opt/corex311 /opt/corex311-cpython-vllm
++ echo '-- /opt/corex311'
+-- /opt/corex311
++ docker exec corex5-py311 bash -c 'grep -rln '\''VLLM_HOST_FASTPATH\|host_fastpath'\'' /opt/corex311/lib/python3.11/site-packages/vllm/ 2>/dev/null | head -8'
++ sed 's|/opt/corex311/lib/python3.11/site-packages|...|'
+.../vllm/envs.py
+.../vllm/v1/worker/gpu_model_runner.py
+.../vllm/v1/worker/host_fastpath.py
+.../vllm/v1/worker/__pycache__/host_fastpath.cpython-311.pyc
+.../vllm/v1/worker/__pycache__/gpu_model_runner.cpython-311.pyc
+.../vllm/v1/attention/backends/__pycache__/ilu_flash_attn.cpython-311.pyc
+.../vllm/v1/attention/backends/ilu_flash_attn.py
+.../vllm/__pycache__/envs.cpython-311.pyc
++ for V in /opt/corex311 /opt/corex311-cpython-vllm
++ echo '-- /opt/corex311-cpython-vllm'
+-- /opt/corex311-cpython-vllm
++ docker exec corex5-py311 bash -c 'grep -rln '\''VLLM_HOST_FASTPATH\|host_fastpath'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/ 2>/dev/null | head -8'
++ sed 's|/opt/corex311-cpython-vllm/lib/python3.11/site-packages|...|'
++ echo '== transformers version + install time =='
+== transformers version + install time ==
++ docker exec corex5-py311 bash -c '
+    for V in /opt/corex311 /opt/corex311-cpython-vllm; do
+      for d in $V/lib/python3.11/site-packages/transformers-*.dist-info; do
+        echo "$V: $(basename "$d") mtime=$(stat -c %y "$d" 2>/dev/null)"
+      done
+      ls -l --time-style=long-iso $V/lib/python3.11/site-packages/transformers/version.py 2>/dev/null
+    done'
+/opt/corex311: transformers-5.5.3.dist-info mtime=2026-10-09 14:52:37.000000000 +0800
+/opt/corex311-cpython-vllm: transformers-5.5.3.dist-info mtime=2026-11-09 09:09:24.909949440 +0800
++ echo '== bundle pin =='
+== bundle pin ==
++ grep -n '^transformers' /home/z30059427/corex5-py311-20261009/requirements-py311.txt
+155:transformers==5.5.3
++ grep -n transformers /home/z30059427/corex5-py311-20261009/requirements-vendor-py311.txt
++ head -5
++ echo '== pip check =='
+== pip check ==
++ docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python3 -m pip check
++ tail -5
+No broken requirements found.
++ set +x
+
+### exit: 0
