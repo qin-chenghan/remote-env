@@ -1,0 +1,80 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T02:03:59Z
+
++ echo '== inspect activate PYTHONPATH handling =='
+== inspect activate PYTHONPATH handling ==
++ docker exec corex5-py311 bash -c 'for A in /opt/corex311/bin/activate /opt/corex311-cpython-vllm/bin/activate; do
+    echo "-- $A"
+    grep -n "PYTHONPATH" "$A" | head -12
+    echo "   size=$(stat -c %s "$A")  sha=$(sha256sum "$A" | cut -c1-12)"
+  done'
+-- /opt/corex311/bin/activate
+   size=2058  sha=8af62d8784a4
+-- /opt/corex311-cpython-vllm/bin/activate
+   size=2027  sha=2a70f87328f3
++ echo '== patch inside container =='
+== patch inside container ==
++ docker exec -i corex5-py311 bash -s 20261110-100359
++ TS=20261110-100359
++ MARK='# 184: strip container-level PYTHONPATH pollution'
++ for V in /opt/corex311 /opt/corex311-cpython-vllm
++ A=/opt/corex311/bin/activate
++ echo '-- /opt/corex311/bin/activate'
++ grep -q '# 184: strip container-level PYTHONPATH pollution' /opt/corex311/bin/activate
+-- /opt/corex311/bin/activate
++ cp -a /opt/corex311/bin/activate /opt/corex311/bin/activate.bak-pyenv-20261110-100359
++ printf '\n%s\n%s\n%s\n' '# 184: strip container-level PYTHONPATH pollution' 'unset PYTHONPATH PYTHONHOME' 'hash -r'
++ echo '  appended'
++ tail -5 /opt/corex311/bin/activate
+  appended
+fi
+
+# 184: strip container-level PYTHONPATH pollution
+unset PYTHONPATH PYTHONHOME
+hash -r
++ for V in /opt/corex311 /opt/corex311-cpython-vllm
++ A=/opt/corex311-cpython-vllm/bin/activate
++ echo '-- /opt/corex311-cpython-vllm/bin/activate'
++ grep -q '# 184: strip container-level PYTHONPATH pollution' /opt/corex311-cpython-vllm/bin/activate
+-- /opt/corex311-cpython-vllm/bin/activate
++ cp -a /opt/corex311-cpython-vllm/bin/activate /opt/corex311-cpython-vllm/bin/activate.bak-pyenv-20261110-100359
+  appended
++ printf '\n%s\n%s\n%s\n' '# 184: strip container-level PYTHONPATH pollution' 'unset PYTHONPATH PYTHONHOME' 'hash -r'
++ echo '  appended'
++ tail -5 /opt/corex311-cpython-vllm/bin/activate
+fi
+
+# 184: strip container-level PYTHONPATH pollution
+unset PYTHONPATH PYTHONHOME
+hash -r
++ echo '== verify from polluted env =='
+== verify from polluted env ==
++ for V in /opt/corex311 /opt/corex311-cpython-vllm
++ echo '-- /opt/corex311'
+-- /opt/corex311
++ docker exec -e PYTHONPATH=/usr/local/lib/python3.12/site-packages corex5-py311 bash -c 'source /opt/corex311/bin/activate
+        echo -n '\''PYTHONPATH='\''; echo "${PYTHONPATH:-<unset>}"
+        python -c '\''import sys, torch, vllm; print("torch", torch.__version__, torch.__file__); print("vllm", vllm.__version__)'\'''
++ tail -5
+PYTHONPATH=<unset>
+torch 2.10.0 /opt/corex311/lib/python3.11/site-packages/torch/__init__.py
+vllm 0.23.0
++ for V in /opt/corex311 /opt/corex311-cpython-vllm
++ echo '-- /opt/corex311-cpython-vllm'
+-- /opt/corex311-cpython-vllm
++ docker exec -e PYTHONPATH=/usr/local/lib/python3.12/site-packages corex5-py311 bash -c 'source /opt/corex311-cpython-vllm/bin/activate
+        echo -n '\''PYTHONPATH='\''; echo "${PYTHONPATH:-<unset>}"
+        python -c '\''import sys, torch, vllm; print("torch", torch.__version__, torch.__file__); print("vllm", vllm.__version__)'\'''
++ tail -5
+PYTHONPATH=<unset>
+torch 2.10.0 /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/__init__.py
+vllm 0.23.0
++ echo '== deactivate check =='
+== deactivate check ==
++ docker exec corex5-py311 bash -c 'source /opt/corex311/bin/activate; deactivate; echo "after=${PYTHONPATH:-<unset>}"'
++ tail -2
+after=<unset>
++ set +x
+
+### exit: 0
