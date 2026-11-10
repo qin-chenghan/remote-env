@@ -17,42 +17,33 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 只读：定位 clamp_to_u8 的定义与所有调用点，以及所在循环。
+  # 只读：在容器内全局搜索 clamp_to_u8 / kUint8ToFloatDivisor。
 
-  echo "== 1. clamp_to_u8 出现在哪些文件 =="
+  echo "== 1. 全盘搜 clamp_to_u8 =="
   docker exec fusionv1 bash -lc '
-P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
-grep -rn "clamp_to_u8" "$P" --include="*.cpp" --include="*.h" 2>/dev/null | head -20
+grep -rn "clamp_to_u8" /home/workspace /home/qch /opt 2>/dev/null | head -20
 ' 2>&1 | head -25
 
-  echo "== 2. kUint8ToFloatDivisor 定义 =="
+  echo "== 2. 搜 kUint8ToFloatDivisor =="
   docker exec fusionv1 bash -lc '
-P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
-grep -rn "kUint8ToFloatDivisor" "$P" --include="*.cpp" --include="*.h" 2>/dev/null | head -10
+grep -rn "kUint8ToFloatDivisor" /home/workspace /home/qch /opt 2>/dev/null | head -10
 ' 2>&1 | head -15
 
-  echo "== 3. 定义与上下文 =="
+  echo "== 3. workspace 结构 =="
   docker exec fusionv1 bash -lc '
-P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
-F=$(grep -rln "static inline uint8_t clamp_to_u8" "$P" --include="*.cpp" --include="*.h" 2>/dev/null | head -1)
-echo "F=$F"
-[ -n "$F" ] && grep -n -B8 -A20 "clamp_to_u8" "$F" | head -70
-' 2>&1 | head -80
-
-  echo "== 4. 调用点所在函数 =="
-  docker exec fusionv1 bash -lc '
-P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
-for f in $(grep -rl "clamp_to_u8(" "$P" --include="*.cpp" 2>/dev/null); do
-  echo "--- $(basename $f) ---"
-  grep -n "^[a-zA-Z_].*(" "$f" | head -20
-done
-' 2>&1 | head -40
-
-  echo "== 5. 该文件是否参与构建 =="
-  docker exec fusionv1 bash -lc '
-P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
-grep -n "\.o" "$P/Makefile" | head -25
+ls /home/workspace/tensor 2>/dev/null
+echo "-- files --"; ls /home/workspace/tensor/files 2>/dev/null | head -20
 ' 2>&1 | head -30
+
+  echo "== 4. 最近修改的 cpp/h（近 7 天）=="
+  docker exec fusionv1 bash -lc '
+find /home/workspace /home/qch -name "*.cpp" -o -name "*.h" 2>/dev/null | xargs -r ls -lt 2>/dev/null | head -15
+' 2>&1 | head -20
+
+  echo "== 5. 任何含 uint8 转换的源文件 =="
+  docker exec fusionv1 bash -lc '
+grep -rln "static_cast<uint8_t>" /home/workspace /home/qch 2>/dev/null | head -10
+' 2>&1 | head -15
 
   # ---- 命令结束 ----
 
