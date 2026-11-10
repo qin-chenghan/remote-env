@@ -17,66 +17,58 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 只读：了解 145 的宿主、容器 fusionv1、目标工作区与构建工具链。
+  # 只读：在容器 fusionv1 内定位工作区与目标 cpp。
 
-  echo "== 1. 宿主 =="
-  uname -a
-  head -4 /etc/os-release
-  lscpu 2>/dev/null | grep -E 'Model name|CPU\(s\)|Socket|Thread|NUMA node' | head -8
-  free -g 2>/dev/null | head -2
-
-  echo "== 2. 容器的存在性 =="
-  for r in docker podman nerdctl; do
-    command -v "$r" >/dev/null || continue
-    echo "runtime: $r"
-    "$r" ps -a --format '{{.Names}}\t{{.Image}}\t{{.Status}}' 2>&1 | head -15
-  done
-
-  echo "== 3. fusionv1 概况 =="
-  docker inspect fusionv1 --format '{{.State.Status}} started={{.State.StartedAt}} image={{.Config.Image}}' 2>&1
-  docker inspect fusionv1 --format '{{range .HostConfig.Binds}}{{.}}{{"\n"}}{{end}}' 2>&1 | head -10
-  docker exec fusionv1 bash -lc 'echo "host: $(hostname)"; echo "user: $(id -un)"; echo "pwd: $(pwd)"; ls /home/workspace 2>&1 | head -10' 2>&1 | head -20
-
-  echo "== 4. 目标工作区目录 =="
-  W=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
-  ls -la "$W" 2>&1 | head -30
-  echo "-- 目录规模 --"
-  du -sh "$W" 2>&1
-  find "$W" -maxdepth 2 -type f 2>/dev/null | head -20
-
-  echo "== 5. 目标文件 =="
-  F=$W/pillow_fusion_func_v2.cpp
-  ls -l "$F" 2>&1
-  wc -l "$F" 2>&1
-  head -60 "$F" 2>&1
-
-  echo "== 6. 容器内工具链 =="
+  echo "== 1. workspace 顶层 =="
   docker exec fusionv1 bash -lc '
-    for c in gcc g++ clang make cmake ninja python python3 pip git; do
-      printf "%-8s " "$c"; command -v "$c" || echo missing
-    done
-    gcc --version 2>/dev/null | head -1
-    cmake --version 2>/dev/null | head -1
-    python3 -V 2>&1
-    nproc
-  ' 2>&1 | head -30
+    ls -la /home/workspace 2>&1 | head -15
+    echo "-- tensor --"
+    ls -la /home/workspace/tensor 2>&1 | head -20
+    echo "-- tensor/files --"
+    ls /home/workspace/tensor/files 2>&1 | head -30
+  ' 2>&1 | head -70
 
-    echo "== 7. 容器内 python 包（与算子/融合相关）=="
+  echo "== 2. 找目标目录 =="
   docker exec fusionv1 bash -lc '
-    python3 -m pip list 2>/dev/null | grep -iE "torch|triton|numpy|pillow|transformers|vllm|flash|apex|cupy" | head -15
+    find /home/workspace -maxdepth 4 -type d -name "*opt_fusion*" 2>/dev/null | head -10
+    find /home/workspace -maxdepth 5 -type f -name "pillow_fusion_func_v2.cpp" 2>/dev/null | head -10
   ' 2>&1 | head -20
 
-  echo "== 8. 是否 git 仓库 =="
-  git -C "$W" rev-parse --is-inside-work-tree 2>&1 | head -3
-  git -C "$W" log --oneline -3 2>&1 | head -5
-  git -C "$W" status --short 2>&1 | head -10
+  echo "== 3. 目标目录内容 =="
+  docker exec fusionv1 bash -lc '
+    W=$(find /home/workspace -maxdepth 4 -type d -name "*opt_fusion*" 2>/dev/null | head -1)
+    echo "W=$W"
+    [ -n "$W" ] && ls -la "$W" | head -25
+    [ -n "$W" ] && du -sh "$W"
+  ' 2>&1 | head -40
 
-  echo "== 9. 用户目录与仓库 =="
-  ls /home/qch 2>&1 | head -15
-  ls -d /home/qch/tools/remote-env 2>&1
+  echo "== 4. 目标文件 =="
+  docker exec fusionv1 bash -lc '
+    F=$(find /home/workspace -maxdepth 5 -type f -name "pillow_fusion_func_v2.cpp" 2>/dev/null | head -1)
+    echo "F=$F"
+    if [ -n "$F" ]; then
+      wc -l "$F"; head -70 "$F"
+    fi
+  ' 2>&1 | head -85
 
-  echo "== 10. 磁盘 =="
-  df -h / /home 2>&1 | tail -3
+  echo "== 5. 构建与依赖 =="
+  docker exec fusionv1 bash -lc '
+    W=$(find /home/workspace -maxdepth 4 -type d -name "*opt_fusion*" 2>/dev/null | head -1)
+    [ -n "$W" ] && ls -la "$W" | grep -iE "CMakeLists|Makefile|setup.py|requirements|build|test|README" | head -15
+    echo "-- 上层目录 --"
+    [ -n "$W" ] && ls -la "$(dirname "$W")" | head -20
+  ' 2>&1 | head -40
+
+  echo "== 6. 其他 python 环境 =="
+  docker exec fusionv1 bash -lc '
+    ls /opt 2>/dev/null | head -10
+    command -v conda || echo no-conda
+    python3 -c "import sys;print(sys.executable)" 2>&1
+    python3 -m pip --version 2>&1 | head -2
+  ' 2>&1 | head -20
+
+  echo "== 7. 容器 resource limits =="
+  docker inspect fusionv1 --format '{{.HostConfig.NanoCpus}} {{.HostConfig.Memory}} {{json .HostConfig.CpusetCpus}}' 2>&1
 
   # ---- 命令结束 ----
 
