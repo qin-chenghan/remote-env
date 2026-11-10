@@ -1,0 +1,139 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-10T01:07:08Z
+
+++ uname -r
++ K=6.6.0-132.0.0.111.oe2403sp3.x86_64
++ SRC=/tmp/corex-drv/kernel
++ echo '== 1. 编译 iluvatar.ko（在 tmpfs 上，不写 /）=='
+== 1. 编译 iluvatar.ko（在 tmpfs 上，不写 /）==
++ cd /tmp/corex-drv/kernel
+++ nproc
++ make KERNEL_UNAME=6.6.0-132.0.0.111.oe2403sp3.x86_64 -j255
++ RC=0
++ echo 'build rc=0'
+build rc=0
++ tail -30 /tmp/corex-build.log
+  CC [M]  /tmp/corex-drv/kernel/itr/os_interface.o
+  CC [M]  /tmp/corex-drv/kernel/itr/itr_p2p.o
+  CC [M]  /tmp/corex-drv/kernel/itr/itr_trace_points.o
+  CC [M]  /tmp/corex-drv/kernel/itr/itr_trace_wrapper.o
+  CC [M]  /tmp/corex-drv/kernel/itr/itr_jpu_hmt.o
+  CC [M]  /tmp/corex-drv/kernel/itr/itr_pcie.o
+  CC [M]  /tmp/corex-drv/kernel/itr/itr_link_drv.o
+  CC [M]  /tmp/corex-drv/kernel/itr/itr_mem_check.o
+  CC [M]  /tmp/corex-drv/kernel/itr/itr_dma_buf.o
+In file included from /tmp/corex-drv/kernel/itr/itr_p2p.c:5:
+/tmp/corex-drv/kernel/itr/itr_peer_mem.h:70:40: warning: ‘struct sg_table’ declared inside parameter list will not be visible outside of this definition or declaration
+   70 |                                 struct sg_table *sg_head, void *client_ctx, u64 core_ctx);
+      |                                        ^~~~~~~~
+/tmp/corex-drv/kernel/itr/itr_peer_mem.h:71:36: warning: ‘struct sg_table’ declared inside parameter list will not be visible outside of this definition or declaration
+   71 | void itr_peer_mem_put_pages(struct sg_table *sg_head, void *cc);
+      |                                    ^~~~~~~~
+/tmp/corex-drv/kernel/itr/itr_peer_mem.h:73:33: warning: ‘struct sg_table’ declared inside parameter list will not be visible outside of this definition or declaration
+   73 | int itr_peer_mem_dma_map(struct sg_table *sg_head, void *cc,
+      |                                 ^~~~~~~~
+/tmp/corex-drv/kernel/itr/itr_peer_mem.h:75:35: warning: ‘struct sg_table’ declared inside parameter list will not be visible outside of this definition or declaration
+   75 | int itr_peer_mem_dma_unmap(struct sg_table *sg_head, void *cc,
+      |                                   ^~~~~~~~
+  LD [M]  /tmp/corex-drv/kernel/itr/iluvatar.o
+  MODPOST /tmp/corex-drv/kernel/itr/Module.symvers
+  CC [M]  /tmp/corex-drv/kernel/itr/iluvatar.mod.o
+  LD [M]  /tmp/corex-drv/kernel/itr/iluvatar.ko
+  BTF [M] /tmp/corex-drv/kernel/itr/iluvatar.ko
+Skipping BTF generation for /tmp/corex-drv/kernel/itr/iluvatar.ko due to unavailability of vmlinux
+make[2]: Leaving directory '/usr/src/kernels/6.6.0-132.0.0.111.oe2403sp3.x86_64'
+make[1]: Leaving directory '/tmp/corex-drv/kernel/itr'
+++ find /tmp/corex-drv/kernel -name iluvatar.ko -type f
+++ head -1
++ KO=/tmp/corex-drv/kernel/iluvatar.ko
++ echo 'ko path=/tmp/corex-drv/kernel/iluvatar.ko'
+ko path=/tmp/corex-drv/kernel/iluvatar.ko
++ '[' 0 -eq 0 ']'
++ '[' -n /tmp/corex-drv/kernel/iluvatar.ko ']'
++ echo '== 2. 模块信息 =='
+== 2. 模块信息 ==
++ ls -l /tmp/corex-drv/kernel/iluvatar.ko
+-rw-r--r--. 1 root root 15589280 Nov 10 09:07 /tmp/corex-drv/kernel/iluvatar.ko
++ file /tmp/corex-drv/kernel/iluvatar.ko
+/tmp/corex-drv/kernel/iluvatar.ko: ELF 64-bit LSB relocatable, x86-64, version 1 (SYSV), BuildID[sha1]=496cad35fdf7f4e961bcec09d7aafde99188ff57, with debug_info, not stripped
++ modinfo /tmp/corex-drv/kernel/iluvatar.ko
++ grep -E '^(version|vermagic|name|license|depends)'
++ head -6
+version:        5.0.0
+license:        GPL v2
+depends:        
+name:           iluvatar
+vermagic:       6.6.0-132.0.0.111.oe2403sp3.x86_64 SMP mod_unload modversions 
++ echo '== 3. 安装模块 =='
+== 3. 安装模块 ==
++ install -D -m 644 /tmp/corex-drv/kernel/iluvatar.ko /lib/modules/6.6.0-132.0.0.111.oe2403sp3.x86_64/updates/iluvatar.ko
++ echo 'install rc=0'
+install rc=0
++ ls -l /lib/modules/6.6.0-132.0.0.111.oe2403sp3.x86_64/updates/iluvatar.ko
+-rw-r--r--. 1 root root 15589280 Nov 10 09:07 /lib/modules/6.6.0-132.0.0.111.oe2403sp3.x86_64/updates/iluvatar.ko
++ echo iluvatar
++ df -h /
++ tail -1
+/dev/mapper/openeuler-root   69G   64G  1.2G  99% /
++ echo '== 4. depmod + modprobe =='
+== 4. depmod + modprobe ==
++ depmod -a 6.6.0-132.0.0.111.oe2403sp3.x86_64
++ echo 'depmod rc=0'
+depmod rc=0
++ modprobe iluvatar
++ echo 'modprobe rc=0'
+modprobe rc=0
++ lsmod
++ grep iluvatar
+iluvatar             1802240  0
++ ls -l /dev/iluvatar0 /dev/iluvatar1 /dev/iluvatar2 /dev/iluvatar3
++ head -6
+crw-rw-rw-. 1 root root 239, 0 Nov 10 09:07 /dev/iluvatar0
+crw-rw-rw-. 1 root root 239, 1 Nov 10 09:07 /dev/iluvatar1
+crw-rw-rw-. 1 root root 239, 2 Nov 10 09:07 /dev/iluvatar2
+crw-rw-rw-. 1 root root 239, 3 Nov 10 09:07 /dev/iluvatar3
++ echo '== 5. 内核日志 =='
+== 5. 内核日志 ==
++ dmesg
++ grep -iE 'iluvatar|version magic|module verification'
++ tail -15
+[   20.218431] ublk_drv: module verification failed: signature and/or required key missing - tainting kernel
+[   27.160943] systemd[1]: Created slice Slice /system/iluvatarcorex-init.
+[68382.377803] iluvatar: loading out-of-tree module taints kernel.
+[68382.795805] iluvatar 0000:10:00.0: DEV-0 is okay.
+[68383.172240] iluvatar 0000:13:00.0: DEV-1 is okay.
+[68383.549915] iluvatar 0000:19:00.0: DEV-2 is okay.
+[68383.927244] iluvatar 0000:1c:00.0: DEV-3 is okay.
++ echo '== 6. ixsmi =='
+== 6. ixsmi ==
++ timeout 20 /usr/local/corex-5.0.0/bin/ixsmi
++ head -25
+Timestamp    Tue Nov 10 09:07:25 2026
++--------------------------------------------------------------------------------+
+|  IX-ML: 5.0.0            Driver Version: 5.0.0          CUDA Version: 10.2     |
+|----------------------------------+----------------------+----------------------|
+| GPU  Name                        | Bus-Id               | Clock-SM  Clock-Mem  |
+| Fan  Temp  Perf    Pwr:Usage/Cap |      Memory-Usage    | GPU-Util  Compute M. |
+|==================================+======================+======================|
+| 0    Iluvatar BI-V150            | 00000000:10:00.0     | 1600MHz   1600MHz    |
+| N/A  40C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 1    Iluvatar BI-V150            | 00000000:13:00.0     | 1600MHz   1600MHz    |
+| N/A  40C   P0       77W / 350W   | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 2    Iluvatar BI-V150            | 00000000:19:00.0     | 1600MHz   1600MHz    |
+| N/A  36C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 3    Iluvatar BI-V150            | 00000000:1C:00.0     | 1600MHz   1600MHz    |
+| N/A  36C   P0       63W / 350W   | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+
++--------------------------------------------------------------------------------+
+| Processes:                                                          GPU Memory |
+|  GPU        PID      Process name                                   Usage(MiB) |
+|================================================================================|
+|  No running processes found                                                    |
++ set +x
+
+### exit: 0
