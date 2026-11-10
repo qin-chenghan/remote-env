@@ -1,0 +1,61 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-10T07:12:05Z
+
++ echo '== 1. clamp_to_u8 出现在哪些文件 =='
+== 1. clamp_to_u8 出现在哪些文件 ==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+grep -rn "clamp_to_u8" "$P" --include="*.cpp" --include="*.h" 2>/dev/null | head -20
+'
++ head -25
++ echo '== 2. kUint8ToFloatDivisor 定义 =='
+== 2. kUint8ToFloatDivisor 定义 ==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+grep -rn "kUint8ToFloatDivisor" "$P" --include="*.cpp" --include="*.h" 2>/dev/null | head -10
+'
++ head -15
++ echo '== 3. 定义与上下文 =='
+== 3. 定义与上下文 ==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+F=$(grep -rln "static inline uint8_t clamp_to_u8" "$P" --include="*.cpp" --include="*.h" 2>/dev/null | head -1)
+echo "F=$F"
+[ -n "$F" ] && grep -n -B8 -A20 "clamp_to_u8" "$F" | head -70
+'
++ head -80
+F=
++ echo '== 4. 调用点所在函数 =='
+== 4. 调用点所在函数 ==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
++ head -40
+for f in $(grep -rl "clamp_to_u8(" "$P" --include="*.cpp" 2>/dev/null); do
+  echo "--- $(basename $f) ---"
+  grep -n "^[a-zA-Z_].*(" "$f" | head -20
+done
+'
++ echo '== 5. 该文件是否参与构建 =='
+== 5. 该文件是否参与构建 ==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+grep -n "\.o" "$P/Makefile" | head -25
+'
++ head -30
+24:fusion.unittest: fusion_test.o opt_func.o opt_func_v2.o opt_func_v3.o fusion_func.o fusion_func_v2.o pillow_opt_func.o pillow_opt_func_v2.o pillow_fusion_func.o pillow_fusion_func_v2.o
+28:# fusion.unittest: fusion_test.o opt_func.o opt_func_v2.o opt_func_v3.o fusion_func.o fusion_func_v2.o pillow_opt_func.o pillow_opt_func_v2.o pillow_fusion_func.o pillow_fusion_func_v2.o
+31:fusion_test.o: fusion_test.cpp ${INC}
+35:opt_func.o: opt_func.cpp
+39:opt_func_v2.o: opt_func_v2.cpp
+43:opt_func_v3.o: opt_func_v3.cpp
+47:fusion_func.o: fusion_func.cpp
+51:fusion_func_v2.o: fusion_func_v2.cpp
+55:pillow_opt_func.o: pillow_opt_func.cpp
+59:pillow_opt_func_v2.o: pillow_opt_func_v2.cpp
+63:pillow_fusion_func.o: pillow_fusion_func.cpp
+67:pillow_fusion_func_v2.o: pillow_fusion_func_v2.cpp
+75:	rm -rf *.o ./*.unittest 
++ set +x
+
+### exit: 0
