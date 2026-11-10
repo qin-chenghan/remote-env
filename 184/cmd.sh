@@ -50,6 +50,14 @@ mkdir -p "$DIR/tmp"
   docker exec corex5-py311 /opt/corex311/bin/python3 -c "import sys,sysconfig;print('base exe',sys.executable);print('ver',sys.version.split()[0]);print('base_prefix',sys.base_prefix);print('cfg',sysconfig.get_config_var('CONFIG_ARGS'))" 2>&1
   docker exec corex5-py311 /opt/corex311-cpython-vllm/bin/python3 -c "import sys,sysconfig;print('pgo exe',sys.executable);print('ver',sys.version.split()[0]);print('base_prefix',sys.base_prefix);print('cfg',sysconfig.get_config_var('CONFIG_ARGS'))" 2>&1
 
+  echo "== venv cfg =="
+  docker exec corex5-py311 cat /opt/corex311/pyvenv.cfg 2>&1
+  docker exec corex5-py311 cat /opt/corex311-cpython-vllm/pyvenv.cfg 2>&1
+
+  echo "== pth files =="
+  docker exec corex5-py311 bash -c 'for f in /opt/corex311/lib/python3.11/site-packages/*.pth /opt/corex311-cpython-vllm/lib/python3.11/site-packages/*.pth; do [ -f "$f" ] && { echo "--- $f"; cat "$f"; }; done' 2>&1 | head -40
+  docker exec corex5-py311 grep -l 'python3.12' /opt/corex311/lib/python3.11/site-packages/*.pth /opt/corex311-cpython-vllm/lib/python3.11/site-packages/*.pth 2>/dev/null
+
   echo "== sys.path order =="
   docker exec corex5-py311 /opt/corex311-cpython-vllm/bin/python3 -c "import sys;[print(p) for p in sys.path]" 2>&1
 
