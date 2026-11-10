@@ -19,12 +19,10 @@ mkdir -p "$DIR/tmp"
   # ---- 命令开始 ----
   # 基线冒烟：不注入 LD_PRELOAD、不开 fastpath，默认参数起 vLLM，发一个请求，再关掉。
 
-  echo "== 1. 找模型 =="
-  find /home -maxdepth 3 -type d \( -name 'Qwen3-32B*' -o -name '*W8A8*' \) 2>/dev/null | head -10
-  ls /home/model 2>/dev/null | head -10
-
-  MODEL=$(find /home -maxdepth 3 -type d -name 'Qwen3-32B-W8A8' 2>/dev/null | head -1)
+  echo "== 1. 模型路径 =="
+  MODEL=/home/models/Qwen3-32B-W8A8
   echo "MODEL=$MODEL"
+  ls "$MODEL" 2>&1 | head -10
   if [ -z "$MODEL" ]; then
     echo "!! 未找到模型，停止"
     exit 0
