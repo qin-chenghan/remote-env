@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：查找 6.6.02403_sp3-64K 的内核源码/构建树。
+# 只读：查 64K 内核的构建来源。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,30 +17,26 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== builder dir =="
-  ls -la /home/l30029702/64k 2>&1 | head -30
+  echo "== build report =="
+  sed -n '1,120p' /home/l30029702/261109_oe-2403-sp3_report.txt 2>&1
 
-  echo "== any prepared kernel tree =="
-  find /home /opt /usr/src -maxdepth 6 -name 'Module.symvers' 2>/dev/null | head -10
+  echo "== kernel rpm inventory =="
+  R=/home/l30029702/64k/kernel-6.6.02403_sp3_64K-6.aarch64.rpm
+  echo "files: $(rpm -qpl "$R" 2>/dev/null | wc -l)"
+  rpm -qpl "$R" 2>/dev/null | grep -E '^/usr/src|^/lib/modules/.*/build|Module.symvers|^/boot|^/lib/modules' | head -12
+  echo "-- top-level prefixes --"
+  rpm -qpl "$R" 2>/dev/null | sed 's|\(^/[^/]*/[^/]*\).*|\1|' | sort -u | head -12
 
-  echo "== any linux source dirs =="
-  find /home /opt /usr/src -maxdepth 5 -type d \( -name 'linux-*' -o -name 'linux' -o -name '*kernel*src*' \) 2>/dev/null | head -15
+  echo "== headers rpm inventory =="
+  rpm -qpl /home/l30029702/64k/kernel-headers-6.6.02403_sp3_64K-6.aarch64.rpm 2>/dev/null \
+    | sed 's|\(^/[^/]*/[^/]*\).*|\1|' | sort -u | head -10
 
-  echo "== 64K config in any tree =="
-  for f in $(find /home /opt /usr/src -maxdepth 6 -name '.config' 2>/dev/null | head -20); do
-    grep -q 'CONFIG_ARM64_64K_PAGES=y' "$f" 2>/dev/null && echo "64K: $f  ($(stat -c %y "$f"))"
-  done
+  echo "== deep search for 64k source =="
+  find /home -maxdepth 8 -type d \( -iname '*6.6*src*' -o -iname 'linux-6.6*' -o -iname '*64K*' \) 2>/dev/null | head -10
+  find / -maxdepth 4 -type d -name 'linux-6.6.02403*' 2>/dev/null | head -5
 
-  echo "== rpm contents hint =="
-  rpm -qpl /home/l30029702/64k/kernel-headers-6.6.02403_sp3_64K-6.aarch64.rpm 2>&1 | head -15
-  echo "--- kernel rpm ---"
-  rpm -qpl /home/l30029702/64k/kernel-6.6.02403_sp3_64K-6.aarch64.rpm 2>&1 | grep -E 'build|source|devel' | head -10
-
-  echo "== who built it (history hint) =="
-  ls -la /home/l30029702 2>&1 | head -20
-
-  echo "== existing trees for 145 =="
-  ls -l /usr/src/linux-6.6.0-145.3.37.168.oe2403sp3.aarch64/Module.symvers 2>&1
+  echo "== builder dir tree =="
+  ls -la /home/l30029702/script 2>&1 | head -12
 
   # ---- 命令结束 ----
 
