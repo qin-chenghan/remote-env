@@ -1,0 +1,99 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-10T01:27:15Z
+
++ D=/home/qch/scripts/litehost_perf
++ OLD=/home/qch/scripts/litehost_perf/vllmBench_lite_taskset.sh
++ NEW=/home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
++ BAK=/home/qch/scripts/litehost_perf/vllmBench_lite_taskset.sh.bak-20261110-092715
++ echo '== 1. 备份并改名 =='
+== 1. 备份并改名 ==
++ ls -l /home/qch/scripts/litehost_perf/vllmBench_lite_taskset.sh /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
+ls: cannot access '/home/qch/scripts/litehost_perf/vllmBench_lite_base.sh': No such file or directory
+-rwxr-xr-x. 1 root root 12824 Oct 30 21:03 /home/qch/scripts/litehost_perf/vllmBench_lite_taskset.sh
++ cp -a /home/qch/scripts/litehost_perf/vllmBench_lite_taskset.sh /home/qch/scripts/litehost_perf/vllmBench_lite_taskset.sh.bak-20261110-092715
++ mv /home/qch/scripts/litehost_perf/vllmBench_lite_taskset.sh /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
++ ls -l /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh /home/qch/scripts/litehost_perf/vllmBench_lite_taskset.sh.bak-20261110-092715
+-rwxr-xr-x. 1 root root 12824 Oct 30 21:03 /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
+-rwxr-xr-x. 1 root root 12824 Oct 30 21:03 /home/qch/scripts/litehost_perf/vllmBench_lite_taskset.sh.bak-20261110-092715
++ echo '== 2. 修改内容 =='
+== 2. 修改内容 ==
++ python3 - /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
+patched /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
++ echo 'patch rc=0'
+patch rc=0
++ echo '== 3. 语法检查与差异 =='
+== 3. 语法检查与差异 ==
++ bash -n /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
++ echo 'syntax OK'
+syntax OK
++ grep -n 'MODEL_PATH=\|SERVER_EXTRA_ENV\|UMD_MAXCOMMANDBUFFER\|VLLM_USE_V1=1' /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
++ head -12
+4:# UMD buffers 256/16384, MODEL_PATH=/home/models/Qwen3-32B-W8A8.
+8:MODEL_PATH="${MODEL_PATH:-/home/models/Qwen3-32B-W8A8}"
+68:SERVER_EXTRA_ENV=(
+69:    UMD_MAXCOMMANDBUFFERNUMBER=256
+70:    UMD_MAXCOMMANDBUFFERSIZE=16384
+138:    local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1 "${SERVER_EXTRA_ENV[@]}")
++ diff -u /home/qch/scripts/litehost_perf/vllmBench_lite_taskset.sh.bak-20261110-092715 /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
++ head -60
+--- /home/qch/scripts/litehost_perf/vllmBench_lite_taskset.sh.bak-20261110-092715	2026-10-30 21:03:43.652725379 +0800
++++ /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh	2026-11-10 09:27:15.037877795 +0800
+@@ -1,10 +1,11 @@
+ # Adapted from the uploaded vllmBench_lite.sh. Keep one server for all cases.
+ #!/usr/bin/env bash
+-# Defaults retained: warmups=16, cache OFF, CPUs 80-159,240-319, backend=vllm.
++# Defaults retained: warmups=16, cache OFF, CPUs 0-15,128-143 (NUMA0), backend=vllm,
++# UMD buffers 256/16384, MODEL_PATH=/home/models/Qwen3-32B-W8A8.
+ # Requires the matching files in this slim folder (included in the ZIP).
+ set -uo pipefail
+ 
+-: "${MODEL_PATH:?ERROR: 必须设置 MODEL_PATH}"
++MODEL_PATH="${MODEL_PATH:-/home/models/Qwen3-32B-W8A8}"
+ TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
+ PREFIX="${PREFIX:-/opt/corex311}"
+ PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+@@ -64,6 +65,10 @@
+ # Child processes only: drop old measurement/audit injection; keep CoreX library paths.
+ CLEAN_ENV=(env -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+     -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
++SERVER_EXTRA_ENV=(
++    UMD_MAXCOMMANDBUFFERNUMBER=256
++    UMD_MAXCOMMANDBUFFERSIZE=16384
++)
+ SERVER_PREFIX=()
+ [[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+ SERVER_ARGS=(
+@@ -130,7 +135,7 @@
+ with socket.socket() as s:s.bind(('127.0.0.1',int(sys.argv[1])))
+ PY
+     check_gpu_memory "$GPU_LIST"
+-    local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1)
++    local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1 "${SERVER_EXTRA_ENV[@]}")
+     if [[ "$HOST_MEASURE" == lite ]]; then
+         env_args+=(PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}" LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so"
+             LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
++ echo '== 4. 容器内 dry-run（打印实际启动命令）=='
+== 4. 容器内 dry-run（打印实际启动命令）==
++ docker exec -e PYTHONPATH= -e PYTHONHOME= -e VIRTUAL_ENV= -e MODEL_PATH=/home/models/Qwen3-32B-W8A8 -e HOST_MEASURE=off -e HOST_DRY_RUN=1 corex5-py311 bash -lc '
+      cd /home/qch/scripts/litehost_perf && bash vllmBench_lite_base.sh
+    '
++ head -20
+[2026-11-10 09:27:15] TEST_ID=litehost_gap_20261110_092715 | MODE=off | WARMUP=16 | CPU_RANGE=0-15,128-143
+[2026-11-10 09:27:15] prefix cache=OFF | backend=vllm | 同一服务运行 9 个 case | RUN_DIR=/home/qch/scripts/litehost_perf/vllmBench/litehost_gap_20261110_092715
+SERVER: taskset -c 0-15\,128-143 /opt/corex311/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8848 --model /home/models/Qwen3-32B-W8A8 --trust_remote_code --dtype auto --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1 --tensor_parallel_size 4 --data_parallel_size 1 --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto --enable_chunked_prefill --compilation-config \{\"cudagraph_mode\":\"FULL_DECODE_ONLY\"\,\ \"mode\":0\} --async-scheduling --no-enable-prefix-caching 
+CASES: 128 128; 128 1024; 128 2048; 1024 128; 1024 1024; 1024 2048; 2048 128; 2048 1024; 2048 2048; 
++ echo '== 5. 确认 buffer 注入点 =='
+== 5. 确认 buffer 注入点 ==
++ sed -n '/SERVER_EXTRA_ENV=(/,/^)/p' /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
+SERVER_EXTRA_ENV=(
+    UMD_MAXCOMMANDBUFFERNUMBER=256
+    UMD_MAXCOMMANDBUFFERSIZE=16384
+)
++ grep -n 'env_args=(' /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
+138:    local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1 "${SERVER_EXTRA_ENV[@]}")
+154:    env_args=()
+159:        env_args=(LIGHTHOST_SESSION="$SESSION_FILE" LIGHTHOST_CASE_DIR="$case_dir")
++ set +x
+
+### exit: 0
