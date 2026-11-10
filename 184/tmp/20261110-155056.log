@@ -1,0 +1,115 @@
+### server: 184
+### host:   controller
+### time:   2026-11-10T07:50:56Z
+
++ K=6.6.02403_sp3-64K
++ echo '== repos =='
+== repos ==
++ dnf repolist
++ head -25
+repo id                                 repo name
+OpenStack_Wallaby                       OpenStack_Wallaby
+OpenStack_Wallaby_update                OpenStack_Wallaby_update
+oe2403-sp3-everything                   oe2403-sp3-everything
+oe2403-sp3-os                           oe2403-sp3-os
+oe2403-sp3-update                       oe2403-sp3-update
++ echo '== available kernel devel (skip broken repo) =='
+== available kernel devel (skip broken repo) ==
++ dnf --disablerepo=OpenStack_Wallaby '--disablerepo=OpenStack_Wallaby*' list --available 'kernel-devel*' 'kernel*64K*' 'kernel*64kb*'
++ tail -20
+error: rpmdb: damaged header #1259 retrieved -- skipping.
+error: rpmdb: damaged header #1280 retrieved -- skipping.
+Last metadata expiration check: 1 day, 4:41:51 ago on Mon 09 Nov 2026 11:09:06 AM CST.
+Error: No matching Packages to list
++ echo '== search 6.6.02403 =='
+== search 6.6.02403 ==
++ dnf --disablerepo=OpenStack_Wallaby '--disablerepo=OpenStack_Wallaby*' search 6.6.02403
++ head -20
+error: rpmdb: damaged header #1259 retrieved -- skipping.
+error: rpmdb: damaged header #1280 retrieved -- skipping.
+Last metadata expiration check: 1 day, 4:41:52 ago on Mon 09 Nov 2026 11:09:06 AM CST.
+No matches found.
++ echo '== local rpm files =='
+== local rpm files ==
++ find /home /root /opt /tmp /var/tmp -maxdepth 4 -iname 'kernel*.rpm'
++ head -10
+/home/l30029702/64k/kernel-headers-6.6.02403_sp3_64K-6.aarch64.rpm
+/home/l30029702/64k/kernel-6.6.02403_sp3_64K-6.aarch64.rpm
+/home/l30029702/kernel-headers-6.6.0-132.0.0.111.oe2403sp3.aarch64.rpm
+/home/l30029702/kernel-6.6.0-132.0.0.111.oe2403sp3.aarch64.rpm
+/home/x00937402/kernel-devel-5.10.0-288.0.0.191.oe2203sp4.aarch64.rpm
+/home/lw/kernel-5.10.0-216.0.0.115.oe2203sp4.src.rpm
+/home/lw/kernel-64kb-5.10.0-225.0.0.124.oe2203sp4.aarch64.rpm
+/home/lw/kernel-64kb-devel-5.10.0-225.0.0.124.oe2203sp4.aarch64.rpm
+/home/lw/kernel-64kb-debuginfo-5.10.0-225.0.0.124.oe2203sp4.aarch64.rpm
+/home/lw/kernel-64kb-headers-5.10.0-225.0.0.124.oe2203sp4.aarch64.rpm
++ ls -l /boot
++ grep -iE '64K|02403'
++ head -10
+-rw-r--r--. 1 root root   187482 Sep  4  2024 config-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
+-rw-r--r--. 1 root root   214323 Nov 10 15:11 config-6.6.02403_sp3-64K
+drwxr-xr-x. 2 root root     4096 Nov  2 15:25 dtb-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
+-rw-------. 1 root root 25034708 Nov  2 15:26 initramfs-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb.img
+-rw-------. 1 root root 30055936 Nov  2 15:40 initramfs-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kbkdump.img
+-rw-------. 1 root root 41573888 Nov  9 14:41 initramfs-6.6.0-132.0.0.111.oe2403sp3.aarch64kdump.img
+-rw-------. 1 root root 30799360 Nov  2 12:29 initramfs-6.6.0-145.1.28.165.oe2403sp1.aarch64kdump.img
+-rw-------. 1 root root 41831424 Nov  9 15:01 initramfs-6.6.0-145.3.37.168.oe2403sp3.aarch64kdump.img
+-rw-------. 1 root root 39206191 Nov 10 14:58 initramfs-6.6.02403_sp3-64K.img
+-rw-------. 1 root root 45349888 Nov 10 15:23 initramfs-6.6.02403_sp3-64Kkdump.img
++ echo '== build target exists? =='
+== build target exists? ==
++ ls -la /usr/lib/modules/6.6.02403_sp3-64K
++ head -10
+total 2656
+drwxr-xr-x.  3 root root   4096 Nov 10 14:58 .
+drwxr-xr-x. 10 root root   4096 Nov 10 14:57 ..
+drwxr-xr-x. 12 root root   4096 Nov 10 14:57 kernel
+-rw-r--r--.  1 root root 643363 Nov 10 14:58 modules.alias
+-rw-r--r--.  1 root root 630828 Nov 10 14:58 modules.alias.bin
+-rw-r--r--.  1 root root   9659 Nov 10 15:11 modules.builtin
+-rw-r--r--.  1 root root   8152 Nov 10 14:58 modules.builtin.alias.bin
+-rw-r--r--.  1 root root  11787 Nov 10 14:58 modules.builtin.bin
+-rw-r--r--.  1 root root  73004 Nov 10 15:11 modules.builtin.modinfo
++ ls -l /usr/lib/modules/6.6.02403_sp3-64K/build
+ls: cannot access '/usr/lib/modules/6.6.02403_sp3-64K/build': No such file or directory
++ ls -l /boot/config-6.6.02403_sp3-64K /boot/System.map-6.6.02403_sp3-64K
++ head -4
+-rw-r--r--. 1 root root  214323 Nov 10 15:11 /boot/config-6.6.02403_sp3-64K
+-rw-r--r--. 1 root root 4370568 Nov 10 14:58 /boot/System.map-6.6.02403_sp3-64K
++ echo '== source trees =='
+== source trees ==
++ ls -d /usr/src/corex-5.0.0 /usr/src/debug /usr/src/kernels /usr/src/linux-5.10.0-216.0.0.115.oe2203sp4.aarch64 /usr/src/linux-6.6.0-145.1.28.165.oe2403sp1.aarch64 /usr/src/linux-6.6.0-145.3.37.168.oe2403sp3.aarch64
++ head -10
+/usr/src/corex-5.0.0
+/usr/src/debug
+/usr/src/kernels
+/usr/src/linux-5.10.0-216.0.0.115.oe2203sp4.aarch64
+/usr/src/linux-6.6.0-145.1.28.165.oe2403sp1.aarch64
+/usr/src/linux-6.6.0-145.3.37.168.oe2403sp3.aarch64
++ find /usr/src /opt /home -maxdepth 3 -type f -name Makefile -path '*linux*'
++ head -5
+/usr/src/linux-6.6.0-145.3.37.168.oe2403sp3.aarch64/virt/Makefile
+/usr/src/linux-6.6.0-145.3.37.168.oe2403sp3.aarch64/crypto/Makefile
+/usr/src/linux-6.6.0-145.3.37.168.oe2403sp3.aarch64/security/Makefile
+/usr/src/linux-6.6.0-145.3.37.168.oe2403sp3.aarch64/lib/Makefile
+/usr/src/linux-6.6.0-145.3.37.168.oe2403sp3.aarch64/block/Makefile
++ echo '== kernel meta =='
+== kernel meta ==
++ uname -v
+#6 SMP Tue Nov 10 15:08:50 CST 2026
++ grep -E 'CONFIG_ARM64_64K_PAGES|CONFIG_LOCALVERSION' /boot/config-6.6.02403_sp3-64K
+CONFIG_LOCALVERSION=""
+# CONFIG_LOCALVERSION_AUTO is not set
+CONFIG_ARM64_64K_PAGES=y
++ ls -l /boot/vmlinuz-6.6.02403_sp3-64K
+-rw-r--r--. 1 root root 12531317 Nov 10 14:58 /boot/vmlinuz-6.6.02403_sp3-64K
++ echo '== rpmdb health =='
+== rpmdb health ==
++ rpm -qa
++ wc -l
+1331
++ rpm -q kernel-6.6.02403_sp3_64K
+kernel-6.6.02403_sp3_64K-6.aarch64
++ set +x
+
+### exit: 0
