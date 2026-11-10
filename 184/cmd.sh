@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：确认当前 64K 内核能否编译驱动，以及能否回退到有驱动的内核。
+# 任务：为当前 64K 内核编译并安装 iluvatar 驱动（不回退内核）。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,29 +18,61 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
   K=$(uname -r)
+  echo "kernel=$K"
 
-  echo "== current kernel provenance =="
+  echo "== provenance =="
   cat /proc/cmdline
   ls -la "/lib/modules/$K" 2>&1 | head -12
-  readlink -f "/lib/modules/$K/build" 2>&1
-  readlink -f "/lib/modules/$K/source" 2>&1
+  echo "build -> $(readlink -f "/lib/modules/$K/build" 2>&1)"
+  echo "source -> $(readlink -f "/lib/modules/$K/source" 2>&1)"
   rpm -qf "/lib/modules/$K" 2>&1
-  rpm -qa | grep -iE '^kernel-(64k|core|devel|modules)' | sort | head -20
+  rpm -qa | grep -iE '^kernel' | sort | head -20
 
-  echo "== boot entries =="
-  grubby --default-kernel 2>&1
-  grubby --info=ALL 2>&1 | grep -E '^(index|kernel|title)=' | head -30
+  echo "== build headers present? =="
+  if [ -f "/lib/modules/$K/build/Makefile" ]; then
+    echo "BUILD_DIR_OK"
+  else
+    echo "BUILD_DIR_MISSING"
+    dnf list --available 'kernel-devel*' 2>&1 | tail -12
+    dnf list --installed 'kernel-devel*' 2>&1 | tail -8
+    echo "== ABORT: 没有匹配的 build 头文件，需先装 kernel-devel, 不强装 =="
+    exit 6
+  fi
 
-  echo "== available kernel-devel =="
-  dnf list --available 'kernel-devel*' 2>&1 | tail -12
-  dnf list --installed 'kernel-devel*' 2>&1 | tail -8
+  echo "== dkms.conf guard =="
+  grep -n '_BUILDOPT' /usr/src/corex-5.0.0/dkms.conf
+  sed -i 's/_BUILDOPT="VGPU_ENABLE=1 "/_BUILDOPT="VGPU_ENABLE=0 "/' /usr/src/corex-5.0.0/dkms.conf
+  grep -n '_BUILDOPT="VGPU' /usr/src/corex-5.0.0/dkms.conf | head -2
 
-  echo "== source trees =="
-  ls -d /usr/src/kernels/* /usr/src/linux-* 2>&1 | head
-  ls -l /usr/src/corex-5.0.0 2>&1 | head -8
+  echo "== dkms build =="
+  dkms build corex/5.0.0 -k "$K" 2>&1 | tail -30
+  echo "build rc=${PIPESTATUS[0]}"
 
-  echo "== driver dirs for other kernels =="
-  ls -l /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/updates/ 2>&1 | head -8
+  echo "== dkms install =="
+  dkms install corex/5.0.0 -k "$K" 2>&1 | tail -30
+  echo "install rc=${PIPESTATUS[0]}"
+
+  echo "== dkms status =="
+  dkms status 2>&1 | head -10
+
+  echo "== modules on disk =="
+  find "/lib/modules/$K" -name 'iluvatar*.ko*' 2>/dev/null | head -10
+
+  echo "== depmod + modprobe =="
+  depmod -a "$K" 2>&1
+  modprobe iluvatar 2>&1; echo "modprobe rc=$?"
+  lsmod | grep -iE 'iluvatar' || echo "  still not loaded"
+
+  echo "== devices / dmesg =="
+  ls -l /dev/iluvatar* 2>&1
+  dmesg 2>/dev/null | grep -iE 'iluvatar|corex' | tail -15
+
+  echo "== dkms service =="
+  systemctl enable --now dkms 2>&1 | tail -3
+  systemctl is-enabled dkms 2>&1
+
+  echo "== ixsmi =="
+  ixsmi 2>&1 | head -20
 
   # ---- 命令结束 ----
 
