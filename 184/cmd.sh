@@ -17,22 +17,45 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== container config env =="
-  docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' corex5-py311 2>&1 | grep -E 'PYTHON|LD_|PATH='
+  D=/home/huawei_ts_program/litehost_perf_opt
+  TS2=$(date +%Y%m%d-%H%M%S)
 
-  echo "== tcmalloc search =="
-  find /home -maxdepth 5 -name 'libtcmalloc.so*' 2>/dev/null | head -5
-  find /usr/local /opt -maxdepth 5 -name 'libtcmalloc.so*' 2>/dev/null | head -5
+  echo "== patch: strip inherited PYTHONPATH =="
+  for f in vllmBench_lite_base.sh vllmBench_lite_opt.sh; do
+    echo "-- $f"
+    cp -a "$D/$f" "$D/$f.bak-pyenv-$TS2"
+    python3 - "$D/$f" <<'PY'
+import sys
+p = sys.argv[1]
+s = open(p).read()
+edits = [
+    ('CLEAN_ENV=(env -u LD_PRELOAD',
+     'CLEAN_ENV=(env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD'),
+    ('PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}"',
+     'PYTHONPATH="$HOST_TOOLKIT"'),
+]
+for old, new in edits:
+    n = s.count(old)
+    print(f"  {n}x {old[:48]}")
+    s = s.replace(old, new)
+if s == open(p).read():
+    raise SystemExit(f"  no change in {p}")
+open(p, "w").write(s)
+PY
+    bash -n "$D/$f" && echo "  syntax OK"
+    grep -n 'CLEAN_ENV=(env\|PYTHONPATH=' "$D/$f" | head -6
+  done
 
-  echo "== server launch block (base) =="
-  sed -n '/SERVER_EXTRA_ENV/,/SERVER_PID/p' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh 2>&1 | head -70
+  echo "== verify: clean-env import =="
+  docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME PYTHONPATH="$D" \
+    /opt/corex311/bin/python3 -c "import torch,vllm;print('base ok',torch.__version__,vllm.__version__)" 2>&1 | tail -3
+  docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME PYTHONPATH="$D" \
+    /opt/corex311-cpython-vllm/bin/python3 -c "import torch,vllm;print('pgo ok',torch.__version__,vllm.__version__)" 2>&1 | tail -3
 
-  echo "== server launch block (opt) =="
-  sed -n '/SERVER_EXTRA_ENV/,/SERVER_PID/p' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh 2>&1 | head -70
-
-  echo "== LD_PRELOAD assembly =="
-  grep -n 'LD_PRELOAD\|CLEAN_ENV\|LIGHTHOST' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh \
-    /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh 2>&1 | head -30
+  echo "== tcmalloc status =="
+  ls -l /home/huawei_ts_program/gperftools/.libs/libtcmalloc.so 2>&1
+  ls -l /home/lw/gperftools/.libs/libtcmalloc.so 2>&1
+  grep -n 'libtcmalloc' "$D"/vllmBench_lite_*.sh 2>&1
 
   # ---- 命令结束 ----
 
