@@ -1,0 +1,320 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-10T01:23:05Z
+
++ D=/home/qch/scripts/litehost_perf
++ echo '== 1. 目录 =='
+== 1. 目录 ==
++ ls -la /home/qch/scripts/litehost_perf
++ head -30
+total 260
+drwxr-xr-x.  6 root root  4096 Oct 28 11:00 .
+drwxr-xr-x. 10 root root  4096 Nov  4 09:18 ..
+-rw-r--r--.  1 root root 12719 Oct 27 11:46 analyze_litehost.py
+-rw-r--r--.  1 root root  6332 Oct 27 11:46 bench_driver.py
+-rw-r--r--.  1 root root  9147 Oct 27 11:46 build_corex.py
+-rw-r--r--.  1 root root  1682 Oct 27 11:46 collect_results.py
+drwxr-xr-x.  2 root root  4096 Oct 13 18:24 docs
+-rw-r--r--.  1 root root  2764 Oct 27 11:46 lh_common.py
+-rw-r--r--.  1 root root  7600 Oct 27 11:46 lhctl.py
+-rw-r--r--.  1 root root  7525 Oct 27 11:46 lh_diagnostics.py
+-rw-r--r--.  1 root root 10404 Oct 27 11:46 lh_runtime.py
+-rw-------.  1 root root   743 Oct 27 11:46 liblitehost.build.json
+-rw-r--r--.  1 root root 43580 Oct 13 18:52 liblitehost.build.log
+-rw-r--r--.  1 root root   978 Oct 27 11:46 liblitehost.exports.txt
+-rwxr-xr-x.  1 root root 22440 Oct 27 11:46 liblitehost.so
+-rw-r--r--.  1 root root  4598 Oct 27 11:46 liblitehost.wrappers.cpp
+-rw-r--r--.  1 root root  3047 Oct 27 11:46 light_host_worker.py
+-rw-r--r--.  1 root root  3288 Oct 13 08:27 litehost.c
+-rw-r--r--.  1 root root   407 Oct 13 08:27 litehost_internal.h
+-rw-r--r--.  1 root root   344 Oct 13 08:27 Makefile
+-rw-r--r--.  1 root root  1696 Oct 27 11:46 procutil.py
+drwxr-xr-x.  2 root root  4096 Oct 27 11:49 __pycache__
+-rw-r--r--.  1 root root  9625 Oct 13 18:25 README.md
+-rw-r--r--.  1 root root  1559 Oct 13 08:45 SHA256SUMS
+drwxr-xr-x.  2 root root  4096 Oct 13 18:24 tests
+-rw-r--r--.  1 root root  4595 Oct 13 08:27 verify_torch.py
+drwxr-xr-x.  9 root root  4096 Oct 31 09:46 vllmBench
+-rwxr-xr-x.  1 root root   279 Oct 28 11:01 vllmBench_lite_all.sh
+-rwxr-xr-x.  1 root root 12826 Oct 28 14:28 vllmBench_lite.sh
++ echo '== 2. vllmBench_lite_taskset.sh 全文 =='
+== 2. vllmBench_lite_taskset.sh 全文 ==
++ '[' -f /home/qch/scripts/litehost_perf/vllmBench_lite_taskset.sh ']'
++ wc -l /home/qch/scripts/litehost_perf/vllmBench_lite_taskset.sh
+254 /home/qch/scripts/litehost_perf/vllmBench_lite_taskset.sh
++ cat -n /home/qch/scripts/litehost_perf/vllmBench_lite_taskset.sh
+     1	# Adapted from the uploaded vllmBench_lite.sh. Keep one server for all cases.
+     2	#!/usr/bin/env bash
+     3	# Defaults retained: warmups=16, cache OFF, CPUs 80-159,240-319, backend=vllm.
+     4	# Requires the matching files in this slim folder (included in the ZIP).
+     5	set -uo pipefail
+     6	
+     7	: "${MODEL_PATH:?ERROR: 必须设置 MODEL_PATH}"
+     8	TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
+     9	PREFIX="${PREFIX:-/opt/corex311}"
+    10	PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+    11	GPU_LIST="${GPU_LIST:-0,1,2,3}"
+    12	GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+    13	PORT="${PORT:-8848}"
+    14	NUM_PROMPTS="${NUM_PROMPTS:-100}"
+    15	NUM_WARMUPS="${NUM_WARMUPS:-16}"
+    16	MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+    17	CASE_INTERVAL="${CASE_INTERVAL:-60}"
+    18	CPU_RANGE="${CPU_RANGE-0-15,128-143}"
+    19	HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
+    20	HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
+    21	HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
+    22	HOST_MAX_SCOPES="${HOST_MAX_SCOPES:-200000}"
+    23	HOST_DRY_RUN="${HOST_DRY_RUN:-0}"
+    24	SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    25	# Do not use an inherited OLD LIGHTHOST_HOME silently.
+    26	if [[ -f "$SCRIPT_DIR/lhctl.py" ]]; then
+    27	    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR}"
+    28	else
+    29	    HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR/litehost_compat_slim}"
+    30	fi
+    31	HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 解压完整 litehost_compat_slim_v041.zip 或设置 HOST_TOOLKIT' >&2; exit 2; }
+    32	[[ -x "$PYTHON_BIN" && -f "$HOST_TOOLKIT/lhctl.py" ]] || { echo 'ERROR: Python 或配套文件缺失' >&2; exit 2; }
+    33	[[ "$HOST_MEASURE" == lite || "$HOST_MEASURE" == off ]] || { echo 'ERROR: HOST_MEASURE=lite|off' >&2; exit 2; }
+    34	[[ "$GPUS_PER_INSTANCE" == 4 ]] || { echo 'ERROR: 此版要求四卡 TP=4, PP=1, DP=1' >&2; exit 2; }
+    35	[[ "$TEST_ID" =~ ^[A-Za-z0-9_.-]+$ && "$TEST_ID" != . && "$TEST_ID" != .. ]] || { echo 'ERROR: TEST_ID 不能包含路径分隔符' >&2; exit 2; }
+    36	
+    37	BASE_DIR="$(pwd)"
+    38	RUN_DIR="${BASE_DIR}/vllmBench/${TEST_ID}"
+    39	LOG_DIR="${RUN_DIR}/logs"
+    40	SERVER_LOG="${LOG_DIR}/server.log"
+    41	SUMMARY_CSV="${RUN_DIR}/summary.csv"
+    42	SESSION_FILE="${RUN_DIR}/session.json"
+    43	PID_FILE="${RUN_DIR}/server.pid"
+    44	SERVER_PID=""; BENCH_PID=""; CLEANED=0; INIT_DONE=0
+    45	
+    46	# Original case matrix: only 128/128 enabled; uncomment the others as before.
+    47	CASES=(
+    48	  "128 128"
+    49	  "128 1024"
+    50	  "128 2048"
+    51	  "1024 128"
+    52	  "1024 1024"
+    53	  "1024 2048"
+    54	  "2048 128"
+    55	  "2048 1024"
+    56	  "2048 2048"
+    57	)
+    58	# Optional text file, one 'input output' case per nonblank/non-comment line.
+    59	if [[ -n "${CASES_FILE:-}" ]]; then
+    60	    [[ -f "$CASES_FILE" ]] || { echo "ERROR: 找不到 CASES_FILE=$CASES_FILE" >&2; exit 2; }
+    61	    mapfile -t CASES < <(grep -Ev '^[[:space:]]*(#|$)' "$CASES_FILE")
+    62	fi
+    63	log() { printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"; }
+    64	# Child processes only: drop old measurement/audit injection; keep CoreX library paths.
+    65	CLEAN_ENV=(env -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+    66	    -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+    67	SERVER_PREFIX=()
+    68	[[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+    69	SERVER_ARGS=(
+    70	    -m vllm.entrypoints.openai.api_server
+    71	    --host 127.0.0.1 --port "$PORT" --model "$MODEL_PATH" --trust_remote_code --dtype auto
+    72	    --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1
+    73	    --tensor_parallel_size "$GPUS_PER_INSTANCE" --data_parallel_size 1
+    74	    --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto
+    75	    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}'
+    76	    --async-scheduling --no-enable-prefix-caching
+    77	)
+    78	[[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
+    79	
+    80	cleanup() {
+    81	    if [[ "$CLEANED" == 1 ]]; then return; fi
+    82	    CLEANED=1
+    83	    if [[ -n "$BENCH_PID" ]]; then
+    84	        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/bench.process.json" || true
+    85	        wait "$BENCH_PID" 2>/dev/null || true
+    86	        BENCH_PID=""
+    87	    fi
+    88	    if [[ -n "$SERVER_PID" ]]; then
+    89	        log "停止本次服务 PID=$SERVER_PID（不使用全局 pkill）"
+    90	        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
+    91	        wait "$SERVER_PID" 2>/dev/null || true
+    92	        SERVER_PID=""; rm -f -- "$PID_FILE"
+    93	    fi
+    94	    if [[ "$INIT_DONE" == 1 ]]; then
+    95	        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" cleanup-control --session "$SESSION_FILE" || true
+    96	    fi
+    97	}
+    98	trap cleanup EXIT
+    99	trap 'exit 130' INT
+   100	trap 'exit 143' TERM
+   101	
+   102	check_gpu_memory() {
+   103	    local gpu free_mib
+   104	    local -a gpus=()
+   105	    IFS=',' read -r -a gpus <<< "$GPU_LIST"
+   106	    if ! command -v ixsmi >/dev/null; then log 'WARNING: ixsmi 不可用，跳过显存预检'; return; fi
+   107	    for gpu in "${gpus[@]}"; do
+   108	        free_mib=$(ixsmi --query-gpu=memory.free --format=csv,noheader,nounits -i "$gpu" 2>/dev/null | tr -d ' ')
+   109	        if [[ "$free_mib" =~ ^[0-9]+$ ]]; then
+   110	            log "GPU $gpu: free=${free_mib} MiB（原预检阈值 20480 MiB）"
+   111	            (( free_mib >= 20480 )) || log "WARNING: GPU $gpu 显存偏低，请确认测试卡已预留"
+   112	        else log "WARNING: 无法读取 GPU $gpu 显存"; fi
+   113	    done
+   114	    return 0
+   115	}
+   116	wait_for_server() {
+   117	    local elapsed=0 code
+   118	    while (( elapsed < 600 )); do
+   119	        kill -0 "$SERVER_PID" 2>/dev/null || { log "ERROR: 服务已退出，查看 $SERVER_LOG"; return 1; }
+   120	        code=$(curl --noproxy '*' -s -o /dev/null -w '%{http_code}' --max-time 2 "http://127.0.0.1:${PORT}/health" 2>/dev/null || true)
+   121	        [[ "$code" == 200 ]] && { log "服务就绪 (${elapsed}s)"; return 0; }
+   122	        sleep 5; elapsed=$((elapsed+5))
+   123	    done
+   124	    log 'ERROR: 服务启动超时'; return 1
+   125	}
+   126	start_server() {
+   127	    # Refuse an occupied port. Never kill an unrelated service by name/port.
+   128	    "${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$PORT" <<'PY' || return 1
+   129	import socket,sys
+   130	with socket.socket() as s:s.bind(('127.0.0.1',int(sys.argv[1])))
+   131	PY
+   132	    check_gpu_memory "$GPU_LIST"
+   133	    local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1)
+   134	    if [[ "$HOST_MEASURE" == lite ]]; then
+   135	        env_args+=(PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}" LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so"
+   136	            LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+   137	    fi
+   138	    "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/server.process.json" -- \
+   139	        "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}" >> "$SERVER_LOG" 2>&1 &
+   140	    SERVER_PID=$!; echo "$SERVER_PID" > "$PID_FILE"
+   141	    log "服务 PID=$SERVER_PID；所有 case 复用；日志=$SERVER_LOG"
+   142	    wait_for_server
+   143	}
+   144	run_case() {
+   145	    local input_len="$1" output_len="$2"
+   146	    local case_id="bs${MAX_CONCURRENCY}_in${input_len}_out${output_len}"
+   147	    local case_log="${LOG_DIR}/bench_${case_id}.log" case_dir="${RUN_DIR}/litehost/${case_id}"
+   148	    local -a client env_args
+   149	    env_args=()
+   150	    if [[ "$HOST_MEASURE" == lite ]]; then
+   151	        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" prepare --session "$SESSION_FILE" \
+   152	            --case-id "$case_id" --num-prompts "$NUM_PROMPTS" --input-len "$input_len" --output-len "$output_len" || return 1
+   153	        client=("$HOST_TOOLKIT/bench_driver.py")
+   154	        env_args=(LIGHTHOST_SESSION="$SESSION_FILE" LIGHTHOST_CASE_DIR="$case_dir")
+   155	    else
+   156	        client=(-m vllm.entrypoints.cli.main bench serve)
+   157	    fi
+   158	    log "==== $case_id | mode=$HOST_MEASURE | warmup=$NUM_WARMUPS | 同一服务 ===="
+   159	    "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/bench.process.json" -- \
+   160	        "$PYTHON_BIN" "${client[@]}" \
+   161	        --backend vllm \
+   162	        --num_prompts "$NUM_PROMPTS" --num-warmups "$NUM_WARMUPS" --max-concurrency "$MAX_CONCURRENCY" \
+   163	        --dataset_name random --random_input_len "$input_len" --random_output_len "$output_len" \
+   164	        --host 127.0.0.1 --port "$PORT" --model "$MODEL_PATH" --trust_remote_code \
+   165	        --ignore_eos --top_p 1 --top_k -1 --temperature 0 --seed 42 \
+   166	        --save-result --result-dir "$RUN_DIR" --result_filename "${case_id}.json" > "$case_log" 2>&1 &
+   167	    BENCH_PID=$!
+   168	    local rc=0
+   169	    wait "$BENCH_PID" || rc=$?
+   170	    BENCH_PID=""
+   171	    if (( rc != 0 )); then log "ERROR: case 失败 rc=$rc；查看 $case_log"; return "$rc"; fi
+   172	    if [[ "$HOST_MEASURE" == lite ]]; then
+   173	        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" finish "$case_dir" \
+   174	            --link-percent "$HOST_LINK_PERCENT" || return 1
+   175	    fi
+   176	    log "完成 $case_id → ${RUN_DIR}/${case_id}.json"
+   177	}
+   178	
+   179	# Validate cheap inputs before model initialization.
+   180	"${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$GPU_LIST" "$NUM_PROMPTS" "$NUM_WARMUPS" "$MAX_CONCURRENCY" "$HOST_LINK_PERCENT" "$CASE_INTERVAL" "${CASES[@]}" <<'PY' || exit 2
+   181	import math,sys
+   182	ids,n,w,c,p,interval,*cases=sys.argv[1:]
+   183	if len(ids.split(','))!=4 or len(set(ids.split(',')))!=4:raise ValueError('需要四张不同 GPU')
+   184	if int(n)<=0 or int(w)<0 or int(c)<=0:raise ValueError('请求/预热/并发参数无效')
+   185	if not math.isfinite(float(p)) or not 0<=float(p)<=100 or float(interval)<0:raise ValueError('系数或间隔无效')
+   186	if not cases or len(cases)!=len(set(cases)):raise ValueError('case 列表为空或重复')
+   187	for x in cases:
+   188	    parts=x.split()
+   189	    if len(parts)!=2 or min(map(int,parts))<=0 or sum(map(int,parts))>4096:raise ValueError('case 需要两个正整数且总长 <= 4096')
+   190	PY
+   191	log "TEST_ID=$TEST_ID | MODE=$HOST_MEASURE | WARMUP=$NUM_WARMUPS | CPU_RANGE=$CPU_RANGE"
+   192	log "prefix cache=OFF | backend=vllm | 同一服务运行 ${#CASES[@]} 个 case | RUN_DIR=$RUN_DIR"
+   193	if [[ "$HOST_DRY_RUN" == 1 ]]; then
+   194	    printf 'SERVER: '; printf '%q ' "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}"; printf '\n'
+   195	    printf 'CASES: '; printf '%s; ' "${CASES[@]}"; printf '\n'
+   196	    exit 0
+   197	fi
+   198	[[ -d "$MODEL_PATH" ]] || { log 'ERROR: MODEL_PATH 不是本地目录'; exit 2; }
+   199	if [[ -e "$RUN_DIR" ]]; then log 'ERROR: RUN_DIR 已存在，请换一个 TEST_ID，避免混入旧文件'; exit 2; fi
+   200	mkdir -p "$LOG_DIR"
+   201	if [[ "$HOST_MEASURE" == lite ]]; then
+   202	    "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" init --run-dir "$RUN_DIR" \
+   203	        --timeout "$HOST_TIMEOUT" --max-scopes "$HOST_MAX_SCOPES" > "$LOG_DIR/preflight.log" 2>&1 || { cat "$LOG_DIR/preflight.log"; exit 2; }
+   204	    INIT_DONE=1
+   205	fi
+   206	if ! start_server; then log 'FATAL: 启动失败'; exit 1; fi
+   207	FAILED=0
+   208	for idx in "${!CASES[@]}"; do
+   209	    read -r input_len output_len <<< "${CASES[$idx]}"
+   210	    if ! run_case "$input_len" "$output_len"; then
+   211	        FAILED=1; log '停止后续 case，避免未完成请求或测量状态污染下一轮'; break
+   212	    fi
+   213	    if (( idx < ${#CASES[@]}-1 )); then log "等待 ${CASE_INTERVAL}s"; sleep "$CASE_INTERVAL"; fi
+   214	done
+   215	# Intermediate case results have already been validated and saved by
+   216	# lhctl.py finish (quietly). Build all-case CSV + Host report SILENTLY;
+   217	# print both result summaries only ONCE, after all cases and server cleanup.
+   218	if ! "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" summary "$RUN_DIR" \
+   219	        > "$LOG_DIR/summary_build.log"; then
+   220	    FAILED=1
+   221	fi
+   222	if [[ "$HOST_MEASURE" == lite && "$FAILED" == 0 ]]; then
+   223	    "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/analyze_litehost.py" "$RUN_DIR/litehost" \
+   224	        --link-percent "$HOST_LINK_PERCENT" --out "$RUN_DIR/host_summary" --quiet || FAILED=1
+   225	fi
+   226	cleanup
+   227	(( FAILED == 0 )) || { log "部分失败，保留诊断：$RUN_DIR"; exit 2; }
+   228	
+   229	log "========== 所有 case 最终结果（仅此处打印一次） =========="
+   230	"${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$SUMMARY_CSV" "$MAX_CONCURRENCY" "${CASES[@]}" <<'PY' || exit 2
+   231	import csv,sys
+   232	from pathlib import Path
+   233	path=Path(sys.argv[1]);bs=sys.argv[2]
+   234	with path.open(newline='') as f:
+   235	    rows={r['case']:r for r in csv.DictReader(f)}
+   236	print('===== Benchmark：吞吐与延迟（全部 case）=====')
+   237	for spec in sys.argv[3:]:
+   238	    in_len,out_len=spec.split()
+   239	    case=f'bs{bs}_in{in_len}_out{out_len}'
+   240	    if case not in rows:raise SystemExit(f'ERROR: summary.csv 缺少 {case}')
+   241	    r=rows[case]
+   242	    def fmt(key):
+   243	        val=r.get(key,'')
+   244	        try:return f'{float(val):.3f}'
+   245	        except (TypeError,ValueError):return 'N/A'
+   246	    print(f'{case}: output_tok/s={fmt("output_token_throughput_tok_s")} '
+   247	          f'TTFT_mean={fmt("mean_ttft_ms")}ms '
+   248	          f'TPOT_mean={fmt("mean_tpot_ms")}ms ITL_mean={fmt("mean_itl_ms")}ms')
+   249	PY
+   250	if [[ "$HOST_MEASURE" == lite ]]; then
+   251	    echo '===== LiteHost：四 rank、所有 case 的 H 与 H+G ====='
+   252	    cat "$RUN_DIR/host_summary/report.txt"
+   253	fi
+   254	log "全部完成 | benchmark=$SUMMARY_CSV | host=$([[ "$HOST_MEASURE" == lite ]] && echo "$RUN_DIR/host_summary/report.txt" || echo 'OFF/未采集')"
++ echo '== 3. 同目录其他脚本 =='
+== 3. 同目录其他脚本 ==
++ head -20
++ ls /home/qch/scripts/litehost_perf/vllmBench_lite_all.sh /home/qch/scripts/litehost_perf/vllmBench_lite.sh /home/qch/scripts/litehost_perf/vllmBench_lite_taskset.sh /home/qch/scripts/litehost_perf/analyze_litehost.py /home/qch/scripts/litehost_perf/bench_driver.py /home/qch/scripts/litehost_perf/build_corex.py /home/qch/scripts/litehost_perf/collect_results.py /home/qch/scripts/litehost_perf/lh_common.py /home/qch/scripts/litehost_perf/lhctl.py /home/qch/scripts/litehost_perf/lh_diagnostics.py /home/qch/scripts/litehost_perf/lh_runtime.py /home/qch/scripts/litehost_perf/light_host_worker.py /home/qch/scripts/litehost_perf/procutil.py /home/qch/scripts/litehost_perf/verify_torch.py
+/home/qch/scripts/litehost_perf/analyze_litehost.py
+/home/qch/scripts/litehost_perf/bench_driver.py
+/home/qch/scripts/litehost_perf/build_corex.py
+/home/qch/scripts/litehost_perf/collect_results.py
+/home/qch/scripts/litehost_perf/lh_common.py
+/home/qch/scripts/litehost_perf/lhctl.py
+/home/qch/scripts/litehost_perf/lh_diagnostics.py
+/home/qch/scripts/litehost_perf/lh_runtime.py
+/home/qch/scripts/litehost_perf/light_host_worker.py
+/home/qch/scripts/litehost_perf/procutil.py
+/home/qch/scripts/litehost_perf/verify_torch.py
+/home/qch/scripts/litehost_perf/vllmBench_lite_all.sh
+/home/qch/scripts/litehost_perf/vllmBench_lite.sh
+/home/qch/scripts/litehost_perf/vllmBench_lite_taskset.sh
++ set +x
+
+### exit: 0
