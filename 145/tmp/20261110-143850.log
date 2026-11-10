@@ -1,0 +1,373 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-10T06:38:50Z
+
++ echo '== 1. 完整目录（不截断）=='
+== 1. 完整目录（不截断）==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+ls -la "$P"
+'
++ head -80
+total 45920
+drwxr-xr-x. 1 root root     4096 Nov 10 14:31 .
+drwxr-xr-x. 1 root root     4096 Oct 26 17:25 ..
+-rw-r--r--. 1 root root     2319 Aug  7 10:03 Makefile
+-rw-r--r--. 1 root root      122 Apr 30  2025 README.md
+-rw-r--r--. 1 root root     6616 Oct 26 17:32 benchmark.md
+-rw-r--r--. 1 root root     7144 Oct 26 18:46 clip_neon_opt_implementation.md
+-rw-r--r--. 1 root root     7286 Oct 26 17:23 clip_u8_i32_neon_opt.md
+-rwxr-xr-x. 1 root root  1279672 Oct 26 17:44 fusion.unittest
+-rwxr-xr-x. 1 root root  1252232 Oct 26 17:43 fusion.unittest.bak_before_neon
+-rw-r--r--. 1 root root 11582264 Aug 10 10:20 fusion_asm.txt
+-rw-r--r--. 1 root root   340281 Oct 26 17:44 fusion_func.S
+-rw-r--r--. 1 root root    11887 Apr 30  2025 fusion_func.cpp
+-rw-r--r--. 1 root root    83664 Oct 26 17:44 fusion_func.o
+-rw-r--r--. 1 root root   865070 Oct 26 17:44 fusion_func_v2.S
+-rw-r--r--. 1 root root    20470 Apr 30  2025 fusion_func_v2.cpp
+-rw-r--r--. 1 root root   374008 Oct 26 17:44 fusion_func_v2.o
+-rw-r--r--. 1 root root  1187959 Oct 26 17:44 fusion_test.S
+-rw-r--r--. 1 root root    24179 Aug  7 09:48 fusion_test.cpp
+-rw-r--r--. 1 root root   543896 Oct 26 17:44 fusion_test.o
+-rwxr-xr-x. 1 root root    49730 Sep 16 11:22 gdb_disasm_functions.sh
+-rw-r--r--. 1 root root     1788 Apr 30  2025 makefile_BK
+-rw-r--r--. 1 root root   440124 Oct 26 17:44 opt_func.S
+-rw-r--r--. 1 root root    14969 Apr 30  2025 opt_func.cpp
+-rw-r--r--. 1 root root     2016 Apr 30  2025 opt_func.h
+-rw-r--r--. 1 root root   105752 Oct 26 17:44 opt_func.o
+-rw-r--r--. 1 root root  1493372 Oct 26 17:44 opt_func_v2.S
+-rw-r--r--. 1 root root    20563 Apr 30  2025 opt_func_v2.cpp
+-rw-r--r--. 1 root root   388920 Oct 26 17:44 opt_func_v2.o
+-rw-r--r--. 1 root root   401226 Oct 26 17:44 opt_func_v3.S
+-rw-r--r--. 1 root root     9692 Apr 30  2025 opt_func_v3.cpp
+-rw-r--r--. 1 root root    92224 Oct 26 17:44 opt_func_v3.o
+-rwxr-xr-x. 1 root root  5955302 Sep  9 10:32 pillow.maps
+-rw-r--r--. 1 root root   409710 Oct 26 17:44 pillow_fusion_func.S
+-rw-r--r--. 1 root root     9704 Apr 30  2025 pillow_fusion_func.cpp
+-rw-r--r--. 1 root root   108048 Oct 26 17:44 pillow_fusion_func.o
+-rw-r--r--. 1 root root   724587 Oct 26 17:44 pillow_fusion_func_v2.S
+-rw-r--r--. 1 root root    39232 Oct 26 17:43 pillow_fusion_func_v2.cpp
+-rw-r--r--. 1 root root    36800 Oct 26 17:42 pillow_fusion_func_v2.cpp.bak_clip_neon
+-rw-r--r--. 1 root root   296744 Oct 26 17:44 pillow_fusion_func_v2.o
+-rw-r--r--. 1 root root   416434 Oct 26 17:44 pillow_opt_func.S
+-rw-r--r--. 1 root root    16379 Apr 30  2025 pillow_opt_func.cpp
+-rw-r--r--. 1 root root   107952 Oct 26 17:44 pillow_opt_func.o
+-rw-r--r--. 1 root root   562281 Oct 26 17:44 pillow_opt_func_v2.S
+-rw-r--r--. 1 root root    38589 Apr 30  2025 pillow_opt_func_v2.cpp
+-rw-r--r--. 1 root root   219648 Oct 26 17:44 pillow_opt_func_v2.o
+-rw-r--r--. 1 root root      718 Apr 30  2025 run_fusion.sh
+-rw-r--r--. 1 root root      393 Apr 30  2025 run_fusion2.sh
+-rw-r--r--. 1 root root    38308 Sep  2 16:31 total_licm_result.txt
+-rw-r--r--. 1 root root 16907503 Sep  9 10:57 total_licm_result_disasm.txt
+-rw-r--r--. 1 root root   375322 Sep  9 10:44 total_licm_result_disasm.txt.bak_0902
+-rw-r--r--. 1 root root    36961 Sep 16 11:22 total_licm_result_formatted.txt
+-rw-r--r--. 1 root root    42405 Sep 16 11:22 total_licm_result_formatted_disasm.txt
+-rw-r--r--. 1 root root     1104 Apr 30  2025 util.h
++ echo '== 2. 所有源文件（cpp/h）=='
+== 2. 所有源文件（cpp/h）==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+ls -l "$P"/*.cpp "$P"/*.h 2>/dev/null
+'
++ head -30
+-rw-r--r--. 1 root root 11887 Apr 30  2025 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion_func.cpp
+-rw-r--r--. 1 root root 20470 Apr 30  2025 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion_func_v2.cpp
+-rw-r--r--. 1 root root 24179 Aug  7 09:48 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/fusion_test.cpp
+-rw-r--r--. 1 root root 14969 Apr 30  2025 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/opt_func.cpp
+-rw-r--r--. 1 root root  2016 Apr 30  2025 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/opt_func.h
+-rw-r--r--. 1 root root 20563 Apr 30  2025 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/opt_func_v2.cpp
+-rw-r--r--. 1 root root  9692 Apr 30  2025 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/opt_func_v3.cpp
+-rw-r--r--. 1 root root  9704 Apr 30  2025 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_fusion_func.cpp
+-rw-r--r--. 1 root root 39232 Oct 26 17:43 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_fusion_func_v2.cpp
+-rw-r--r--. 1 root root 16379 Apr 30  2025 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_opt_func.cpp
+-rw-r--r--. 1 root root 38589 Apr 30  2025 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_opt_func_v2.cpp
+-rw-r--r--. 1 root root  1104 Apr 30  2025 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/util.h
++ echo '== 3. NEON 符号在各源文件中的分布 =='
+== 3. NEON 符号在各源文件中的分布 ==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+for f in "$P"/*.cpp; do
+  printf "%-45s x16=%s norm=%s vqmovun=%s lines=%s\n" "$(basename "$f")" \
+    "$(grep -c clip_u8_i32_x16 "$f" 2>/dev/null)" \
+    "$(grep -c clip_norm_x16 "$f" 2>/dev/null)" \
+    "$(grep -c vqmovun_s32 "$f" 2>/dev/null)" \
+    "$(wc -l < "$f" 2>/dev/null)"
+done
+'
++ head -20
+fusion_func.cpp                               x16=0 norm=0 vqmovun=0 lines=367
+fusion_func_v2.cpp                            x16=0 norm=0 vqmovun=0 lines=601
+fusion_test.cpp                               x16=0 norm=0 vqmovun=0 lines=768
+opt_func.cpp                                  x16=0 norm=0 vqmovun=0 lines=440
+opt_func_v2.cpp                               x16=0 norm=0 vqmovun=0 lines=591
+opt_func_v3.cpp                               x16=0 norm=0 vqmovun=0 lines=303
+pillow_fusion_func.cpp                        x16=0 norm=0 vqmovun=0 lines=290
+pillow_fusion_func_v2.cpp                     x16=4 norm=4 vqmovun=2 lines=1078
+pillow_opt_func.cpp                           x16=0 norm=0 vqmovun=0 lines=528
+pillow_opt_func_v2.cpp                        x16=0 norm=0 vqmovun=0 lines=1100
++ echo '== 4. pillow_opt_func_v2.cpp 概况与 NEON 段 =='
+== 4. pillow_opt_func_v2.cpp 概况与 NEON 段 ==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+F=$P/pillow_opt_func_v2.cpp
+ls -l "$F" 2>&1
+[ -f "$F" ] && { wc -l "$F"; grep -n "clip_u8_i32_x16\|clip_norm_x16\|vqmovun_s32\|clip_u8_i32" "$F" | head -20; }
+'
++ head -30
+-rw-r--r--. 1 root root 38589 Apr 30  2025 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_opt_func_v2.cpp
+1100 /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/pillow_opt_func_v2.cpp
+55:static inline int clip_u8_i32(int x)
+73:    dst[i] = clip_u8_i32(sum);
+89:    dst[i] = clip_u8_i32(sum);
+102:    dst[i] = clip_u8_i32(sum);
+115:    dst[i] = clip_u8_i32(sum);
+128:    dst[i] = clip_u8_i32(sum);
+670:    dst[i * 3 + 0] = clip_u8_i32(ss0);
+671:    dst[i * 3 + 1] = clip_u8_i32(ss1);
+672:    dst[i * 3 + 2] = clip_u8_i32(ss2);
+856:    dst[i * 3 + 0] = clip_u8_i32(ss0);
+857:    dst[i * 3 + 1] = clip_u8_i32(ss1);
+858:    dst[i * 3 + 2] = clip_u8_i32(ss2);
+922:          output[0 * dh * dw + yy * dw + xx] = clip_u8_i32(tmp2[2*dw + xx]);
+923:          output[1 * dh * dw + yy * dw + xx] = clip_u8_i32(tmp2[1*dw + xx]);
+924:          output[2 * dh * dw + yy * dw + xx] = clip_u8_i32(tmp2[0*dw + xx]);
+944:          output[0 * dh * dw + yy * dw + xx] = clip_u8_i32(tmp2[2*dw + xx]);
+945:          output[1 * dh * dw + yy * dw + xx] = clip_u8_i32(tmp2[1*dw + xx]);
+946:          output[2 * dh * dw + yy * dw + xx] = clip_u8_i32(tmp2[0*dw + xx]);
++ echo '== 5. Makefile =='
+== 5. Makefile ==
++ docker exec fusionv1 cat /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/Makefile
++ head -70
+default: fusion.unittest
+
+CXX = g++
+
+CFLAGS0 = -O3 --std=c++17 -fopenmp -fPIC -g
+CLIBS0 = -O3 --std=c++17 -fopenmp -fPIC -g
+# CFLAGS0 = -O3 --std=c++17 -march=armv8.4-a+sve -msve-vector-bits=256 -fopenmp -fPIC
+# CLIBS0 = -O3 --std=c++17 -march=armv8.4-a+sve -msve-vector-bits=256 -fopenmp -fPIC
+
+CFLAGS = $(CFLAGS0) ${CV_INC_FLAG}
+CLIBS = $(CLIBS0) ${CV_LIB_FLAG}
+
+# libkperf插桩使用
+LIBRARY_PATH = /home/workspace/tensor/files/libkperf
+LIBRARY_NAME = kperf  # 对应libyourlibrary.so
+
+CFLAGS += -I$(LIBRARY_PATH) 
+LDFLAGS += -L$(LIBRARY_PATH)
+LDLIBS += -l$(LIBRARY_NAME)
+RPATH = -Wl,-rpath,$(LIBRARY_PATH)
+
+
+
+fusion.unittest: fusion_test.o opt_func.o opt_func_v2.o opt_func_v3.o fusion_func.o fusion_func_v2.o pillow_opt_func.o pillow_opt_func_v2.o pillow_fusion_func.o pillow_fusion_func_v2.o
+	$(CXX) $(CLIBS) $^ -o $@ $(LDFLAGS) $(LDLIBS) $(RPATH)
+# [hzy]新添加的库配置
+
+# fusion.unittest: fusion_test.o opt_func.o opt_func_v2.o opt_func_v3.o fusion_func.o fusion_func_v2.o pillow_opt_func.o pillow_opt_func_v2.o pillow_fusion_func.o pillow_fusion_func_v2.o
+# 	$(CXX) $(CLIBS) $^ -o $@
+
+fusion_test.o: fusion_test.cpp ${INC}
+	$(CXX) $(CFLAGS)  $< -c -o $@
+	$(CXX) $(CFLAGS)  $< -S -o fusion_test.S
+
+opt_func.o: opt_func.cpp
+	$(CXX) $(CFLAGS) $< -c -o $@
+	$(CXX) $(CFLAGS) $< -S -o opt_func.S
+
+opt_func_v2.o: opt_func_v2.cpp
+	$(CXX) $(CFLAGS) $< -c -o $@
+	$(CXX) $(CFLAGS) $< -S -o opt_func_v2.S
+
+opt_func_v3.o: opt_func_v3.cpp
+	$(CXX) $(CFLAGS) $< -c -o $@
+	$(CXX) $(CFLAGS) $< -S -o opt_func_v3.S
+
+fusion_func.o: fusion_func.cpp
+	$(CXX) $(CFLAGS) $< -c -o $@
+	$(CXX) $(CFLAGS) $< -S -o fusion_func.S
+
+fusion_func_v2.o: fusion_func_v2.cpp
+	$(CXX) $(CFLAGS) $< -c -o $@
+	$(CXX) $(CFLAGS) $< -S -o fusion_func_v2.S
+
+pillow_opt_func.o: pillow_opt_func.cpp
+	$(CXX) $(CFLAGS) $< -c -o $@
+	$(CXX) $(CFLAGS) $< -S -o pillow_opt_func.S
+
+pillow_opt_func_v2.o: pillow_opt_func_v2.cpp
+	$(CXX) $(CFLAGS) $< -c -o $@
+	$(CXX) $(CFLAGS) $< -S -o pillow_opt_func_v2.S
+
+pillow_fusion_func.o: pillow_fusion_func.cpp
+	$(CXX) $(CFLAGS) $< -c -o $@
+	$(CXX) $(CFLAGS) $< -S -o pillow_fusion_func.S
+
+pillow_fusion_func_v2.o: pillow_fusion_func_v2.cpp
+	$(CXX) $(CFLAGS) $< -c -o $@
+	$(CXX) $(CFLAGS) $< -S -o pillow_fusion_func_v2.S
+
++ echo '== 6. benchmark.md =='
+== 6. benchmark.md ==
++ docker exec fusionv1 cat /home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro/benchmark.md
++ head -120
+|  |  |  |  |  |
+| --- | --- | --- | --- | --- |
+|  |  | | |  |
+|  | | |  |
+| **融合算子Benchmark性能测试指导书** | | |
+| **文档版本** | 0.1 | |
+| **发布日期** | **2024-11-12** | |
+| ![华为网格系统---方案4-032.png](data:image/png;base64...) | | | | |
+|  | 华为技术有限公司 | | ![附件1-16K](data:image/png;base64...) |  |
+
+|  |
+| --- |
+| 版权所有 © 华为技术有限公司2024。 保留一切权利。  非经本公司书面许可，任何单位和个人不得擅自摘抄、复制本文档内容的部分或全部，并不得以任何形式传播。  商标声明  ![附件3-版权声明页图](data:image/png;base64...) 和其他华为商标均为华为技术有限公司的商标。  本文档提及的其他所有商标或注册商标，由各自的所有人拥有。  注意  您购买的产品、服务或特性等应受华为公司商业合同和条款的约束，本文档中描述的全部或部分产品、服务或特性可能不在您的购买或使用范围之内。除非合同另有约定，华为公司对本文档内容不做任何明示或暗示的声明或保证。  由于产品版本升级或其他原因，本文档内容会不定期进行更新。除非另有约定，本文档仅作为使用指导，本文档中的所有陈述、信息和建议不构成任何明示或暗示的担保。 |
+
+|  |  |
+| --- | --- |
+| 华为技术有限公司 | |
+| 地址： | 深圳市龙岗区坂田华为总部办公楼 邮编：518129 |
+| 网址： | <https://e.huawei.com> |
+
+|  |
+| --- |
+| 安全声明 |
+| 产品生命周期政策  华为公司对产品生命周期的规定以“产品生命周期终止政策”为准，该政策的详细内容请参见如下网址：<https://support.huawei.com/ecolumnsweb/zh/warranty-policy>  漏洞处理流程  华为公司对产品漏洞管理的规定以“漏洞处理流程”为准，该流程的详细内容请参见如下网址：<https://www.huawei.com/cn/psirt/vul-response-process>  如企业客户须获取漏洞信息，请参见如下网址：  <https://securitybulletin.huawei.com/enterprise/cn/security-advisory>  华为预置证书权责说明  华为公司对随设备出厂的预置数字证书，发布了“华为设备预置数字证书权责说明”，该说明的详细内容请参见如下网址：  <https://support.huawei.com/enterprise/zh/bulletins-service/ENEWS2000015766>  华为企业业务最终用户许可协议(EULA)  本最终用户许可协议是最终用户（个人、公司或其他任何实体）与华为公司就华为软件的使用所缔结的协议。最终用户对华为软件的使用受本协议约束，该协议的详细内容请参见如下网址：  <https://e.huawei.com/cn/about/eula>  产品资料生命周期策略  华为公司针对随产品版本发布的售后客户资料（产品资料），发布了“产品资料生命周期策略”，该策略的详细内容请参见如下网址：  <https://support.huawei.com/enterprise/zh/bulletins-website/ENEWS2000017760> |
+
+# 测试环境
+
+## 测试目的
+
+Benchmark测试，是一种衡量标准，用于确定和衡量性能的方法。它涉及设计科学的测试方法、测试工具和测试系统，以定量和可对比的方式对测试对象的性能、进行评估。该文档系统地介绍了融合算子benchmark测试工具及其依赖的安装与使用，用于性能评估和验收测试。
+
+融合算子将原本分在不同流程的 normalize、rescale、reshape、transpose等流程放在一个算子里，节省了资源开销，简化流程，加速图像解码后到模型输入前的处理性能
+
+## Benchmark介绍
+
+为了更全面的，在不同机型上测试性能，融合算子benmark分为两个大的版本。Opencv版本和通用版本，下面会介绍两个版本
+
+Benchmark 下载地址 <https://onebox.huawei.com/#eSpaceGroupFile/1/139/15116406>
+
+Gcc10.3.1为openEuler系统特有版本，其他系统使用不低于10.3.1版本即可
+
+### 通用版本benchmark
+
+通用版本benchmark介绍
+
+|  |  |  |
+| --- | --- | --- |
+| 压缩包名称 | 适用机型 | Gcc版本 |
+| opt\_fusion\_qwen-master\_fusion\_v0.zip | 920、920B、920C等Arm架构机型， zen4 zen5 | 10.3.1， zen4、zen5 (11.4或不低于10.3.1) |
+| opt\_fusion\_qwen-master\_fusion\_v0\_m4.zip | M4 （适配了M4的内存分配方式）920、920B、920C等Arm架构机型， zen4 zen5 | 11.5或不低于10.3.1 |
+| opt\_fusion\_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro-arm | 920、920B、920C等Arm架构机型（对arm图片裁剪做了优化） | 10.3.1 |
+
+### opencv版本benchmark
+
+|  |  |  |
+| --- | --- | --- |
+| 压缩包名称 | 适用机型 | Gcc版本 |
+| test\_opencv\_resize-master.zip | 920、920B、920C等Arm架构机型， zen4 zen5,m4 | 10.3.1， zen4、zen5,m4 (11.4或不低于10.3.1) |
+
+# 编译测试
+
+## 2.1通用版本
+
+**三个版本，编译和执行流程均一样**
+
+opt\_fusion\_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro-arm **热点函数为**
+
+**![](data:image/png;base64...)**
+
+其他两个版本 **热点函数为**
+
+**![](data:image/png;base64...)**
+
+**切片版本为** opt\_fusion\_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro-arm
+
+**如需libkperf 插桩采集热点函数topdown信息，请用此版本**
+
+### 2.1.1编译
+
+make clean
+
+make -j
+
+### 2.1.2执行
+
+numactl -C $core ./fusion.unittest 1 (1指开启一个线程，多线程增加同样数量绑核和线程数即可)
+
+./fusion.unittest 1 (M4)
+
+## 2.2opencv版本
+
+### 2.2.1编译
+
+首先按照README.md上的记录，拉取opencv仓库，并编译
+
+-- git clone https://github.com/opencv/opencv
+
+-- cd opencv
+
+-- git checkout 4.11.0
+
+-- mkdir build
+
+-- cd build
+
+-- cmake .. -DCMAKE\_BUILD\_TYPE=RELEASE -DCMAKE\_INSTALL\_PREFIX=[opencv安装目录]
+
+-- make -j
+
+-- make install
+
+进入 test\_opencv\_resize-master
+
+-- 修改Makefile中的CV\_PATH为[opencv安装目录]
+
+-- make -j
+
+-- make run
+
+注意事项：
++ echo '== 7. 备份目录与当前目录对比 =='
+== 7. 备份目录与当前目录对比 ==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
++ head -90
+B=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro-backup
+echo "-- backup --"; ls -l "$B" 2>&1 | head -20
+echo "-- diff pillow_opt_func_v2.cpp --"
+diff -u "$B/pillow_opt_func_v2.cpp" "$P/pillow_opt_func_v2.cpp" 2>&1 | head -60
+echo "-- diff 行数 --"
+diff "$B/pillow_opt_func_v2.cpp" "$P/pillow_opt_func_v2.cpp" 2>/dev/null | wc -l
+'
+-- backup --
+total 44392
+-rw-r--r--. 1 root root     2319 Aug  7 10:03 Makefile
+-rw-r--r--. 1 root root      122 Apr 30  2025 README.md
+-rw-r--r--. 1 root root     7286 Oct 26 17:23 clip_u8_i32_neon_opt.md
+-rwxr-xr-x. 1 root root  1252232 Oct 26 10:53 fusion.unittest
+-rw-r--r--. 1 root root 11582264 Aug 10 10:20 fusion_asm.txt
+-rw-r--r--. 1 root root   340281 Oct 26 10:53 fusion_func.S
+-rw-r--r--. 1 root root    11887 Apr 30  2025 fusion_func.cpp
+-rw-r--r--. 1 root root    83664 Oct 26 10:53 fusion_func.o
+-rw-r--r--. 1 root root   865070 Oct 26 10:53 fusion_func_v2.S
+-rw-r--r--. 1 root root    20470 Apr 30  2025 fusion_func_v2.cpp
+-rw-r--r--. 1 root root   374008 Oct 26 10:53 fusion_func_v2.o
+-rw-r--r--. 1 root root  1187959 Oct 26 10:53 fusion_test.S
+-rw-r--r--. 1 root root    24179 Aug  7 09:48 fusion_test.cpp
+-rw-r--r--. 1 root root   543896 Oct 26 10:53 fusion_test.o
+-rwxr-xr-x. 1 root root    49730 Sep 16 11:22 gdb_disasm_functions.sh
+-rw-r--r--. 1 root root     1788 Apr 30  2025 makefile_BK
+-rw-r--r--. 1 root root   440124 Oct 26 10:53 opt_func.S
+-rw-r--r--. 1 root root    14969 Apr 30  2025 opt_func.cpp
+-rw-r--r--. 1 root root     2016 Apr 30  2025 opt_func.h
+-- diff pillow_opt_func_v2.cpp --
+-- diff 行数 --
+0
++ set +x
+
+### exit: 0
