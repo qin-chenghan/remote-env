@@ -1,0 +1,1218 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-10T00:42:11Z
+
++ echo '== os =='
+== os ==
++ uname -a
+Linux localhost.localdomain 6.6.0-132.0.0.111.oe2403sp3.x86_64 #1 SMP Mon Dec 29 23:07:38 CST 2025 x86_64 x86_64 x86_64 GNU/Linux
++ head -3 /etc/os-release
+NAME="openEuler"
+VERSION="24.03 (LTS-SP1)"
+ID="openEuler"
++ echo '== container =='
+== container ==
++ cat /proc/1/cgroup
++ head -5
+13:hugetlb:/
+12:rdma:/
+11:cpuset:/
+10:cpu,cpuacct:/init.scope
+9:misc:/
++ ls -d /opt/clabagent /opt/containerd /opt/hygon /opt/maca /opt/maca-3.3.0 /opt/mxdriver /opt/perf-host
+/opt/clabagent
+/opt/containerd
+/opt/hygon
+/opt/maca
+/opt/maca-3.3.0
+/opt/mxdriver
+/opt/perf-host
++ echo '== python/venv =='
+== python/venv ==
++ for p in /opt/corex311/bin/python /opt/corex311-cpython-vllm/bin/python
++ '[' -x /opt/corex311/bin/python ']'
++ for p in /opt/corex311/bin/python /opt/corex311-cpython-vllm/bin/python
++ '[' -x /opt/corex311-cpython-vllm/bin/python ']'
++ echo '== gpu tools =='
+== gpu tools ==
++ for c in ixsmi ix-smi mx-smi mxsmi nvidia-smi
++ command -v ixsmi
++ echo 'found: ixsmi'
+found: ixsmi
++ ixsmi
++ head -40
+Iluvatar-SMI has failed because it couldn't communicate with the Iluvatar driver. Make sure that the latest Iluvatar driver is installed and running.
++ for c in ixsmi ix-smi mx-smi mxsmi nvidia-smi
++ command -v ix-smi
++ for c in ixsmi ix-smi mx-smi mxsmi nvidia-smi
++ command -v mx-smi
++ echo 'found: mx-smi'
+found: mx-smi
++ mx-smi
++ head -40
+mx-smi  version: 2.2.9
+No available devices were discovered
++ for c in ixsmi ix-smi mx-smi mxsmi nvidia-smi
++ command -v mxsmi
++ for c in ixsmi ix-smi mx-smi mxsmi nvidia-smi
++ command -v nvidia-smi
++ echo 'found: nvidia-smi'
+found: nvidia-smi
++ nvidia-smi
++ head -40
+NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.
+
++ echo '== gpu pci numa =='
+== gpu pci numa ==
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:00.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:01.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:01.7/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:02.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:03.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:04.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:05.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:05.1/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:05.2/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:07.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:07.1/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:08.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:08.1/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0b.0/class
++ cls=0x0c0500
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0b.3/class
++ cls=0x060100
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0c.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0c.1/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0c.2/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0c.3/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0c.4/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0c.5/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0c.6/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0c.7/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0d.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0d.1/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0d.2/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0d.3/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0d.4/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0d.5/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0d.6/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0d.7/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0e.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0e.1/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0e.2/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0e.3/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0e.4/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0e.5/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0e.6/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0e.7/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0f.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0f.1/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0f.2/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0f.3/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0f.4/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0f.5/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0f.6/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:0f.7/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:10.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:10.1/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:10.2/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:10.3/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:10.4/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:10.5/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:10.6/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:10.7/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:11.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:11.1/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:11.2/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:11.3/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:11.4/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:11.5/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:11.6/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:11.7/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:12.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:12.1/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:12.2/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:12.3/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:12.4/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:12.5/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:12.6/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:12.7/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:13.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:13.1/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:13.2/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:13.3/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:13.4/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:13.5/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:13.6/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:13.7/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:14.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:14.1/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:14.2/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:14.3/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:14.4/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:14.5/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:14.6/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:14.7/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:15.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:15.1/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:15.2/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:15.3/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:15.4/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:15.5/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:15.6/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:00:15.7/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:01:00.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:02:00.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:02:02.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:02:03.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:02:04.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:02:05.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:02:07.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:03:00.0/class
++ cls=0x010700
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:08:00.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:09:00.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:09:02.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:09:03.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:09:04.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:09:05.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:09:06.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:0a:00.0/class
++ cls=0x010700
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:0c:00.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:0d:00.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:0d:04.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:0d:1c.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:0e:00.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:0f:00.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:10:00.0/class
++ cls=0x120000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:11:00.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:12:00.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:13:00.0/class
++ cls=0x120000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:14:00.0/class
++ cls=0x018000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:15:00.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:16:00.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:16:04.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:16:1c.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:17:00.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:18:00.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:19:00.0/class
++ cls=0x120000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:1a:00.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:1b:00.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:1c:00.0/class
++ cls=0x120000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:1d:00.0/class
++ cls=0x018000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:20:00.0/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:21:00.0/class
++ cls=0x030000
++ case "$cls" in
+++ basename /sys/bus/pci/devices/0000:21:00.0
+++ cat /sys/bus/pci/devices/0000:21:00.0/vendor
+++ cat /sys/bus/pci/devices/0000:21:00.0/numa_node
++ printf '%s vendor=%s numa_node=%s\n' 0000:21:00.0 0x1a03 0
+0000:21:00.0 vendor=0x1a03 numa_node=0
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:22:00.0/class
++ cls=0x010601
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:23:00.0/class
++ cls=0x130000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:23:00.2/class
++ cls=0x108000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:23:00.3/class
++ cls=0x0c0330
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:24:00.0/class
++ cls=0x130000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:24:00.1/class
++ cls=0x108000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:90:00.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:90:01.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:90:02.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:90:03.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:90:03.7/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:90:04.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:90:05.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:90:07.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:90:07.1/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:90:08.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:90:08.1/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:91:00.0/class
++ cls=0x020000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:91:00.1/class
++ cls=0x020000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:94:00.0/class
++ cls=0x130000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:94:00.2/class
++ cls=0x108000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:94:00.3/class
++ cls=0x0c0330
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:95:00.0/class
++ cls=0x130000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:95:00.1/class
++ cls=0x108000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ad:00.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ad:01.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ad:02.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ad:03.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ad:04.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ad:05.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ad:07.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ad:07.1/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ad:08.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ad:08.1/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ae:00.0/class
++ cls=0x130000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ae:00.2/class
++ cls=0x108000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:af:00.0/class
++ cls=0x130000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:af:00.1/class
++ cls=0x108000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:b0:00.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:b0:01.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:b0:02.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:b0:03.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:b0:03.3/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:b0:03.4/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:b0:03.5/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:b0:04.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:b0:05.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:b0:07.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:b0:07.1/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:b0:08.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:b0:08.1/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:b1:00.0/class
++ cls=0x010400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:b4:00.0/class
++ cls=0x130000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:b4:00.2/class
++ cls=0x108000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:b5:00.0/class
++ cls=0x130000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:b5:00.1/class
++ cls=0x108000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:c0:00.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:c0:01.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:c0:02.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:c0:03.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:c0:04.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:c0:05.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:c0:07.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:c0:07.1/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:c0:08.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:c0:08.1/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:c1:00.0/class
++ cls=0x130000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:c1:00.2/class
++ cls=0x108000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:c2:00.0/class
++ cls=0x130000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:c2:00.1/class
++ cls=0x108000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:d0:00.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:d0:01.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:d0:02.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:d0:03.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:d0:04.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:d0:05.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:d0:07.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:d0:07.1/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:d0:08.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:d0:08.1/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:d1:00.0/class
++ cls=0x130000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:d1:00.2/class
++ cls=0x108000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:d2:00.0/class
++ cls=0x130000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:d2:00.1/class
++ cls=0x108000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ed:00.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ed:01.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ed:02.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ed:03.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ed:04.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ed:05.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ed:07.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ed:07.1/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ed:08.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ed:08.1/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ee:00.0/class
++ cls=0x130000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ee:00.2/class
++ cls=0x108000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ef:00.0/class
++ cls=0x130000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:ef:00.1/class
++ cls=0x108000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f0:00.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f0:01.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f0:02.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f0:03.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f0:03.4/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f0:03.5/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f0:03.6/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f0:04.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f0:05.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f0:07.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f0:07.1/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f0:08.0/class
++ cls=0x060000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f0:08.1/class
++ cls=0x060400
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f3:00.0/class
++ cls=0x020000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f3:00.1/class
++ cls=0x020000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f6:00.0/class
++ cls=0x130000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f6:00.2/class
++ cls=0x108000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f7:00.0/class
++ cls=0x130000
++ case "$cls" in
++ for d in /sys/bus/pci/devices/*
+++ cat /sys/bus/pci/devices/0000:f7:00.1/class
++ cls=0x108000
++ case "$cls" in
++ echo '== topo =='
+== topo ==
++ command -v ixsmi
++ ixsmi topo -m
++ head -30
+Iluvatar-SMI has failed because it couldn't communicate with the Iluvatar driver. Make sure that the latest Iluvatar driver is installed and running.
++ echo '== cpu/numa =='
+== cpu/numa ==
++ lscpu
++ head -28
+Architecture:                         x86_64
+CPU op-mode(s):                       32-bit, 64-bit
+Address sizes:                        45 bits physical, 48 bits virtual
+Byte Order:                           Little Endian
+CPU(s):                               256
+On-line CPU(s) list:                  0-254
+Off-line CPU(s) list:                 255
+Vendor ID:                            HygonGenuine
+BIOS Vendor ID:                       Chengdu Hygon
+Model name:                           Hygon C86 7490 64-core Processor
+BIOS Model name:                      Hygon C86 7490 64-core Processor  CPU @ 2.7GHz
+BIOS CPU family:                      1
+CPU family:                           24
+Model:                                4
+Thread(s) per core:                   2
+Core(s) per socket:                   64
+Socket(s):                            2
+Stepping:                             1
+BogoMIPS:                             5399.98
+Flags:                                fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid amd_dcm aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb hw_pstate ssbd ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves clzero irperf xsaveerptr arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip overflow_recov succor smca csv csv2 csv3 sm3 sm4
+Virtualization:                       AMD-V
+L1d cache:                            4 MiB (128 instances)
+L1i cache:                            4 MiB (128 instances)
+L2 cache:                             64 MiB (128 instances)
+L3 cache:                             512 MiB (32 instances)
+NUMA node(s):                         8
+NUMA node0 CPU(s):                    0-15,128-143
+NUMA node1 CPU(s):                    16-31,144-159
++ command -v numactl
++ numactl -H
++ head -25
+available: 8 nodes (0-7)
+node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143
+node 0 size: 95419 MB
+node 0 free: 82239 MB
+node 1 cpus: 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159
+node 1 size: 96253 MB
+node 1 free: 84372 MB
+node 2 cpus: 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175
+node 2 size: 96253 MB
+node 2 free: 84218 MB
+node 3 cpus: 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191
+node 3 size: 64501 MB
+node 3 free: 50790 MB
+node 4 cpus: 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207
+node 4 size: 96253 MB
+node 4 free: 67934 MB
+node 5 cpus: 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223
+node 5 size: 96253 MB
+node 5 free: 82525 MB
+node 6 cpus: 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239
+node 6 size: 96253 MB
+node 6 free: 83673 MB
+node 7 cpus: 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254
+node 7 size: 96202 MB
+node 7 free: 56525 MB
++ echo '== mem/disk =='
+== mem/disk ==
++ free -g
+               total        used        free      shared  buff/cache   available
+Mem:             720         100         578           0          45         619
+Swap:              3           0           3
++ df -h / /home
+Filesystem                  Size  Used Avail Use% Mounted on
+/dev/mapper/openeuler-root   69G   65G     0 100% /
+/dev/mapper/openeuler-home  804G  732G   32G  96% /home
++ echo '== env =='
+== env ==
++ echo 'LD_PRELOAD=<empty>'
+LD_PRELOAD=<empty>
++ echo 'VIRTUAL_ENV=<empty>'
+VIRTUAL_ENV=<empty>
+++ echo /root/.cargo/bin:/usr/local/corex/bin:/root/.nvm/versions/node/v24.19.0/bin:/usr/local/cuda-13.3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
+++ tr : '\n'
+++ head -15
++ echo 'PATH=/root/.cargo/bin
+/usr/local/corex/bin
+/root/.nvm/versions/node/v24.19.0/bin
+/usr/local/cuda-13.3/bin
+/usr/local/sbin
+/usr/local/bin
+/usr/sbin
+/usr/bin
+/root/bin'
+PATH=/root/.cargo/bin
+/usr/local/corex/bin
+/root/.nvm/versions/node/v24.19.0/bin
+/usr/local/cuda-13.3/bin
+/usr/local/sbin
+/usr/local/bin
+/usr/sbin
+/usr/bin
+/root/bin
++ echo '== containers =='
+== containers ==
++ for r in docker podman nerdctl
++ command -v docker
++ echo 'runtime: docker'
+runtime: docker
++ docker ps -a --format '{{.Names}}\t{{.Image}}\t{{.Status}}'
++ head -10
+cube-lifecycle-manager	cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-lifecycle-manager:v0.5.1	Up 19 hours
+cube-webui	cube-sandbox-image.tencentcloudcr.com/opensource/openresty:1.21.4.1-6-alpine-fat	Up 19 hours (healthy)
+cube-proxy	cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-proxy:v0.5.1	Up 19 hours
+cube-sandbox-redis	cube-sandbox-image.tencentcloudcr.com/opensource/redis:7-alpine	Up 19 hours (healthy)
+cube-sandbox-mysql	cube-sandbox-image.tencentcloudcr.com/opensource/mysql:8.0	Up 19 hours (healthy)
+cube-proxy-coredns	cube-sandbox-image.tencentcloudcr.com/opensource/coredns/coredns:1.14.2	Up 19 hours
+corex5-py311	438486a0cac3	Up 13 hours
+nvbw-build	nvidia/cuda:13.0.2-devel-ubuntu22.04	Exited (255) 11 days ago
+corex5-v0.23.0	corex:5.0.0	Exited (137) 19 hours ago
+local-registry	registry:2	Exited (255) 5 weeks ago
++ for r in docker podman nerdctl
++ command -v podman
++ continue
++ for r in docker podman nerdctl
++ command -v nerdctl
++ continue
++ echo '== repo =='
+== repo ==
++ git -C /home/qch/tools/remote-env/203/.. log --oneline -3
+8c13080 Add 203 server env probe
+ea40378 a
+d65e176 Fix default model path in 184 bench scripts
++ git -C /home/qch/tools/remote-env/203/.. status --short
++ head
+?? 203/tmp/
++ set +x
+
+### exit: 0
