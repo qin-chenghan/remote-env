@@ -17,45 +17,33 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 构建 libpreprocess.so 并跑仓库自带基准（占位基线）。
+  echo "== 1. 宿主机 /home/qch/projects =="
+  ls -la /home/qch/projects 2>&1 | head -20
+  git -C /home/qch/projects rev-parse --abbrev-ref HEAD 2>&1
+  find /home/qch/projects -maxdepth 3 -name 'lib_preprocess.cpp' 2>/dev/null | head -5
+  find /home/qch/projects -maxdepth 3 -type d -name workplace 2>/dev/null | head -5
 
-  echo "== 1. 仓库状态 =="
+  echo "== 2. 容器内 /home/qch/projects =="
   docker exec fusionv1 bash -lc '
-P=/home/qch/projects
-ls -d "$P" 2>&1
-git -C "$P" rev-parse --abbrev-ref HEAD 2>&1
-git -C "$P" log --oneline -3 2>&1
-ls -l "$P/workplace/lib_preprocess.cpp" 2>&1
-' 2>&1 | head -20
-
-  echo "== 2. 工具链与 python 依赖 =="
-  docker exec fusionv1 bash -lc '
-g++ --version | head -1
-python3 -V
-python3 -c "import numpy, PIL; print(\"numpy\", numpy.__version__, \"PIL\", PIL.__version__)" 2>&1 | tail -2
-' 2>&1 | head -10
-
-  echo "== 3. 构建 libpreprocess.so =="
-  docker exec fusionv1 bash -lc '
-cd /home/qch/projects/workplace || exit 1
-ls -l libpreprocess.so 2>&1
-g++ -std=c++14 -march=armv8.2-a+fp16+dotprod -fopenmp -O3 \
-    -shared -fPIC -o libpreprocess.so lib_preprocess.cpp 2>&1 | tail -20
-echo "build rc=$?"
-ls -l libpreprocess.so 2>&1
-' 2>&1 | head -25
-
-  echo "== 4. 正确性（e2e_verify）=="
-  docker exec fusionv1 bash -lc '
-cd /home/qch/projects/workplace/edition1 || exit 1
-timeout 300 python3 e2e_verify.py 2>&1 | tail -25
-' 2>&1 | head -30
-
-  echo "== 5. 分步耗时（224×224, 1 线程）=="
-  docker exec fusionv1 bash -lc '
-cd /home/qch/projects/workplace/edition1 || exit 1
-timeout 300 python3 step_breakdown.py --size 224 224 --threads 1 --iters 100 2>&1 | tail -30
+ls -la /home/qch/projects 2>&1 | head -20
+echo "-- 找 lib_preprocess.cpp --"
+find /home/qch /home/workspace -maxdepth 6 -name "lib_preprocess.cpp" 2>/dev/null | head -5
+echo "-- 找 workplace 目录 --"
+find /home/qch /home/workspace -maxdepth 6 -type d -name "workplace" 2>/dev/null | head -5
 ' 2>&1 | head -35
+
+  echo "== 3. 容器内其它 python 环境 =="
+  docker exec fusionv1 bash -lc '
+ls -d /opt/* 2>/dev/null | head -10
+for p in /usr/bin/python3 /usr/local/bin/python3 /opt/*/bin/python3; do
+  [ -x "$p" ] || continue
+  echo "-- $p --"
+  "$p" -V 2>&1
+  "$p" -c "import numpy,PIL;print(\"numpy\",numpy.__version__,\"PIL\",PIL.__version__)" 2>&1 | tail -1
+done
+command -v pip3 || echo NO_PIP3
+command -v yum || command -v dnf || echo NO_PKG_MGR
+' 2>&1 | head -30
 
   # ---- 命令结束 ----
 
