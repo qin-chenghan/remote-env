@@ -1,0 +1,36 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-10T11:12:11Z
+
++ D=/home/qch/clamp_opt
++ R=/home/qch/projects/vllm/workplace
++ echo '== 1. 生成探针源码（新文件）=='
+== 1. 生成探针源码（新文件）==
++ cat
++ ls -l /home/qch/clamp_opt/clamp_neon_opt_probe.cpp
+-rw-r--r--. 1 root root 1627 Nov 10 19:12 /home/qch/clamp_opt/clamp_neon_opt_probe.cpp
++ echo '== 2. 编译探针 .so =='
+== 2. 编译探针 .so ==
++ g++ -std=c++14 -march=armv8.2-a+fp16+dotprod -fopenmp -O3 -shared -fPIC -o /home/qch/clamp_opt/libpreprocess_probe.so /home/qch/clamp_opt/clamp_neon_opt_probe.cpp
++ tail -10
++ echo 'build rc=0'
+build rc=0
++ ls -l /home/qch/clamp_opt/libpreprocess_probe.so
+-rwxr-xr-x. 1 root root 72048 Nov 10 19:12 /home/qch/clamp_opt/libpreprocess_probe.so
++ echo '== 3. 生成计时脚本（新文件）=='
+== 3. 生成计时脚本（新文件）==
++ cat
++ ls -l /home/qch/clamp_opt/clamp_neon_opt_stages.py
+-rw-r--r--. 1 root root 1167 Nov 10 19:12 /home/qch/clamp_opt/clamp_neon_opt_stages.py
++ echo '== 4. 跑分阶段计时（绑 cpu0）=='
+== 4. 跑分阶段计时（绑 cpu0）==
++ cd /home/qch/clamp_opt
++ taskset -c 0 python3 clamp_neon_opt_stages.py ./libpreprocess_probe.so
++ tail -10
+size           thr       lut horizontal vertical normalize    total
+224x224        1       0.007    0.357    0.326    0.082    0.772
+321x481        1       0.012    1.038    0.464    0.102    1.615
+1920x1080      1       0.039    8.825    0.923    0.098    9.885
++ set +x
+
+### exit: 0
