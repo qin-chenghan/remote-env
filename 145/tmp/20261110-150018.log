@@ -1,0 +1,139 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-10T07:00:18Z
+
++ echo '== 1. 两个二进制 =='
+== 1. 两个二进制 ==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+cd "$P"
+ls -l fusion.unittest fusion.unittest.bak_before_neon
+md5sum fusion.unittest fusion.unittest.bak_before_neon
+for b in fusion.unittest fusion.unittest.bak_before_neon; do
+  echo "-- $b --"
+  file "$b"
+  ldd "$b" 2>&1 | grep -iE "kperf|not found" | head -5
+  nm -C "$b" 2>/dev/null | grep -c "PillowFusionV2"
+done
+'
++ head -40
+-rwxr-xr-x. 1 root root 1279672 Oct 26 17:44 fusion.unittest
+-rwxr-xr-x. 1 root root 1252232 Oct 26 17:43 fusion.unittest.bak_before_neon
+8d8e815dfbb04678bfe1974cfb7a4bb9  fusion.unittest
+ebf2fcb9287fa86aaa8589212ba8787d  fusion.unittest.bak_before_neon
+-- fusion.unittest --
+bash: line 8: file: command not found
+	libkperf.so => /home/workspace/tensor/files/libkperf/libkperf.so (0x0000fffff7f90000)
+1
+-- fusion.unittest.bak_before_neon --
+bash: line 8: file: command not found
+	libkperf.so => /home/workspace/tensor/files/libkperf/libkperf.so (0x0000fffff7f90000)
+1
++ echo '== 2. 反汇编：sqxtun 指令数量 =='
+== 2. 反汇编：sqxtun 指令数量 ==
++ docker exec fusionv1 bash -lc '
+P=/home/workspace/tensor/files/opt_fusion_qwen-master-benchmark-mv-alloc-to-hotfunc-outside-pro
+cd "$P"
+for b in fusion.unittest.bak_before_neon fusion.unittest; do
+  printf "%-38s sqxtun=%s uqxtn=%s\n" "$b" \
+    "$(objdump -d "$b" 2>/dev/null | grep -c sqxtun)" \
+    "$(objdump -d "$b" 2>/dev/null | grep -c uqxtn)"
+done
+'
++ head -10
+fusion.unittest.bak_before_neon        sqxtun=0 uqxtn=0
+fusion.unittest                        sqxtun=12 uqxtn=6
++ echo '== 3. libkperf 依赖 =='
+== 3. libkperf 依赖 ==
++ docker exec fusionv1 bash -lc '
+ls -l /home/workspace/tensor/files/libkperf 2>&1 | head -10
+'
++ head -15
+total 133684
+-rwxrwxrwx. 1 1000 1000         0 Mar 24  2026 HISTCONTROL=ignoredups
+-rwxrwxrwx. 1 1000 1000      1869 Mar 24  2026 Makefile
+-rwxrwxrwx. 1 1000 1000       189 Mar 24  2026 README.md
+-rwxrwxrwx. 1 1000 1000      2700 Mar 24  2026 README.me
+-rwxrwxrwx. 1 1000 1000         0 Mar 24  2026 file_0
+-rwxrwxrwx. 1 1000 1000        59 Mar 24  2026 file_100
+-rwxrwxrwx. 1 1000 1000        59 Mar 24  2026 file_101
+-rwxrwxrwx. 1 1000 1000        59 Mar 24  2026 file_102
+-rwxrwxrwx. 1 1000 1000        59 Mar 24  2026 file_103
++ echo '== 4. numactl 与拓扑（确认核 0/3 属于 node0）=='
+== 4. numactl 与拓扑（确认核 0/3 属于 node0）==
++ docker exec fusionv1 bash -lc '
+command -v numactl || echo NO_NUMACTL
+numactl -s 2>&1 | head -5
+numactl -H 2>&1 | grep -E "^node [0-9] cpus|^available" | head -5
+head -1 /sys/devices/system/cpu/cpu0/topology/core_id 2>/dev/null; echo "^cpu0 core_id"
+cat /sys/devices/system/cpu/cpu0/node*/link 2>/dev/null | head -2
+'
++ head -20
+NO_NUMACTL
+bash: line 3: numactl: command not found
+196608
+^cpu0 core_id
++ echo '== 5. 当前各核负载（1 秒采样）=='
+== 5. 当前各核负载（1 秒采样）==
++ docker exec fusionv1 bash -lc '
+python3 - <<"PY"
+import time
+def rd():
+    d={}
+    for line in open("/proc/stat"):
+        p=line.split()
+        if p[0].startswith("cpu") and p[0][3:].isdigit():
+            v=[int(x) for x in p[1:]]
+            d[int(p[0][3:])]=(sum(v), v[3]+(v[4] if len(v)>4 else 0))
+    return d
+a=rd(); time.sleep(1); b=rd()
+res=[]
+for c in a:
+    dt=b[c][0]-a[c][0]; di=b[c][1]-a[c][1]
+    if dt>0: res.append((100.0*(dt-di)/dt, c))
+res.sort(reverse=True)
+print("busy cores (top10):")
+for p,c in res[:10]: print("  cpu%-3d %5.1f%%" % (c,p))
+for c in (0,1,2,3):
+    q=[x for x in res if x[1]==c]
+    print("  target cpu%d: %.1f%%" % (c, q[0][0] if q else -1))
+PY
+'
++ head -25
+busy cores (top10):
+  cpu246 100.0%
+  cpu99  100.0%
+  cpu74  100.0%
+  cpu71  100.0%
+  cpu143  58.9%
+  cpu68   47.4%
+  cpu163  34.3%
+  cpu203  32.7%
+  cpu224  22.1%
+  cpu82   21.4%
+  target cpu0: 5.0%
+  target cpu1: 0.0%
+  target cpu2: 0.0%
+  target cpu3: 0.0%
++ echo '== 6. 当前负载与占核进程 =='
+== 6. 当前负载与占核进程 ==
++ head -15
++ docker exec fusionv1 bash -lc '
+cat /proc/loadavg
+ps -eo pid,pcpu,psr,comm --sort=-pcpu 2>/dev/null | head -8
+'
+9.83 10.94 10.54 6/11005 7070
+    PID %CPU PSR COMMAND
+      1 99.8  99 sh
+   7013  0.0  44 bash
+   7071  0.0  56 ps
+   7072  0.0  58 head
++ echo '== 7. 宿主机负载 =='
+== 7. 宿主机负载 ==
++ uptime
+ 15:00:20 up 33 days,  5:28, 31 users,  load average: 9.83, 10.94, 10.54
++ cat /proc/loadavg
+9.83 10.94 10.54 7/10984 1353526
++ set +x
+
+### exit: 0
