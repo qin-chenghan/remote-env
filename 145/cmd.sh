@@ -17,28 +17,37 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 只读：确认宿主机 python 是否有 numpy/PIL，容器 yum 能否提供这两个包。
+  # 在宿主机新建 /home/qch/clamp_opt，编译基线 .so，复用仓库自带的三个 python 脚本。
+  # 仓库本身不修改（脚本是复制过来的副本）。
 
-  echo "== 1. 宿主机 python =="
-  for p in /usr/bin/python3 /usr/local/bin/python3; do
-    [ -x "$p" ] || continue
-    echo "-- $p --"
-    "$p" -V 2>&1
-    "$p" -c "import numpy,PIL;print('numpy',numpy.__version__,'PIL',PIL.__version__)" 2>&1 | tail -1
-  done
-  rpm -qa 2>/dev/null | grep -iE '^python3-(numpy|pillow)' | head -5
+  D=/home/qch/clamp_opt
+  R=/home/qch/projects/vllm/workplace
 
-  echo "== 2. 容器内已装包 =="
-  docker exec fusionv1 bash -lc '
-rpm -qa 2>/dev/null | grep -iE "numpy|pillow|scipy" | head -5
-echo "-- yum 仓库 --"
-ls /etc/yum.repos.d/ 2>/dev/null | head -5
-' 2>&1 | head -12
+  echo "== 1. 宿主机工具链 =="
+  g++ --version 2>&1 | head -1
+  python3 -V
+  ls /usr/lib64/libgomp.so* /usr/lib/aarch64-linux-gnu/libgomp.so* 2>/dev/null | head -3
 
-  echo "== 3. yum 是否能提供（仅查询）=="
-  docker exec fusionv1 bash -lc '
-timeout 90 yum list available python3-numpy python3-pillow 2>&1 | tail -12
-' 2>&1 | head -20
+  echo "== 2. 准备新目录 =="
+  mkdir -p "$D/edition1"
+  ls -la "$D" | head -5
+
+  echo "== 3. 复制基准脚本（副本，不改原文件）=="
+  cp -a "$R/edition1/bench_all.py" "$R/edition1/e2e_verify.py" "$R/edition1/step_breakdown.py" "$D/edition1/" 2>&1
+  ls -l "$D/edition1"
+
+  echo "== 4. 编译基线 .so（输出按脚本期望放在 $D/libpreprocess.so）=="
+  g++ -std=c++14 -march=armv8.2-a+fp16+dotprod -fopenmp -O3 \
+      -shared -fPIC -o "$D/libpreprocess.so" "$R/lib_preprocess.cpp" 2>&1 | tail -10
+  echo "build rc=$?"
+  ls -l "$D/libpreprocess.so"
+  ldd "$D/libpreprocess.so" 2>&1 | grep -i "not found" | head -5
+
+  echo "== 5. 正确性验证（e2e_verify）=="
+  cd "$D/edition1" && taskset -c 0-3 python3 e2e_verify.py 2>&1 | tail -20
+
+  echo "== 6. 分步耗时（224×224, 1 线程）=="
+  cd "$D/edition1" && taskset -c 0 python3 step_breakdown.py --size 224 224 --threads 1 --iters 100 2>&1 | tail -25
 
   # ---- 命令结束 ----
 
