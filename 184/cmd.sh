@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 本次：把 bench-status.sh 安装到 /home/qch/tools 并跑一次。
+# 只读：看 run 目录结构，用于修正进度/ETA 脚本。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,13 +17,33 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== install bench-status.sh =="
-  ln -sf "$DIR/bench-status.sh" /home/qch/tools/bench-status.sh
-  ls -l /home/qch/tools/bench-status.sh
-  bash -n "$DIR/bench-status.sh" && echo "syntax OK"
+  RUN=$(docker exec corex5-py311 bash -c \
+    "S=\$(pgrep -f bench_driver.py | head -1); tr '\0' '\n' < /proc/\$S/environ | sed -n 's/^LIGHTHOST_SESSION=//p' | head -1" 2>/dev/null)
+  R=${RUN%/*}
+  echo "RUN=$R"
 
-  echo "== run it =="
-  bash /home/qch/tools/bench-status.sh 2>&1
+  echo "== tree depth 2 =="
+  docker exec corex5-py311 bash -c "for d in '$R'/*/; do echo \"\$(stat -c '%y' \"\$d\" | cut -d. -f1)  \$d\"; done" 2>&1 | head -10
+
+  echo "== litehost subdirs =="
+  docker exec corex5-py311 bash -c "for d in '$R'/litehost/*/; do [ -d \"\$d\" ] && echo \"\$(stat -c '%y' \"\$d\" | cut -d. -f1)  \$(basename \"\$d\")\"; done" 2>&1 | head -15
+
+  echo "== control subdirs =="
+  docker exec corex5-py311 bash -c "for d in '$R'/control/*/; do [ -d \"\$d\" ] && echo \"\$(stat -c '%y' \"\$d\" | cut -d. -f1)  \$(basename \"\$d\")\"; done" 2>&1 | head -10
+
+  echo "== files inside litehost =="
+  docker exec corex5-py311 bash -c "find '$R/litehost' -maxdepth 2 -type f | head -20" 2>&1
+  echo "== files inside control =="
+  docker exec corex5-py311 bash -c "find '$R/control' -maxdepth 2 -type f | head -10" 2>&1
+
+  echo "== logs =="
+  docker exec corex5-py311 bash -c "ls -l '$R/logs'" 2>&1
+
+  echo "== session.json keys =="
+  docker exec corex5-py311 bash -c "head -c 400 '$R/session.json' 2>/dev/null" 2>&1
+
+  echo "== bench log tail (if any) =="
+  docker exec corex5-py311 bash -c "ls '$R/logs'" 2>&1 | head -5
 
   # ---- 命令结束 ----
 
