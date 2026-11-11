@@ -1,0 +1,38 @@
+### server: 184
+### host:   controller
+### time:   2026-11-11T02:53:03Z
+
++ echo '== install bench-status.sh =='
+== install bench-status.sh ==
++ ln -sf /home/qch/tools/remote-env/184/bench-status.sh /home/qch/tools/bench-status.sh
++ ls -l /home/qch/tools/bench-status.sh
+lrwxrwxrwx. 1 root root 46 Nov 11 10:53 /home/qch/tools/bench-status.sh -> /home/qch/tools/remote-env/184/bench-status.sh
++ bash -n /home/qch/tools/remote-env/184/bench-status.sh
++ echo 'syntax OK'
+syntax OK
++ echo '== run it =='
+== run it ==
++ bash /home/qch/tools/bench-status.sh
+== 时间 ==
+2026-11-11 10:53:03
+
+== 谁在跑 ==
+pid      : 28517
+user     : root
+cmd      : bash /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh 
+start    : Wed Nov 11 09:16:29 2026
+elapsed  : 01:36:33
+cwd      : /usr/local/corex-5.0.0
+
+== 当前 case ==
+pid      : 481142 (elapsed 13:24)
+input    : 2048
+output   : 2048
+prompts  : 100
+conc     : 8
+
+== run 目录 ==
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261111_091630
++ set +x
+
+### exit: 0
