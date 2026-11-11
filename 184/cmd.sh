@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：看 run 目录结构，用于修正进度/ETA 脚本。
+# 只读：列出 /home/qch/scripts 下 timeline 脚本及其配置。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,33 +17,33 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  RUN=$(docker exec corex5-py311 bash -c \
-    "S=\$(pgrep -f bench_driver.py | head -1); tr '\0' '\n' < /proc/\$S/environ | sed -n 's/^LIGHTHOST_SESSION=//p' | head -1" 2>/dev/null)
-  R=${RUN%/*}
-  echo "RUN=$R"
+  D=/home/qch/scripts
 
-  echo "== tree depth 2 =="
-  docker exec corex5-py311 bash -c "for d in '$R'/*/; do echo \"\$(stat -c '%y' \"\$d\" | cut -d. -f1)  \$d\"; done" 2>&1 | head -10
+  echo "== files =="
+  ls -l "$D"/timeline*.sh 2>&1
 
-  echo "== litehost subdirs =="
-  docker exec corex5-py311 bash -c "for d in '$R'/litehost/*/; do [ -d \"\$d\" ] && echo \"\$(stat -c '%y' \"\$d\" | cut -d. -f1)  \$(basename \"\$d\")\"; done" 2>&1 | head -15
+  for f in "$D"/timeline*.sh; do
+    [ -f "$f" ] || continue
+    echo ""
+    echo "===== $(basename "$f") | $(wc -l < "$f") lines ====="
+    echo "-- 头部注释 --"
+    sed -n '1,12p' "$f" | cut -c1-160
+    echo "-- 顶层变量 --"
+    grep -nE '^[A-Za-z_][A-Za-z0-9_]*=' "$f" | cut -c1-160 | head -40
+  done
 
-  echo "== control subdirs =="
-  docker exec corex5-py311 bash -c "for d in '$R'/control/*/; do [ -d \"\$d\" ] && echo \"\$(stat -c '%y' \"\$d\" | cut -d. -f1)  \$(basename \"\$d\")\"; done" 2>&1 | head -10
-
-  echo "== files inside litehost =="
-  docker exec corex5-py311 bash -c "find '$R/litehost' -maxdepth 2 -type f | head -20" 2>&1
-  echo "== files inside control =="
-  docker exec corex5-py311 bash -c "find '$R/control' -maxdepth 2 -type f | head -10" 2>&1
-
-  echo "== logs =="
-  docker exec corex5-py311 bash -c "ls -l '$R/logs'" 2>&1
-
-  echo "== session.json keys =="
-  docker exec corex5-py311 bash -c "head -c 400 '$R/session.json' 2>/dev/null" 2>&1
-
-  echo "== bench log tail (if any) =="
-  docker exec corex5-py311 bash -c "ls '$R/logs'" 2>&1 | head -5
+  echo ""
+  echo "== variant 与 timeline.sh 的差异（仅变量行）=="
+  B="$D/timeline.sh"
+  for f in "$D"/timeline*.sh; do
+    [ -f "$f" ] || continue
+    [ "$f" = "$B" ] && continue
+    echo "-- $(basename "$f") vs timeline.sh --"
+    diff <(grep -E '^[A-Za-z_][A-Za-z0-9_]*=' "$B" 2>/dev/null | cut -d= -f1) \
+         <(grep -E '^[A-Za-z_][A-Za-z0-9_]*=' "$f" 2>/dev/null | cut -d= -f1) 2>&1 | head -20
+    diff <(grep -E '^[A-Za-z_][A-Za-z0-9_]*=' "$B" 2>/dev/null) \
+         <(grep -E '^[A-Za-z_][A-Za-z0-9_]*=' "$f" 2>/dev/null) 2>&1 | head -25
+  done
 
   # ---- 命令结束 ----
 
