@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：查 should_profile_instance 的出处与调用点。
+# 只读：逐行对比 timeline.sh 与 timeline_off.sh。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,18 +17,14 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== occurrences =="
-  grep -rn 'should_profile_instance' /home/qch/scripts /home/huawei_ts_program /home/qch/tools \
-    /opt/corex311/lib/python3.11/site-packages/vllm 2>/dev/null | head -12
+  A=/home/qch/scripts/timeline.sh
+  B=/home/qch/scripts/timeline_off.sh
 
-  echo "== PROFILE_EVERY =="
-  grep -rn 'PROFILE_EVERY' /home/qch/scripts 2>/dev/null | head -10
+  echo "== 差异统计 =="
+  diff "$A" "$B" | grep -cE '^[<>]' || true
 
-  echo "== call sites with context =="
-  for f in $(grep -rl 'should_profile_instance' /home/qch/scripts 2>/dev/null | head -4); do
-    echo "-- $f --"
-    grep -n -B4 -A8 'should_profile_instance' "$f" | head -40 | cut -c1-160
-  done
+  echo "== 完整 diff（带上下文）=="
+  diff -u "$A" "$B" 2>&1 | head -200 | cut -c1-180
 
   # ---- 命令结束 ----
 
