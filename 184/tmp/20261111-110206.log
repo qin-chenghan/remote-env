@@ -1,0 +1,265 @@
+### server: 184
+### host:   controller
+### time:   2026-11-11T03:02:06Z
+
++ D=/home/qch/scripts
++ echo '== on vs off 全文差异（截取）=='
+== on vs off 全文差异（截取）==
++ diff -u /home/qch/scripts/timeline_off.sh /home/qch/scripts/timeline_on.sh
++ head -80
++ cut -c1-170
+--- /home/qch/scripts/timeline_off.sh	2026-10-14 15:52:50.136759296 +0800
++++ /home/qch/scripts/timeline_on.sh	2026-10-14 15:53:17.648759296 +0800
+@@ -38,6 +38,10 @@
+ # profile case 间隔也要拉长,否则上一个 case 的 trace 还没 flush 完,影响下一个
+ CASE_INTERVAL="${CASE_INTERVAL:-60}"
+ 
++# ===== on 模式:插件路径(defaults,可 env 覆盖)=====
++REPO_ROOT="${REPO_ROOT:-/home/qch/tools/kunpeng-affinity-plugin}"
++IXSMI_BIN="${IXSMI_BIN:-/home/qch/kunpeng-affinity-fix/ixsmi-run}"
++
+ # ============ 0.23 profiler schedule 参数 ============
+ # vLLM 0.23 完全弃用 VLLM_TORCH_PROFILER_DIR 环境变量,改用 --profiler-config。
+ # 关键点:warmup_iterations=0 时,vLLM 连续记录 /start_profile 到 /stop_profile
+@@ -140,6 +144,48 @@
+     # 去掉 heredoc 引入的多余换行,确保是单行 JSON
+     profiler_config_json="$(echo "$profiler_config_json" | tr -d '\n')"
+ 
++    # ===== on 模式:注入 sitecustomize + 插件 env + 绑核方式 =====
++    # 绑核方式由 AFFINITY_MODE 控制:
++    #   AFFINITY_MODE=plugin (默认) -> 插件 generic 链真正绑核。
++    #       秘钥: ① 必须保留原生 --numa-bind(否则插件 should_resolve() 因
++    #         numa_bind=False 直接返回,完全不动作,见 vllm_lifecycle.py:25)
++    #       ② 必须设 KUNPENG_AFFINITY_VLLM_FORCE_GENERIC=1(否则 auto 下
++    #         插件走 native 优先 → 返回 source=native,插件仍不参与)。
++    #       两者都满足才出现 'selected NUMA nodes=... source=generic'。
++    #   AFFINITY_MODE=native -> 原生 --numa-bind(auto),native 优先,插件 defer。
++    #       对应旧 on1 行为(日志出 Auto-detected NUMA nodes,非插件绑核)。
++    AFFINITY_MODE="${AFFINITY_MODE:-plugin}"
++    local bootstrap_dir="${RUN_DIR}/bootstrap"
++    mkdir -p "$bootstrap_dir"
++    if [ ! -f "$bootstrap_dir/sitecustomize.py" ]; then
++        cat > "$bootstrap_dir/sitecustomize.py" <<'PY'
++from kunpeng_affinity.vllm_plugin import register
++register()
++PY
++    fi
++
++    export PYTHONPATH="${bootstrap_dir}:${REPO_ROOT}/src"
++    export KUNPENG_AFFINITY_MODE=auto
++    export KUNPENG_AFFINITY_PROVIDER=iluvatar-runtime-pci
++    export KUNPENG_AFFINITY_IXSMI="$IXSMI_BIN"
++    # 关键: KUNPENG_AFFINITY_VLLM_FORCE_GENERIC 控制插件是否绕过 native。
++    #   =1  -> 强制插件 generic 链(真插件绑核,source=generic)
++    #   unset-> auto: native 优先,插件 defer(旧 on1 行为,非插件绑核)
++    if [ "$AFFINITY_MODE" = "plugin" ]; then
++        export KUNPENG_AFFINITY_VLLM_FORCE_GENERIC=1
++    else
++        unset KUNPENG_AFFINITY_VLLM_FORCE_GENERIC
++    fi
++
++    # 两种模式都用 --numa-bind 激活 should_resolve;
++    # plugin/native 的真正差异由上面 KUNPENG_AFFINITY_VLLM_FORCE_GENERIC 控制
++    AFFINITY_EXTRA=(--numa-bind)
++    if [ "$AFFINITY_MODE" = "plugin" ]; then
++        log "绑核方式: 插件 generic 绑核 (AFFINITY_MODE=plugin, --numa-bind + FORCE_GENERIC=1)"
++    else
++        log "绑核方式: vLLM 原生 --numa-bind (AFFINITY_MODE=native, 插件将 defer)"
++    fi
++
+     CUDA_VISIBLE_DEVICES="$GPU_LIST" \
+     VLLM_ENFORCE_CUDA_GRAPH=1 \
+     VLLM_USE_V1=1 \
+@@ -161,6 +207,7 @@
+         --enable_chunked_prefill \
+         --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}' \
+         --async-scheduling \
++        "${AFFINITY_EXTRA[@]}" \
+         --profiler-config "$profiler_config_json" \
+         >> "$SERVER_LOG" 2>&1 &
+ 
+@@ -184,6 +231,45 @@
+         log "   请确认启动参数包含 --profiler-config '...profiler\\\":\\\"torch\\\"...' "
+         log "   或在 server.log 里搜 'profiler' / 'profile' 看具体报错"
+     fi
++
++    # ===== on 模式:校验插件 hook / NUMA 选择证据 =====
++    if grep -q "installed vLLM subprocess hook" "$SERVER_LOG" 2>/dev/null; then
++        log "✅ 插件 hook 已安装"
++    else
++        log "❌ WARNING: on 模式未检测到插件 hook,检查 PYTHONPATH/sitecustomize"
++ echo ''
+
++ echo '== 各脚本的用例矩阵 =='
+== 各脚本的用例矩阵 ==
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline_both.sh ']'
+++ basename /home/qch/scripts/timeline_both.sh
++ echo '-- timeline_both.sh --'
+-- timeline_both.sh --
++ sed -n '/^CASES=(/,/^)/p' /home/qch/scripts/timeline_both.sh
++ head -15
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline_cpu.sh ']'
+++ basename /home/qch/scripts/timeline_cpu.sh
++ echo '-- timeline_cpu.sh --'
+-- timeline_cpu.sh --
++ sed -n '/^CASES=(/,/^)/p' /home/qch/scripts/timeline_cpu.sh
++ head -15
+CASES=(
+    "128 128"
+    "128 1024"
+    "128 2048"
+    "1024 128"
+    "1024 1024"
+    "1024 2048"
+    "2048 128"
+    "2048 1024"
+    "2048 2048"
+)
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline_off.sh ']'
+++ basename /home/qch/scripts/timeline_off.sh
++ echo '-- timeline_off.sh --'
+-- timeline_off.sh --
++ sed -n '/^CASES=(/,/^)/p' /home/qch/scripts/timeline_off.sh
++ head -15
+CASES=(
+    "2048 128"
+#    "1024 2048"
+#    "2048 1024"
+#    "2048 2048"
+)
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline_on.sh ']'
+++ basename /home/qch/scripts/timeline_on.sh
++ echo '-- timeline_on.sh --'
+-- timeline_on.sh --
++ sed -n '/^CASES=(/,/^)/p' /home/qch/scripts/timeline_on.sh
++ head -15
+CASES=(
+    "2048 128"
+#    "1024 2048"
+#    "2048 1024"
+#    "2048 2048"
+)
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline.sh ']'
+++ basename /home/qch/scripts/timeline.sh
++ echo '-- timeline.sh --'
+-- timeline.sh --
++ sed -n '/^CASES=(/,/^)/p' /home/qch/scripts/timeline.sh
++ head -15
+CASES=(
+    "1024 1024"
+#    "1024 2048"
+#    "2048 1024"
+#    "2048 2048"
+)
++ echo ''
+
++ echo '== 各脚本的启动相关行 =='
+== 各脚本的启动相关行 ==
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline_both.sh ']'
+++ basename /home/qch/scripts/timeline_both.sh
++ echo '-- timeline_both.sh --'
+-- timeline_both.sh --
++ grep -nE 'VLLM_|LD_PRELOAD|itr_|numa|taskset|worker-cls|compilation-config|SPAWN|ixsmi|IXSMI|REPO_ROOT|PORT=' /home/qch/scripts/timeline_both.sh
++ head -18
++ cut -c1-170
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline_cpu.sh ']'
+++ basename /home/qch/scripts/timeline_cpu.sh
++ echo '-- timeline_cpu.sh --'
+-- timeline_cpu.sh --
++ grep -nE 'VLLM_|LD_PRELOAD|itr_|numa|taskset|worker-cls|compilation-config|SPAWN|ixsmi|IXSMI|REPO_ROOT|PORT=' /home/qch/scripts/timeline_cpu.sh
++ head -18
++ cut -c1-170
+11:#           VLLM_WORKER_MULTIPROC_METHOD=spawn env + --numa-bind 启动参数(NUM_BIND=1 触发)
+23:#       VLLM_RPC_TIMEOUT / PROFILE_EVERY / CASE_INTERVAL / NUM_BIND
+32:#   - CUDA GRAPH: VLLM_ENFORCE_CUDA_GRAPH=1 + --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY","mode":0}'
+47:PORT="${PORT:-8000}"
+51:VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
+60:# vLLM 0.23 完全弃用 VLLM_TORCH_PROFILER_DIR 环境变量,改用 --profiler-config。
+140:    # vLLM 0.23+ 完全弃用 VLLM_TORCH_PROFILER_DIR 环境变量,改用 --profiler-config。
+158:    # [C-NUMA] 插件绑核(on 轮)需 spawn 方式才能让 vLLM 原生 numa wrapper 生效
+159:    local numa_env_spawn=()
+161:        numa_env_spawn=(VLLM_WORKER_MULTIPROC_METHOD=spawn)
+164:    env "${numa_env_spawn[@]}" \
+166:    VLLM_ENFORCE_CUDA_GRAPH=1 \
+167:    VLLM_USE_V1=1 \
+168:    VLLM_RPC_TIMEOUT="$VLLM_RPC_TIMEOUT" \
+185:        --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}' \
+187:        ${NUM_BIND:+--numa-bind} \
+296:log "VLLM_RPC_TIMEOUT:  $VLLM_RPC_TIMEOUT ms"
+306:# [C-NUMA] 每个 case x {off,on} 双层循环: off 不绑核, on 绑核(--numa-bind + spawn)。
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline_off.sh ']'
+++ basename /home/qch/scripts/timeline_off.sh
++ echo '-- timeline_off.sh --'
+-- timeline_off.sh --
++ grep -nE 'VLLM_|LD_PRELOAD|itr_|numa|taskset|worker-cls|compilation-config|SPAWN|ixsmi|IXSMI|REPO_ROOT|PORT=' /home/qch/scripts/timeline_off.sh
++ head -18
++ cut -c1-170
+13:#       VLLM_RPC_TIMEOUT / PROFILE_EVERY
+26:PORT="${PORT:-8000}"
+33:VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
+42:# vLLM 0.23 完全弃用 VLLM_TORCH_PROFILER_DIR 环境变量,改用 --profiler-config。
+122:        SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+123:        log "taskset 绑定: ${SERVER_PREFIX[*]}"
+126:    # vLLM 0.23+ 完全弃用 VLLM_TORCH_PROFILER_DIR 环境变量,改用 --profiler-config。
+144:    VLLM_ENFORCE_CUDA_GRAPH=1 \
+145:    VLLM_USE_V1=1 \
+146:    VLLM_RPC_TIMEOUT="$VLLM_RPC_TIMEOUT" \
+162:        --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}' \
+275:log "VLLM_RPC_TIMEOUT:  $VLLM_RPC_TIMEOUT ms"
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline_on.sh ']'
+++ basename /home/qch/scripts/timeline_on.sh
++ echo '-- timeline_on.sh --'
+-- timeline_on.sh --
++ grep -nE 'VLLM_|LD_PRELOAD|itr_|numa|taskset|worker-cls|compilation-config|SPAWN|ixsmi|IXSMI|REPO_ROOT|PORT=' /home/qch/scripts/timeline_on.sh
++ head -18
++ cut -c1-170
+13:#       VLLM_RPC_TIMEOUT / PROFILE_EVERY
+26:PORT="${PORT:-8000}"
+33:VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
+42:REPO_ROOT="${REPO_ROOT:-/home/qch/tools/kunpeng-affinity-plugin}"
+43:IXSMI_BIN="${IXSMI_BIN:-/home/qch/kunpeng-affinity-fix/ixsmi-run}"
+46:# vLLM 0.23 完全弃用 VLLM_TORCH_PROFILER_DIR 环境变量,改用 --profiler-config。
+126:        SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+127:        log "taskset 绑定: ${SERVER_PREFIX[*]}"
+130:    # vLLM 0.23+ 完全弃用 VLLM_TORCH_PROFILER_DIR 环境变量,改用 --profiler-config。
+150:    #       秘钥: ① 必须保留原生 --numa-bind(否则插件 should_resolve() 因
+151:    #         numa_bind=False 直接返回,完全不动作,见 vllm_lifecycle.py:25)
+152:    #       ② 必须设 KUNPENG_AFFINITY_VLLM_FORCE_GENERIC=1(否则 auto 下
+155:    #   AFFINITY_MODE=native -> 原生 --numa-bind(auto),native 优先,插件 defer。
+167:    export PYTHONPATH="${bootstrap_dir}:${REPO_ROOT}/src"
+170:    export KUNPENG_AFFINITY_IXSMI="$IXSMI_BIN"
+171:    # 关键: KUNPENG_AFFINITY_VLLM_FORCE_GENERIC 控制插件是否绕过 native。
+175:        export KUNPENG_AFFINITY_VLLM_FORCE_GENERIC=1
+177:        unset KUNPENG_AFFINITY_VLLM_FORCE_GENERIC
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline.sh ']'
+++ basename /home/qch/scripts/timeline.sh
++ echo '-- timeline.sh --'
+-- timeline.sh --
++ grep -nE 'VLLM_|LD_PRELOAD|itr_|numa|taskset|worker-cls|compilation-config|SPAWN|ixsmi|IXSMI|REPO_ROOT|PORT=' /home/qch/scripts/timeline.sh
++ head -18
++ cut -c1-170
+13:#       VLLM_RPC_TIMEOUT / PROFILE_EVERY
+26:PORT="${PORT:-8000}"
+33:VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
+42:# vLLM 0.23 完全弃用 VLLM_TORCH_PROFILER_DIR 环境变量,改用 --profiler-config。
+122:        SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+123:        log "taskset 绑定: ${SERVER_PREFIX[*]}"
+126:    # vLLM 0.23+ 完全弃用 VLLM_TORCH_PROFILER_DIR 环境变量,改用 --profiler-config。
+144:    VLLM_ENFORCE_CUDA_GRAPH=1 \
+145:    VLLM_USE_V1=1 \
+146:    VLLM_RPC_TIMEOUT="$VLLM_RPC_TIMEOUT" \
+162:        --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}' \
+275:log "VLLM_RPC_TIMEOUT:  $VLLM_RPC_TIMEOUT ms"
++ set +x
+
+### exit: 0
