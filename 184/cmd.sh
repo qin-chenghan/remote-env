@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：确认当前内核实际页大小。
+# 只读：查默认内核、可用内核、重启历史，以及 64K 内核是否还在。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,34 +17,39 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  K=$(uname -r)
-  echo "== kernel =="
-  echo "uname -r: $K"
-  uname -v
+  echo "== current =="
+  uname -r
+  getconf PAGE_SIZE
+  uptime
 
-  echo "== page size, host =="
-  getconf PAGE_SIZE 2>&1
-  getconf PAGESIZE 2>&1
-  python3 -c "import os;print('sysconf SC_PAGE_SIZE',os.sysconf('SC_PAGE_SIZE'))" 2>&1
-  od -An -tx1 -N4 /proc/self/pagemap 2>/dev/null | head -1
+  echo "== grub default =="
+  grubby --default-kernel 2>&1
+  grub2-editenv list 2>&1
+  grep -nE '^GRUB_DEFAULT|^GRUB_ENABLE_BLSCFG' /etc/default/grub 2>&1
 
-  echo "== page size, container =="
-  docker exec corex5-py311 getconf PAGE_SIZE 2>&1
-  docker exec corex5-py311 python3 -c "import mmap,os;print('mmap.PAGESIZE',mmap.PAGESIZE,'sysconf',os.sysconf('SC_PAGE_SIZE'))" 2>&1
+  echo "== boot entries =="
+  grubby --info=ALL 2>&1 | grep -E '^(index|kernel|title)=' | head -24
 
-  echo "== kernel config =="
-  ls -l "/boot/config-$K" 2>&1
-  grep -E '^CONFIG_ARM64_64K_PAGES|^CONFIG_ARM64_PAGE_SHIFT|^CONFIG_ARM64_4K_PAGES|^CONFIG_ARM64_16K_PAGES' "/boot/config-$K" 2>&1
+  echo "== kernels on disk =="
+  ls -l /boot/vmlinuz-* /boot/config-* 2>&1 | head -20
+  ls -1 /lib/modules/ 2>&1
 
-  echo "== running kernel tristate (from /proc/config.gz if any) =="
-  zcat /proc/config.gz 2>/dev/null | grep -E '^CONFIG_ARM64_(4K|16K|64K)_PAGES' | head -4
+  echo "== installed kernel packages =="
+  rpm -qa 'kernel-6.6*' 'kernel-64k*' 2>&1 | sort | head -12
 
-  echo "== old kernel config for comparison =="
-  grep -E '^CONFIG_ARM64_(4K|16K|64K)_PAGES' /boot/config-6.6.02403_sp3-64K 2>&1
+  echo "== dkms per kernel =="
+  dkms status 2>&1 | head -10
 
-  echo "== hugetlb / meminfo =="
-  head -3 /proc/meminfo
-  cat /proc/sys/vm/nr_hugepages 2>&1
+  echo "== 64K kernel leftovers =="
+  find /boot /lib/modules -maxdepth 2 -iname '*64K*' 2>/dev/null | head -10
+
+  echo "== reboot history =="
+  last -x reboot 2>&1 | head -8
+  echo "-- shutdown --"
+  last -x shutdown 2>&1 | head -5
+
+  echo "== crash/oops in previous boot =="
+  journalctl -b -1 -p err --no-pager 2>/dev/null | tail -8
 
   # ---- 命令结束 ----
 
