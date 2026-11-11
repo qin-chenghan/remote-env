@@ -1,0 +1,314 @@
+### server: 184
+### host:   controller
+### time:   2026-11-11T02:49:10Z
+
++ echo '== who is logged in =='
+== who is logged in ==
++ who
++ head -6
+root     pts/0        2026-11-11 09:14 (141.5.20.28)
+root     pts/4        2026-11-11 09:40 (141.0.203.202)
+root     pts/5        2026-11-11 09:42 (141.1.61.31)
+root     pts/6        2026-11-11 09:50 (141.5.133.14)
+root     pts/7        2026-11-11 10:08 (141.5.20.28)
+root     pts/9        2026-11-11 10:10 (141.1.203.216)
++ echo '== vllm processes =='
+== vllm processes ==
++ ps -eo pid,user,ppid,lstart,etime,args
++ grep -v grep
++ grep -E 'vllm.entrypoints|bench_driver|lhctl|vllmBench'
++ cut -c1-210
++ head -12
+  28517 root       28114 Wed Nov 11 09:16:29 2026    01:32:39 bash /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+  28565 root       28517 Wed Nov 11 09:16:30 2026    01:32:39 /opt/corex311-cpython-vllm/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8848 --model /home/model/Qwen3-32B-W8A8 --trust
+ 481142 root       28517 Wed Nov 11 10:39:39 2026       09:30 /opt/corex311-cpython-vllm/bin/python3 /home/huawei_ts_program/litehost_perf_opt/bench_driver.py --backend vllm --num_prompts 100 --num-warmups 16 -
++ echo '== process ancestry for the server =='
+== process ancestry for the server ==
+++ pgrep -f vllm.entrypoints.openai.api_server
+++ head -1
++ P=28565
++ echo server_pid=28565
+server_pid=28565
++ '[' -n 28565 ']'
+++ readlink /proc/28565/cwd
++ echo '  cwd=/usr/local/corex-5.0.0'
+  cwd=/usr/local/corex-5.0.0
++ A=28565
++ for i in 1 2 3 4 5 6
+++ awk '{print $4}' /proc/28565/stat
++ A=28517
++ '[' -z 28517 ']'
++ '[' 28517 = 0 ']'
+++ ps -o user=,args= -p 28517
+++ cut -c1-180
++ echo '  ppid=28517 root     bash /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh'
+  ppid=28517 root     bash /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ for i in 1 2 3 4 5 6
+++ awk '{print $4}' /proc/28517/stat
++ A=28114
++ '[' -z 28114 ']'
++ '[' 28114 = 0 ']'
+++ ps -o user=,args= -p 28114
+++ cut -c1-180
++ echo '  ppid=28114 root     bash'
+  ppid=28114 root     bash
++ for i in 1 2 3 4 5 6
+++ awk '{print $4}' /proc/28114/stat
++ A=27843
++ '[' -z 27843 ']'
++ '[' 27843 = 0 ']'
+++ ps -o user=,args= -p 27843
+++ cut -c1-180
++ echo '  ppid=27843 root     /usr/bin/containerd-shim-runc-v2 -namespace moby -id 6da2873bf3f5fe589e75e8948ca9029d3026c52170c1f650be5d66824815d6a9 -address /run/containerd/containerd.sock'
+  ppid=27843 root     /usr/bin/containerd-shim-runc-v2 -namespace moby -id 6da2873bf3f5fe589e75e8948ca9029d3026c52170c1f650be5d66824815d6a9 -address /run/containerd/containerd.sock
++ for i in 1 2 3 4 5 6
+++ awk '{print $4}' /proc/27843/stat
++ A=1
++ '[' -z 1 ']'
++ '[' 1 = 0 ']'
+++ ps -o user=,args= -p 1
+++ cut -c1-180
++ echo '  ppid=1 root     /usr/lib/systemd/systemd --switched-root --system --deserialize=34 rhgb'
+  ppid=1 root     /usr/lib/systemd/systemd --switched-root --system --deserialize=34 rhgb
++ for i in 1 2 3 4 5 6
+++ awk '{print $4}' /proc/1/stat
++ A=0
++ '[' -z 0 ']'
++ '[' 0 = 0 ']'
++ break
++ echo '== bench runs on disk =='
+== bench runs on disk ==
++ for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ '[' -d /home/c00986490/vllmBench ']'
++ ls -lt /home/c00986490/vllmBench
++ head -4
+total 536
+drwxrwxr-x+ 6 root root 4096 Oct 28 11:18 litehost_gap_20261028_104053
+drwxrwxr-x+ 4 root root 4096 Oct 28 10:40 litehost_gap_20261028_103953
+drwxrwxr-x+ 4 root root 4096 Oct 28 10:39 litehost_gap_20261028_103809
++ for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ '[' -d /home/g30061491/vllmBench ']'
++ ls -lt /home/g30061491/vllmBench
++ head -4
+total 16
+drwxrwxr-x+ 6 root root 4096 Oct 14 14:38 litehost_gap_20261014_143534
+drwxrwxr-x+ 6 root root 4096 Oct 14 14:31 litehost_gap_20261014_142906
++ for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ '[' -d /home/s00806700/vllmBench ']'
++ ls -lt /home/s00806700/vllmBench
++ head -4
+total 416
+drwxr-xr-x. 3 root root 4096 Nov 10 09:33 litehost_gap_20261110_093301
+drwxr-xr-x. 6 root root 4096 Nov  6 17:08 litehost_gap_20261106_170506
+drwxr-xr-x. 6 root root 4096 Nov  6 17:04 litehost_gap_20261106_170036
++ for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ '[' -d /home/wy00937119/vllmBench ']'
++ ls -lt /home/wy00937119/vllmBench
++ head -4
+total 8
+drwxrwxr-x+ 3 root root 4096 Oct  9 15:30 op1
++ for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ '[' -d /home/z30059427/vllmBench ']'
++ ls -lt /home/z30059427/vllmBench
++ head -4
+total 2508
+drwxr-xr-x. 6 root root 4096 Nov  9 21:35 litehost_gap_20261109_195202
+drwxr-xr-x. 4 root root 4096 Nov  9 16:56 litehost_gap_20261109_165520
+drwxr-xr-x. 6 root root 4096 Oct 30 13:57 litehost_gap_20261030_135528
++ for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench ']'
++ ls -lt /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ head -4
+total 104
+drwxr-xr-x. 6 root root 4096 Nov  9 19:31 r10_smoke_184
+drwxr-xr-x. 6 root root 4096 Nov  6 19:08 litehost_gap_20261106_172326
+drwxr-xr-x. 6 root root 4096 Nov  6 16:20 litehost_gap_20261106_142706
++ for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ '[' -d /home/qch/pmu_litehost_runs/vllmBench ']'
++ ls -lt /home/qch/pmu_litehost_runs/vllmBench
++ head -4
+total 8
+drwxr-xr-x. 5 root root 4096 Nov 10 19:27 pmu_litehost_20261110_topdown_graph
+drwxr-xr-x. 7 root root 4096 Nov 10 19:25 pmu_smoke_graph_20261110
++ for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ '[' -d /home/qch/scripts/vllmBench ']'
++ ls -lt /home/qch/scripts/vllmBench
++ head -4
+total 176
+drwxrwxr-x+ 7 root root 4096 Oct 14 14:15 litehost_compat_plugin_on2_2048_128
+drwxrwxr-x+ 6 root root 4096 Oct 14 14:09 litehost_compat_plugin_off3_2048_128
+drwxrwxr-x+ 6 root root 4096 Oct 14 11:27 litehost_compat_plugin_off2_2048_128
++ for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ '[' -d /home/s00806700/litehost_perf_gen/vllmBench ']'
++ ls -lt /home/s00806700/litehost_perf_gen/vllmBench
++ head -4
+total 208
+drwxr-xr-x. 4 root root 4096 Nov  3 15:46 litehost_gap_20261103_154357
+drwxr-xr-x. 4 root root 4096 Nov  3 15:41 litehost_gap_20261103_153852
+drwxr-xr-x. 6 root root 4096 Nov  3 13:41 r2d1s_run2
++ for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ '[' -d /home/s00806700/litehost_perf_optbak/vllmBench ']'
++ ls -lt /home/s00806700/litehost_perf_optbak/vllmBench
++ head -4
+total 236
+drwxr-xr-x. 3 root root 4096 Nov 10 09:26 litehost_gap_20261110_092618
+drwxr-xr-x. 3 root root 4096 Nov 10 09:21 litehost_gap_20261110_092149
+drwxr-xr-x. 6 root root 4096 Nov  9 10:28 litehost_gap_20261109_095138
++ for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ '[' -d /home/s00806700/litehost_perf_opt/vllmBench ']'
++ ls -lt /home/s00806700/litehost_perf_opt/vllmBench
++ head -4
+total 136
+drwxr-xr-x. 6 root root 4096 Nov 11 06:45 opt5_ab_1110e_opt3
+drwxr-xr-x. 6 root root 4096 Nov 11 04:53 opt5_ab_1110e_base3
+drwxr-xr-x. 6 root root 4096 Nov 11 03:05 opt5_ab_1110e_opt2
++ for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ '[' -d /home/s00806700/old_script/vllmBench ']'
++ ls -lt /home/s00806700/old_script/vllmBench
++ head -4
+total 12
+drwxr-xr-x. 6 root root 4096 Oct 31 16:26 litehost_gap_20261031_162405
+drwxr-xr-x. 6 root root 4096 Oct 31 16:20 litehost_gap_20261031_161802
+drwxr-xr-x. 6 root root 4096 Oct 31 16:17 litehost_gap_20261031_161501
++ for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ '[' -d /home/z30059427/cinderx-callinline-ab-20261019/vllmBench ']'
++ ls -lt /home/z30059427/cinderx-callinline-ab-20261019/vllmBench
++ head -4
+total 128
+drwxrwxr-x+ 6 root root 4096 Oct 20 09:16 cx_ci_20261020_084415_2271745_callinline_r4
+drwxrwxr-x+ 6 root root 4096 Oct 20 09:14 cx_ci_20261020_084415_2271745_jit_r4
+drwxrwxr-x+ 6 root root 4096 Oct 20 09:11 cx_ci_20261020_084415_2271745_stock_r4
++ for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ '[' -d /home/z30059427/cinderx-v1-evaluator-split-20261016/vllmBench ']'
++ ls -lt /home/z30059427/cinderx-v1-evaluator-split-20261016/vllmBench
++ head -4
+total 88
+drwxrwxr-x+ 6 root root 4096 Oct 19 14:07 cx_v1_20261019_133532_3344756_evaluator_r1
+drwxrwxr-x+ 6 root root 4096 Oct 19 13:37 cx_v1_20261019_133532_3344756_stock_r1
+drwxrwxr-x+ 6 root root 4096 Oct 19 11:39 cx_v1_20261019_113117_3069009_jit_r1
++ for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ '[' -d /home/z30059427/litehost_perf_py312/vllmBench ']'
++ ls -lt /home/z30059427/litehost_perf_py312/vllmBench
++ head -4
+total 8
+drwxrwxr-x+ 6 root root 4096 Oct 16 10:47 litehost_gap_20261016_104521
++ for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ '[' -d /home/z30059427/litehost_perf/vllmBench ']'
++ ls -lt /home/z30059427/litehost_perf/vllmBench
++ head -4
+total 184
+drwxrwxr-x+ 6 root root 4096 Oct 20 15:18 litehost_gap_20261020_151615
+drwxrwxr-x+ 4 root root 4096 Oct 19 14:18 litehost_gap_20261019_141731
+drwxrwxr-x+ 6 root root 4096 Oct 19 14:13 litehost_gap_20261019_141047
++ for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench ']'
++ ls -lt /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ head -4
+total 104
+drwxr-xr-x. 6 root root 4096 Nov  9 19:31 r10_smoke_184
+drwxr-xr-x. 6 root root 4096 Nov  6 19:08 litehost_gap_20261106_172326
+drwxr-xr-x. 6 root root 4096 Nov  6 16:20 litehost_gap_20261106_142706
++ echo '== newest run dir contents =='
+== newest run dir contents ==
+++ head -1
+++ ls -dt /home/c00986490/vllmBench/20261014-001/ /home/c00986490/vllmBench/litehost_gap_20261014_191711/ /home/c00986490/vllmBench/litehost_gap_20261014_214455/ /home/c00986490/vllmBench/litehost_gap_20261014_215801/ /home/c00986490/vllmBench/litehost_gap_20261014_221002/ /home/c00986490/vllmBench/litehost_gap_20261014_221338/ /home/c00986490/vllmBench/litehost_gap_20261014_222044/ /home/c00986490/vllmBench/litehost_gap_20261014_222344/ /home/c00986490/vllmBench/litehost_gap_20261015_134907/ /home/c00986490/vllmBench/litehost_gap_20261015_135241/ /home/c00986490/vllmBench/litehost_gap_20261017_141634/ /home/c00986490/vllmBench/litehost_gap_20261017_142055/ /home/c00986490/vllmBench/litehost_gap_20261017_144427/ /home/c00986490/vllmBench/litehost_gap_20261017_152527/ /home/c00986490/vllmBench/litehost_gap_20261017_153947/ /home/c00986490/vllmBench/litehost_gap_20261017_154300/ /home/c00986490/vllmBench/litehost_gap_20261017_161909/ /home/c00986490/vllmBench/litehost_gap_20261019_105728/ /home/c00986490/vllmBench/litehost_gap_20261019_110303/ /home/c00986490/vllmBench/litehost_gap_20261020_152209/ /home/c00986490/vllmBench/litehost_gap_20261020_153428/ /home/c00986490/vllmBench/litehost_gap_20261021_142842/ /home/c00986490/vllmBench/litehost_gap_20261021_144129/ /home/c00986490/vllmBench/litehost_gap_20261021_145258/ /home/c00986490/vllmBench/litehost_gap_20261021_145323/ /home/c00986490/vllmBench/litehost_gap_20261021_145957/ /home/c00986490/vllmBench/litehost_gap_20261021_150541/ /home/c00986490/vllmBench/litehost_gap_20261021_151800/ /home/c00986490/vllmBench/litehost_gap_20261021_152721/ /home/c00986490/vllmBench/litehost_gap_20261021_153704/ /home/c00986490/vllmBench/litehost_gap_20261021_154837/ /home/c00986490/vllmBench/litehost_gap_20261022_151407/ /home/c00986490/vllmBench/litehost_gap_20261022_153354/ /home/c00986490/vllmBench/litehost_gap_20261023_103358/ /home/c00986490/vllmBench/litehost_gap_20261023_104227/ /home/c00986490/vllmBench/litehost_gap_20261023_110253/ /home/c00986490/vllmBench/litehost_gap_20261023_111231/ /home/c00986490/vllmBench/litehost_gap_20261023_111237/ /home/c00986490/vllmBench/litehost_gap_20261023_111244/ /home/c00986490/vllmBench/litehost_gap_20261027_113251/ /home/c00986490/vllmBench/litehost_gap_20261027_113336/ /home/c00986490/vllmBench/litehost_gap_20261027_113439/ /home/c00986490/vllmBench/litehost_gap_20261027_141304/ /home/c00986490/vllmBench/litehost_gap_20261027_144428/ /home/c00986490/vllmBench/litehost_gap_20261027_152122/ /home/c00986490/vllmBench/litehost_gap_20261027_153522/ /home/c00986490/vllmBench/litehost_gap_20261027_154917/ /home/c00986490/vllmBench/litehost_gap_20261027_160216/ /home/c00986490/vllmBench/litehost_gap_20261027_162624/ /home/c00986490/vllmBench/litehost_gap_20261027_164426/ /home/c00986490/vllmBench/litehost_gap_20261027_164457/ /home/c00986490/vllmBench/litehost_gap_20261027_180314/ /home/c00986490/vllmBench/litehost_gap_20261027_185909/ /home/c00986490/vllmBench/litehost_gap_20261027_185911/ /home/c00986490/vllmBench/litehost_gap_20261027_185912/ /home/c00986490/vllmBench/litehost_gap_20261027_190730/ /home/c00986490/vllmBench/litehost_gap_20261027_190856/ /home/c00986490/vllmBench/litehost_gap_20261027_190903/ /home/c00986490/vllmBench/litehost_gap_20261027_190906/ /home/c00986490/vllmBench/litehost_gap_20261027_190907/ /home/c00986490/vllmBench/litehost_gap_20261028_091051/ /home/c00986490/vllmBench/litehost_gap_20261028_091113/ /home/c00986490/vllmBench/litehost_gap_20261028_095405/ /home/c00986490/vllmBench/litehost_gap_20261028_103526/ /home/c00986490/vllmBench/litehost_gap_20261028_103809/ /home/c00986490/vllmBench/litehost_gap_20261028_103953/ /home/c00986490/vllmBench/litehost_gap_20261028_104053/ /home/g30061491/vllmBench/litehost_gap_20261014_142906/ /home/g30061491/vllmBench/litehost_gap_20261014_143534/ /home/s00806700/vllmBench/123/ /home/s00806700/vllmBench/125/ /home/s00806700/vllmBench/litehost_gap_20261105_090336/ /home/s00806700/vllmBench/litehost_gap_20261105_090631/ /home/s00806700/vllmBench/litehost_gap_20261105_095958/ /home/s00806700/vllmBench/litehost_gap_20261105_100528/ /home/s00806700/vllmBench/litehost_gap_20261105_100902/ /home/s00806700/vllmBench/litehost_gap_20261105_101212/ /home/s00806700/vllmBench/litehost_gap_20261105_101932/ /home/s00806700/vllmBench/litehost_gap_20261105_102319/ /home/s00806700/vllmBench/litehost_gap_20261105_102557/ /home/s00806700/vllmBench/litehost_gap_20261105_102836/ /home/s00806700/vllmBench/litehost_gap_20261105_105543/ /home/s00806700/vllmBench/litehost_gap_20261105_105817/ /home/s00806700/vllmBench/litehost_gap_20261105_110118/ /home/s00806700/vllmBench/litehost_gap_20261105_111251/ /home/s00806700/vllmBench/litehost_gap_20261105_111603/ /home/s00806700/vllmBench/litehost_gap_20261105_112213/ /home/s00806700/vllmBench/litehost_gap_20261105_113507/ /home/s00806700/vllmBench/litehost_gap_20261105_113813/ /home/s00806700/vllmBench/litehost_gap_20261105_114438/ /home/s00806700/vllmBench/litehost_gap_20261105_114703/ /home/s00806700/vllmBench/litehost_gap_20261105_114928/ /home/s00806700/vllmBench/litehost_gap_20261105_115153/ /home/s00806700/vllmBench/litehost_gap_20261105_115418/ /home/s00806700/vllmBench/litehost_gap_20261105_115643/ /home/s00806700/vllmBench/litehost_gap_20261105_115908/ /home/s00806700/vllmBench/litehost_gap_20261105_120133/ /home/s00806700/vllmBench/litehost_gap_20261105_120358/ /home/s00806700/vllmBench/litehost_gap_20261105_120623/ /home/s00806700/vllmBench/litehost_gap_20261105_121347/ /home/s00806700/vllmBench/litehost_gap_20261105_121617/ /home/s00806700/vllmBench/litehost_gap_20261105_121847/ /home/s00806700/vllmBench/litehost_gap_20261105_122117/ /home/s00806700/vllmBench/litehost_gap_20261105_122347/ /home/s00806700/vllmBench/litehost_gap_20261105_123007/ /home/s00806700/vllmBench/litehost_gap_20261105_123127/ /home/s00806700/vllmBench/litehost_gap_20261105_123422/ /home/s00806700/vllmBench/litehost_gap_20261105_123717/ /home/s00806700/vllmBench/litehost_gap_20261105_124012/ /home/s00806700/vllmBench/litehost_gap_20261105_124307/ /home/s00806700/vllmBench/litehost_gap_20261105_124603/ /home/s00806700/vllmBench/litehost_gap_20261105_124857/ /home/s00806700/vllmBench/litehost_gap_20261105_125153/ /home/s00806700/vllmBench/litehost_gap_20261105_125447/ /home/s00806700/vllmBench/litehost_gap_20261105_125742/ /home/s00806700/vllmBench/litehost_gap_20261105_130037/ /home/s00806700/vllmBench/litehost_gap_20261105_130332/ /home/s00806700/vllmBench/litehost_gap_20261105_130627/ /home/s00806700/vllmBench/litehost_gap_20261105_130922/ /home/s00806700/vllmBench/litehost_gap_20261105_131217/ /home/s00806700/vllmBench/litehost_gap_20261105_154232/ /home/s00806700/vllmBench/litehost_gap_20261105_160019/ /home/s00806700/vllmBench/litehost_gap_20261106_115354/ /home/s00806700/vllmBench/litehost_gap_20261106_115951/ /home/s00806700/vllmBench/litehost_gap_20261106_120425/ /home/s00806700/vllmBench/litehost_gap_20261106_121159/ /home/s00806700/vllmBench/litehost_gap_20261106_122024/ /home/s00806700/vllmBench/litehost_gap_20261106_122129/ /home/s00806700/vllmBench/litehost_gap_20261106_123044/ /home/s00806700/vllmBench/litehost_gap_20261106_123959/ /home/s00806700/vllmBench/litehost_gap_20261106_124915/ /home/s00806700/vllmBench/litehost_gap_20261106_130023/ /home/s00806700/vllmBench/litehost_gap_20261106_130432/ /home/s00806700/vllmBench/litehost_gap_20261106_130901/ /home/s00806700/vllmBench/litehost_gap_20261106_132706/ /home/s00806700/vllmBench/litehost_gap_20261106_133352/ /home/s00806700/vllmBench/litehost_gap_20261106_133856/ /home/s00806700/vllmBench/litehost_gap_20261106_134248/ /home/s00806700/vllmBench/litehost_gap_20261106_134640/ /home/s00806700/vllmBench/litehost_gap_20261106_135105/ /home/s00806700/vllmBench/litehost_gap_20261106_135646/ /home/s00806700/vllmBench/litehost_gap_20261106_140102/ /home/s00806700/vllmBench/litehost_gap_20261106_140510/ /home/s00806700/vllmBench/litehost_gap_20261106_162448/ /home/s00806700/vllmBench/litehost_gap_20261106_162858/ /home/s00806700/vllmBench/litehost_gap_20261106_165637/ /home/s00806700/vllmBench/litehost_gap_20261106_170036/ /home/s00806700/vllmBench/litehost_gap_20261106_170506/ /home/s00806700/vllmBench/litehost_gap_20261110_093301/ /home/s00806700/vllmBench/opttst_bottleneck_20261020/ /home/s00806700/vllmBench/opttst_perf2/ /home/s00806700/vllmBench/r3base_run1/ /home/s00806700/vllmBench/r3base_run2/ /home/s00806700/vllmBench/r3base_run3/ /home/s00806700/vllmBench/r3prof_perf1/ /home/s00806700/vllmBench/r3prof_perf2/ /home/s00806700/vllmBench/r3prof_perf3/ /home/s00806700/vllmBench/r3prof_perf4/ /home/s00806700/vllmBench/r3prof_run1/ /home/s00806700/vllmBench/r3prof_spy5/ /home/s00806700/vllmBench/r3v1_off1/ /home/s00806700/vllmBench/r3v1_off2/ /home/s00806700/vllmBench/r3v1_off3/ /home/s00806700/vllmBench/r3v1_on1/ /home/s00806700/vllmBench/r3v1_on2/ /home/s00806700/vllmBench/r3v1_on3/ /home/s00806700/vllmBench/r3v1_onprobe/ /home/s00806700/vllmBench/r3v1_onspy/ /home/s00806700/vllmBench/r3v1_onspy2/ /home/wy00937119/vllmBench/op1/ /home/z30059427/vllmBench/dev1_stack16_blocking_01/ /home/z30059427/vllmBench/litehost_deopt_cinder_off_20261015_144024_1184875/ /home/z30059427/vllmBench/litehost_diag_cinder_off_20261015_103802_714685/ /home/z30059427/vllmBench/litehost_diag_cinder_on_20261015_103802_714685/ /home/z30059427/vllmBench/litehost_diag_stock_20261015_103802_714685/ /home/z30059427/vllmBench/litehost_gap_20261013_185226/ /home/z30059427/vllmBench/litehost_gap_20261013_185236/ /home/z30059427/vllmBench/litehost_gap_20261013_192354/ /home/z30059427/vllmBench/litehost_gap_20261013_192457/ /home/z30059427/vllmBench/litehost_gap_20261014_110120/ /home/z30059427/vllmBench/litehost_gap_20261014_110623/ /home/z30059427/vllmBench/litehost_gap_20261014_110941/ /home/z30059427/vllmBench/litehost_gap_20261014_111321/ /home/z30059427/vllmBench/litehost_gap_20261014_112512/ /home/z30059427/vllmBench/litehost_gap_20261014_112514/ /home/z30059427/vllmBench/litehost_gap_20261014_112837/ /home/z30059427/vllmBench/litehost_gap_20261014_113326/ /home/z30059427/vllmBench/litehost_gap_20261014_113649/ /home/z30059427/vllmBench/litehost_gap_20261014_114051/ /home/z30059427/vllmBench/litehost_gap_20261014_114449/ /home/z30059427/vllmBench/litehost_gap_20261015_113931/ /home/z30059427/vllmBench/litehost_gap_20261015_114938/ /home/z30059427/vllmBench/litehost_gap_20261015_115542/ /home/z30059427/vllmBench/litehost_gap_20261015_120023/ /home/z30059427/vllmBench/litehost_gap_20261015_120352/ /home/z30059427/vllmBench/litehost_gap_20261015_120839/ /home/z30059427/vllmBench/litehost_gap_20261015_121621/ /home/z30059427/vllmBench/litehost_gap_20261015_121852/ /home/z30059427/vllmBench/litehost_gap_20261015_122125/ /home/z30059427/vllmBench/litehost_gap_20261015_122355/ /home/z30059427/vllmBench/litehost_gap_20261015_135408/ /home/z30059427/vllmBench/litehost_gap_20261015_135527/ /home/z30059427/vllmBench/litehost_gap_20261015_135757/ /home/z30059427/vllmBench/litehost_gap_20261015_140027/ /home/z30059427/vllmBench/litehost_gap_20261015_140257/ /home/z30059427/vllmBench/litehost_gap_20261015_140556/ /home/z30059427/vllmBench/litehost_gap_20261015_145504/ /home/z30059427/vllmBench/litehost_gap_20261015_150205/ /home/z30059427/vllmBench/litehost_gap_20261015_151053/ /home/z30059427/vllmBench/litehost_gap_20261015_151353/ /home/z30059427/vllmBench/litehost_gap_20261015_151709/ /home/z30059427/vllmBench/litehost_gap_20261015_154138/ /home/z30059427/vllmBench/litehost_gap_20261015_154524/ /home/z30059427/vllmBench/litehost_gap_20261015_154901/ /home/z30059427/vllmBench/litehost_gap_20261015_154904/ /home/z30059427/vllmBench/litehost_gap_20261015_155211/ /home/z30059427/vllmBench/litehost_gap_20261015_155213/ /home/z30059427/vllmBench/litehost_gap_20261015_155214/ /home/z30059427/vllmBench/litehost_gap_20261015_155217/ /home/z30059427/vllmBench/litehost_gap_20261015_155218/ /home/z30059427/vllmBench/litehost_gap_20261015_155225/ /home/z30059427/vllmBench/litehost_gap_20261015_155233/ /home/z30059427/vllmBench/litehost_gap_20261015_155238/ /home/z30059427/vllmBench/litehost_gap_20261015_155253/ /home/z30059427/vllmBench/litehost_gap_20261015_161251/ /home/z30059427/vllmBench/litehost_gap_20261015_161749/ /home/z30059427/vllmBench/litehost_gap_20261015_162205/ /home/z30059427/vllmBench/litehost_gap_20261015_162834/ /home/z30059427/vllmBench/litehost_gap_20261015_163417/ /home/z30059427/vllmBench/litehost_gap_20261015_164717/ /home/z30059427/vllmBench/litehost_gap_20261015_165012/ /home/z30059427/vllmBench/litehost_gap_20261015_165019/ /home/z30059427/vllmBench/litehost_gap_20261015_165045/ /home/z30059427/vllmBench/litehost_gap_20261016_084608/ /home/z30059427/vllmBench/litehost_gap_20261016_153320/ /home/z30059427/vllmBench/litehost_gap_20261016_153902/ /home/z30059427/vllmBench/litehost_gap_20261016_154449/ /home/z30059427/vllmBench/litehost_gap_20261016_155821/ /home/z30059427/vllmBench/litehost_gap_20261016_155827/ /home/z30059427/vllmBench/litehost_gap_20261019_143106/ /home/z30059427/vllmBench/litehost_gap_20261019_143834/ /home/z30059427/vllmBench/litehost_gap_20261019_154401/ /home/z30059427/vllmBench/litehost_gap_20261019_190739/ /home/z30059427/vllmBench/litehost_gap_20261019_191113/ /home/z30059427/vllmBench/litehost_gap_20261019_193246/ /home/z30059427/vllmBench/litehost_gap_20261019_193424/ /home/z30059427/vllmBench/litehost_gap_20261019_194512/ /home/z30059427/vllmBench/litehost_gap_20261019_195729/ /home/z30059427/vllmBench/litehost_gap_20261019_200357/ /home/z30059427/vllmBench/litehost_gap_20261019_201129/ /home/z30059427/vllmBench/litehost_gap_20261019_201457/ /home/z30059427/vllmBench/litehost_gap_20261020_094002/ /home/z30059427/vllmBench/litehost_gap_20261020_094258/ /home/z30059427/vllmBench/litehost_gap_20261020_094744/ /home/z30059427/vllmBench/litehost_gap_20261020_095205/ /home/z30059427/vllmBench/litehost_gap_20261020_095509/ /home/z30059427/vllmBench/litehost_gap_20261020_095702/ /home/z30059427/vllmBench/litehost_gap_20261020_095752/ /home/z30059427/vllmBench/litehost_gap_20261020_095905/ /home/z30059427/vllmBench/litehost_gap_20261020_113019/ /home/z30059427/vllmBench/litehost_gap_20261020_133644/ /home/z30059427/vllmBench/litehost_gap_20261020_133921/ /home/z30059427/vllmBench/litehost_gap_20261020_133922/ /home/z30059427/vllmBench/litehost_gap_20261020_134551/ /home/z30059427/vllmBench/litehost_gap_20261020_134621/ /home/z30059427/vllmBench/litehost_gap_20261020_134623/ /home/z30059427/vllmBench/litehost_gap_20261020_134626/ /home/z30059427/vllmBench/litehost_gap_20261020_134641/ /home/z30059427/vllmBench/litehost_gap_20261020_134933/ /home/z30059427/vllmBench/litehost_gap_20261020_135044/ /home/z30059427/vllmBench/litehost_gap_20261020_135350/ /home/z30059427/vllmBench/litehost_gap_20261020_135642/ /home/z30059427/vllmBench/litehost_gap_20261020_135909/ /home/z30059427/vllmBench/litehost_gap_20261020_140231/ /home/z30059427/vllmBench/litehost_gap_20261020_140554/ /home/z30059427/vllmBench/litehost_gap_20261020_140818/ /home/z30059427/vllmBench/litehost_gap_20261020_141103/ /home/z30059427/vllmBench/litehost_gap_20261020_141340/ /home/z30059427/vllmBench/litehost_gap_20261020_141601/ /home/z30059427/vllmBench/litehost_gap_20261020_143214/ /home/z30059427/vllmBench/litehost_gap_20261020_143413/ /home/z30059427/vllmBench/litehost_gap_20261020_143423/ /home/z30059427/vllmBench/litehost_gap_20261020_143450/ /home/z30059427/vllmBench/litehost_gap_20261020_143606/ /home/z30059427/vllmBench/litehost_gap_20261020_143706/ /home/z30059427/vllmBench/litehost_gap_20261020_162329/ /home/z30059427/vllmBench/litehost_gap_20261020_165256/ /home/z30059427/vllmBench/litehost_gap_20261020_173251/ /home/z30059427/vllmBench/litehost_gap_20261020_185002/ /home/z30059427/vllmBench/litehost_gap_20261020_185731/ /home/z30059427/vllmBench/litehost_gap_20261020_190040/ /home/z30059427/vllmBench/litehost_gap_20261021_084859/ /home/z30059427/vllmBench/litehost_gap_20261021_085219/ /home/z30059427/vllmBench/litehost_gap_20261021_085959/ /home/z30059427/vllmBench/litehost_gap_20261021_090038/ /home/z30059427/vllmBench/litehost_gap_20261021_092307/ /home/z30059427/vllmBench/litehost_gap_20261021_092903/ /home/z30059427/vllmBench/litehost_gap_20261021_093212/ /home/z30059427/vllmBench/litehost_gap_20261021_093518/ /home/z30059427/vllmBench/litehost_gap_20261021_093809/ /home/z30059427/vllmBench/litehost_gap_20261021_094222/ /home/z30059427/vllmBench/litehost_gap_20261021_094502/ /home/z30059427/vllmBench/litehost_gap_20261021_094824/ /home/z30059427/vllmBench/litehost_gap_20261021_095129/ /home/z30059427/vllmBench/litehost_gap_20261021_095427/ /home/z30059427/vllmBench/litehost_gap_20261021_103803/ /home/z30059427/vllmBench/litehost_gap_20261021_104049/ /home/z30059427/vllmBench/litehost_gap_20261021_112945/ /home/z30059427/vllmBench/litehost_gap_20261021_114740/ /home/z30059427/vllmBench/litehost_gap_20261021_115009/ /home/z30059427/vllmBench/litehost_gap_20261021_115239/ /home/z30059427/vllmBench/litehost_gap_20261021_115508/ /home/z30059427/vllmBench/litehost_gap_20261021_115738/ /home/z30059427/vllmBench/litehost_gap_20261021_120008/ /home/z30059427/vllmBench/litehost_gap_20261021_120238/ /home/z30059427/vllmBench/litehost_gap_20261021_120507/ /home/z30059427/vllmBench/litehost_gap_20261021_120736/ /home/z30059427/vllmBench/litehost_gap_20261021_121006/ /home/z30059427/vllmBench/litehost_gap_20261021_121235/ /home/z30059427/vllmBench/litehost_gap_20261021_121354/ /home/z30059427/vllmBench/litehost_gap_20261021_121415/ /home/z30059427/vllmBench/litehost_gap_20261021_121418/ /home/z30059427/vllmBench/litehost_gap_20261021_121419/ /home/z30059427/vllmBench/litehost_gap_20261021_121423/ /home/z30059427/vllmBench/litehost_gap_20261021_121427/ /home/z30059427/vllmBench/litehost_gap_20261021_121429/ /home/z30059427/vllmBench/litehost_gap_20261021_121430/ /home/z30059427/vllmBench/litehost_gap_20261021_121431/ /home/z30059427/vllmBench/litehost_gap_20261021_122049/ /home/z30059427/vllmBench/litehost_gap_20261021_122318/ /home/z30059427/vllmBench/litehost_gap_20261021_122548/ /home/z30059427/vllmBench/litehost_gap_20261021_122813/ /home/z30059427/vllmBench/litehost_gap_20261021_123043/ /home/z30059427/vllmBench/litehost_gap_20261021_123311/ /home/z30059427/vllmBench/litehost_gap_20261021_123540/ /home/z30059427/vllmBench/litehost_gap_20261021_123810/ /home/z30059427/vllmBench/litehost_gap_20261021_124039/ /home/z30059427/vllmBench/litehost_gap_20261021_124307/ /home/z30059427/vllmBench/litehost_gap_20261021_124536/ /home/z30059427/vllmBench/litehost_gap_20261021_124806/ /home/z30059427/vllmBench/litehost_gap_20261021_125035/ /home/z30059427/vllmBench/litehost_gap_20261021_125303/ /home/z30059427/vllmBench/litehost_gap_20261021_125533/ /home/z30059427/vllmBench/litehost_gap_20261021_125802/ /home/z30059427/vllmBench/litehost_gap_20261021_130031/ /home/z30059427/vllmBench/litehost_gap_20261021_130300/ /home/z30059427/vllmBench/litehost_gap_20261021_130529/ /home/z30059427/vllmBench/litehost_gap_20261021_130758/ /home/z30059427/vllmBench/litehost_gap_20261021_131027/ /home/z30059427/vllmBench/litehost_gap_20261021_131256/ /home/z30059427/vllmBench/litehost_gap_20261021_131525/ /home/z30059427/vllmBench/litehost_gap_20261021_131755/ /home/z30059427/vllmBench/litehost_gap_20261021_132025/ /home/z30059427/vllmBench/litehost_gap_20261021_133903/ /home/z30059427/vllmBench/litehost_gap_20261021_134224/ /home/z30059427/vllmBench/litehost_gap_20261021_134517/ /home/z30059427/vllmBench/litehost_gap_20261021_134812/ /home/z30059427/vllmBench/litehost_gap_20261021_135102/ /home/z30059427/vllmBench/litehost_gap_20261021_135339/ /home/z30059427/vllmBench/litehost_gap_20261021_135628/ /home/z30059427/vllmBench/litehost_gap_20261021_140036/ /home/z30059427/vllmBench/litehost_gap_20261021_140041/ /home/z30059427/vllmBench/litehost_gap_20261021_140317/ /home/z30059427/vllmBench/litehost_gap_20261021_140445/ /home/z30059427/vllmBench/litehost_gap_20261021_140736/ /home/z30059427/vllmBench/litehost_gap_20261021_141112/ /home/z30059427/vllmBench/litehost_gap_20261021_141400/ /home/z30059427/vllmBench/litehost_gap_20261021_141638/ /home/z30059427/vllmBench/litehost_gap_20261021_141913/ /home/z30059427/vllmBench/litehost_gap_20261022_000635/ /home/z30059427/vllmBench/litehost_gap_20261022_000904/ /home/z30059427/vllmBench/litehost_gap_20261022_001134/ /home/z30059427/vllmBench/litehost_gap_20261022_001404/ /home/z30059427/vllmBench/litehost_gap_20261022_001634/ /home/z30059427/vllmBench/litehost_gap_20261022_001904/ /home/z30059427/vllmBench/litehost_gap_20261022_002134/ /home/z30059427/vllmBench/litehost_gap_20261022_002404/ /home/z30059427/vllmBench/litehost_gap_20261022_002634/ /home/z30059427/vllmBench/litehost_gap_20261022_002904/ /home/z30059427/vllmBench/litehost_gap_20261022_084158/ /home/z30059427/vllmBench/litehost_gap_20261022_085028/ /home/z30059427/vllmBench/litehost_gap_20261022_085258/ /home/z30059427/vllmBench/litehost_gap_20261022_085527/ /home/z30059427/vllmBench/litehost_gap_20261022_085757/ /home/z30059427/vllmBench/litehost_gap_20261022_090028/ /home/z30059427/vllmBench/litehost_gap_20261022_090258/ /home/z30059427/vllmBench/litehost_gap_20261022_090528/ /home/z30059427/vllmBench/litehost_gap_20261022_090758/ /home/z30059427/vllmBench/litehost_gap_20261022_090811/ /home/z30059427/vllmBench/litehost_gap_20261022_091041/ /home/z30059427/vllmBench/litehost_gap_20261022_091212/ /home/z30059427/vllmBench/litehost_gap_20261022_091428/ /home/z30059427/vllmBench/litehost_gap_20261022_091530/ /home/z30059427/vllmBench/litehost_gap_20261022_091536/ /home/z30059427/vllmBench/litehost_gap_20261022_091624/ /home/z30059427/vllmBench/litehost_gap_20261022_092054/ /home/z30059427/vllmBench/litehost_gap_20261022_092322/ /home/z30059427/vllmBench/litehost_gap_20261022_092550/ /home/z30059427/vllmBench/litehost_gap_20261022_092819/ /home/z30059427/vllmBench/litehost_gap_20261022_093047/ /home/z30059427/vllmBench/litehost_gap_20261022_093315/ /home/z30059427/vllmBench/litehost_gap_20261022_093543/ /home/z30059427/vllmBench/litehost_gap_20261022_093811/ /home/z30059427/vllmBench/litehost_gap_20261022_093915/ /home/z30059427/vllmBench/litehost_gap_20261022_094144/ /home/z30059427/vllmBench/litehost_gap_20261022_094412/ /home/z30059427/vllmBench/litehost_gap_20261022_094640/ /home/z30059427/vllmBench/litehost_gap_20261022_094909/ /home/z30059427/vllmBench/litehost_gap_20261022_095137/ /home/z30059427/vllmBench/litehost_gap_20261022_095405/ /home/z30059427/vllmBench/litehost_gap_20261022_095633/ /home/z30059427/vllmBench/litehost_gap_20261022_095901/ /home/z30059427/vllmBench/litehost_gap_20261022_182109/ /home/z30059427/vllmBench/litehost_gap_20261022_182339/ /home/z30059427/vllmBench/litehost_gap_20261022_182607/ /home/z30059427/vllmBench/litehost_gap_20261022_182837/ /home/z30059427/vllmBench/litehost_gap_20261022_183105/ /home/z30059427/vllmBench/litehost_gap_20261022_183336/ /home/z30059427/vllmBench/litehost_gap_20261022_183605/ /home/z30059427/vllmBench/litehost_gap_20261022_183834/ /home/z30059427/vllmBench/litehost_gap_20261022_184103/ /home/z30059427/vllmBench/litehost_gap_20261022_184333/ /home/z30059427/vllmBench/litehost_gap_20261022_184604/ /home/z30059427/vllmBench/litehost_gap_20261022_184834/ /home/z30059427/vllmBench/litehost_gap_20261022_185102/ /home/z30059427/vllmBench/litehost_gap_20261022_185332/ /home/z30059427/vllmBench/litehost_gap_20261022_185602/ /home/z30059427/vllmBench/litehost_gap_20261022_185830/ /home/z30059427/vllmBench/litehost_gap_20261022_190059/ /home/z30059427/vllmBench/litehost_gap_20261022_190329/ /home/z30059427/vllmBench/litehost_gap_20261022_190559/ /home/z30059427/vllmBench/litehost_gap_20261022_190828/ /home/z30059427/vllmBench/litehost_gap_20261022_191057/ /home/z30059427/vllmBench/litehost_gap_20261022_191327/ /home/z30059427/vllmBench/litehost_gap_20261022_191557/ /home/z30059427/vllmBench/litehost_gap_20261022_191825/ /home/z30059427/vllmBench/litehost_gap_20261022_192055/ /home/z30059427/vllmBench/litehost_gap_20261023_114610/ /home/z30059427/vllmBench/litehost_gap_20261023_115058/ /home/z30059427/vllmBench/litehost_gap_20261023_120026/ /home/z30059427/vllmBench/litehost_gap_20261023_120654/ /home/z30059427/vllmBench/litehost_gap_20261023_120923/ /home/z30059427/vllmBench/litehost_gap_20261023_121153/ /home/z30059427/vllmBench/litehost_gap_20261023_121422/ /home/z30059427/vllmBench/litehost_gap_20261023_121652/ /home/z30059427/vllmBench/litehost_gap_20261023_134149/ /home/z30059427/vllmBench/litehost_gap_20261023_134418/ /home/z30059427/vllmBench/litehost_gap_20261023_134647/ /home/z30059427/vllmBench/litehost_gap_20261023_134916/ /home/z30059427/vllmBench/litehost_gap_20261023_135145/ /home/z30059427/vllmBench/litehost_gap_20261026_145632/ /home/z30059427/vllmBench/litehost_gap_20261026_150005/ /home/z30059427/vllmBench/litehost_gap_20261026_150011/ /home/z30059427/vllmBench/litehost_gap_20261026_150021/ /home/z30059427/vllmBench/litehost_gap_20261026_150057/ /home/z30059427/vllmBench/litehost_gap_20261026_150449/ /home/z30059427/vllmBench/litehost_gap_20261026_150450/ /home/z30059427/vllmBench/litehost_gap_20261026_150454/ /home/z30059427/vllmBench/litehost_gap_20261026_150510/ /home/z30059427/vllmBench/litehost_gap_20261026_153231/ /home/z30059427/vllmBench/litehost_gap_20261026_161710/ /home/z30059427/vllmBench/litehost_gap_20261026_164005/ /home/z30059427/vllmBench/litehost_gap_20261027_092218/ /home/z30059427/vllmBench/litehost_gap_20261027_092235/ /home/z30059427/vllmBench/litehost_gap_20261027_092828/ /home/z30059427/vllmBench/litehost_gap_20261029_145359/ /home/z30059427/vllmBench/litehost_gap_20261029_145841/ /home/z30059427/vllmBench/litehost_gap_20261029_145921/ /home/z30059427/vllmBench/litehost_gap_20261029_150325/ /home/z30059427/vllmBench/litehost_gap_20261029_150604/ /home/z30059427/vllmBench/litehost_gap_20261029_150901/ /home/z30059427/vllmBench/litehost_gap_20261029_151230/ /home/z30059427/vllmBench/litehost_gap_20261029_151839/ /home/z30059427/vllmBench/litehost_gap_20261029_152117/ /home/z30059427/vllmBench/litehost_gap_20261029_152804/ /home/z30059427/vllmBench/litehost_gap_20261029_152953/ /home/z30059427/vllmBench/litehost_gap_20261029_153156/ /home/z30059427/vllmBench/litehost_gap_20261030_101459/ /home/z30059427/vllmBench/litehost_gap_20261030_101840/ /home/z30059427/vllmBench/litehost_gap_20261030_102139/ /home/z30059427/vllmBench/litehost_gap_20261030_102525/ /home/z30059427/vllmBench/litehost_gap_20261030_105510/ /home/z30059427/vllmBench/litehost_gap_20261030_105815/ /home/z30059427/vllmBench/litehost_gap_20261030_134545/ /home/z30059427/vllmBench/litehost_gap_20261030_135310/ /home/z30059427/vllmBench/litehost_gap_20261030_135528/ /home/z30059427/vllmBench/litehost_gap_20261109_165520/ /home/z30059427/vllmBench/litehost_gap_20261109_195202/ /home/z30059427/vllmBench/test/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_211428/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/r10_smoke_184/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/test/
++ R=/home/s00806700/vllmBench/litehost_gap_20261110_093301/
++ echo RUN=/home/s00806700/vllmBench/litehost_gap_20261110_093301/
+RUN=/home/s00806700/vllmBench/litehost_gap_20261110_093301/
++ '[' -n /home/s00806700/vllmBench/litehost_gap_20261110_093301/ ']'
++ '[' -d /home/s00806700/vllmBench/litehost_gap_20261110_093301/ ']'
++ ls -la /home/s00806700/vllmBench/litehost_gap_20261110_093301/
++ head -15
+total 60
+drwxr-xr-x.   3 root root  4096 Nov 10 09:33 .
+drwxrwxr-x+ 102 root root 32768 Nov 10 09:33 ..
+-rw-r--r--.   1 root root   249 Nov 10 09:33 config.txt
+drwxr-xr-x.   2 root root  4096 Nov 10 09:33 logs
+-rw-------.   1 root root    77 Nov 10 09:33 server.process.json
+-rw-------.   1 root root   850 Nov 10 09:33 session.json
++ echo '-- summary.csv --'
+-- summary.csv --
++ cat /home/s00806700/vllmBench/litehost_gap_20261110_093301//summary.csv
++ head -15
+cat: /home/s00806700/vllmBench/litehost_gap_20261110_093301//summary.csv: No such file or directory
++ echo '-- server.log tail --'
+-- server.log tail --
++ tail -5 /home/s00806700/vllmBench/litehost_gap_20261110_093301//logs/server.log
+        $ python -m pip install --no-build-isolation -v . && python -c "import torch"
+
+    This error can generally be solved using the `develop` workflow
+        $ python -m pip install --no-build-isolation -v -e . && python -c "import torch"  # This should succeed
+    or by running Python from a different directory.
++ echo '-- case dirs --'
+-- case dirs --
++ head -12
++ ls -d '/home/s00806700/vllmBench/litehost_gap_20261110_093301//case_*' '/home/s00806700/vllmBench/litehost_gap_20261110_093301//litehost*'
++ echo '== script knobs =='
+== script knobs ==
+++ head -2
+++ ls -t /home/c00986490/litehost_perf/vllmBench_lite.sh /home/g30061491/litehost_perf/vllmBench_lite.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh /home/qch/pmu_litehost_toolkit/vllmBench_lite_pmu.sh /home/qch/scripts/vllmBench_lite_on.sh /home/qch/scripts/vllmBench_lite.sh /home/s00806700/litehost_perf_base/vllmBench_lite.sh /home/s00806700/litehost_perf_gccnopgo/vllmBench_lite.sh /home/s00806700/litehost_perf_genold/vllmBench_lite.sh /home/s00806700/litehost_perf_gen/vllmBench_lite_pgo.sh /home/s00806700/litehost_perf_gen/vllmBench_lite.sh /home/s00806700/litehost_perf_llvmopt/vllmBench_lite.sh /home/s00806700/litehost_perf_optbak/vllmBench_lite_base.sh /home/s00806700/litehost_perf_optbak/vllmBench_lite_opt.sh /home/s00806700/litehost_perf_opt/vllmBench_lite_base.sh /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh /home/s00806700/litehost_perf/vllmBench_lite.sh /home/z30059427/litehost_perf_py312/vllmBench_lite.sh /home/z30059427/litehost_perf/vllmBench_lite.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ for S in $(ls -t /home/*/*/vllmBench_lite*.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite*.sh 2> /dev/null | head -2)
+++ stat -c %y /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh
+++ cut -d. -f1
++ echo '-- /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh (mtime 2026-11-10 19:24:48)'
+-- /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh (mtime 2026-11-10 19:24:48)
++ grep -nE 'NUM_PROMPTS=|NUM_WARMUPS=|MAX_CONCURRENCY=|CASE_INTERVAL=|CASES=\(|^ *"[0-9]+ [0-9]+"' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh
++ head -20
+14:NUM_PROMPTS="${NUM_PROMPTS:-100}"
+15:NUM_WARMUPS="${NUM_WARMUPS:-16}"
+16:MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+17:CASE_INTERVAL="${CASE_INTERVAL:-60}"
+60:CASES=(
+61:  "128 128"
+62:  "128 1024"
+63:  "128 2048"
+64:  "1024 128"
+65:  "1024 1024"
+66:  "1024 2048"
+67:  "2048 128"
+68:  "2048 1024"
+69:  "2048 2048"
++ for S in $(ls -t /home/*/*/vllmBench_lite*.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite*.sh 2> /dev/null | head -2)
+++ stat -c %y /home/qch/pmu_litehost_toolkit/vllmBench_lite_pmu.sh
+++ cut -d. -f1
++ echo '-- /home/qch/pmu_litehost_toolkit/vllmBench_lite_pmu.sh (mtime 2026-11-10 19:17:16)'
+-- /home/qch/pmu_litehost_toolkit/vllmBench_lite_pmu.sh (mtime 2026-11-10 19:17:16)
++ grep -nE 'NUM_PROMPTS=|NUM_WARMUPS=|MAX_CONCURRENCY=|CASE_INTERVAL=|CASES=\(|^ *"[0-9]+ [0-9]+"' /home/qch/pmu_litehost_toolkit/vllmBench_lite_pmu.sh
++ head -20
+15:NUM_PROMPTS="${NUM_PROMPTS:-100}"
+16:NUM_WARMUPS="${NUM_WARMUPS:-16}"
+17:MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+18:CASE_INTERVAL="${CASE_INTERVAL:-60}"
+76:CASES=(
+77:  "128 128"
+80:  "1024 128"
+83:  "2048 128"
++ echo '== bench driver args =='
+== bench driver args ==
++ pgrep -af bench_driver
++ cut -c1-220
++ head -3
+481142 /opt/corex311-cpython-vllm/bin/python3 /home/huawei_ts_program/litehost_perf_opt/bench_driver.py --backend vllm --num_prompts 100 --num-warmups 16 --max-concurrency 8 --dataset_name random --random_input_len 2048 
++ echo '== gpu load =='
+== gpu load ==
++ ixsmi
++ sed -n 5,20p
+| GPU  Name                        | Bus-Id               | Clock-SM  Clock-Mem  |
+| Fan  Temp  Perf    Pwr:Usage/Cap |      Memory-Usage    | GPU-Util  Compute M. |
+|==================================+======================+======================|
+| 0    Iluvatar BI-V150            | 00000000:45:00.0     | 1600MHz   1600MHz    |
+| N/A  61C   P0       N/A / N/A    | 30492MiB / 32768MiB  | 71%       Default    |
++----------------------------------+----------------------+----------------------+
+| 1    Iluvatar BI-V150            | 00000000:48:00.0     | 1600MHz   1600MHz    |
+| N/A  60C   P0       249W / 350W  | 30536MiB / 32768MiB  | 42%       Default    |
++----------------------------------+----------------------+----------------------+
+| 2    Iluvatar BI-V150            | 00000000:AF:00.0     | 1600MHz   1600MHz    |
+| N/A  58C   P0       N/A / N/A    | 30538MiB / 32768MiB  | 59%       Default    |
++----------------------------------+----------------------+----------------------+
+| 3    Iluvatar BI-V150            | 00000000:B2:00.0     | 1600MHz   1600MHz    |
+| N/A  59C   P0       241W / 350W  | 30576MiB / 32768MiB  | 60%       Default    |
++----------------------------------+----------------------+----------------------+
+
++ set +x
+
+### exit: 0
