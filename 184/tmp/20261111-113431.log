@@ -1,0 +1,132 @@
+### server: 184
+### host:   controller
+### time:   2026-11-11T03:34:31Z
+
++ echo '== current =='
+== current ==
++ uname -r
+6.6.0-145.3.37.168.oe2403sp3.aarch64
++ getconf PAGE_SIZE
+4096
++ uptime
+ 11:34:31 up  2:21,  7 users,  load average: 0.75, 0.58, 1.36
++ echo '== grub default =='
+== grub default ==
++ grubby --default-kernel
+/boot/vmlinuz-6.6.0-145.3.37.168.oe2403sp3.aarch64
++ grub2-editenv list
+saved_entry=1
+boot_success=0
++ grep -nE '^GRUB_DEFAULT|^GRUB_ENABLE_BLSCFG' /etc/default/grub
+3:GRUB_DEFAULT=saved
++ echo '== boot entries =='
+== boot entries ==
++ grubby --info=ALL
++ grep -E '^(index|kernel|title)='
++ head -24
+index=0
+kernel=/boot/vmlinuz-6.6.02403_sp3-64K+
+title=openEuler (6.6.02403_sp3-64K+) 24.03 (LTS-SP3)
+index=1
+kernel=/boot/vmlinuz-6.6.0-145.3.37.168.oe2403sp3.aarch64
+title=openEuler (6.6.0-145.3.37.168.oe2403sp3.aarch64) 24.03 (LTS-SP3)
+index=2
+kernel=/boot/vmlinuz-6.6.0-132.0.0.111.oe2403sp3.aarch64
+title=openEuler (6.6.0-132.0.0.111.oe2403sp3.aarch64) 22.03 (LTS-SP4)
+index=3
+kernel=/boot/vmlinuz-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
+title=openEuler (5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb) 22.03 (LTS-SP4)
+index=4
+kernel=/boot/vmlinuz-6.6.0-145.1.28.165.oe2403sp1.aarch64
+title=openEuler (6.6.0-145.1.28.165.oe2403sp1.aarch64) 22.03 (LTS-SP4)
+index=5
+kernel=/boot/vmlinuz-0-rescue-1167791de91a49c9a9b06b663b3d7e59
+title=openEuler (0-rescue-1167791de91a49c9a9b06b663b3d7e59) 22.03 (LTS-SP4)
+index=6
+index=7
+index=8
++ echo '== kernels on disk =='
+== kernels on disk ==
++ ls -l /boot/vmlinuz-0-rescue-1167791de91a49c9a9b06b663b3d7e59 /boot/vmlinuz-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb /boot/vmlinuz-6.6.0-132.0.0.111.oe2403sp3.aarch64 /boot/vmlinuz-6.6.0-145.1.28.165.oe2403sp1.aarch64 /boot/vmlinuz-6.6.0-145.3.37.168.oe2403sp3.aarch64 /boot/vmlinuz-6.6.02403_sp3-64K+ /boot/config-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb /boot/config-6.6.0-132.0.0.111.oe2403sp3.aarch64 /boot/config-6.6.0-145.1.28.165.oe2403sp1.aarch64 /boot/config-6.6.0-145.3.37.168.oe2403sp3.aarch64 /boot/config-6.6.02403_sp3-64K+
++ head -20
+-rw-r--r--. 1 root root   187482 Sep  4  2024 /boot/config-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
+-rw-r--r--. 1 root root   214454 Dec 29  2025 /boot/config-6.6.0-132.0.0.111.oe2403sp3.aarch64
+-rw-r--r--. 1 root root   215520 Oct 13 10:46 /boot/config-6.6.0-145.1.28.165.oe2403sp1.aarch64
+-rw-r--r--. 1 root root   215546 Nov  2 19:14 /boot/config-6.6.0-145.3.37.168.oe2403sp3.aarch64
+-rw-r--r--. 1 root root   214323 Nov 10 16:42 /boot/config-6.6.02403_sp3-64K+
+-rwxr-xr-x. 1 root root 11236371 Mar  6  2025 /boot/vmlinuz-0-rescue-1167791de91a49c9a9b06b663b3d7e59
+-rwxr-xr-x. 1 root root 11240389 Sep  4  2024 /boot/vmlinuz-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
+-rwxr-xr-x. 1 root root 12575517 Dec 29  2025 /boot/vmlinuz-6.6.0-132.0.0.111.oe2403sp3.aarch64
+-rwxr-xr-x. 1 root root 12786827 Oct 13 10:46 /boot/vmlinuz-6.6.0-145.1.28.165.oe2403sp1.aarch64
+-rwxr-xr-x. 1 root root 12785186 Nov  2 19:14 /boot/vmlinuz-6.6.0-145.3.37.168.oe2403sp3.aarch64
+-rw-r--r--. 1 root root 12531381 Nov 10 16:26 /boot/vmlinuz-6.6.02403_sp3-64K+
++ ls -1 /lib/modules/
+5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
+5.10.0-282.0.0.185.oe2203sp4.aarch64
+5.10.0-288.0.0.191.oe2203sp4.aarch64
+5.10.0-326.0.0.227.oe2203sp4.aarch64
+6.6.0-132.0.0.111.oe2403sp3.aarch64
+6.6.0-145.1.28.165.oe2403sp1.aarch64
+6.6.0-145.3.37.168.oe2403sp3.aarch64
+6.6.02403_sp3-64K+
++ echo '== installed kernel packages =='
+== installed kernel packages ==
++ rpm -qa 'kernel-6.6*' 'kernel-64k*'
++ sort
++ head -12
+error: rpmdbNextIterator: skipping h#    1259 tag[0]: BAD, tag 100 type 6 offset 0 count 1 len 0
+error: rpmdbNextIterator: skipping h#    1280 tag[0]: BAD, tag 100 type 6 offset 0 count 1 len 0
+kernel-64kb-5.10.0-225.0.0.124.oe2203sp4.aarch64
+kernel-64kb-debuginfo-5.10.0-225.0.0.124.oe2203sp4.aarch64
+kernel-64kb-debugsource-5.10.0-225.0.0.124.oe2203sp4.aarch64
+kernel-64kb-devel-5.10.0-225.0.0.124.oe2203sp4.aarch64
++ echo '== dkms per kernel =='
+== dkms per kernel ==
++ dkms status
++ head -10
+corex/5.0.0, 5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb, aarch64: installed
+corex/5.0.0, 5.10.0-326.0.0.227.oe2203sp4.aarch64, aarch64: installed (WARNING! Missing some built modules!)
+corex/5.0.0, 6.6.0-145.3.37.168.oe2403sp3.aarch64, aarch64: installed
+corex/5.0.0, 6.6.02403_sp3-64K+, aarch64: installed
++ echo '== 64K kernel leftovers =='
+== 64K kernel leftovers ==
++ find /boot /lib/modules -maxdepth 2 -iname '*64K*'
++ head -10
+/boot/config-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
+/boot/initramfs-6.6.0-145.1.28.165.oe2403sp1.aarch64kdump.img
+/boot/config-6.6.02403_sp3-64K+
+/boot/initramfs-6.6.0-145.3.37.168.oe2403sp3.aarch64kdump.img
+/boot/.vmlinuz-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb.hmac
+/boot/vmlinuz-6.6.02403_sp3-64K+
+/boot/initramfs-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kbkdump.img
+/boot/initramfs-6.6.02403_sp3-64K+.img
+/boot/initramfs-6.6.02403_sp3-64K+kdump.img
+/boot/vmlinuz-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
++ echo '== reboot history =='
+== reboot history ==
++ last -x reboot
++ head -8
+reboot   system boot  6.6.0-145.3.37.1 Wed Nov 11 09:13   still running
+reboot   system boot  6.6.0-132.0.0.11 Wed Nov 11 08:51 - 09:08  (00:17)
+reboot   system boot  6.6.02403_sp3-64 Tue Nov 10 16:31 - 08:47  (16:15)
+reboot   system boot  6.6.02403_sp3-64 Tue Nov 10 15:23 - 16:27  (01:03)
+reboot   system boot  6.6.0-145.3.37.1 Tue Nov 10 09:05 - 15:21  (06:15)
+reboot   system boot  6.6.0-145.3.37.1 Mon Nov  9 15:00 - 09:03  (18:02)
+reboot   system boot  6.6.0-132.0.0.11 Mon Nov  9 11:01 - 14:54  (03:53)
+reboot   system boot  5.10.0-225.0.0.1 Fri Nov  6 17:13 - 10:58 (2+17:45)
++ echo '-- shutdown --'
+-- shutdown --
++ last -x shutdown
++ head -5
+shutdown system down  6.6.0-132.0.0.11 Wed Nov 11 09:08 - 09:13  (00:05)
+shutdown system down  6.6.02403_sp3-64 Wed Nov 11 08:47 - 08:51  (00:04)
+shutdown system down  6.6.02403_sp3-64 Tue Nov 10 16:27 - 16:31  (00:04)
+shutdown system down  6.6.0-145.3.37.1 Tue Nov 10 15:21 - 15:23  (00:01)
+shutdown system down  6.6.0-145.3.37.1 Tue Nov 10 09:03 - 09:05  (00:02)
++ echo '== crash/oops in previous boot =='
+== crash/oops in previous boot ==
++ journalctl -b -1 -p err --no-pager
++ tail -8
++ set +x
+
+### exit: 0
