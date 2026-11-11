@@ -1,0 +1,55 @@
+### server: 184
+### host:   controller
+### time:   2026-11-11T03:12:33Z
+
++ A=/home/qch/scripts/timeline.sh
++ B=/home/qch/scripts/timeline_off.sh
++ echo '== 差异统计 =='
+== 差异统计 ==
++ diff /home/qch/scripts/timeline.sh /home/qch/scripts/timeline_off.sh
++ grep -cE '^[<>]'
+12
++ true
++ echo '== 完整 diff（带上下文）=='
+== 完整 diff（带上下文）==
++ diff -u /home/qch/scripts/timeline.sh /home/qch/scripts/timeline_off.sh
++ head -200
++ cut -c1-180
+--- /home/qch/scripts/timeline.sh	2026-10-13 11:29:21.760759296 +0800
++++ /home/qch/scripts/timeline_off.sh	2026-10-14 15:52:50.136759296 +0800
+@@ -24,8 +24,8 @@
+ GPU_LIST="${GPU_LIST:-0,1,2,3}"
+ GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+ PORT="${PORT:-8000}"
+-NUM_PROMPTS="${NUM_PROMPTS:-32}"
+-NUM_WARMUPS="${NUM_WARMUPS:-2}"
++NUM_PROMPTS="${NUM_PROMPTS:-100}"
++NUM_WARMUPS="${NUM_WARMUPS:-16}"
+ MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+ ENABLE_TASKSET_BINDING="${ENABLE_TASKSET_BINDING:-0}"
+ CPU_RANGE="${CPU_RANGE:-}"
+@@ -68,7 +68,7 @@
+ # input:  {128, 1024, 2048}
+ # output: {128, 1024, 2048}
+ CASES=(
+-    "1024 1024"
++    "2048 128"
+ #    "1024 2048"
+ #    "2048 1024"
+ #    "2048 2048"
+@@ -214,9 +214,9 @@
+     local bench_log="${LOG_DIR}/bench_instance${case_idx}.log"
+ 
+     BENCH_PROFILE_ARGS=()
+-    if should_profile_instance "$case_idx"; then
+-        BENCH_PROFILE_ARGS=(--profile)
+-    fi
++    # if should_profile_instance "$case_idx"; then
++    #     BENCH_PROFILE_ARGS=(--profile)
++    # fi
+ 
+     local profile_state
+     if [ ${#BENCH_PROFILE_ARGS[@]} -gt 0 ]; then
++ set +x
+
+### exit: 0
