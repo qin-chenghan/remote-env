@@ -17,141 +17,103 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # v5：4 个输出像素并行（每像素保持原始累加顺序 -> 逐字节等价）。
+  # 为 v4/v5 补阶段探针，统一直接测量各阶段耗时（不做推算）。
 
   D=/home/qch/clamp_opt
 
-  echo "== 1. 生成 v5 源码（新文件，包含 v2）=="
-  cat > "$D/clamp_neon_opt_v5.cpp" <<'CPP'
-// [agent-opt] 生成文件，可安全删除。
-// v5 = v2(vertical 向量化) + horizontal 4 像素并行（保持原累加顺序，结果 bit-exact）。
-#include "/home/qch/clamp_opt/clamp_neon_opt_v2.cpp"
+  echo "== 1. 生成 v4/v5 探针（新文件）=="
+  cat > "$D/clamp_neon_opt_probe_v4.cpp" <<'CPP'
+// [agent-opt] 生成文件，可安全删除。v4 的分阶段计时。
+#include "/home/qch/clamp_opt/clamp_neon_opt_v4.cpp"
 
-static inline float32x4_t load_rgb4(const uint8_t* p) {
-    uint32_t u;
-    __builtin_memcpy(&u, p, 4);
-    uint8x8_t vb = vreinterpret_u8_u32(vdup_n_u32(u));
-    return vcvtq_f32_u32(vmovl_u16(vget_low_u16(vmovl_u8(vb))));
-}
-
-static inline void store_clamped(float* dst, float32x4_t acc) {
-    int32x4_t iv = vcvtaq_s32_f32(acc);
-    iv = vmaxq_s32(iv, vdupq_n_s32(0));
-    iv = vminq_s32(iv, vdupq_n_s32(255));
-    vst1q_f32(dst, vcvtq_f32_s32(iv));
-}
-
-static void resize_horizontal_neon_px4(const uint8_t* input, float* mid, int W_in,
-                                       const ResizePassParams& p)
+extern "C" void probe_stages_v4(const uint8_t* input, float* output,
+                                int H_in, int W_in, int num_threads, double* out_ms)
 {
-    const int stride = p.W_out * kInputChannels;
-    const int ymax = (p.H > 1) ? p.H - 1 : 0;
-#pragma omp parallel for schedule(static) num_threads(p.num_threads)
-    for (int y = 0; y < p.H; ++y) {
-        const uint8_t* src = input + y * W_in * kInputChannels;
-        float* dst = mid + y * stride;
-        const bool vec_row = (y < ymax);
-        int vec_end = vec_row ? p.W_out - 1 : 0;
-
-        auto scalar_pixel = [&](int xx) {
-            int n = p.lut->count[xx];
-            int xmin = p.lut->start[xx];
-            const float* w_row = p.lut->w + xx * p.lut->ksize;
-            float R = 0.0f, G = 0.0f, B = 0.0f;
-            for (int k = 0; k < n; ++k) {
-                int off = (xmin + k) * kInputChannels;
-                float wk = w_row[k];
-                R += static_cast<float>(src[off + kChannelR]) * wk;
-                G += static_cast<float>(src[off + kChannelG]) * wk;
-                B += static_cast<float>(src[off + kChannelB]) * wk;
-            }
-            dst[xx * kInputChannels + kChannelR] =
-                std::max(0.0f, std::min(kUint8ToFloatDivisor, std::round(R)));
-            dst[xx * kInputChannels + kChannelG] =
-                std::max(0.0f, std::min(kUint8ToFloatDivisor, std::round(G)));
-            dst[xx * kInputChannels + kChannelB] =
-                std::max(0.0f, std::min(kUint8ToFloatDivisor, std::round(B)));
-        };
-
-        int x = 0;
-        for (; x + 4 <= vec_end; x += 4) {
-            int n0 = p.lut->count[x], n1 = p.lut->count[x + 1];
-            int n2 = p.lut->count[x + 2], n3 = p.lut->count[x + 3];
-            if (n0 != n1 || n1 != n2 || n2 != n3) {   // tap 数不一致时退回标量
-                scalar_pixel(x); scalar_pixel(x + 1);
-                scalar_pixel(x + 2); scalar_pixel(x + 3);
-                continue;
-            }
-            const uint8_t* s0 = src + p.lut->start[x] * kInputChannels;
-            const uint8_t* s1 = src + p.lut->start[x + 1] * kInputChannels;
-            const uint8_t* s2 = src + p.lut->start[x + 2] * kInputChannels;
-            const uint8_t* s3 = src + p.lut->start[x + 3] * kInputChannels;
-            const float* w0 = p.lut->w + x * p.lut->ksize;
-            const float* w1 = p.lut->w + (x + 1) * p.lut->ksize;
-            const float* w2 = p.lut->w + (x + 2) * p.lut->ksize;
-            const float* w3 = p.lut->w + (x + 3) * p.lut->ksize;
-
-            float32x4_t a0 = vdupq_n_f32(0.0f), a1 = vdupq_n_f32(0.0f);
-            float32x4_t a2 = vdupq_n_f32(0.0f), a3 = vdupq_n_f32(0.0f);
-            for (int k = 0; k < n0; ++k) {           // 每个像素的累加顺序与原版一致
-                a0 = vfmaq_n_f32(a0, load_rgb4(s0 + k * kInputChannels), w0[k]);
-                a1 = vfmaq_n_f32(a1, load_rgb4(s1 + k * kInputChannels), w1[k]);
-                a2 = vfmaq_n_f32(a2, load_rgb4(s2 + k * kInputChannels), w2[k]);
-                a3 = vfmaq_n_f32(a3, load_rgb4(s3 + k * kInputChannels), w3[k]);
-            }
-            store_clamped(dst + (x + 0) * kInputChannels, a0);
-            store_clamped(dst + (x + 1) * kInputChannels, a1);
-            store_clamped(dst + (x + 2) * kInputChannels, a2);
-            store_clamped(dst + (x + 3) * kInputChannels, a3);
-        }
-        for (; x < p.W_out; ++x) scalar_pixel(x);
-    }
-}
-
-extern "C" void combined_preprocess_v5(const uint8_t* input, float* output,
-                                       int H_in, int W_in, int num_threads)
-{
+    double t0 = v2_now_ms();
     Lut xlut = build_lut(kOutputSize, W_in);
     Lut ylut = build_lut(kOutputSize, H_in);
     const int stride = kOutputSize * kInputChannels;
     float* mid = static_cast<float*>(
         checked_alloc(static_cast<size_t>(H_in) * static_cast<size_t>(stride),
                       sizeof(float), "mid"));
+    double t1 = v2_now_ms();
+
     ResizePassParams hp{H_in, kOutputSize, num_threads, &xlut};
-    ResizePassParams vp{kOutputSize, kOutputSize, num_threads, &ylut};
-    resize_horizontal_neon_px4(input, mid, W_in, hp);
+    resize_horizontal_neon4(input, mid, W_in, hp);
+    double t2 = v2_now_ms();
 
     constexpr size_t kResizedBytes = static_cast<size_t>(kOutputPlane) * kInputChannels;
     uint8_t* resized = static_cast<uint8_t*>(checked_alloc(kResizedBytes, 1, "resized"));
+    ResizePassParams vp{kOutputSize, kOutputSize, num_threads, &ylut};
     resize_vertical_neon(mid, resized, vp);
+    double t3 = v2_now_ms();
 
     neon_normalize(resized, output, num_threads);
-    std::free(resized);
-    std::free(mid);
-    free_lut(xlut);
-    free_lut(ylut);
+    double t4 = v2_now_ms();
+
+    out_ms[0] = t1 - t0; out_ms[1] = t2 - t1; out_ms[2] = t3 - t2; out_ms[3] = t4 - t3;
+    std::free(resized); std::free(mid);
+    free_lut(xlut); free_lut(ylut);
 }
 CPP
-  ls -l "$D/clamp_neon_opt_v5.cpp"
 
-  echo "== 2. 编译 v5 =="
-  g++ -std=c++14 -march=armv8.2-a+fp16+dotprod -fopenmp -O3 \
-      -shared -fPIC -o "$D/libpreprocess_v5.so" "$D/clamp_neon_opt_v5.cpp" 2>&1 | tail -15
-  echo "build rc=$?"
-  ls -l "$D/libpreprocess_v5.so"
+  cat > "$D/clamp_neon_opt_probe_v5.cpp" <<'CPP'
+// [agent-opt] 生成文件，可安全删除。v5 的分阶段计时。
+#include "/home/qch/clamp_opt/clamp_neon_opt_v5.cpp"
 
-  echo "== 3. A/B 脚本（含最大误差，新文件）=="
-  cat > "$D/clamp_neon_opt_ab5.py" <<'PY'
-# [agent-opt] 生成文件，可安全删除。
-import ctypes, sys, time
+extern "C" void probe_stages_v5(const uint8_t* input, float* output,
+                                int H_in, int W_in, int num_threads, double* out_ms)
+{
+    double t0 = v2_now_ms();
+    Lut xlut = build_lut(kOutputSize, W_in);
+    Lut ylut = build_lut(kOutputSize, H_in);
+    const int stride = kOutputSize * kInputChannels;
+    float* mid = static_cast<float*>(
+        checked_alloc(static_cast<size_t>(H_in) * static_cast<size_t>(stride),
+                      sizeof(float), "mid"));
+    double t1 = v2_now_ms();
+
+    ResizePassParams hp{H_in, kOutputSize, num_threads, &xlut};
+    resize_horizontal_neon_px4(input, mid, W_in, hp);
+    double t2 = v2_now_ms();
+
+    constexpr size_t kResizedBytes = static_cast<size_t>(kOutputPlane) * kInputChannels;
+    uint8_t* resized = static_cast<uint8_t*>(checked_alloc(kResizedBytes, 1, "resized"));
+    ResizePassParams vp{kOutputSize, kOutputSize, num_threads, &ylut};
+    resize_vertical_neon(mid, resized, vp);
+    double t3 = v2_now_ms();
+
+    neon_normalize(resized, output, num_threads);
+    double t4 = v2_now_ms();
+
+    out_ms[0] = t1 - t0; out_ms[1] = t2 - t1; out_ms[2] = t3 - t2; out_ms[3] = t4 - t3;
+    std::free(resized); std::free(mid);
+    free_lut(xlut); free_lut(ylut);
+}
+CPP
+  ls -l "$D/clamp_neon_opt_probe_v4.cpp" "$D/clamp_neon_opt_probe_v5.cpp"
+
+  echo "== 2. 编译两个探针 =="
+  for v in v4 v5; do
+    g++ -std=c++14 -march=armv8.2-a+fp16+dotprod -fopenmp -O3 \
+        -shared -fPIC -o "$D/libpreprocess_probe_$v.so" "$D/clamp_neon_opt_probe_$v.cpp" 2>&1 | tail -8
+    echo "$v build rc=$?"
+    ls -l "$D/libpreprocess_probe_$v.so"
+  done
+
+  echo "== 3. 生成直接测量脚本（新文件）=="
+  cat > "$D/clamp_neon_opt_stage_all.py" <<'PY'
+# [agent-opt] 生成文件，可安全删除。直接调用各版本导出的分阶段探针。
+import ctypes, sys
 
 OUT_N = 6 * 224 * 224
+PROTO = [ctypes.POINTER(ctypes.c_uint8), ctypes.POINTER(ctypes.c_float),
+         ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.POINTER(ctypes.c_double)]
 
 def load(path, name):
     lib = ctypes.CDLL(path)
     fn = getattr(lib, name)
-    fn.argtypes = [ctypes.POINTER(ctypes.c_uint8), ctypes.POINTER(ctypes.c_float),
-                   ctypes.c_int, ctypes.c_int, ctypes.c_int]
+    fn.argtypes = PROTO
     fn.restype = None
     return fn
 
@@ -162,40 +124,44 @@ def make_input(h, w):
         b[i] = (i * 7 + 13) % 256
     return b
 
-def run(fn, h, w, threads, iters):
-    src = make_input(h, w)
-    out = (ctypes.c_float * OUT_N)()
-    for _ in range(3):
-        fn(src, out, h, w, threads)
-    t0 = time.perf_counter()
-    for _ in range(iters):
-        fn(src, out, h, w, threads)
-    ms = (time.perf_counter() - t0) / iters * 1000
-    return ms, out
+libs = {
+    "v1(base)": load(sys.argv[1], "probe_stages"),
+    "v2(vert)": load(sys.argv[2], "probe_stages_v2"),
+    "v4(tap4)": load(sys.argv[3], "probe_stages_v4"),
+    "v5(px4)":  load(sys.argv[4], "probe_stages_v5"),
+}
+out = (ctypes.c_float * OUT_N)()
+ms = (ctypes.c_double * 4)()
 
-def maxdiff(a, b):
-    return max(abs(a[i] - b[i]) for i in range(OUT_N))
-
-v1 = load(sys.argv[1], "combined_preprocess")
-v4 = load(sys.argv[2], "combined_preprocess_v4")
-v5 = load(sys.argv[3], "combined_preprocess_v5")
-
-print("%-12s %-4s %9s %9s %9s %8s %8s %-12s %-12s" %
-      ("size", "thr", "v1", "v4", "v5", "v1/v4", "v1/v5", "v4 diff", "v5 diff"))
 for (h, w, iters) in ((224, 224, 200), (481, 321, 100), (1080, 1920, 30)):
-    for t in (1, 4):
-        m1, o1 = run(v1, h, w, t, iters)
-        m4, o4 = run(v4, h, w, t, iters)
-        m5, o5 = run(v5, h, w, t, iters)
-        d4 = maxdiff(o1, o4)
-        d5 = maxdiff(o1, o5)
-        print("%-12s %-4d %9.3f %9.3f %9.3f %7.2fx %7.2fx %-12.3e %-12.3e" %
-              ("%dx%d" % (w, h), t, m1, m4, m5, m1 / m4, m1 / m5, d4, d5))
+    src = make_input(h, w)
+    acc = {k: [0.0] * 4 for k in libs}
+    rounds = 3
+    for _ in range(rounds):
+        for name, fn in libs.items():
+            for _ in range(2):
+                fn(src, out, h, w, 1, ms)
+            s = [0.0] * 4
+            for _ in range(iters):
+                fn(src, out, h, w, 1, ms)
+                for k in range(4):
+                    s[k] += ms[k]
+            for k in range(4):
+                acc[name][k] += s[k] / iters
+    print("\n=== %dx%d (1 thread, avg of %d rounds) ===" % (w, h, rounds))
+    print("%-10s %8s %11s %9s %10s %8s" %
+          ("version", "lut", "horizontal", "vertical", "normalize", "total"))
+    for name in libs:
+        a = [v / rounds for v in acc[name]]
+        print("%-10s %8.3f %11.3f %9.3f %10.3f %8.3f" %
+              (name, a[0], a[1], a[2], a[3], sum(a)))
 PY
-  ls -l "$D/clamp_neon_opt_ab5.py"
+  ls -l "$D/clamp_neon_opt_stage_all.py"
 
-  echo "== 4. A/B 运行（绑 cpu0）=="
-  cd "$D" && taskset -c 0 python3 clamp_neon_opt_ab5.py ./libpreprocess.so ./libpreprocess_v4.so ./libpreprocess_v5.so 2>&1 | tail -12
+  echo "== 4. 直接测量（绑 cpu0）=="
+  cd "$D" && taskset -c 0 python3 clamp_neon_opt_stage_all.py \
+      ./libpreprocess_probe.so ./libpreprocess_v2.so \
+      ./libpreprocess_probe_v4.so ./libpreprocess_probe_v5.so 2>&1 | tail -30
 
   # ---- 命令结束 ----
 
