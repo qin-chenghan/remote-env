@@ -1,0 +1,72 @@
+### server: 184
+### host:   controller
+### time:   2026-11-11T02:55:09Z
+
++ echo '== install bench-status.sh =='
+== install bench-status.sh ==
++ ln -sf /home/qch/tools/remote-env/184/bench-status.sh /home/qch/tools/bench-status.sh
++ ls -l /home/qch/tools/bench-status.sh
+lrwxrwxrwx. 1 root root 46 Nov 11 10:55 /home/qch/tools/bench-status.sh -> /home/qch/tools/remote-env/184/bench-status.sh
++ bash -n /home/qch/tools/remote-env/184/bench-status.sh
++ echo 'syntax OK'
+syntax OK
++ echo '== run it =='
+== run it ==
++ bash /home/qch/tools/bench-status.sh
+== 时间 ==
+2026-11-11 10:55:10
+容器: controller
+
+== 谁在跑 ==
+pid      : 28517
+user     : root
+cmd      : bash /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh 
+start    : Wed Nov 11 09:16:29 2026
+elapsed  : 01:38:40
+script   : /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+
+== 当前 case ==
+pid      : 481142 (elapsed 15:31)
+input    : 2048
+output   : 2048
+prompts  : 100
+conc     : 8
+
+== run 目录 ==
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261111_091630
+(还没有 summary.csv)
+-- case 目录（按时间）--
+2026-11-11 09:16:59  control
+2026-11-11 10:39:39  litehost
+2026-11-11 10:39:39  logs
+-- server.log 末尾 --
+(APIServer pid=28565) INFO 11-11 10:54:35 [loggers.py:273] Engine 000: Avg prompt throughput: 1023.9 tokens/s, Avg generation throughput: 187.1 tokens/s, Runnin
+(APIServer pid=28565) INFO 11-11 10:54:45 [loggers.py:273] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 219.2 tokens/s, Running: 
+(APIServer pid=28565) INFO 11-11 10:54:55 [loggers.py:273] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 216.0 tokens/s, Running: 
+(APIServer pid=28565) INFO 11-11 10:55:05 [loggers.py:273] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 215.2 tokens/s, Running: 
+
+== 预计 ==
+已完成 0 / 9 个 case，当前第 1 个
+平均每 case ≈ 5920 s（粗估，output 长度不同差异较大）
+预计剩余 ≈ 789 分钟，结束约 00:04
+
+== GPU ==
+| GPU  Name                        | Bus-Id               | Clock-SM  Clock-Mem  |
+| Fan  Temp  Perf    Pwr:Usage/Cap |      Memory-Usage    | GPU-Util  Compute M. |
+|==================================+======================+======================|
+| 0    Iluvatar BI-V150            | 00000000:45:00.0     | 1600MHz   1600MHz    |
+| N/A  61C   P0       N/A / N/A    | 30492MiB / 32768MiB  | 52%       Default    |
++----------------------------------+----------------------+----------------------+
+| 1    Iluvatar BI-V150            | 00000000:48:00.0     | 1600MHz   1600MHz    |
+| N/A  60C   P0       223W / 350W  | 30536MiB / 32768MiB  | 46%       Default    |
++----------------------------------+----------------------+----------------------+
+| 2    Iluvatar BI-V150            | 00000000:AF:00.0     | 1600MHz   1600MHz    |
+| N/A  58C   P0       N/A / N/A    | 30538MiB / 32768MiB  | 53%       Default    |
++----------------------------------+----------------------+----------------------+
+| 3    Iluvatar BI-V150            | 00000000:B2:00.0     | 1600MHz   1600MHz    |
+| N/A  59C   P0       223W / 350W  | 30576MiB / 32768MiB  | 55%       Default    |
++----------------------------------+----------------------+----------------------+
+
++ set +x
+
+### exit: 0
