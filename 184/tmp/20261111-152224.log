@@ -1,0 +1,181 @@
+### server: 184
+### host:   controller
+### time:   2026-11-11T07:22:24Z
+
++ F=/home/qch/scripts/timeline_base.sh
++ echo '== profile 相关行（全文定位）=='
+== profile 相关行（全文定位）==
++ grep -nE 'BENCH_PROFILE_ARGS|profile_state|--profile|should_profile_instance|stop_profile|start_profile' /home/qch/scripts/timeline_base.sh
++ cut -c1-180
+42:# vLLM 0.23 完全弃用 VLLM_TORCH_PROFILER_DIR 环境变量,改用 --profiler-config。
+43:# 关键点:warmup_iterations=0 时,vLLM 连续记录 /start_profile 到 /stop_profile
+44:# 之间的 worker iteration;模型预热由 bench serve 在 /start_profile 前完成。
+45:# warmup_iterations=0 时不启用一次性 schedule,由 stop_profile 结束并写出 trace。
+46:#   delay_iterations: /start_profile 后跳过前 N 步再开始 profile(prefill 阶段或编译)
+47:#   max_iterations  : profile 累计 N 步后自动 stop;0=不限,直到 /stop_profile
+83:# 是否 profile 某个 case(沿用用户原代码的接口名 should_profile_instance,
+85:should_profile_instance() {
+126:    # vLLM 0.23+ 完全弃用 VLLM_TORCH_PROFILER_DIR 环境变量,改用 --profiler-config。
+164:        --profiler-config "$profiler_config_json" \
+176:    #     表示 /start_profile /stop_profile 端点已注册
+181:        log "✅ profiler 已生效(/start_profile /stop_profile 端点已注册,worker 端已配 TorchProfilerWrapper)"
+184:        log "   请确认启动参数包含 --profiler-config '...profiler\\\":\\\"torch\\\"...' "
+216:    BENCH_PROFILE_ARGS=()
+217:    # if should_profile_instance "$case_idx"; then
+218:    #     BENCH_PROFILE_ARGS=(--profile)
+221:    local profile_state
+222:    if [ ${#BENCH_PROFILE_ARGS[@]} -gt 0 ]; then
+223:        profile_state="ON"
+225:        profile_state="OFF"
+227:    log "==== case $case_idx: in=$input_len, out=$output_len (profile=$profile_state) ===="
+245:        "${BENCH_PROFILE_ARGS[@]}" \
++ echo ''
+
++ echo '== bench 调用段（190-300 行）=='
+== bench 调用段（190-300 行）==
++ sed -n 190,300p /home/qch/scripts/timeline_base.sh
++ cut -c1-180
+    if [[ -f "$SERVER_PID_FILE" ]]; then
+        local pid
+        pid=$(cat "$SERVER_PID_FILE")
+        if kill -0 "$pid" 2>/dev/null; then
+            log "停止服务 (PID $pid) — profiler flush 可能要几分钟"
+            kill "$pid" 2>/dev/null || true
+            # 优雅等待最多 60s(profiler dump 可能慢)
+            for _ in {1..30}; do
+                if ! kill -0 "$pid" 2>/dev/null; then
+                    break
+                fi
+                sleep 2
+            done
+            kill -9 "$pid" 2>/dev/null || true
+        fi
+        rm -f "$SERVER_PID_FILE"
+    fi
+    sleep 3
+}
+
+run_case() {
+    local case_idx="$1"
+    local input_len="$2"
+    local output_len="$3"
+    local bench_log="${LOG_DIR}/bench_instance${case_idx}.log"
+
+    BENCH_PROFILE_ARGS=()
+    # if should_profile_instance "$case_idx"; then
+    #     BENCH_PROFILE_ARGS=(--profile)
+    # fi
+
+    local profile_state
+    if [ ${#BENCH_PROFILE_ARGS[@]} -gt 0 ]; then
+        profile_state="ON"
+    else
+        profile_state="OFF"
+    fi
+    log "==== case $case_idx: in=$input_len, out=$output_len (profile=$profile_state) ===="
+
+    "$PYTHON_BIN" -m vllm.entrypoints.cli.main bench serve \
+        --num_prompts "$NUM_PROMPTS" \
+        --num-warmups "$NUM_WARMUPS" \
+        --max-concurrency "$MAX_CONCURRENCY" \
+        --dataset_name random \
+        --random_input_len "$input_len" \
+        --random_output_len "$output_len" \
+        --host 127.0.0.1 \
+        --port "$PORT" \
+        --model "$MODEL_PATH" \
+        --trust_remote_code \
+        --ignore_eos \
+        --top_p 1 \
+        --top_k -1 \
+        --temperature 0 \
+        --seed 42 \
+        "${BENCH_PROFILE_ARGS[@]}" \
+        > "$bench_log" 2>&1
+
+    return $?
+}
+
+cleanup() {
+    # CLEANED 标志防重复执行(主流程显式调 + trap EXIT 兜底,可能触发两次)
+    if [ "${CLEANED:-0}" -eq 0 ]; then
+        CLEANED=1
+        log "清理资源..."
+        stop_server
+    fi
+}
+trap cleanup EXIT
+
+# ============ 主流程 ============
+
+log "=========================================="
+log "TEST_ID:           $TEST_ID"
+log "MODEL_PATH:        $MODEL_PATH"
+log "PYTHON_BIN:        $PYTHON_BIN"
+log "GPU_LIST:          $GPU_LIST"
+log "GPUS_PER_INSTANCE: $GPUS_PER_INSTANCE"
+log "PORT:              $PORT"
+log "NUM_PROMPTS:       $NUM_PROMPTS"
+log "NUM_WARMUPS:       $NUM_WARMUPS (before profiler start)"
+log "MAX_CONCURRENCY:   $MAX_CONCURRENCY"
+log "TASKSET:            $ENABLE_TASKSET_BINDING ${CPU_RANGE:-}"
+log "PROFILE_EVERY:     $PROFILE_EVERY (1=全 profile, 9=只 profile 第一个)"
+log "VLLM_RPC_TIMEOUT:  $VLLM_RPC_TIMEOUT ms"
+log "RUN_DIR:           $RUN_DIR"
+log "PROFILE_DIRS:      $PROFILE_DIRS"
+log "=========================================="
+log "测试用例 ($((${#CASES[@]})) 个):"
+for case_idx in "${!CASES[@]}"; do
+    read -r input_len output_len <<< "${CASES[$case_idx]}"
+    log "  case $case_idx: in=$input_len out=$output_len"
+done
+
+# 跑所有 case;每个 case 在自己的 profile 目录下启动 server。
+# profiler 配置在 server 启动时固定，因此不同 case 必须分别启动 server。
+FAILED_CASES=()
+for idx in "${!CASES[@]}"; do
+    read -r input_len output_len <<< "${CASES[$idx]}"
+
+    # 每个 case 自己的 profile 子目录(在 PROFILE_ROOT_DIR 下再加一级)
+    PROFILE_DIRS="${PROFILE_ROOT_DIR}/case${idx}_in${input_len}_out${output_len}"
+    mkdir -p "$PROFILE_DIRS"
+
+    # 第一个 case 直接启动，后续 case 停止旧 server 后再启动。
+    if [[ -f "$SERVER_PID_FILE" ]]; then
+        log "==== case $idx: 停旧 server,启新 server (PROFILE_DIRS=$PROFILE_DIRS) ===="
+        stop_server
+        # 给 vllm 完全释放资源的时间(stop_server 内部有 sleep 8+3,这里再加 CASE_INTERVAL 保险)
+        log "等待 ${CASE_INTERVAL}s..."
++ echo ''
+
++ echo '== bench 实际命令行 =='
+== bench 实际命令行 ==
++ grep -nE 'bench_driver|vllm bench|bench serve|bench_instance' /home/qch/scripts/timeline_base.sh
++ cut -c1-180
++ head -12
+44:# 之间的 worker iteration;模型预热由 bench serve 在 /start_profile 前完成。
+131:    #  3. warmup_iterations=0 时连续记录;模型 warmup 在 bench serve 中先执行
+214:    local bench_log="${LOG_DIR}/bench_instance${case_idx}.log"
+229:    "$PYTHON_BIN" -m vllm.entrypoints.cli.main bench serve \
++ echo ''
+
++ echo '== bench 日志里的 Namespace（确认参数）=='
+== bench 日志里的 Namespace（确认参数）==
++ head -3 /home/qch/scripts/timeline/4k/logs/bench_instance0.log
++ cut -c1-300
+INFO 11-11 13:46:51 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-11 13:46:51 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-11 13:46:51 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
++ echo ''
+
++ echo '== 有没有对应的 opt 版本脚本 =='
+== 有没有对应的 opt 版本脚本 ==
++ ls -l /home/qch/scripts/timeline_base.sh /home/qch/scripts/timeline_cpu.sh /home/qch/scripts/timeline_off.sh /home/qch/scripts/timeline_on.sh /home/qch/scripts/timeline.sh
+-rwxr-xr-x. 1 root root 12378 Nov 11 13:40 /home/qch/scripts/timeline_base.sh
+-rwxrwxr-x+ 1 root root 14418 Sep 30 16:55 /home/qch/scripts/timeline_cpu.sh
+-rwxrwxr-x+ 1 root root 12379 Oct 14 15:52 /home/qch/scripts/timeline_off.sh
+-rwxrwxr-x+ 1 root root 17401 Oct 14 15:53 /home/qch/scripts/timeline_on.sh
+-rw-rw-r--+ 1 root root 12372 Oct 13 11:29 /home/qch/scripts/timeline.sh
++ set +x
+
+### exit: 0
