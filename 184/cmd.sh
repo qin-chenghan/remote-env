@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：确认 bench 脚本的开关注入点（env / CLI）。
+# 只读：确认当前内核实际页大小。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,25 +17,34 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  D=/home/huawei_ts_program/litehost_perf_opt
+  K=$(uname -r)
+  echo "== kernel =="
+  echo "uname -r: $K"
+  uname -v
 
-  for f in "$D/vllmBench_lite_base.sh" "$D/vllmBench_lite_opt.sh"; do
-    echo ""
-    echo "===== $(basename "$f") ====="
-    echo "-- 可注入的环境点 --"
-    grep -nE 'COMPILATION_CONFIG_EXTRA|SERVER_EXTRA_ENV|HEAD_EXTRA|EXTRA_ARGS|PREFIX=|PYTHON_BIN=|HOST_MEASURE=|CPU_RANGE=|GPU_LIST=|PORT=|MODEL_PATH=' "$f" | cut -c1-170 | head -20
+  echo "== page size, host =="
+  getconf PAGE_SIZE 2>&1
+  getconf PAGESIZE 2>&1
+  python3 -c "import os;print('sysconf SC_PAGE_SIZE',os.sysconf('SC_PAGE_SIZE'))" 2>&1
+  od -An -tx1 -N4 /proc/self/pagemap 2>/dev/null | head -1
 
-    echo "-- 硬编码的 VLLM_* --"
-    grep -nE '^\s*VLLM_[A-Z_]+=|VLLM_HOST|TORCH_MODULE_ATTR|UMD_' "$f" | cut -c1-170 | head -15
+  echo "== page size, container =="
+  docker exec corex5-py311 getconf PAGE_SIZE 2>&1
+  docker exec corex5-py311 python3 -c "import mmap,os;print('mmap.PAGESIZE',mmap.PAGESIZE,'sysconf',os.sysconf('SC_PAGE_SIZE'))" 2>&1
 
-    echo "-- server 参数里的 compilation-config / numa --"
-    grep -nE 'compilation-config|numa-bind|profiler-config|worker-cls' "$f" | cut -c1-170 | head -10
-  done
+  echo "== kernel config =="
+  ls -l "/boot/config-$K" 2>&1
+  grep -E '^CONFIG_ARM64_64K_PAGES|^CONFIG_ARM64_PAGE_SHIFT|^CONFIG_ARM64_4K_PAGES|^CONFIG_ARM64_16K_PAGES' "/boot/config-$K" 2>&1
 
-  echo ""
-  echo "== multi engine 当前值 =="
-  cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>&1
-  modinfo -p iluvatar 2>/dev/null | grep -i -E 'multi|engine' | head -5
+  echo "== running kernel tristate (from /proc/config.gz if any) =="
+  zcat /proc/config.gz 2>/dev/null | grep -E '^CONFIG_ARM64_(4K|16K|64K)_PAGES' | head -4
+
+  echo "== old kernel config for comparison =="
+  grep -E '^CONFIG_ARM64_(4K|16K|64K)_PAGES' /boot/config-6.6.02403_sp3-64K 2>&1
+
+  echo "== hugetlb / meminfo =="
+  head -3 /proc/meminfo
+  cat /proc/sys/vm/nr_hugepages 2>&1
 
   # ---- 命令结束 ----
 
