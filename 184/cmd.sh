@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 任务：查 corex5-py311 未启动原因，启动并验证 GPU 栈。
+# 只读：查谁在跑 vLLM、用的哪份脚本、进度与预计剩余时间。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,36 +17,57 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== container state before =="
-  docker inspect -f 'status={{.State.Status}} exit={{.State.ExitCode}} oom={{.State.OOMKilled}} started={{.State.StartedAt}} finished={{.State.FinishedAt}} policy={{.HostConfig.RestartPolicy.Name}}' corex5-py311 2>&1
+  echo "== who is logged in =="
+  who 2>&1 | head -6
 
-  echo "== start it =="
-  docker start corex5-py311 2>&1
-  echo "start rc=$?"
+  echo "== vllm processes =="
+  ps -eo pid,user,ppid,lstart,etime,args 2>/dev/null \
+    | grep -E 'vllm.entrypoints|bench_driver|lhctl|vllmBench' | grep -v grep | cut -c1-210 | head -12
 
-  sleep 6
+  echo "== process ancestry for the server =="
+  P=$(pgrep -f 'vllm.entrypoints.openai.api_server' 2>/dev/null | head -1)
+  echo "server_pid=$P"
+  if [ -n "$P" ]; then
+    echo "  cwd=$(readlink /proc/$P/cwd 2>&1)"
+    A=$P
+    for i in 1 2 3 4 5 6; do
+      A=$(awk '{print $4}' "/proc/$A/stat" 2>/dev/null)
+      [ -z "$A" ] && break
+      [ "$A" = "0" ] && break
+      echo "  ppid=$A $(ps -o user=,args= -p "$A" 2>/dev/null | cut -c1-180)"
+    done
+  fi
 
-  echo "== container state after =="
-  docker ps --format '{{.Names}}\t{{.Status}}' 2>&1 | head -3
-  docker inspect -f 'status={{.State.Status}} exit={{.State.ExitCode}}' corex5-py311 2>&1
-
-  echo "== container logs tail =="
-  docker logs --tail 20 corex5-py311 2>&1 | tail -20
-
-  echo "== devices =="
-  docker exec corex5-py311 bash -c 'ls -l /dev/iluvatar* 2>&1 | head -6' 2>&1
-
-  echo "== ixsmi =="
-  docker exec corex5-py311 ixsmi 2>&1 | sed -n '1,14p'
-
-  echo "== venv imports =="
-  for V in /opt/corex311 /opt/corex311-cpython-vllm; do
-    docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME "$V/bin/python3" -c \
-      "import torch,vllm;print('$V ok',torch.__version__,vllm.__version__)" 2>&1 | tail -2
+  echo "== bench runs on disk =="
+  for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench; do
+    [ -d "$d" ] || continue
+    ls -lt "$d" 2>/dev/null | head -4
   done
 
-  echo "== r10 files =="
-  docker exec corex5-py311 bash -c 'ls /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py 2>&1' 2>&1
+  echo "== newest run dir contents =="
+  R=$(ls -dt /home/*/vllmBench/*/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ 2>/dev/null | head -1)
+  echo "RUN=$R"
+  if [ -n "$R" ] && [ -d "$R" ]; then
+    ls -la "$R" 2>&1 | head -15
+    echo "-- summary.csv --"
+    cat "$R/summary.csv" 2>&1 | head -15
+    echo "-- server.log tail --"
+    tail -5 "$R/logs/server.log" 2>&1
+    echo "-- case dirs --"
+    ls -d "$R"/case_* "$R"/litehost* 2>/dev/null | head -12
+  fi
+
+  echo "== script knobs =="
+  for S in $(ls -t /home/*/*/vllmBench_lite*.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite*.sh 2>/dev/null | head -2); do
+    echo "-- $S (mtime $(stat -c %y "$S" | cut -d. -f1))"
+    grep -nE 'NUM_PROMPTS=|NUM_WARMUPS=|MAX_CONCURRENCY=|CASE_INTERVAL=|CASES=\(|^ *"[0-9]+ [0-9]+"' "$S" 2>/dev/null | head -20
+  done
+
+  echo "== bench driver args =="
+  pgrep -af 'bench_driver' 2>/dev/null | cut -c1-220 | head -3
+
+  echo "== gpu load =="
+  ixsmi 2>&1 | sed -n '5,20p'
 
   # ---- 命令结束 ----
 
