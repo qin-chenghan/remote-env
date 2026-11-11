@@ -1,0 +1,425 @@
+### server: 184
+### host:   controller
+### time:   2026-11-11T03:00:43Z
+
++ D=/home/qch/scripts
++ echo '== files =='
+== files ==
++ ls -l /home/qch/scripts/timeline_both.sh /home/qch/scripts/timeline_cpu.sh /home/qch/scripts/timeline_off.sh /home/qch/scripts/timeline_on.sh /home/qch/scripts/timeline.sh
+-rwxrwxr-x+ 1 root root   181 Oct 14 15:52 /home/qch/scripts/timeline_both.sh
+-rwxrwxr-x+ 1 root root 14418 Sep 30 16:55 /home/qch/scripts/timeline_cpu.sh
+-rwxrwxr-x+ 1 root root 12379 Oct 14 15:52 /home/qch/scripts/timeline_off.sh
+-rwxrwxr-x+ 1 root root 17401 Oct 14 15:53 /home/qch/scripts/timeline_on.sh
+-rw-rw-r--+ 1 root root 12372 Oct 13 11:29 /home/qch/scripts/timeline.sh
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline_both.sh ']'
++ echo ''
+
+++ basename /home/qch/scripts/timeline_both.sh
+++ wc -l
++ echo '===== timeline_both.sh | 6 lines ====='
+===== timeline_both.sh | 6 lines =====
++ echo '-- 头部注释 --'
+-- 头部注释 --
++ sed -n 1,12p /home/qch/scripts/timeline_both.sh
++ cut -c1-160
+export MODEL_PATH=/home/model/Qwen3-32B-W8A8/
+export TEST_ID=timeline_off4
+bash /home/qch/scripts/timeline_off.sh
+
+export TEST_ID=timeline_on4
+bash /home/qch/scripts/timeline_on.sh
++ echo '-- 顶层变量 --'
+-- 顶层变量 --
++ grep -nE '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline_both.sh
++ cut -c1-160
++ head -40
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline_cpu.sh ']'
++ echo ''
+
+++ basename /home/qch/scripts/timeline_cpu.sh
+++ wc -l
++ echo '===== timeline_cpu.sh | 357 lines ====='
+===== timeline_cpu.sh | 357 lines =====
++ echo '-- 头部注释 --'
+-- 头部注释 --
++ sed -n 1,12p /home/qch/scripts/timeline_cpu.sh
++ cut -c1-160
+#!/usr/bin/env bash
+# =============================================================================
+# timeline_cpu.sh - vLLM timeline/profile 采集脚本(单实例版, CPU 侧关注 + 插件 off/on 绑核对比)
+#
+# ⚠️ 本脚本 = /home/qch/transfer/timeline2 的近全对齐副本(便于横向 diff)。
+#    与 timeline2 的唯一差异(标明如下, 其余逐段同结构/同注释/同配置顺序):
+#       [A] 模型路径写死为 184 的 /home/model/Qwen3-32B-W8A8(原 timeline2 是必传 env MODEL_PATH)
+#           + 增加 SERVED_MODEL(vllm bench 需要 --served-model-name, 否则 model 字段用全路径 404)
+#       [B] python 用 $PYTHON_BIN=python3(184 容器 PATH 已有 vllm); 原 timeline2 用 $PREFIX/bin/python3
+#       [C] 插件 off/on 绑核: 外层双层循环 case x {off,on}, on 时加
+#           VLLM_WORKER_MULTIPROC_METHOD=spawn env + --numa-bind 启动参数(NUM_BIND=1 触发)
+#    其余全部沿用 timeline2: bench 用 `vllm bench serve --profile`(0.23 支持), profiler 窗口由 bench 的
++ echo '-- 顶层变量 --'
+-- 顶层变量 --
++ grep -nE '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline_cpu.sh
++ cut -c1-160
++ head -40
+39:MODEL_PATH="/home/model/Qwen3-32B-W8A8"
+40:SERVED_MODEL="Qwen3-32B-W8A8"
+41:PYTHON_BIN="python3"        # 184 容器内 python3.12.11, PATH 已有 vllm
+42:TEST_ID="${TEST_ID:?必须设置 TEST_ID, 如 TEST_ID=20260930_cpu_t0}"
+45:GPU_LIST="${GPU_LIST:-0,1,2,3}"
+46:GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+47:PORT="${PORT:-8000}"
+48:NUM_PROMPTS="${NUM_PROMPTS:-32}"
+49:MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+51:VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
+54:PROFILE_EVERY="${PROFILE_EVERY:-1}"
+57:CASE_INTERVAL="${CASE_INTERVAL:-60}"
+67:PROFILE_DELAY_ITERATIONS="${PROFILE_DELAY_ITERATIONS:-2}"
+68:PROFILE_MAX_ITERATIONS="${PROFILE_MAX_ITERATIONS:-0}"
+69:PROFILE_WARMUP_ITERATIONS="${PROFILE_WARMUP_ITERATIONS:-1}"
+70:PROFILE_ACTIVE_ITERATIONS="${PROFILE_ACTIVE_ITERATIONS:-5}"
+73:BASE_DIR="$(pwd)"
+74:RUN_DIR="${BASE_DIR}/timeline/${TEST_ID}"
+75:LOG_DIR="${RUN_DIR}/logs"
+76:PROFILE_ROOT_DIR="${PROFILE_ROOT_DIR:-${RUN_DIR}/profile}"
+77:PROFILE_DIRS="${PROFILE_DIRS:-${PROFILE_ROOT_DIR}}"
+78:SERVER_LOG="${LOG_DIR}/server.log"
+79:SERVER_PID_FILE="${RUN_DIR}/server.pid"
+90:CASES=(
+308:FAILED_CASES=()
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline_off.sh ']'
++ echo ''
+
+++ basename /home/qch/scripts/timeline_off.sh
+++ wc -l
++ echo '===== timeline_off.sh | 331 lines ====='
+===== timeline_off.sh | 331 lines =====
++ echo '-- 头部注释 --'
+-- 头部注释 --
++ sed -n 1,12p /home/qch/scripts/timeline_off.sh
++ cut -c1-160
+#!/usr/bin/env bash
+# =============================================================================
+# timeline3.sh - vLLM timeline/profile 采集脚本(单实例版)
+# 部署: 天数容器vllm0.11.2 四卡单实例
+# 用法:
+#   export MODEL_PATH=/path/to/Qwen3-32B-W8A8
+#   export TEST_ID=20260901_timeline
+#   ./timeline.sh
+#
+# 必传: MODEL_PATH, TEST_ID
+# 可选: PYTHON_BIN / GPU_LIST / GPUS_PER_INSTANCE / PORT / NUM_PROMPTS /
+#       NUM_WARMUPS / MAX_CONCURRENCY / ENABLE_TASKSET_BINDING / CPU_RANGE /
++ echo '-- 顶层变量 --'
+-- 顶层变量 --
++ grep -nE '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline_off.sh
++ cut -c1-160
++ head -40
+23:PYTHON_BIN="${PYTHON_BIN:-python3}"
+24:GPU_LIST="${GPU_LIST:-0,1,2,3}"
+25:GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+26:PORT="${PORT:-8000}"
+27:NUM_PROMPTS="${NUM_PROMPTS:-100}"
+28:NUM_WARMUPS="${NUM_WARMUPS:-16}"
+29:MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+30:ENABLE_TASKSET_BINDING="${ENABLE_TASKSET_BINDING:-0}"
+31:CPU_RANGE="${CPU_RANGE:-}"
+33:VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
+36:PROFILE_EVERY="${PROFILE_EVERY:-1}"
+39:CASE_INTERVAL="${CASE_INTERVAL:-60}"
+48:PROFILE_DELAY_ITERATIONS="${PROFILE_DELAY_ITERATIONS:-0}"
+49:PROFILE_MAX_ITERATIONS="${PROFILE_MAX_ITERATIONS:-0}"
+50:PROFILE_WARMUP_ITERATIONS="${PROFILE_WARMUP_ITERATIONS:-0}"
+51:PROFILE_ACTIVE_ITERATIONS="${PROFILE_ACTIVE_ITERATIONS:-2000}"
+54:BASE_DIR="$(pwd)"
+55:RUN_DIR="${BASE_DIR}/timeline/${TEST_ID}"
+56:LOG_DIR="${RUN_DIR}/logs"
+57:PROFILE_ROOT_DIR="${PROFILE_ROOT_DIR:-${RUN_DIR}/profile}"
+58:PROFILE_DIRS="${PROFILE_DIRS:-${PROFILE_ROOT_DIR}}"
+59:SERVER_LOG="${LOG_DIR}/server.log"
+60:SERVER_PID_FILE="${RUN_DIR}/server.pid"
+70:CASES=(
+287:FAILED_CASES=()
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline_on.sh ']'
++ echo ''
+
+++ basename /home/qch/scripts/timeline_on.sh
+++ wc -l
++ echo '===== timeline_on.sh | 417 lines ====='
+===== timeline_on.sh | 417 lines =====
++ echo '-- 头部注释 --'
+-- 头部注释 --
++ sed -n 1,12p /home/qch/scripts/timeline_on.sh
++ cut -c1-160
+#!/usr/bin/env bash
+# =============================================================================
+# timeline3.sh - vLLM timeline/profile 采集脚本(单实例版)
+# 部署: 天数容器vllm0.11.2 四卡单实例
+# 用法:
+#   export MODEL_PATH=/path/to/Qwen3-32B-W8A8
+#   export TEST_ID=20260901_timeline
+#   ./timeline.sh
+#
+# 必传: MODEL_PATH, TEST_ID
+# 可选: PYTHON_BIN / GPU_LIST / GPUS_PER_INSTANCE / PORT / NUM_PROMPTS /
+#       NUM_WARMUPS / MAX_CONCURRENCY / ENABLE_TASKSET_BINDING / CPU_RANGE /
++ echo '-- 顶层变量 --'
+-- 顶层变量 --
++ grep -nE '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline_on.sh
++ cut -c1-160
++ head -40
+23:PYTHON_BIN="${PYTHON_BIN:-python3}"
+24:GPU_LIST="${GPU_LIST:-0,1,2,3}"
+25:GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+26:PORT="${PORT:-8000}"
+27:NUM_PROMPTS="${NUM_PROMPTS:-100}"
+28:NUM_WARMUPS="${NUM_WARMUPS:-16}"
+29:MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+30:ENABLE_TASKSET_BINDING="${ENABLE_TASKSET_BINDING:-0}"
+31:CPU_RANGE="${CPU_RANGE:-}"
+33:VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
+36:PROFILE_EVERY="${PROFILE_EVERY:-1}"
+39:CASE_INTERVAL="${CASE_INTERVAL:-60}"
+42:REPO_ROOT="${REPO_ROOT:-/home/qch/tools/kunpeng-affinity-plugin}"
+43:IXSMI_BIN="${IXSMI_BIN:-/home/qch/kunpeng-affinity-fix/ixsmi-run}"
+52:PROFILE_DELAY_ITERATIONS="${PROFILE_DELAY_ITERATIONS:-0}"
+53:PROFILE_MAX_ITERATIONS="${PROFILE_MAX_ITERATIONS:-0}"
+54:PROFILE_WARMUP_ITERATIONS="${PROFILE_WARMUP_ITERATIONS:-0}"
+55:PROFILE_ACTIVE_ITERATIONS="${PROFILE_ACTIVE_ITERATIONS:-2000}"
+58:BASE_DIR="$(pwd)"
+59:RUN_DIR="${BASE_DIR}/timeline/${TEST_ID}"
+60:LOG_DIR="${RUN_DIR}/logs"
+61:PROFILE_ROOT_DIR="${PROFILE_ROOT_DIR:-${RUN_DIR}/profile}"
+62:PROFILE_DIRS="${PROFILE_DIRS:-${PROFILE_ROOT_DIR}}"
+63:SERVER_LOG="${LOG_DIR}/server.log"
+64:SERVER_PID_FILE="${RUN_DIR}/server.pid"
+74:CASES=(
+373:FAILED_CASES=()
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline.sh ']'
++ echo ''
+
+++ basename /home/qch/scripts/timeline.sh
+++ wc -l
++ echo '===== timeline.sh | 331 lines ====='
+===== timeline.sh | 331 lines =====
++ echo '-- 头部注释 --'
+-- 头部注释 --
++ sed -n 1,12p /home/qch/scripts/timeline.sh
++ cut -c1-160
+#!/usr/bin/env bash
+# =============================================================================
+# timeline3.sh - vLLM timeline/profile 采集脚本(单实例版)
+# 部署: 天数容器vllm0.11.2 四卡单实例
+# 用法:
+#   export MODEL_PATH=/path/to/Qwen3-32B-W8A8
+#   export TEST_ID=20260901_timeline
+#   ./timeline.sh
+#
+# 必传: MODEL_PATH, TEST_ID
+# 可选: PYTHON_BIN / GPU_LIST / GPUS_PER_INSTANCE / PORT / NUM_PROMPTS /
+#       NUM_WARMUPS / MAX_CONCURRENCY / ENABLE_TASKSET_BINDING / CPU_RANGE /
++ echo '-- 顶层变量 --'
+-- 顶层变量 --
++ grep -nE '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline.sh
++ cut -c1-160
++ head -40
+23:PYTHON_BIN="${PYTHON_BIN:-python3}"
+24:GPU_LIST="${GPU_LIST:-0,1,2,3}"
+25:GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+26:PORT="${PORT:-8000}"
+27:NUM_PROMPTS="${NUM_PROMPTS:-32}"
+28:NUM_WARMUPS="${NUM_WARMUPS:-2}"
+29:MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+30:ENABLE_TASKSET_BINDING="${ENABLE_TASKSET_BINDING:-0}"
+31:CPU_RANGE="${CPU_RANGE:-}"
+33:VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
+36:PROFILE_EVERY="${PROFILE_EVERY:-1}"
+39:CASE_INTERVAL="${CASE_INTERVAL:-60}"
+48:PROFILE_DELAY_ITERATIONS="${PROFILE_DELAY_ITERATIONS:-0}"
+49:PROFILE_MAX_ITERATIONS="${PROFILE_MAX_ITERATIONS:-0}"
+50:PROFILE_WARMUP_ITERATIONS="${PROFILE_WARMUP_ITERATIONS:-0}"
+51:PROFILE_ACTIVE_ITERATIONS="${PROFILE_ACTIVE_ITERATIONS:-2000}"
+54:BASE_DIR="$(pwd)"
+55:RUN_DIR="${BASE_DIR}/timeline/${TEST_ID}"
+56:LOG_DIR="${RUN_DIR}/logs"
+57:PROFILE_ROOT_DIR="${PROFILE_ROOT_DIR:-${RUN_DIR}/profile}"
+58:PROFILE_DIRS="${PROFILE_DIRS:-${PROFILE_ROOT_DIR}}"
+59:SERVER_LOG="${LOG_DIR}/server.log"
+60:SERVER_PID_FILE="${RUN_DIR}/server.pid"
+70:CASES=(
+287:FAILED_CASES=()
++ echo ''
+
++ echo '== variant 与 timeline.sh 的差异（仅变量行）=='
+== variant 与 timeline.sh 的差异（仅变量行）==
++ B=/home/qch/scripts/timeline.sh
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline_both.sh ']'
++ '[' /home/qch/scripts/timeline_both.sh = /home/qch/scripts/timeline.sh ']'
+++ basename /home/qch/scripts/timeline_both.sh
++ echo '-- timeline_both.sh vs timeline.sh --'
+-- timeline_both.sh vs timeline.sh --
++ head -20
++ diff /dev/fd/63 /dev/fd/62
+++ grep -E '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline.sh
+++ cut -d= -f1
+++ grep -E '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline_both.sh
+++ cut -d= -f1
+1,25d0
+< PYTHON_BIN
+< GPU_LIST
+< GPUS_PER_INSTANCE
+< PORT
+< NUM_PROMPTS
+< NUM_WARMUPS
+< MAX_CONCURRENCY
+< ENABLE_TASKSET_BINDING
+< CPU_RANGE
+< VLLM_RPC_TIMEOUT
+< PROFILE_EVERY
+< CASE_INTERVAL
+< PROFILE_DELAY_ITERATIONS
+< PROFILE_MAX_ITERATIONS
+< PROFILE_WARMUP_ITERATIONS
+< PROFILE_ACTIVE_ITERATIONS
+< BASE_DIR
+< RUN_DIR
+< LOG_DIR
++ head -25
++ diff /dev/fd/63 /dev/fd/62
+++ grep -E '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline.sh
+++ grep -E '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline_both.sh
+1,25d0
+< PYTHON_BIN="${PYTHON_BIN:-python3}"
+< GPU_LIST="${GPU_LIST:-0,1,2,3}"
+< GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+< PORT="${PORT:-8000}"
+< NUM_PROMPTS="${NUM_PROMPTS:-32}"
+< NUM_WARMUPS="${NUM_WARMUPS:-2}"
+< MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+< ENABLE_TASKSET_BINDING="${ENABLE_TASKSET_BINDING:-0}"
+< CPU_RANGE="${CPU_RANGE:-}"
+< VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
+< PROFILE_EVERY="${PROFILE_EVERY:-1}"
+< CASE_INTERVAL="${CASE_INTERVAL:-60}"
+< PROFILE_DELAY_ITERATIONS="${PROFILE_DELAY_ITERATIONS:-0}"
+< PROFILE_MAX_ITERATIONS="${PROFILE_MAX_ITERATIONS:-0}"
+< PROFILE_WARMUP_ITERATIONS="${PROFILE_WARMUP_ITERATIONS:-0}"
+< PROFILE_ACTIVE_ITERATIONS="${PROFILE_ACTIVE_ITERATIONS:-2000}"
+< BASE_DIR="$(pwd)"
+< RUN_DIR="${BASE_DIR}/timeline/${TEST_ID}"
+< LOG_DIR="${RUN_DIR}/logs"
+< PROFILE_ROOT_DIR="${PROFILE_ROOT_DIR:-${RUN_DIR}/profile}"
+< PROFILE_DIRS="${PROFILE_DIRS:-${PROFILE_ROOT_DIR}}"
+< SERVER_LOG="${LOG_DIR}/server.log"
+< SERVER_PID_FILE="${RUN_DIR}/server.pid"
+< CASES=(
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline_cpu.sh ']'
++ '[' /home/qch/scripts/timeline_cpu.sh = /home/qch/scripts/timeline.sh ']'
+++ basename /home/qch/scripts/timeline_cpu.sh
++ echo '-- timeline_cpu.sh vs timeline.sh --'
+-- timeline_cpu.sh vs timeline.sh --
++ head -20
++ diff /dev/fd/63 /dev/fd/62
+++ grep -E '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline.sh
+++ cut -d= -f1
+++ grep -E '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline_cpu.sh
+++ cut -d= -f1
+0a1,2
+> MODEL_PATH
+> SERVED_MODEL
+1a4
+> TEST_ID
+6d8
+< NUM_WARMUPS
+8,9d9
+< ENABLE_TASKSET_BINDING
+< CPU_RANGE
++ head -25
++ diff /dev/fd/63 /dev/fd/62
+++ grep -E '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline.sh
+++ grep -E '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline_cpu.sh
+1c1,4
+< PYTHON_BIN="${PYTHON_BIN:-python3}"
+---
+> MODEL_PATH="/home/model/Qwen3-32B-W8A8"
+> SERVED_MODEL="Qwen3-32B-W8A8"
+> PYTHON_BIN="python3"        # 184 容器内 python3.12.11, PATH 已有 vllm
+> TEST_ID="${TEST_ID:?必须设置 TEST_ID, 如 TEST_ID=20260930_cpu_t0}"
+6d8
+< NUM_WARMUPS="${NUM_WARMUPS:-2}"
+8,9d9
+< ENABLE_TASKSET_BINDING="${ENABLE_TASKSET_BINDING:-0}"
+< CPU_RANGE="${CPU_RANGE:-}"
+13c13
+< PROFILE_DELAY_ITERATIONS="${PROFILE_DELAY_ITERATIONS:-0}"
+---
+> PROFILE_DELAY_ITERATIONS="${PROFILE_DELAY_ITERATIONS:-2}"
+15,16c15,16
+< PROFILE_WARMUP_ITERATIONS="${PROFILE_WARMUP_ITERATIONS:-0}"
+< PROFILE_ACTIVE_ITERATIONS="${PROFILE_ACTIVE_ITERATIONS:-2000}"
+---
+> PROFILE_WARMUP_ITERATIONS="${PROFILE_WARMUP_ITERATIONS:-1}"
+> PROFILE_ACTIVE_ITERATIONS="${PROFILE_ACTIVE_ITERATIONS:-5}"
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline_off.sh ']'
++ '[' /home/qch/scripts/timeline_off.sh = /home/qch/scripts/timeline.sh ']'
+++ basename /home/qch/scripts/timeline_off.sh
++ echo '-- timeline_off.sh vs timeline.sh --'
+-- timeline_off.sh vs timeline.sh --
++ head -20
++ diff /dev/fd/63 /dev/fd/62
+++ grep -E '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline.sh
+++ cut -d= -f1
+++ grep -E '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline_off.sh
+++ cut -d= -f1
++ head -25
++ diff /dev/fd/63 /dev/fd/62
+++ grep -E '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline.sh
+++ grep -E '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline_off.sh
+5,6c5,6
+< NUM_PROMPTS="${NUM_PROMPTS:-32}"
+< NUM_WARMUPS="${NUM_WARMUPS:-2}"
+---
+> NUM_PROMPTS="${NUM_PROMPTS:-100}"
+> NUM_WARMUPS="${NUM_WARMUPS:-16}"
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline_on.sh ']'
++ '[' /home/qch/scripts/timeline_on.sh = /home/qch/scripts/timeline.sh ']'
+++ basename /home/qch/scripts/timeline_on.sh
++ echo '-- timeline_on.sh vs timeline.sh --'
+-- timeline_on.sh vs timeline.sh --
++ head -20
++ diff /dev/fd/63 /dev/fd/62
+++ grep -E '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline.sh
+++ cut -d= -f1
+++ grep -E '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline_on.sh
+++ cut -d= -f1
+12a13,14
+> REPO_ROOT
+> IXSMI_BIN
++ head -25
++ diff /dev/fd/63 /dev/fd/62
+++ grep -E '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline.sh
+++ grep -E '^[A-Za-z_][A-Za-z0-9_]*=' /home/qch/scripts/timeline_on.sh
+5,6c5,6
+< NUM_PROMPTS="${NUM_PROMPTS:-32}"
+< NUM_WARMUPS="${NUM_WARMUPS:-2}"
+---
+> NUM_PROMPTS="${NUM_PROMPTS:-100}"
+> NUM_WARMUPS="${NUM_WARMUPS:-16}"
+12a13,14
+> REPO_ROOT="${REPO_ROOT:-/home/qch/tools/kunpeng-affinity-plugin}"
+> IXSMI_BIN="${IXSMI_BIN:-/home/qch/kunpeng-affinity-fix/ixsmi-run}"
++ for f in "$D"/timeline*.sh
++ '[' -f /home/qch/scripts/timeline.sh ']'
++ '[' /home/qch/scripts/timeline.sh = /home/qch/scripts/timeline.sh ']'
++ continue
++ set +x
+
+### exit: 0
