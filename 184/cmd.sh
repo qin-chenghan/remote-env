@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：查默认内核、可用内核、重启历史，以及 64K 内核是否还在。
+# 只读：核对 4k 环境下的优化使能情况与 timeline 是否真的采到。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,39 +17,38 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== current =="
-  uname -r
-  getconf PAGE_SIZE
-  uptime
+  R=/home/qch/scripts/timeline/4k
 
-  echo "== grub default =="
-  grubby --default-kernel 2>&1
-  grub2-editenv list 2>&1
-  grep -nE '^GRUB_DEFAULT|^GRUB_ENABLE_BLSCFG' /etc/default/grub 2>&1
+  echo "== run dir =="
+  ls -la "$R" 2>&1 | head -12
+  echo "-- profile dirs --"
+  find "$R/profile" -maxdepth 2 -type f -printf '%s\t%TY-%Tm-%Td %TH:%TM\t%p\n' 2>/dev/null | head -20
+  echo "-- sizes --"
+  du -sh "$R/profile" "$R/logs" 2>&1
 
-  echo "== boot entries =="
-  grubby --info=ALL 2>&1 | grep -E '^(index|kernel|title)=' | head -24
+  echo "== server.log: 优化迹象 =="
+  grep -iE 'tcmalloc|ld.so|VLLM_HOST_OPT|host_opt|compact.greedy|sample_logits|fastpath|slot_native' "$R/logs/server.log" 2>/dev/null | cut -c1-200 | head -25
 
-  echo "== kernels on disk =="
-  ls -l /boot/vmlinuz-* /boot/config-* 2>&1 | head -20
-  ls -1 /lib/modules/ 2>&1
+  echo "== server.log: 启动参数 =="
+  grep -iE 'compilation-config|numa-bind|worker-cls|tensor_parallel|profiler' "$R/logs/server.log" 2>/dev/null | cut -c1-220 | head -12
 
-  echo "== installed kernel packages =="
-  rpm -qa 'kernel-6.6*' 'kernel-64k*' 2>&1 | sort | head -12
+  echo "== server.log: python / 模块路径 =="
+  grep -iE 'sys.executable|python3\.[0-9]+|torch [0-9]|vllm.*0\.23|cudagraph' "$R/logs/server.log" 2>/dev/null | cut -c1-200 | head -12
 
-  echo "== dkms per kernel =="
-  dkms status 2>&1 | head -10
+  echo "== bench logs =="
+  ls -l "$R/logs" 2>&1
+  for b in "$R"/logs/bench*.log; do
+    [ -f "$b" ] || continue
+    echo "-- $(basename "$b") --"
+    grep -iE 'profile|Throughput|latency|TTFT|TPOT|num_prompts|Completed' "$b" 2>/dev/null | head -12 | cut -c1-180
+  done
 
-  echo "== 64K kernel leftovers =="
-  find /boot /lib/modules -maxdepth 2 -iname '*64K*' 2>/dev/null | head -10
+  echo "== timeline_base.sh 关键行 =="
+  grep -nE 'profile|BENCH_PROFILE_ARGS|CASES=|NUM_PROMPTS|VLLM_HOST_OPT|VLLM_COMPACT|sample_logits|compilation-config|worker-cls' \
+    /home/qch/scripts/timeline_base.sh 2>/dev/null | cut -c1-180 | head -30
 
-  echo "== reboot history =="
-  last -x reboot 2>&1 | head -8
-  echo "-- shutdown --"
-  last -x shutdown 2>&1 | head -5
-
-  echo "== crash/oops in previous boot =="
-  journalctl -b -1 -p err --no-pager 2>/dev/null | tail -8
+  echo "== 当前内核（确认仍是 4K）=="
+  uname -r; getconf PAGE_SIZE
 
   # ---- 命令结束 ----
 
