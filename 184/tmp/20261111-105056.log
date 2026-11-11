@@ -1,0 +1,277 @@
+### server: 184
+### host:   controller
+### time:   2026-11-11T02:50:56Z
+
+++ pgrep -f vllmBench_lite_opt.sh
+++ head -1
++ S=28517
++ echo script_pid=28517
+script_pid=28517
+++ readlink /proc/28517/cwd
++ CWD=/usr/local/corex-5.0.0
++ echo script_cwd=/usr/local/corex-5.0.0
+script_cwd=/usr/local/corex-5.0.0
+++ ps -o lstart= -p 28517
+++ ps -o etime= -p 28517
++ echo 'started=Wed Nov 11 09:16:29 2026  elapsed=   01:34:26'
+started=Wed Nov 11 09:16:29 2026  elapsed=   01:34:26
++ echo '== its env =='
+== its env ==
++ tr '\0' '\n'
++ grep -E 'TEST_ID|PREFIX|NUM_PROMPTS|NUM_WARMUPS|MAX_CONCURRENCY|GPU_LIST|HOST_MEASURE|COMPILATION'
++ head -12
++ echo '== run dirs =='
+== run dirs ==
++ ls -lt /usr/local/corex-5.0.0/vllmBench
++ head -6
+ls: cannot access '/usr/local/corex-5.0.0/vllmBench': No such file or directory
+++ ls -dt '/usr/local/corex-5.0.0/vllmBench/*/'
+++ head -1
++ R=
++ echo RUN=
+RUN=
++ echo '== run contents =='
+== run contents ==
++ ls -la ''
++ head -20
+ls: cannot access '': No such file or directory
++ echo '-- summary.csv --'
+-- summary.csv --
++ cat /summary.csv
++ head -15
+cat: /summary.csv: No such file or directory
++ echo '-- logs dir --'
+-- logs dir --
++ ls -lt /logs
++ head -10
+ls: cannot access '/logs': No such file or directory
++ echo '-- server.log tail --'
+-- server.log tail --
++ tail -6 /logs/server.log
+tail: cannot open '/logs/server.log' for reading: No such file or directory
++ echo '== case timing (dir mtimes) =='
+== case timing (dir mtimes) ==
++ sort
++ head -20
++ for d in "$R"/*/
++ '[' -d /afs/ ']'
+++ stat -c %y /afs/
+++ cut -d. -f1
+++ basename /afs/
++ printf '%s  %s\n' '2025-12-21 14:02:37' afs
++ for d in "$R"/*/
++ '[' -d /bin/ ']'
+++ stat -c %y /bin/
+++ cut -d. -f1
+++ basename /bin/
++ printf '%s  %s\n' '2026-11-09 14:43:13' bin
++ for d in "$R"/*/
++ '[' -d /boot/ ']'
+++ stat -c %y /boot/
+++ cut -d. -f1
+++ basename /boot/
++ printf '%s  %s\n' '2026-11-10 16:33:35' boot
++ for d in "$R"/*/
++ '[' -d /data/ ']'
+++ stat -c %y /data/
+++ cut -d. -f1
+++ basename /data/
++ printf '%s  %s\n' '2026-11-02 12:48:51' data
++ for d in "$R"/*/
++ '[' -d /dev/ ']'
+++ stat -c %y /dev/
+++ cut -d. -f1
+++ basename /dev/
++ printf '%s  %s\n' '2026-11-11 09:13:46' dev
++ for d in "$R"/*/
++ '[' -d /etc/ ']'
+++ stat -c %y /etc/
+++ cut -d. -f1
+++ basename /etc/
++ printf '%s  %s\n' '2026-11-11 10:35:03' etc
++ for d in "$R"/*/
++ '[' -d /home/ ']'
+++ stat -c %y /home/
+++ cut -d. -f1
+++ basename /home/
++ printf '%s  %s\n' '2026-11-11 10:36:54' home
++ for d in "$R"/*/
++ '[' -d /home_bak/ ']'
+++ stat -c %y /home_bak/
+++ cut -d. -f1
+++ basename /home_bak/
++ printf '%s  %s\n' '2025-09-04 16:25:44' home_bak
++ for d in "$R"/*/
++ '[' -d /lib/ ']'
+++ stat -c %y /lib/
+++ cut -d. -f1
+++ basename /lib/
++ printf '%s  %s\n' '2026-11-09 14:42:37' lib
++ for d in "$R"/*/
++ '[' -d /lib64/ ']'
+++ stat -c %y /lib64/
+++ cut -d. -f1
+++ basename /lib64/
++ printf '%s  %s\n' '2026-11-09 14:43:22' lib64
++ for d in "$R"/*/
++ '[' -d /lost+found/ ']'
+++ stat -c %y /lost+found/
+++ cut -d. -f1
+++ basename /lost+found/
++ printf '%s  %s\n' '2025-03-06 20:39:06' lost+found
++ for d in "$R"/*/
++ '[' -d /media/ ']'
+++ stat -c %y /media/
+++ cut -d. -f1
+++ basename /media/
++ printf '%s  %s\n' '2025-12-21 14:02:37' media
++ for d in "$R"/*/
++ '[' -d /mnt/ ']'
+++ stat -c %y /mnt/
+++ cut -d. -f1
+++ basename /mnt/
++ printf '%s  %s\n' '2025-12-21 14:02:37' mnt
++ for d in "$R"/*/
++ '[' -d /opt/ ']'
+++ stat -c %y /opt/
+++ cut -d. -f1
+++ basename /opt/
++ printf '%s  %s\n' '2025-12-21 14:02:37' opt
++ for d in "$R"/*/
++ '[' -d /proc/ ']'
+++ stat -c %y /proc/
+++ cut -d. -f1
+++ basename /proc/
++ printf '%s  %s\n' '2026-11-11 09:13:29' proc
++ for d in "$R"/*/
++ '[' -d /root/ ']'
+++ stat -c %y /root/
+++ cut -d. -f1
+++ basename /root/
++ printf '%s  %s\n' '2026-11-11 10:50:56' root
++ for d in "$R"/*/
++ '[' -d /run/ ']'
+++ stat -c %y /run/
+++ cut -d. -f1
+++ basename /run/
++ printf '%s  %s\n' '2026-11-11 09:15:53' run
++ for d in "$R"/*/
++ '[' -d /sbin/ ']'
+++ stat -c %y /sbin/
+++ cut -d. -f1
+++ basename /sbin/
++ printf '%s  %s\n' '2026-11-09 14:43:10' sbin
++ for d in "$R"/*/
++ '[' -d /srv/ ']'
+++ stat -c %y /srv/
+++ cut -d. -f1
+++ basename /srv/
++ printf '%s  %s\n' '2025-12-21 14:02:37' srv
++ for d in "$R"/*/
++ '[' -d /sys/ ']'
+++ stat -c %y /sys/
+++ cut -d. -f1
+++ basename /sys/
++ printf '%s  %s\n' '2026-11-11 09:13:42' sys
++ for d in "$R"/*/
++ '[' -d /test/ ']'
+++ stat -c %y /test/
+++ cut -d. -f1
+++ basename /test/
++ printf '%s  %s\n' '2025-09-04 16:33:05' test
++ for d in "$R"/*/
++ '[' -d /test1/ ']'
+++ stat -c %y /test1/
+++ cut -d. -f1
+++ basename /test1/
++ printf '%s  %s\n' '2025-09-04 16:36:13' test1
++ for d in "$R"/*/
++ '[' -d /tmp/ ']'
+++ stat -c %y /tmp/
+++ cut -d. -f1
+++ basename /tmp/
++ printf '%s  %s\n' '2026-11-11 10:50:55' tmp
++ for d in "$R"/*/
++ '[' -d /usr/ ']'
+++ stat -c %y /usr/
+++ cut -d. -f1
+++ basename /usr/
++ printf '%s  %s\n' '2026-11-09 14:22:56' usr
++ for d in "$R"/*/
++ '[' -d /usr1/ ']'
+++ stat -c %y /usr1/
+++ cut -d. -f1
+++ basename /usr1/
++ printf '%s  %s\n' '2025-10-20 11:19:27' usr1
++ for d in "$R"/*/
++ '[' -d /var/ ']'
+++ stat -c %y /var/
+++ cut -d. -f1
+++ basename /var/
++ printf '%s  %s\n' '2026-11-09 15:00:38' var
+2025-03-06 20:39:06  lost+found
+2025-09-04 16:25:44  home_bak
+2025-09-04 16:33:05  test
+2025-09-04 16:36:13  test1
+2025-10-20 11:19:27  usr1
+2025-12-21 14:02:37  afs
+2025-12-21 14:02:37  media
+2025-12-21 14:02:37  mnt
+2025-12-21 14:02:37  opt
+2025-12-21 14:02:37  srv
+2026-11-02 12:48:51  data
+2026-11-09 14:22:56  usr
+2026-11-09 14:42:37  lib
+2026-11-09 14:43:10  sbin
+2026-11-09 14:43:13  bin
+2026-11-09 14:43:22  lib64
+2026-11-09 15:00:38  var
+2026-11-10 16:33:35  boot
+2026-11-11 09:13:29  proc
+2026-11-11 09:13:42  sys
++ echo '== bench_driver now =='
+== bench_driver now ==
+++ pgrep -f bench_driver.py
++ for p in $(pgrep -f 'bench_driver.py' 2> /dev/null)
+++ ps -o lstart= -p 481142
+++ ps -o etime= -p 481142
++ echo 'pid=481142 started=Wed Nov 11 10:39:39 2026 elapsed=      11:17'
+pid=481142 started=Wed Nov 11 10:39:39 2026 elapsed=      11:17
++ tr '\0' ' '
++ grep -oE '--random_input_len [0-9]+|--random_output_len [0-9]+|--num_prompts [0-9]+'
++ tr '\n' ' '
+grep: unrecognized option '--random_input_len [0-9]+|--random_output_len [0-9]+|--num_prompts [0-9]+'
+Usage: grep [OPTION]... PATTERNS [FILE]...
+Try 'grep --help' for more information.
++ echo
+
++ echo '== session/litehost progress =='
+== session/litehost progress ==
++ ls -lt /litehost
++ head -10
+ls: cannot access '/litehost': No such file or directory
++ find '' -maxdepth 3 -name session.json -o -maxdepth 3 -name '*.csv'
++ head -10
++ echo '== gpu =='
+== gpu ==
++ ixsmi
++ sed -n 5,20p
+| GPU  Name                        | Bus-Id               | Clock-SM  Clock-Mem  |
+| Fan  Temp  Perf    Pwr:Usage/Cap |      Memory-Usage    | GPU-Util  Compute M. |
+|==================================+======================+======================|
+| 0    Iluvatar BI-V150            | 00000000:45:00.0     | 1600MHz   1600MHz    |
+| N/A  61C   P0       N/A / N/A    | 30492MiB / 32768MiB  | 48%       Default    |
++----------------------------------+----------------------+----------------------+
+| 1    Iluvatar BI-V150            | 00000000:48:00.0     | 1600MHz   1600MHz    |
+| N/A  60C   P0       227W / 350W  | 30536MiB / 32768MiB  | 80%       Default    |
++----------------------------------+----------------------+----------------------+
+| 2    Iluvatar BI-V150            | 00000000:AF:00.0     | 1600MHz   1600MHz    |
+| N/A  57C   P0       N/A / N/A    | 30538MiB / 32768MiB  | 42%       Default    |
++----------------------------------+----------------------+----------------------+
+| 3    Iluvatar BI-V150            | 00000000:B2:00.0     | 1600MHz   1600MHz    |
+| N/A  58C   P0       222W / 350W  | 30576MiB / 32768MiB  | 35%       Default    |
++----------------------------------+----------------------+----------------------+
+
++ set +x
+
+### exit: 0
