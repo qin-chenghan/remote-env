@@ -1,0 +1,61 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-10T08:58:01Z
+
++ echo '== 1. 仓库状态 =='
+== 1. 仓库状态 ==
++ docker exec fusionv1 bash -lc '
+P=/home/qch/projects
+ls -d "$P" 2>&1
+git -C "$P" rev-parse --abbrev-ref HEAD 2>&1
+git -C "$P" log --oneline -3 2>&1
+ls -l "$P/workplace/lib_preprocess.cpp" 2>&1
+'
++ head -20
+/home/qch/projects
+bash: line 4: git: command not found
+bash: line 5: git: command not found
+ls: cannot access '/home/qch/projects/workplace/lib_preprocess.cpp': No such file or directory
++ echo '== 2. 工具链与 python 依赖 =='
+== 2. 工具链与 python 依赖 ==
++ docker exec fusionv1 bash -lc '
+g++ --version | head -1
+python3 -V
+python3 -c "import numpy, PIL; print(\"numpy\", numpy.__version__, \"PIL\", PIL.__version__)" 2>&1 | tail -2
+'
++ head -10
+g++ (GCC) 10.3.1
+Python 3.9.9
+  File "<string>", line 1, in <module>
+ModuleNotFoundError: No module named 'numpy'
++ echo '== 3. 构建 libpreprocess.so =='
+== 3. 构建 libpreprocess.so ==
++ head -25
++ docker exec fusionv1 bash -lc '
+cd /home/qch/projects/workplace || exit 1
+ls -l libpreprocess.so 2>&1
+g++ -std=c++14 -march=armv8.2-a+fp16+dotprod -fopenmp -O3 \
+    -shared -fPIC -o libpreprocess.so lib_preprocess.cpp 2>&1 | tail -20
+echo "build rc=$?"
+ls -l libpreprocess.so 2>&1
+'
+bash: line 2: cd: /home/qch/projects/workplace: No such file or directory
++ echo '== 4. 正确性（e2e_verify）=='
+== 4. 正确性（e2e_verify）==
++ docker exec fusionv1 bash -lc '
+cd /home/qch/projects/workplace/edition1 || exit 1
+timeout 300 python3 e2e_verify.py 2>&1 | tail -25
+'
++ head -30
+bash: line 2: cd: /home/qch/projects/workplace/edition1: No such file or directory
++ echo '== 5. 分步耗时（224×224, 1 线程）=='
+== 5. 分步耗时（224×224, 1 线程）==
++ docker exec fusionv1 bash -lc '
+cd /home/qch/projects/workplace/edition1 || exit 1
+timeout 300 python3 step_breakdown.py --size 224 224 --threads 1 --iters 100 2>&1 | tail -30
+'
++ head -35
+bash: line 2: cd: /home/qch/projects/workplace/edition1: No such file or directory
++ set +x
+
+### exit: 0

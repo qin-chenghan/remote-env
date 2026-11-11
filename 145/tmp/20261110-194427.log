@@ -1,0 +1,38 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-10T11:44:27Z
+
++ D=/home/qch/clamp_opt
++ echo '== 1. 生成 v5 源码（新文件，包含 v2）=='
+== 1. 生成 v5 源码（新文件，包含 v2）==
++ cat
++ ls -l /home/qch/clamp_opt/clamp_neon_opt_v5.cpp
+-rw-r--r--. 1 root root 5099 Nov 10 19:44 /home/qch/clamp_opt/clamp_neon_opt_v5.cpp
++ echo '== 2. 编译 v5 =='
+== 2. 编译 v5 ==
++ g++ -std=c++14 -march=armv8.2-a+fp16+dotprod -fopenmp -O3 -shared -fPIC -o /home/qch/clamp_opt/libpreprocess_v5.so /home/qch/clamp_opt/clamp_neon_opt_v5.cpp
++ tail -15
++ echo 'build rc=0'
+build rc=0
++ ls -l /home/qch/clamp_opt/libpreprocess_v5.so
+-rwxr-xr-x. 1 root root 72320 Nov 10 19:44 /home/qch/clamp_opt/libpreprocess_v5.so
++ echo '== 3. A/B 脚本（含最大误差，新文件）=='
+== 3. A/B 脚本（含最大误差，新文件）==
++ cat
++ ls -l /home/qch/clamp_opt/clamp_neon_opt_ab5.py
+-rw-r--r--. 1 root root 1602 Nov 10 19:44 /home/qch/clamp_opt/clamp_neon_opt_ab5.py
++ echo '== 4. A/B 运行（绑 cpu0）=='
+== 4. A/B 运行（绑 cpu0）==
++ cd /home/qch/clamp_opt
++ taskset -c 0 python3 clamp_neon_opt_ab5.py ./libpreprocess.so ./libpreprocess_v4.so ./libpreprocess_v5.so
++ tail -12
+size         thr         v1        v4        v5    v1/v4    v1/v5 v4 diff      v5 diff     
+224x224      1        0.759     0.482     0.415    1.57x    1.83x 0.000e+00    0.000e+00   
+224x224      4        0.806     0.513     0.450    1.57x    1.79x 0.000e+00    0.000e+00   
+321x481      1        2.415     1.096     1.251    2.20x    1.93x 0.000e+00    0.000e+00   
+321x481      4        1.660     2.075     1.247    0.80x    1.33x 0.000e+00    0.000e+00   
+1920x1080    1       10.001     8.138     9.641    1.23x    1.04x 1.754e-02    0.000e+00   
+1920x1080    4       10.121     8.189     9.407    1.24x    1.08x 1.754e-02    0.000e+00   
++ set +x
+
+### exit: 0

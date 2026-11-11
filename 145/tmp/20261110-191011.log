@@ -1,0 +1,92 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-10T11:10:11Z
+
++ D=/home/qch/clamp_opt
++ R=/home/qch/projects/vllm/workplace
++ echo '== 1. 宿主机工具链 =='
+== 1. 宿主机工具链 ==
++ g++ --version
++ head -1
+g++ (GCC) 12.3.1 (openEuler 12.3.1-105.oe2403sp3)
++ python3 -V
+Python 3.11.6
++ head -3
++ ls /usr/lib64/libgomp.so.1 /usr/lib64/libgomp.so.1.0.0 '/usr/lib/aarch64-linux-gnu/libgomp.so*'
+/usr/lib64/libgomp.so.1
+/usr/lib64/libgomp.so.1.0.0
++ echo '== 2. 准备新目录 =='
+== 2. 准备新目录 ==
++ mkdir -p /home/qch/clamp_opt/edition1
++ ls -la /home/qch/clamp_opt
++ head -5
+total 12
+drwxr-xr-x. 3 root root 4096 Nov 10 19:10 .
+drwxr-xr-x. 6 root root 4096 Nov 10 19:10 ..
+drwxr-xr-x. 2 root root 4096 Nov 10 19:10 edition1
++ echo '== 3. 复制基准脚本（副本，不改原文件）=='
+== 3. 复制基准脚本（副本，不改原文件）==
++ cp -a /home/qch/projects/vllm/workplace/edition1/bench_all.py /home/qch/projects/vllm/workplace/edition1/e2e_verify.py /home/qch/projects/vllm/workplace/edition1/step_breakdown.py /home/qch/clamp_opt/edition1/
++ ls -l /home/qch/clamp_opt/edition1
+total 20
+-rw-r--r--. 1 root root 5758 Nov 10 16:52 bench_all.py
+-rw-r--r--. 1 root root 2880 Nov 10 16:52 e2e_verify.py
+-rw-r--r--. 1 root root 6540 Nov 10 16:52 step_breakdown.py
++ echo '== 4. 编译基线 .so（输出按脚本期望放在 /home/qch/clamp_opt/libpreprocess.so）=='
+== 4. 编译基线 .so（输出按脚本期望放在 /home/qch/clamp_opt/libpreprocess.so）==
++ g++ -std=c++14 -march=armv8.2-a+fp16+dotprod -fopenmp -O3 -shared -fPIC -o /home/qch/clamp_opt/libpreprocess.so /home/qch/projects/vllm/workplace/lib_preprocess.cpp
++ tail -10
++ echo 'build rc=0'
+build rc=0
++ ls -l /home/qch/clamp_opt/libpreprocess.so
+-rwxr-xr-x. 1 root root 71920 Nov 10 19:10 /home/qch/clamp_opt/libpreprocess.so
++ ldd /home/qch/clamp_opt/libpreprocess.so
++ grep -i 'not found'
++ head -5
++ echo '== 5. 正确性验证（e2e_verify）=='
+== 5. 正确性验证（e2e_verify）==
++ cd /home/qch/clamp_opt/edition1
++ taskset -c 0-3 python3 e2e_verify.py
++ tail -20
+            尺寸     max_err   err>0.01   DINOv2 max   SigLIP max     结果
+------------------------------------------------------------------------
+     等比例 224×224       2.38e-07          0     2.38e-07     1.19e-07     OK
+     上采样 100×200       1.75e-02          7     1.75e-02     7.84e-03     OK
+    上采样2 150×300       1.75e-02          2     1.75e-02     7.84e-03     OK
+      小图 400×300       1.75e-02          7     1.75e-02     7.84e-03     OK
+     数据集 481×321       1.75e-02          9     1.75e-02     7.84e-03     OK
+      中等 640×480       1.75e-02          7     1.75e-02     7.84e-03     OK
+     中等2 800×600       1.75e-02         15     1.75e-02     7.84e-03     OK
+    720p 1280×720       1.75e-02          8     1.75e-02     7.84e-03     OK
+   1080p 1920×1080      1.75e-02         21     1.75e-02     7.84e-03     OK
+   1440p 2560×1440      1.75e-02         14     1.75e-02     7.84e-03     OK
+------------------------------------------------------------------------
+
+[OK] 全部通过
+容忍度: max_err ≤ 0.02 (≈ 1-pixel uint8 × scale 因子)
++ echo '== 6. 分步耗时（224×224, 1 线程）=='
+== 6. 分步耗时（224×224, 1 线程）==
++ cd /home/qch/clamp_opt/edition1
++ taskset -c 0 python3 step_breakdown.py --size 224 224 --threads 1 --iters 100
++ tail -25
+=== 224×224, 1 threads, 100 iters ===
+
+步骤                            原版(ms)      占比
+---------------------------------------------
+① to_rgb_image                 0.040    0.2%
+② PIL BICUBIC resize           0.008    0.0%
+③ np.asarray + /255.0          0.101    0.5%
+④ DINOv2 normalize+transpose      0.414    1.9%
+⑤ SigLIP normalize+transpose      0.407    1.9%
+⑥ np.concatenate               0.529    2.5%
+⑦ torch.from_numpy            19.998   93.0%
+---------------------------------------------
+原版总耗时                         21.498
+
+加速版总耗时                         0.737 ms
+加速比                            29.16×
+max_err (float32)           2.38e-07
+正确性                               OK
++ set +x
+
+### exit: 0

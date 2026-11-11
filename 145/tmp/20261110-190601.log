@@ -1,0 +1,46 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-10T11:06:01Z
+
++ echo '== 1. 宿主机 python =='
+== 1. 宿主机 python ==
++ for p in /usr/bin/python3 /usr/local/bin/python3
++ '[' -x /usr/bin/python3 ']'
++ echo '-- /usr/bin/python3 --'
+-- /usr/bin/python3 --
++ /usr/bin/python3 -V
+Python 3.11.6
++ /usr/bin/python3 -c 'import numpy,PIL;print('\''numpy'\'',numpy.__version__,'\''PIL'\'',PIL.__version__)'
++ tail -1
+numpy 2.4.2 PIL 12.2.0
++ for p in /usr/bin/python3 /usr/local/bin/python3
++ '[' -x /usr/local/bin/python3 ']'
++ continue
++ rpm -qa
++ grep -iE '^python3-(numpy|pillow)'
++ head -5
++ echo '== 2. 容器内已装包 =='
+== 2. 容器内已装包 ==
++ docker exec fusionv1 bash -lc '
+rpm -qa 2>/dev/null | grep -iE "numpy|pillow|scipy" | head -5
+echo "-- yum 仓库 --"
+ls /etc/yum.repos.d/ 2>/dev/null | head -5
+'
++ head -12
+-- yum 仓库 --
+local.repo.bak
+openEuler.repo
+openEuler.repo.bak
++ echo '== 3. yum 是否能提供（仅查询）=='
+== 3. yum 是否能提供（仅查询）==
++ docker exec fusionv1 bash -lc '
+timeout 90 yum list available python3-numpy python3-pillow 2>&1 | tail -12
+'
++ head -20
+openEuler-everything                            0.0  B/s |   0  B     01:20    
+Errors during downloading metadata for repository 'openEuler-everything':
+  - Curl error (6): Couldn't resolve host name for http://repo.openeuler.org/openEuler-22.03-LTS-SP4/everything/aarch64/repodata/repomd.xml [Could not resolve host: repo.openeuler.org]
+Error: Failed to download metadata for repo 'openEuler-everything': Cannot download repomd.xml: Cannot download repodata/repomd.xml: All mirrors were tried
++ set +x
+
+### exit: 0
