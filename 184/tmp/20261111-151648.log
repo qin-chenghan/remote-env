@@ -1,0 +1,133 @@
+### server: 184
+### host:   controller
+### time:   2026-11-11T07:16:48Z
+
++ R=/home/qch/scripts/timeline/4k
++ echo '== run dir =='
+== run dir ==
++ ls -la /home/qch/scripts/timeline/4k
++ head -12
+total 20
+drwxr-xr-x.  4 root root 4096 Nov 11 13:48 .
+drwxrwxr-x+ 10 root root 4096 Nov 11 13:45 ..
+drwxr-xr-x.  2 root root 4096 Nov 11 13:46 logs
+drwxr-xr-x.  3 root root 4096 Nov 11 13:45 profile
++ echo '-- profile dirs --'
+-- profile dirs --
++ find /home/qch/scripts/timeline/4k/profile -maxdepth 2 -type f -printf '%s\t%TY-%Tm-%Td %TH:%TM\t%p\n'
++ head -20
++ echo '-- sizes --'
+-- sizes --
++ du -sh /home/qch/scripts/timeline/4k/profile /home/qch/scripts/timeline/4k/logs
+8.0K	/home/qch/scripts/timeline/4k/profile
+64K	/home/qch/scripts/timeline/4k/logs
++ echo '== server.log: 优化迹象 =='
+== server.log: 优化迹象 ==
++ grep -iE 'tcmalloc|ld.so|VLLM_HOST_OPT|host_opt|compact.greedy|sample_logits|fastpath|slot_native' /home/qch/scripts/timeline/4k/logs/server.log
++ cut -c1-200
++ head -25
+(APIServer pid=1127406) INFO 11-11 13:46:04 [api_utils.py:273] non-default args: {'host': '127.0.0.1', 'model': '/home/model/Qwen3-32B-W8A8/', 'trust_remote_code': True, 'max_model_len': 4096, 'quanti
+(EngineCore pid=1127796) INFO 11-11 13:46:15 [core.py:114] Initializing a V1 LLM engine (v0.23.0) with config: model='/home/model/Qwen3-32B-W8A8/', speculative_config=None, tokenizer='/home/model/Qwen
+(Worker pid=1128110) INFO 11-11 13:46:24 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True}, fallback re
+(Worker pid=1128111) INFO 11-11 13:46:24 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True}, fallback re
+(Worker pid=1128109) INFO 11-11 13:46:25 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True}, fallback re
+(Worker pid=1128108) INFO 11-11 13:46:25 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True}, fallback re
++ echo '== server.log: 启动参数 =='
+== server.log: 启动参数 ==
++ grep -iE 'compilation-config|numa-bind|worker-cls|tensor_parallel|profiler' /home/qch/scripts/timeline/4k/logs/server.log
++ cut -c1-220
++ head -12
+(APIServer pid=1127406) INFO 11-11 13:46:04 [api_utils.py:273] non-default args: {'host': '127.0.0.1', 'model': '/home/model/Qwen3-32B-W8A8/', 'trust_remote_code': True, 'max_model_len': 4096, 'quantization': 'compressed
+(EngineCore pid=1127796) INFO 11-11 13:46:15 [core.py:114] Initializing a V1 LLM engine (v0.23.0) with config: model='/home/model/Qwen3-32B-W8A8/', speculative_config=None, tokenizer='/home/model/Qwen3-32B-W8A8/', skip_t
+(Worker_TP2 pid=1128110) INFO 11-11 13:46:37 [gpu_worker.py:495] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.9000 is equivalent to --gpu-memory-utilization=0.891
+(Worker_TP3 pid=1128111) INFO 11-11 13:46:37 [gpu_worker.py:495] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.9000 is equivalent to --gpu-memory-utilization=0.891
+(Worker_TP0 pid=1128108) INFO 11-11 13:46:38 [gpu_worker.py:495] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.9000 is equivalent to --gpu-memory-utilization=0.891
+(Worker_TP1 pid=1128109) INFO 11-11 13:46:38 [gpu_worker.py:495] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.9000 is equivalent to --gpu-memory-utilization=0.891
+(APIServer pid=1127406) WARNING 11-11 13:46:46 [api_router.py:41] Profiler with mode 'torch' is enabled in the API server. This should ONLY be used for local development!
++ echo '== server.log: python / 模块路径 =='
+== server.log: python / 模块路径 ==
++ grep -iE 'sys.executable|python3\.[0-9]+|torch [0-9]|vllm.*0\.23|cudagraph' /home/qch/scripts/timeline/4k/logs/server.log
++ cut -c1-200
++ head -12
+(APIServer pid=1127406) INFO 11-11 13:46:04 [api_utils.py:273] non-default args: {'host': '127.0.0.1', 'model': '/home/model/Qwen3-32B-W8A8/', 'trust_remote_code': True, 'max_model_len': 4096, 'quanti
+(APIServer pid=1127406) /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` 
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+(EngineCore pid=1127796) INFO 11-11 13:46:15 [core.py:114] Initializing a V1 LLM engine (v0.23.0) with config: model='/home/model/Qwen3-32B-W8A8/', speculative_config=None, tokenizer='/home/model/Qwen
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+(Worker_TP2 pid=1128110) INFO 11-11 13:46:37 [gpu_worker.py:495] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.9000 is equivalent to --gpu-memo
+(Worker_TP3 pid=1128111) INFO 11-11 13:46:37 [gpu_worker.py:495] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.9000 is equivalent to --gpu-memo
+(Worker_TP0 pid=1128108) INFO 11-11 13:46:38 [gpu_worker.py:495] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.9000 is equivalent to --gpu-memo
+(Worker_TP1 pid=1128109) INFO 11-11 13:46:38 [gpu_worker.py:495] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.9000 is equivalent to --gpu-memo
++ echo '== bench logs =='
+== bench logs ==
++ ls -l /home/qch/scripts/timeline/4k/logs
+total 60
+-rw-r--r--. 1 root root  6361 Nov 11 13:48 bench_instance0.log
+-rw-r--r--. 1 root root 48515 Nov 11 13:48 server.log
++ for b in "$R"/logs/bench*.log
++ '[' -f /home/qch/scripts/timeline/4k/logs/bench_instance0.log ']'
+++ basename /home/qch/scripts/timeline/4k/logs/bench_instance0.log
++ echo '-- bench_instance0.log --'
+-- bench_instance0.log --
++ grep -iE 'profile|Throughput|latency|TTFT|TPOT|num_prompts|Completed' /home/qch/scripts/timeline/4k/logs/bench_instance0.log
++ head -12
++ cut -c1-180
+Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfffd2bbb62a0>, trust_remote_code=True, seed=42, num_prompts=100, da
+Warmup run completed.
+Request throughput (req/s):              1.59      
+Output token throughput (tok/s):         203.41    
+Peak output token throughput (tok/s):    224.00    
+Total token throughput (tok/s):          406.82    
+Mean TTFT (ms):                          231.50    
+Median TTFT (ms):                        250.40    
+P99 TTFT (ms):                           265.26    
+Mean TPOT (ms):                          36.35     
+Median TPOT (ms):                        36.26     
+P99 TPOT (ms):                           37.36     
++ echo '== timeline_base.sh 关键行 =='
+== timeline_base.sh 关键行 ==
++ grep -nE 'profile|BENCH_PROFILE_ARGS|CASES=|NUM_PROMPTS|VLLM_HOST_OPT|VLLM_COMPACT|sample_logits|compilation-config|worker-cls' /home/qch/scripts/timeline_base.sh
++ cut -c1-180
++ head -30
+3:# timeline3.sh - vLLM timeline/profile 采集脚本(单实例版)
+11:# 可选: PYTHON_BIN / GPU_LIST / GPUS_PER_INSTANCE / PORT / NUM_PROMPTS /
+27:NUM_PROMPTS="${NUM_PROMPTS:-100}"
+32:# profile flush 较慢,官方建议 30min
+34:# PROFILE_EVERY=1 → 每个 case 都 profile
+35:# PROFILE_EVERY=N → 每 N 个 case profile 一次(idx=0, N, 2N, ...)
+38:# profile case 间隔也要拉长,否则上一个 case 的 trace 还没 flush 完,影响下一个
+41:# ============ 0.23 profiler schedule 参数 ============
+42:# vLLM 0.23 完全弃用 VLLM_TORCH_PROFILER_DIR 环境变量,改用 --profiler-config。
+43:# 关键点:warmup_iterations=0 时,vLLM 连续记录 /start_profile 到 /stop_profile
+44:# 之间的 worker iteration;模型预热由 bench serve 在 /start_profile 前完成。
+45:# warmup_iterations=0 时不启用一次性 schedule,由 stop_profile 结束并写出 trace。
+46:#   delay_iterations: /start_profile 后跳过前 N 步再开始 profile(prefill 阶段或编译)
+47:#   max_iterations  : profile 累计 N 步后自动 stop;0=不限,直到 /stop_profile
+57:PROFILE_ROOT_DIR="${PROFILE_ROOT_DIR:-${RUN_DIR}/profile}"
+70:CASES=(
+83:# 是否 profile 某个 case(沿用用户原代码的接口名 should_profile_instance,
+85:should_profile_instance() {
+126:    # vLLM 0.23+ 完全弃用 VLLM_TORCH_PROFILER_DIR 环境变量,改用 --profiler-config。
+128:    #  1. torch_profiler_dir 必须是绝对路径(0.23 内部 os.path.abspath 以 server 进程 cwd 为基准,
+132:    local profile_dir_abs
+133:    profile_dir_abs="$(cd "$(dirname "$PROFILE_DIRS")" 2>/dev/null && pwd)/$(basename "$PROFILE_DIRS")"
+135:    local profiler_config_json
+136:    profiler_config_json=$(cat <<EOF
+137:{"profiler":"torch","torch_profiler_dir":"${profile_dir_abs}","delay_iterations":${PROFILE_DELAY_ITERATIONS},"max_iterations":${PROFILE_MAX_ITERATIONS},"warmup_iterations":${PR
+141:    profiler_config_json="$(echo "$profiler_config_json" | tr -d '\n')"
+162:        --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}' \
+164:        --profiler-config "$profiler_config_json" \
+169:    log "服务 PID: $pid, 日志: $SERVER_LOG, profile 目录(绝对): $profile_dir_abs"
+170:    log "profiler-config: $profiler_config_json"
++ echo '== 当前内核（确认仍是 4K）=='
+== 当前内核（确认仍是 4K）==
++ uname -r
+6.6.0-145.3.37.168.oe2403sp3.aarch64
++ getconf PAGE_SIZE
+4096
++ set +x
+
+### exit: 0
