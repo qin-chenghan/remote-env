@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：定位 timeline_base.sh 里 profiling 关闭的原因。
+# 本次：只改 timeline_opt.sh 第 162 行的 --compilation-config，加 sample logits cudagraph。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,26 +17,45 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  F=/home/qch/scripts/timeline_base.sh
+  D=/home/qch/scripts
+  F=$(ls -t "$D"/timeline*opt*.sh 2>/dev/null | head -1)
+  echo "target=$F"
+  [ -n "$F" ] || { echo "ABORT: 没找到 timeline*opt*.sh"; exit 6; }
+  ls -l "$F"
+  echo "-- 改前第 162 行 --"
+  sed -n '162p' "$F"
 
-  echo "== profile 相关行（全文定位）=="
-  grep -nE 'BENCH_PROFILE_ARGS|profile_state|--profile|should_profile_instance|stop_profile|start_profile' "$F" 2>&1 | cut -c1-180
+  cp -a "$F" "$F.bak-cudagraph-$TS"
 
-  echo ""
-  echo "== bench 调用段（190-300 行）=="
-  sed -n '190,300p' "$F" 2>&1 | cut -c1-180
+  python3 - "$F" <<'PY'
+import sys
+p = sys.argv[1]
+lines = open(p).read().splitlines(True)
+i = 161
+if len(lines) <= i:
+    raise SystemExit("FAIL: 文件不足 162 行")
+old = lines[i]
+if "--compilation-config" not in old:
+    raise SystemExit("FAIL: 第 162 行不是 --compilation-config: " + old.strip())
+if "sample_logits_cudagraph" in old:
+    raise SystemExit("SKIP: 已包含 sample_logits_cudagraph")
+if not old.rstrip().endswith("\\"):
+    raise SystemExit("FAIL: 第 162 行未以反斜杠结尾")
+indent = old[:len(old) - len(old.lstrip())]
+new = indent + """--compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}' \\""" + "\n"
+lines[i] = new
+open(p, "w").writelines(lines)
+print("OLD:", old.rstrip())
+print("NEW:", new.rstrip())
+PY
+  echo "edit rc=$?"
 
-  echo ""
-  echo "== bench 实际命令行 =="
-  grep -nE 'bench_driver|vllm bench|bench serve|bench_instance' "$F" 2>&1 | cut -c1-180 | head -12
+  echo "-- 改后上下文 --"
+  sed -n '160,164p' "$F"
+  bash -n "$F" && echo "syntax OK"
 
-  echo ""
-  echo "== bench 日志里的 Namespace（确认参数）=="
-  head -3 /home/qch/scripts/timeline/4k/logs/bench_instance0.log 2>&1 | cut -c1-300
-
-  echo ""
-  echo "== 有没有对应的 opt 版本脚本 =="
-  ls -l /home/qch/scripts/timeline*.sh 2>&1
+  echo "-- 校验 --"
+  grep -n 'sample_logits_cudagraph' "$F" | cut -c1-200
 
   # ---- 命令结束 ----
 
