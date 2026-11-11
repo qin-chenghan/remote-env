@@ -1,0 +1,42 @@
+### server: 184
+### host:   controller
+### time:   2026-11-11T07:33:20Z
+
++ D=/home/qch/scripts
+++ ls -t /home/qch/scripts/timeline_opt.sh
+++ head -1
++ F=/home/qch/scripts/timeline_opt.sh
++ echo target=/home/qch/scripts/timeline_opt.sh
+target=/home/qch/scripts/timeline_opt.sh
++ '[' -n /home/qch/scripts/timeline_opt.sh ']'
++ ls -l /home/qch/scripts/timeline_opt.sh
+-rwxr-xr-x. 1 root root 12372 Nov 11 15:32 /home/qch/scripts/timeline_opt.sh
++ echo '-- 改前第 162 行 --'
+-- 改前第 162 行 --
++ sed -n 162p /home/qch/scripts/timeline_opt.sh
+        --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}' \
++ cp -a /home/qch/scripts/timeline_opt.sh /home/qch/scripts/timeline_opt.sh.bak-cudagraph-20261111-153320
++ python3 - /home/qch/scripts/timeline_opt.sh
+OLD:         --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}' \
+NEW:         --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}' \
++ echo 'edit rc=0'
+edit rc=0
++ echo '-- 改后上下文 --'
+-- 改后上下文 --
++ sed -n 160,164p /home/qch/scripts/timeline_opt.sh
+        --kv_cache_dtype auto \
+        --enable_chunked_prefill \
+        --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}' \
+        --async-scheduling \
+        --profiler-config "$profiler_config_json" \
++ bash -n /home/qch/scripts/timeline_opt.sh
++ echo 'syntax OK'
+syntax OK
++ echo '-- 校验 --'
+-- 校验 --
++ grep -n sample_logits_cudagraph /home/qch/scripts/timeline_opt.sh
++ cut -c1-200
+162:        --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":
++ set +x
+
+### exit: 0
