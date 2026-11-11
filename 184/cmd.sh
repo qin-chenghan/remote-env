@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：查谁在跑 vLLM、用的哪份脚本、进度与预计剩余时间。
+# 只读：定位当前压测 run 目录、进度与每 case 耗时。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,56 +17,46 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== who is logged in =="
-  who 2>&1 | head -6
+  S=$(pgrep -f 'vllmBench_lite_opt.sh' 2>/dev/null | head -1)
+  echo "script_pid=$S"
+  CWD=$(readlink "/proc/$S/cwd" 2>/dev/null)
+  echo "script_cwd=$CWD"
+  echo "started=$(ps -o lstart= -p "$S" 2>/dev/null)  elapsed=$(ps -o etime= -p "$S" 2>/dev/null)"
 
-  echo "== vllm processes =="
-  ps -eo pid,user,ppid,lstart,etime,args 2>/dev/null \
-    | grep -E 'vllm.entrypoints|bench_driver|lhctl|vllmBench' | grep -v grep | cut -c1-210 | head -12
+  echo "== its env =="
+  tr '\0' '\n' < "/proc/$S/environ" 2>/dev/null | grep -E 'TEST_ID|PREFIX|NUM_PROMPTS|NUM_WARMUPS|MAX_CONCURRENCY|GPU_LIST|HOST_MEASURE|COMPILATION' | head -12
 
-  echo "== process ancestry for the server =="
-  P=$(pgrep -f 'vllm.entrypoints.openai.api_server' 2>/dev/null | head -1)
-  echo "server_pid=$P"
-  if [ -n "$P" ]; then
-    echo "  cwd=$(readlink /proc/$P/cwd 2>&1)"
-    A=$P
-    for i in 1 2 3 4 5 6; do
-      A=$(awk '{print $4}' "/proc/$A/stat" 2>/dev/null)
-      [ -z "$A" ] && break
-      [ "$A" = "0" ] && break
-      echo "  ppid=$A $(ps -o user=,args= -p "$A" 2>/dev/null | cut -c1-180)"
-    done
-  fi
-
-  echo "== bench runs on disk =="
-  for d in /home/*/vllmBench /home/*/*/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench; do
-    [ -d "$d" ] || continue
-    ls -lt "$d" 2>/dev/null | head -4
-  done
-
-  echo "== newest run dir contents =="
-  R=$(ls -dt /home/*/vllmBench/*/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ 2>/dev/null | head -1)
+  echo "== run dirs =="
+  ls -lt "$CWD/vllmBench" 2>&1 | head -6
+  R=$(ls -dt "$CWD"/vllmBench/*/ 2>/dev/null | head -1)
   echo "RUN=$R"
-  if [ -n "$R" ] && [ -d "$R" ]; then
-    ls -la "$R" 2>&1 | head -15
-    echo "-- summary.csv --"
-    cat "$R/summary.csv" 2>&1 | head -15
-    echo "-- server.log tail --"
-    tail -5 "$R/logs/server.log" 2>&1
-    echo "-- case dirs --"
-    ls -d "$R"/case_* "$R"/litehost* 2>/dev/null | head -12
-  fi
 
-  echo "== script knobs =="
-  for S in $(ls -t /home/*/*/vllmBench_lite*.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite*.sh 2>/dev/null | head -2); do
-    echo "-- $S (mtime $(stat -c %y "$S" | cut -d. -f1))"
-    grep -nE 'NUM_PROMPTS=|NUM_WARMUPS=|MAX_CONCURRENCY=|CASE_INTERVAL=|CASES=\(|^ *"[0-9]+ [0-9]+"' "$S" 2>/dev/null | head -20
+  echo "== run contents =="
+  ls -la "$R" 2>&1 | head -20
+  echo "-- summary.csv --"
+  cat "$R/summary.csv" 2>&1 | head -15
+  echo "-- logs dir --"
+  ls -lt "$R/logs" 2>&1 | head -10
+  echo "-- server.log tail --"
+  tail -6 "$R/logs/server.log" 2>&1
+
+  echo "== case timing (dir mtimes) =="
+  for d in "$R"/*/; do
+    [ -d "$d" ] || continue
+    printf '%s  %s\n' "$(stat -c %y "$d" 2>/dev/null | cut -d. -f1)" "$(basename "$d")"
+  done | sort | head -20
+
+  echo "== bench_driver now =="
+  for p in $(pgrep -f 'bench_driver.py' 2>/dev/null); do
+    echo "pid=$p started=$(ps -o lstart= -p $p) elapsed=$(ps -o etime= -p $p)"
+    tr '\0' ' ' < "/proc/$p/cmdline" 2>/dev/null | grep -oE '--random_input_len [0-9]+|--random_output_len [0-9]+|--num_prompts [0-9]+' | tr '\n' ' '; echo
   done
 
-  echo "== bench driver args =="
-  pgrep -af 'bench_driver' 2>/dev/null | cut -c1-220 | head -3
+  echo "== session/litehost progress =="
+  ls -lt "$R"/litehost 2>&1 | head -10
+  find "$R" -maxdepth 3 -name 'session.json' -o -maxdepth 3 -name '*.csv' 2>/dev/null | head -10
 
-  echo "== gpu load =="
+  echo "== gpu =="
   ixsmi 2>&1 | sed -n '5,20p'
 
   # ---- 命令结束 ----
