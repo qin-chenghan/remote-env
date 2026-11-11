@@ -1,0 +1,62 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-11T01:33:32Z
+
++ D=/home/qch/clamp_opt
++ echo '== 1. 生成 v4/v5 探针（新文件）=='
+== 1. 生成 v4/v5 探针（新文件）==
++ cat
++ cat
++ ls -l /home/qch/clamp_opt/clamp_neon_opt_probe_v4.cpp /home/qch/clamp_opt/clamp_neon_opt_probe_v5.cpp
+-rw-r--r--. 1 root root 1363 Nov 11 09:33 /home/qch/clamp_opt/clamp_neon_opt_probe_v4.cpp
+-rw-r--r--. 1 root root 1366 Nov 11 09:33 /home/qch/clamp_opt/clamp_neon_opt_probe_v5.cpp
++ echo '== 2. 编译两个探针 =='
+== 2. 编译两个探针 ==
++ for v in v4 v5
++ g++ -std=c++14 -march=armv8.2-a+fp16+dotprod -fopenmp -O3 -shared -fPIC -o /home/qch/clamp_opt/libpreprocess_probe_v4.so /home/qch/clamp_opt/clamp_neon_opt_probe_v4.cpp
++ tail -8
++ echo 'v4 build rc=0'
+v4 build rc=0
++ ls -l /home/qch/clamp_opt/libpreprocess_probe_v4.so
+-rwxr-xr-x. 1 root root 72360 Nov 11 09:33 /home/qch/clamp_opt/libpreprocess_probe_v4.so
++ for v in v4 v5
++ g++ -std=c++14 -march=armv8.2-a+fp16+dotprod -fopenmp -O3 -shared -fPIC -o /home/qch/clamp_opt/libpreprocess_probe_v5.so /home/qch/clamp_opt/clamp_neon_opt_probe_v5.cpp
++ tail -8
++ echo 'v5 build rc=0'
+v5 build rc=0
++ ls -l /home/qch/clamp_opt/libpreprocess_probe_v5.so
+-rwxr-xr-x. 1 root root 72360 Nov 11 09:33 /home/qch/clamp_opt/libpreprocess_probe_v5.so
++ echo '== 3. 生成直接测量脚本（新文件）=='
+== 3. 生成直接测量脚本（新文件）==
++ cat
++ ls -l /home/qch/clamp_opt/clamp_neon_opt_stage_all.py
+-rw-r--r--. 1 root root 1778 Nov 11 09:33 /home/qch/clamp_opt/clamp_neon_opt_stage_all.py
++ echo '== 4. 直接测量（绑 cpu0）=='
+== 4. 直接测量（绑 cpu0）==
++ cd /home/qch/clamp_opt
++ taskset -c 0 python3 clamp_neon_opt_stage_all.py ./libpreprocess_probe.so ./libpreprocess_v2.so ./libpreprocess_probe_v4.so ./libpreprocess_probe_v5.so
++ tail -30
+
+=== 224x224 (1 thread, avg of 3 rounds) ===
+version         lut  horizontal  vertical  normalize    total
+v1(base)      0.007       0.355     0.326      0.078    0.766
+v2(vert)      0.007       0.356     0.087      0.074    0.525
+v4(tap4)      0.007       0.333     0.087      0.074    0.501
+v5(px4)       0.007       0.245     0.087      0.078    0.417
+
+=== 321x481 (1 thread, avg of 3 rounds) ===
+version         lut  horizontal  vertical  normalize    total
+v1(base)      0.011       1.029     0.465      0.082    1.587
+v2(vert)      0.011       1.029     0.178      0.081    1.300
+v4(tap4)      0.012       0.931     0.177      0.081    1.200
+v5(px4)       0.012       1.008     0.178      0.079    1.277
+
+=== 1920x1080 (1 thread, avg of 3 rounds) ===
+version         lut  horizontal  vertical  normalize    total
+v1(base)      0.039       8.789     0.975      0.089    9.892
+v2(vert)      0.039       8.793     0.483      0.089    9.404
+v4(tap4)      0.039       7.663     0.501      0.086    8.288
+v5(px4)       0.039       8.819     0.495      0.085    9.438
++ set +x
+
+### exit: 0
