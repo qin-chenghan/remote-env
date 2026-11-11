@@ -1,0 +1,53 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-11T01:54:09Z
+
++ echo '== 1. 宿主机：按文件名查找 =='
+== 1. 宿主机：按文件名查找 ==
++ find /home/qch /home/workspace -maxdepth 5 '(' -iname '*dead*' -o -iname '*sink*' -o -iname '*redund*' -o -iname '*trace*' ')'
++ head -30
+/home/qch/tools/remote-env/145/docs/dead-store-code-sink.md
++ echo '== 2. 宿主机：按内容查找关键字 =='
+== 2. 宿主机：按内容查找关键字 ==
++ grep -rIl 'DeadStore\|无效存储\|可下沉\|dead store' /home/qch /home/workspace --exclude-dir=.git
++ head -20
+/home/qch/tools/remote-env/145/docs/dead-store-code-sink.md
+/home/qch/tools/remote-env/145/cmd.sh
+/home/qch/tools/remote-env/145/tmp/20261111-095409.log
++ echo '== 3. 宿主机：projects 下最近修改的文件 =='
+== 3. 宿主机：projects 下最近修改的文件 ==
++ ls -lt /home/qch/projects
++ head -10
+total 4
+drwxr-xr-x. 6 root root 4096 Nov 10 16:52 vllm
++ ls -lt /home/qch/projects/vllm
++ head -10
+total 48
+-rw-r--r--. 1 root root  2536 Nov 10 16:52 deploy.sh
+drwxr-xr-x. 3 root root  4096 Nov 10 16:52 docs
+-rw-r--r--. 1 root root  9291 Nov 10 16:52 LICENSE
+-rw-r--r--. 1 root root  5625 Nov 10 16:52 README.md
+-rw-r--r--. 1 root root 11473 Nov 10 16:52 test_openvla_kernel.py
+drwxr-xr-x. 4 root root  4096 Nov 10 16:52 vllm
+drwxr-xr-x. 3 root root  4096 Nov 10 16:52 workplace
++ echo '== 4. 容器内：关键字搜索 =='
+== 4. 容器内：关键字搜索 ==
++ docker exec fusionv1 bash -lc '
+grep -rIl "DeadStore\|无效存储\|可下沉" /home/qch /home/workspace --exclude-dir=.git 2>/dev/null | head -20
+echo "-- projects 目录 --"
+ls -lt /home/qch/projects 2>/dev/null | head -10
+'
++ head -30
+-- projects 目录 --
+total 4
+drwxr-xr-x. 6 root root 4096 Nov 10 16:52 vllm
++ echo '== 5. trace / 采样工具迹象 =='
+== 5. trace / 采样工具迹象 ==
++ docker exec fusionv1 bash -lc '
+command -v kperf; command -v perf; command -v valgrind; command -v qemu-aarch64
+ls /opt 2>/dev/null | head -10
+'
++ head -20
++ set +x
+
+### exit: 0
