@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 203 第二轮：宿主内存充足，查显存、容器 cgroup OOM 计数、近期 run 日志里的内存报错。
+# 203 根盘满：只读盘点可回收项（不清任何东西）。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,52 +17,54 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== 1. 显存现状 =="
-  timeout 30 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | head -30
-  echo "--- 显存总览 ---"
-  timeout 30 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | grep -E 'MiB /' | head -10
+  echo "== 1. 根盘现状 =="
+  df -h /
+  df -i / | tail -1
 
-  echo "== 2. 容器 cgroup 内存与 OOM 计数 =="
-  for c in $(docker ps -q 2>/dev/null); do
-    full=$(docker inspect -f '{{.Id}}' "$c" 2>/dev/null)
-    name=$(docker inspect -f '{{.Name}}' "$c" 2>/dev/null)
-    d=/sys/fs/cgroup/docker/$full
-    [ -d "$d" ] || d=$(ls -d /sys/fs/cgroup/docker/${full:0:12}* 2>/dev/null | head -1)
-    echo "---- $name ($d)"
-    [ -d "$d" ] && {
-      printf 'memory.max=%s  current=%s\n' "$(cat "$d/memory.max" 2>/dev/null)" "$(cat "$d/memory.current" 2>/dev/null)"
-      echo -n "memory.events: "; tr '\n' ' ' < "$d/memory.events" 2>/dev/null; echo
-      echo -n "memory.swap.max: "; cat "$d/memory.swap.max" 2>/dev/null; echo
-    } || echo "cgroup dir not found"
+  echo "== 2. / 一层目录占用（排除挂载点）=="
+  for d in /usr /var /opt /data /root /etc /srv /tmp /boot; do
+    [ -d "$d" ] && du -sh "$d" 2>/dev/null
+  done
+  echo "--- /usr 二层 ---"
+  du -sh /usr/* 2>/dev/null | sort -rh | head -8
+  echo "--- /var 二层 ---"
+  du -sh /var/* 2>/dev/null | sort -rh | head -8
+  echo "--- /opt 二层 ---"
+  du -sh /opt/* 2>/dev/null | sort -rh | head -8
+  echo "--- /root 二层 ---"
+  du -sh /root/* 2>/dev/null | sort -rh | head -8
+
+  echo "== 3. 候选可回收项 =="
+  du -sh /var/cache/dnf 2>/dev/null
+  du -sh /var/log 2>/dev/null
+  journalctl --disk-usage 2>/dev/null
+  du -sh /usr/src/* 2>/dev/null | sort -rh | head -5
+  du -sh /opt/maca /opt/maca-3.3.0 /usr/local/corex-4.4.0 /usr/local/corex-5.0.0 2>/dev/null
+  du -sh /data/log 2>/dev/null
+  ls -l /lib/modules 2>/dev/null
+
+  echo "== 4. 已装内核与可删旧内核 =="
+  rpm -q kernel kernel-devel kernel-source kernel-headers 2>/dev/null | head -20
+  echo "--- /usr/src 里的 kernel 源 ---"
+  ls -d /usr/src/linux-* 2>/dev/null
+  echo "--- 当前内核 / 默认启动内核 ---"
+  uname -r
+  grubby --default-kernel 2>/dev/null || echo "no grubby"
+  echo "--- /boot ---"
+  du -sh /boot 2>/dev/null
+  ls -lt /boot 2>/dev/null | head -8
+
+  echo "== 5. 大文件（>200M，根盘，跳过挂载点）=="
+  find / -xdev -type f -size +200M 2>/dev/null | head -25 | while read -r f; do
+    du -h "$f" 2>/dev/null
   done
 
-  echo "== 3. 内核侧 iluvatar / 内存报错 =="
-  dmesg -T 2>/dev/null | grep -iE 'iluvatar|corex|oom|out of memory|alloc.*fail' | tail -25 || echo "dmesg 不可读"
+  echo "== 6. docker =="
+  docker info 2>/dev/null | grep -E 'Docker Root Dir|Storage Driver'
+  timeout 60 docker system df 2>&1 | head -8
 
-  echo "== 4. 最近一次 run 的日志里找内存类报错 =="
-  R=$(ls -dt /home/qch/scripts/litehost_perf/vllmBench/*/ 2>/dev/null | head -3)
-  echo "$R"
-  for d in $R; do
-    echo "---- $d"
-    ls -l "$d" 2>/dev/null | head -5
-    grep -iE 'out of memory|OutOfMemory|OOM|CUDA error|allocation failed|insufficient memory|memory pool' "$d/logs/server.log" 2>/dev/null | tail -5
-    tail -3 "$d/logs/server.log" 2>/dev/null
-  done
-
-  echo "== 5. 近期失败/异常痕迹 =="
-  find /home -maxdepth 5 -name 'server.log' -newermt '-3 days' 2>/dev/null | head -10 | while read -r f; do
-    n=$(grep -icE 'out of memory|oom|allocation failed' "$f" 2>/dev/null)
-    echo "$n  $f"
-  done
-
-  echo "== 6. 磁盘与日志占用（'/' 只剩几百兆，可能与报错混淆）=="
-  df -h / | tail -1
-  du -sh /var/log /var/cache/dnf 2>/dev/null | head -4
-  ls -lt /var/log 2>/dev/null | head -6
-
-  echo "== 7. 当前是否有 GPU 进程 =="
-  timeout 30 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | grep -iE 'process|python|vllm' | head -10 || echo "无进程列表输出"
-  ps -eo pid,rss,etime,args 2>/dev/null | grep -E 'vllm|bench_driver|light_host' | grep -v grep | head -5 || echo "无 vllm 进程"
+  echo "== 7. 是否有进程仍持有已删大文件 =="
+  lsof +D / 2>/dev/null | grep -i deleted | head -10 || echo "lsof 无输出或无权限"
 
   # ---- 命令结束 ----
 
