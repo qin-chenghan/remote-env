@@ -1,0 +1,179 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T09:19:14Z
+
++ C=corex5-py311
++ P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
++ echo '== 1. 参考脚本里的工具路径与清理环境 =='
+== 1. 参考脚本里的工具路径与清理环境 ==
++ dex 'grep -nE '\''^(HOST_TOOLKIT|PYTHON_BIN|HOST_LINK_PERCENT|CLEAN_ENV)='\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh'
++ timeout 300 docker exec corex5-py311 bash -c 'grep -nE '\''^(HOST_TOOLKIT|PYTHON_BIN|HOST_LINK_PERCENT|CLEAN_ENV)='\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh'
+10:PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+20:HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
+44:HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 解压完整 litehost_compat_slim_v041.zip 或设置 HOST_TOOLKIT' >&2; exit 2; }
+78:CLEAN_ENV=(env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
++ dex 'sed -n '\''/^CLEAN_ENV=/,/)$/p'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh'
++ timeout 300 docker exec corex5-py311 bash -c 'sed -n '\''/^CLEAN_ENV=/,/)$/p'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh'
+CLEAN_ENV=(env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+    -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
++ echo '== 2. 定位工具 =='
+== 2. 定位工具 ==
++ dex 'find /home -maxdepth 3 -name '\''lhctl.py'\'' -o -maxdepth 3 -name '\''analyze_litehost.py'\'' 2>/dev/null | head'
++ timeout 300 docker exec corex5-py311 bash -c 'find /home -maxdepth 3 -name '\''lhctl.py'\'' -o -maxdepth 3 -name '\''analyze_litehost.py'\'' 2>/dev/null | head'
+/home/qch/pmu_litehost_toolkit/lhctl.py
+/home/qch/pmu_litehost_toolkit/analyze_litehost.py
+/home/c00986490/litehost_perf/lhctl.py
+/home/c00986490/litehost_perf/analyze_litehost.py
+/home/z30059427/litehost_perf_py312/lhctl.py
+/home/z30059427/litehost_perf_py312/analyze_litehost.py
+/home/z30059427/litehost_perf/lhctl.py
+/home/z30059427/litehost_perf/analyze_litehost.py
+/home/g30061491/litehost_perf/lhctl.py
+/home/g30061491/litehost_perf/analyze_litehost.py
+++ timeout 60 docker exec corex5-py311 bash -c 'dirname $(find /home -maxdepth 3 -name lhctl.py 2>/dev/null | head -1)'
++ HT=/home/qch/pmu_litehost_toolkit
++ echo HOST_TOOLKIT=/home/qch/pmu_litehost_toolkit
+HOST_TOOLKIT=/home/qch/pmu_litehost_toolkit
++ '[' -d /home/qch/pmu_litehost_toolkit ']'
++ dex 'ls -l /home/qch/pmu_litehost_toolkit/lhctl.py /home/qch/pmu_litehost_toolkit/analyze_litehost.py'
++ timeout 300 docker exec corex5-py311 bash -c 'ls -l /home/qch/pmu_litehost_toolkit/lhctl.py /home/qch/pmu_litehost_toolkit/analyze_litehost.py'
+lrwxrwxrwx. 1 root root 53 Nov 10 19:16 /home/qch/pmu_litehost_toolkit/analyze_litehost.py -> /home/s00806700/litehost_perf_opt/analyze_litehost.py
+lrwxrwxrwx. 1 root root 42 Nov 10 19:16 /home/qch/pmu_litehost_toolkit/lhctl.py -> /home/s00806700/litehost_perf_opt/lhctl.py
++ echo '== 3. 补跑 summary（生成 summary.csv + logs/summary_build.log）=='
+== 3. 补跑 summary（生成 summary.csv + logs/summary_build.log）==
++ dex 'cd /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257 && env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG         -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR         /opt/corex311-cpython-vllm/bin/python /home/qch/pmu_litehost_toolkit/lhctl.py summary /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257 > /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/summary_build.log 2>&1;         echo rc=$?; tail -n 30 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/summary_build.log'
++ timeout 300 docker exec corex5-py311 bash -c 'cd /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257 && env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG         -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR         /opt/corex311-cpython-vllm/bin/python /home/qch/pmu_litehost_toolkit/lhctl.py summary /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257 > /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/summary_build.log 2>&1;         echo rc=$?; tail -n 30 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/summary_build.log'
+rc=0
+Wrote /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/summary.csv
++ echo '== 4. 补跑 analyze_litehost（生成 host_summary/）=='
+== 4. 补跑 analyze_litehost（生成 host_summary/）==
++ dex 'env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT         /opt/corex311-cpython-vllm/bin/python /home/qch/pmu_litehost_toolkit/analyze_litehost.py /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost         --link-percent 0 --out /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary --quiet; echo rc=$?'
++ timeout 300 docker exec corex5-py311 bash -c 'env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT         /opt/corex311-cpython-vllm/bin/python /home/qch/pmu_litehost_toolkit/analyze_litehost.py /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost         --link-percent 0 --out /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary --quiet; echo rc=$?'
+rc=0
++ echo '== 5. 产出检查 =='
+== 5. 产出检查 ==
++ dex 'ls -la --time-style=full-iso /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/summary.csv /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary 2>&1'
++ timeout 300 docker exec corex5-py311 bash -c 'ls -la --time-style=full-iso /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/summary.csv /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary 2>&1'
+-rw-r--r--. 1 root root 2881 2026-11-12 17:19:15.229240064 +0800 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/summary.csv
+
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary:
+total 136
+drwxr-xr-x. 2 root root  4096 2026-11-12 17:19:25.529240064 +0800 .
+drwxr-xr-x. 6 root root  4096 2026-11-12 17:19:25.525240064 +0800 ..
+-rw-r--r--. 1 root root  4351 2026-11-12 17:19:25.525240064 +0800 four_rank_totals.csv
+-rw-r--r--. 1 root root 19349 2026-11-12 17:19:25.525240064 +0800 per_rank.csv
+-rw-r--r--. 1 root root  8885 2026-11-12 17:19:25.525240064 +0800 report.txt
+-rw-------. 1 root root 88644 2026-11-12 17:19:25.529240064 +0800 summary.json
++ echo '--- summary.csv ---'
+--- summary.csv ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/summary.csv 2>&1 | head -20'
++ timeout 300 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/summary.csv 2>&1 | head -20'
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261112_150257,bs8_in1024_out1024,100,560.7147570199995,0.17834379913855775,182.62405031788313,365.24810063576626,716.0869093002475,674.7565450004913,1757.5405877003868,41.73242898260014,42.009576344085765,42.47510478064289,41.73242910821093,40.526034999857075,47.895240900797944
+litehost_gap_20261112_150257,bs8_in1024_out128,100,84.13555216999885,1.1885581947325488,152.13544892576624,1369.2190403318962,712.8486033002628,674.0922500011948,1758.0002128996784,45.915773376376684,46.149652322844666,49.5614173921247,45.91577438897658,38.62519499853079,226.25702779740095
+litehost_gap_20261112_150257,bs8_in1024_out2048,100,1075.6622054,0.09296598829816988,190.3943440346519,285.59151605197786,714.5238435000647,675.1099399989471,1758.1401500005813,40.27718577811426,40.466114633609855,40.741580038689904,40.27718584386904,39.4525399988197,45.90061039907596
+litehost_gap_20261112_150257,bs8_in128_out1024,100,526.2999685700015,0.19000571151791606,194.56584859434605,218.8865796686393,241.70983109997906,260.79674000084196,281.3609465002628,39.50997837917889,39.68276269305919,39.848184455717366,39.5099784988269,39.142859999628854,44.47232010163134
+litehost_gap_20261112_150257,bs8_in128_out128,100,74.03838711999924,1.3506507082322436,172.8832906537272,345.7665813074544,242.52089970012094,260.71545500053617,275.1722119999613,43.26797901338497,43.49520342519844,44.60452657007566,43.26797991732174,43.530830000236165,47.28452540017315
+litehost_gap_20261112_150257,bs8_in128_out2048,100,1064.2708786500007,0.09396104131576666,192.43221261469012,204.45922590310826,233.11450390010577,269.70107499982987,286.1775969984956,40.07058544567652,40.27564565705971,40.39039677870109,40.07058550337068,39.645809999456105,45.342790299273474
+litehost_gap_20261112_150257,bs8_in2048_out1024,100,557.732775970002,0.17929733433019288,183.6004703541175,550.8014110623525,1494.5446360001006,1592.3283399988577,3568.698922000149,40.73083733567943,40.68933937439093,41.87100220977211,40.73083746529835,39.08130499985418,44.72883010199439
+litehost_gap_20261112_150257,bs8_in2048_out128,100,104.99175155000194,0.952455774131698,121.91433908885735,2072.543764510575,1495.2467269000772,1597.2692949999328,3573.368250199856,52.816627258268184,50.78158625984205,60.25714652204578,52.81662822913357,37.4061550010083,448.10379080045095
+litehost_gap_20261112_150257,bs8_in2048_out2048,100,1067.1270528000023,0.09370955383205123,191.91716624804093,383.83433249608186,1496.3849114001277,1601.4847499991447,3574.809096499703,39.55219709623833,39.59927307034686,40.18295136946758,39.55219715930626,38.61932000108936,43.21805269930337
++ echo '--- host_summary/report.txt ---'
+--- host_summary/report.txt ---
++ dex 'head -60 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary/report.txt 2>&1'
++ timeout 300 docker exec corex5-py311 bash -c 'head -60 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary/report.txt 2>&1'
+H = T - S + S * 0/100. Formal scopes only. Unit = SECONDS.
+G = sum(start_next - end_current) across adjacent formal scopes on EACH rank.
+H+G = H_total + G_total (gap wall time included; sync/idle within G NOT removed).
+Primary H remains unchanged; four-rank means are TOTAL seconds, NOT per iteration or instance latency.
+
+CASE: bs8_in1024_out1024  run_id=89c6894f77044282b3e2c679026b6c0e
+  rank0 pid=900029 formal=13342 warmup_excluded=2058 T_total=552.871396s S_total=533.068630s H_total=19.802767s G_total=7.829389s H+G=27.632156s
+  rank1 pid=900030 formal=13342 warmup_excluded=2058 T_total=552.797366s S_total=533.546599s H_total=19.250767s G_total=7.903404s H+G=27.154171s
+  rank2 pid=900031 formal=13342 warmup_excluded=2058 T_total=551.532765s S_total=530.928919s H_total=20.603847s G_total=9.167979s H+G=29.771826s
+  rank3 pid=900032 formal=13342 warmup_excluded=2058 T_total=550.583007s S_total=529.931988s H_total=20.651019s G_total=10.117788s H+G=30.768807s
+  all_formal       four_rank_mean_total_H_s=20.077100
+  graph_formal     four_rank_mean_total_H_s=16.537725
+  no_graph_formal  four_rank_mean_total_H_s=3.539375
+FINAL [bs8_in1024_out1024]: four_rank_mean_total_H_s = 20.077100 s G_total=8.754640s H+G=28.831740s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in1024_out128  run_id=d2770c418d42461da466b30a65aa2bc3
+  rank0 pid=900029 formal=1694 warmup_excluded=266 T_total=83.040431s S_total=77.555172s H_total=5.485258s G_total=1.081657s H+G=6.566915s
+  rank1 pid=900030 formal=1694 warmup_excluded=266 T_total=83.048986s S_total=77.631344s H_total=5.417642s G_total=1.073087s H+G=6.490729s
+  rank2 pid=900031 formal=1694 warmup_excluded=266 T_total=82.926533s S_total=77.282066s H_total=5.644467s G_total=1.195510s H+G=6.839977s
+  rank3 pid=900032 formal=1694 warmup_excluded=266 T_total=82.938371s S_total=77.186341s H_total=5.752030s G_total=1.183686s H+G=6.935716s
+  all_formal       four_rank_mean_total_H_s=5.574849
+  graph_formal     four_rank_mean_total_H_s=2.051029
+  no_graph_formal  four_rank_mean_total_H_s=3.523820
+FINAL [bs8_in1024_out128]: four_rank_mean_total_H_s = 5.574849 s G_total=1.133485s H+G=6.708334s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in1024_out2048  run_id=64c739778fc84e49af7dcdbc306d0510
+  rank0 pid=900029 formal=26654 warmup_excluded=4106 T_total=1059.940985s S_total=1023.579434s H_total=36.361551s G_total=15.707129s H+G=52.068680s
+  rank1 pid=900030 formal=26654 warmup_excluded=4106 T_total=1060.079803s S_total=1024.790914s H_total=35.288890s G_total=15.568293s H+G=50.857182s
+  rank2 pid=900031 formal=26654 warmup_excluded=4106 T_total=1057.397695s S_total=1019.622889s H_total=37.774806s G_total=18.250407s H+G=56.025213s
+  rank3 pid=900032 formal=26654 warmup_excluded=4106 T_total=1055.288017s S_total=1017.278761s H_total=38.009256s G_total=20.360086s H+G=58.369342s
+  all_formal       four_rank_mean_total_H_s=36.858626
+  graph_formal     four_rank_mean_total_H_s=33.351971
+  no_graph_formal  four_rank_mean_total_H_s=3.506654
+FINAL [bs8_in1024_out2048]: four_rank_mean_total_H_s = 36.858626 s G_total=17.471479s H+G=54.330104s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in128_out1024  run_id=5d8b3cbc5a234e44a0871269fe37c1b5
+  rank0 pid=900029 formal=13340 warmup_excluded=2054 T_total=518.214437s S_total=500.608832s H_total=17.605605s G_total=8.074232s H+G=25.679837s
+  rank1 pid=900030 formal=13340 warmup_excluded=2054 T_total=518.232630s S_total=501.504165s H_total=16.728465s G_total=8.056037s H+G=24.784502s
+  rank2 pid=900031 formal=13340 warmup_excluded=2054 T_total=517.836991s S_total=502.210620s H_total=15.626371s G_total=8.451622s H+G=24.077993s
+  rank3 pid=900032 formal=13340 warmup_excluded=2054 T_total=517.673250s S_total=500.432709s H_total=17.240541s G_total=8.615401s H+G=25.855942s
+  all_formal       four_rank_mean_total_H_s=16.800246
+  graph_formal     four_rank_mean_total_H_s=15.870537
+  no_graph_formal  four_rank_mean_total_H_s=0.929708
+FINAL [bs8_in128_out1024]: four_rank_mean_total_H_s = 16.800246 s G_total=8.299323s H+G=25.099569s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in128_out128  run_id=4a74edd1f8b041e997895a13f1eb59d3
+  rank0 pid=900029 formal=1692 warmup_excluded=262 T_total=73.063818s S_total=70.031977s H_total=3.031841s G_total=0.963524s H+G=3.995365s
+  rank1 pid=900030 formal=1692 warmup_excluded=262 T_total=72.936958s S_total=70.030245s H_total=2.906713s G_total=1.090337s H+G=3.997050s
+  rank2 pid=900031 formal=1692 warmup_excluded=262 T_total=72.836036s S_total=69.825719s H_total=3.010317s G_total=1.191254s H+G=4.201571s
+  rank3 pid=900032 formal=1692 warmup_excluded=262 T_total=72.860876s S_total=69.796669s H_total=3.064207s G_total=1.166449s H+G=4.230656s
+  all_formal       four_rank_mean_total_H_s=3.003269
+  graph_formal     four_rank_mean_total_H_s=2.077672
+  no_graph_formal  four_rank_mean_total_H_s=0.925597
+FINAL [bs8_in128_out128]: four_rank_mean_total_H_s = 3.003269 s G_total=1.102891s H+G=4.106161s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in128_out2048  run_id=c5a4b2971b9d42338bb4d77751371e3f
+  rank0 pid=900029 formal=26652 warmup_excluded=4102 T_total=1048.338420s S_total=1014.025122s H_total=34.313298s G_total=15.920321s H+G=50.233619s
+  rank1 pid=900030 formal=26652 warmup_excluded=4102 T_total=1047.802016s S_total=1014.395309s H_total=33.406707s G_total=16.456739s H+G=49.863446s
+  rank2 pid=900031 formal=26652 warmup_excluded=4102 T_total=1046.931729s S_total=1015.037727s H_total=31.894002s G_total=17.327013s H+G=49.221014s
+  rank3 pid=900032 formal=26652 warmup_excluded=4102 T_total=1046.370975s S_total=1010.521364s H_total=35.849611s G_total=17.887738s H+G=53.737349s
++ echo '--- host_summary/four_rank_totals.csv ---'
+--- host_summary/four_rank_totals.csv ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary/four_rank_totals.csv 2>&1'
++ timeout 300 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary/four_rank_totals.csv 2>&1'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,all_formal,0.0,4,13342,551.946133645,531.8690338425,20.0770998025,8.7546401625,28.831739965,19.25076693,20.65101904
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,graph_formal,0.0,4,13249,532.95436281,516.4166381225,16.5377246875,,,15.79092043,17.02924875
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,no_graph_formal,0.0,4,93,18.991770835,15.45239572,3.539375115,,,3.45110377,3.6247799
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,all_formal,0.0,4,1694,82.9885801325,77.413730785,5.5748493475,1.133484865,6.7083342125000005,5.41764212,5.75202958
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,graph_formal,0.0,4,1601,64.10052115,62.04949197,2.05102918,,,1.99223175,2.11683273
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,no_graph_formal,0.0,4,93,18.8880589825,15.364238815,3.5238201675,,,3.42374406,3.63519685
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,all_formal,0.0,4,26654,1058.176624965,1021.3179994525,36.8586255125,17.4714785775,54.330104090000006,35.28888957,38.00925577
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,graph_formal,0.0,4,26561,1039.2661046575,1005.9141334575,33.3519712,,,31.88216976,34.39995337
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,no_graph_formal,0.0,4,93,18.9105203075,15.403865995,3.5066543125,,,3.40671981,3.6093024
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,all_formal,0.0,4,13340,517.9893268425,501.1890813225,16.800245519999997,8.299323165,25.099568684999998,15.62637144,17.60560459
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,graph_formal,0.0,4,13312,516.3729363150001,500.50239913250005,15.8705371825,,,14.70341685,16.67934904
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,no_graph_formal,0.0,4,28,1.6163905275,0.68668219,0.9297083375,,,0.91651186,0.95311135
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,all_formal,0.0,4,1692,72.92442203,69.921152585,3.003269445,1.102891065,4.10616051,2.90671299,3.06420683
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,graph_formal,0.0,4,1664,71.25606623499999,69.17839404,2.077672195,,,1.99866046,2.12579965
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,no_graph_formal,0.0,4,28,1.668355795,0.7427585449999999,0.92559725,,,0.90805253,0.93840718
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,all_formal,0.0,4,26652,1047.3607850725,1013.4948805825,33.86590449,16.897952545,50.763857035,31.89400196,35.8496112
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,graph_formal,0.0,4,26611,1045.1306122775,1012.684334115,32.4462781625,,,30.5077461,34.35847785
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,no_graph_formal,0.0,4,41,2.230172795,0.8105464675,1.4196263275,,,1.38625586,1.49113335
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,all_formal,0.0,4,13355,548.830826215,527.27572732,21.555098895,8.8889778025,30.4440766975,21.24631632,21.77387202
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,graph_formal,0.0,4,13228,502.9664607625,486.2201611475,16.746299614999998,,,16.53213985,17.01245426
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,no_graph_formal,0.0,4,127,45.8643654525,41.0555661725,4.808799280000001,,,4.71417647,4.90255941
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,all_formal,0.0,4,1707,103.79659275750001,97.009865805,6.7867269525000005,1.17635398,7.9630809325000005,6.55055891,6.95602624
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,graph_formal,0.0,4,1580,57.90187597,55.892018895,2.009857075,,,1.92712254,2.0737327
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,no_graph_formal,0.0,4,127,45.8947167875,41.11784691,4.7768698775,,,4.62343637,4.93813138
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,all_formal,0.0,4,26667,1050.49926107,1012.61175489,37.88750618,16.6102329325,54.4977391125,36.78437605,38.63427575
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,graph_formal,0.0,4,26540,1004.6260554749999,971.4937213000001,33.132334175,,,32.13596523,34.02714819
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,no_graph_formal,0.0,4,127,45.873205595,41.118033589999996,4.755172005,,,4.60712756,4.89369683
++ set +x
+
+### exit: 0
