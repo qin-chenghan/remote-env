@@ -1,0 +1,33 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T06:09:44Z
+
++ T=/home/qch/scripts/timeline
+++ ls /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
+++ head -1
++ A=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
+++ ls /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
+++ head -1
++ B=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
++ echo A=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
+A=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
++ echo B=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
+B=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
++ '[' -n /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz ']'
++ '[' -n /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz ']'
++ python3 /home/qch/tools/remote-env/184/trace_phase_split.py /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz 4k2 64k2
+[4k2] steps=1692 prefill=50 decode=1642
+  prefill n=   50 T_mean=  100.76ms T_med= 121.30ms S=  73.725ms H=   27.03ms cpu_op=  13.03ms py= 107.96ms rt= 78.36ms
+  decode  n= 1642 T_mean=   41.80ms T_med=  42.51ms S=   0.105ms H=   41.70ms cpu_op=   0.73ms py=  89.62ms rt= 80.01ms
+[64k2] steps=1692 prefill=45 decode=1647
+  prefill n=   45 T_mean=  110.18ms T_med= 143.70ms S=  76.427ms H=   33.76ms cpu_op=  17.94ms py= 447.10ms rt= 80.56ms
+  decode  n= 1647 T_mean=   41.65ms T_med=  42.33ms S=   0.103ms H=   41.54ms cpu_op=   0.81ms py=  82.81ms rt= 79.71ms
+
+== 跨条件对比（B - A）==
+  prefill T 100.76->110.18ms (+9.35%)  S 73.725->76.427ms (+3.66%)  H 27.03->33.76ms (+24.87%)
+          cpu_op +37.6%  py +314.1%  rt +2.8%
+  decode  T 41.80->41.65ms (-0.38%)  S 0.105->0.103ms (-1.44%)  H 41.70->41.54ms (-0.37%)
+          cpu_op +9.9%  py -7.6%  rt -0.4%
++ set +x
+
+### exit: 0
