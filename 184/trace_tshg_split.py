@@ -94,7 +94,7 @@ def analyze(path, label):
     for i, (s, e) in enumerate(steps):
         j = bisect.bisect_left(ar_sorted, s)
         step_phase[i] = "prefill" if (j < len(ar_sorted) and ar_sorted[j] < e) else "decode"
-        step_data[i] = {"T": e - s, "S": 0.0, "G": 0.0}
+        step_data[i] = {"T": e - s, "S": 0.0, "G": 0.0, "iv": []}
     for i in range(nsteps - 1):
         gap = steps[i + 1][0] - steps[i][1]
         if gap > 0:
@@ -104,6 +104,8 @@ def analyze(path, label):
     for ts, dur, name, cat, selfd in self_time(ev):
         if dur <= 0 or not is_sync(name):
             continue
+        sync_by_name[name] += selfd
+        # 用"事件整段区间"做并集（sync 的 self 占比通常接近整段）
         end = ts + dur
         i = bisect.bisect_right(starts, ts) - 1
         k = i if i >= 0 else 0
@@ -112,10 +114,25 @@ def analyze(path, label):
             lo = max(ts, s)
             hi = min(end, e)
             if hi > lo:
-                part = selfd * (hi - lo) / dur
-                step_data[k]["S"] += part
+                step_data[k]["iv"].append((lo, hi))
             k += 1
-        sync_by_name[name] += selfd
+
+    # 每步内 sync 区间的墙钟并集
+    for p_ in step_data.values():
+        ivs = sorted(p_["iv"])
+        tot = 0.0
+        cur_lo = cur_hi = None
+        for lo, hi in ivs:
+            if cur_lo is None:
+                cur_lo, cur_hi = lo, hi
+            elif lo <= cur_hi:
+                cur_hi = max(cur_hi, hi)
+            else:
+                tot += cur_hi - cur_lo
+                cur_lo, cur_hi = lo, hi
+        if cur_lo is not None:
+            tot += cur_hi - cur_lo
+        p_["S"] = tot
 
     res = {}
     for ph in ("prefill", "decode"):
