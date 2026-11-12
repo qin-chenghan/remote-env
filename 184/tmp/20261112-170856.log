@@ -1,0 +1,107 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T09:08:56Z
+
++ P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
++ echo '== 1. 路径本身 =='
+== 1. 路径本身 ==
++ ls -ld /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
+ls: cannot access '/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257': No such file or directory
++ readlink -f /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
++ '[' -L /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257 ']'
++ du -sh /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
++ echo 顶层内容:
+顶层内容:
++ ls -la /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
+ls: cannot access '/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257': No such file or directory
++ echo '== 2. 文件清单（相对路径 + 大小 + 时间）=='
+== 2. 文件清单（相对路径 + 大小 + 时间）==
++ cd /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
++ head -60
+++ find /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257 -type f
+++ wc -l
++ echo '文件数: 0'
+文件数: 0
++ echo '== 3. 关键文件内容 =='
+== 3. 关键文件内容 ==
++ for f in config.txt summary.csv meta.json
++ '[' -f /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/config.txt ']'
++ for f in config.txt summary.csv meta.json
++ '[' -f /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/summary.csv ']'
++ for f in config.txt summary.csv meta.json
++ '[' -f /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/meta.json ']'
++ echo '--- host_summary 目录 ---'
+--- host_summary 目录 ---
++ ls -la /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary
++ for f in "$P"/host_summary/*
++ '[' -f '/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary/*' ']'
++ echo '== 4. 和已保全的那次（145924）对比 =='
+== 4. 和已保全的那次（145924）对比 ==
++ R=/home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924
++ '[' -d /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924 ']'
+++ find /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924 -type f
+++ wc -l
+++ du -sh /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924
+++ cut -f1
++ echo '145924 文件数: 33   1.9M'
+145924 文件数: 33   1.9M
+++ find /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257 -type f
+++ wc -l
+++ du -sh /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
+++ cut -f1
++ echo '150257 文件数: 0   '
+150257 文件数: 0   
++ echo '-- 两边顶层目录 --'
+-- 两边顶层目录 --
++ head -40
++ diff /dev/fd/63 /dev/fd/62
+++ cd /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924
+++ cd /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
+./cmd.sh: line 50: cd: /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257: No such file or directory
+++ find . -maxdepth 2
+++ sort
+1,24d0
+< .
+< ./bench.process.json
+< ./bs8_in128_out128.json
+< ./config.txt
+< ./control
+< ./control/rank0.ready.json
+< ./control/rank1.ready.json
+< ./control/rank2.ready.json
+< ./control/rank3.ready.json
+< ./host_summary
+< ./host_summary/four_rank_totals.csv
+< ./host_summary/per_rank.csv
+< ./host_summary/report.txt
+< ./host_summary/summary.json
+< ./litehost
+< ./litehost/bs8_in128_out128
+< ./logs
+< ./logs/bench_bs8_in128_out128.log
+< ./logs/preflight.log
+< ./logs/server.log
+< ./logs/summary_build.log
+< ./server.process.json
+< ./session.json
+< ./summary.csv
++ echo '== 5. 归属与时间 =='
+== 5. 归属与时间 ==
++ stat -c '%U:%G  %y  %n' /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
+++ dirname /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
++ stat -c '%U:%G  %y  %n' /usr/local/corex-5.0.0/vllmBench
++ echo '== 6. 清理仓库里的第三方数据副本（不该上库）=='
+== 6. 清理仓库里的第三方数据副本（不该上库）==
++ EX=/home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full
+++ ls -t /home/qch/backup/litehost_gap_20261112_145924-20261112-170114.tar.gz
+++ head -1
++ TAR=/home/qch/backup/litehost_gap_20261112_145924-20261112-170114.tar.gz
++ '[' -d /home/qch/tools/remote-env/184/export ']'
++ '[' -d /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924 ']'
++ '[' -f /home/qch/backup/litehost_gap_20261112_145924-20261112-170114.tar.gz ']'
++ rm -rf /home/qch/tools/remote-env/184/export
++ echo '已删除 /home/qch/tools/remote-env/184/export（原始目录+tar 均在）'
+已删除 /home/qch/tools/remote-env/184/export（原始目录+tar 均在）
++ set +x
+
+### exit: 0
