@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 补跑 150257 缺失的两步聚合：lhctl.py summary + analyze_litehost.py（写回原位置）。
+# 查 corex5-py311 里 /usr/local/corex-5.0.0/vllmBench 是否落在 host 上，以及实际路径。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,38 +19,31 @@ mkdir -p "$DIR/tmp"
   # ---- 命令开始 ----
   C=corex5-py311
   P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
-  dex() { timeout 300 docker exec "$C" bash -c "$1"; }
 
-  echo "== 1. 参考脚本里的工具路径与清理环境 =="
-  dex "grep -nE '^(HOST_TOOLKIT|PYTHON_BIN|HOST_LINK_PERCENT|CLEAN_ENV)=' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh"
-  dex "sed -n '/^CLEAN_ENV=/,/)$/p' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh"
+  echo "== 1. 容器的挂载表 =="
+  docker inspect "$C" --format '{{range .Mounts}}{{.Type}}  {{.Source}} -> {{.Destination}}  (rw={{.RW}}){{println}}{{end}}'
+  echo "-- /usr/local 是否被单独挂载 --"
+  docker inspect "$C" --format '{{range .Mounts}}{{if eq .Destination "/usr/local"}}{{.Source}} -> /usr/local{{end}}{{end}}'
 
-  echo "== 2. 定位工具 =="
-  dex "find /home -maxdepth 3 -name 'lhctl.py' -o -maxdepth 3 -name 'analyze_litehost.py' 2>/dev/null | head"
-  HT=$(timeout 60 docker exec "$C" bash -c "dirname \$(find /home -maxdepth 3 -name lhctl.py 2>/dev/null | head -1)")
-  echo "HOST_TOOLKIT=$HT"
-  [ -d "$HT" ] || { echo "找不到工具目录，结束"; exit 3; }
-  dex "ls -l $HT/lhctl.py $HT/analyze_litehost.py"
+  echo "== 2. 容器的存储驱动与可写层 =="
+  docker inspect "$C" --format 'driver={{.GraphDriver.Name}}{{println}}{{range $k,$v := .GraphDriver.Data}}{{$k}}={{$v}}{{println}}{{end}}'
+  UP=$(docker inspect "$C" --format '{{.GraphDriver.Data.UpperDir}}')
+  echo "UPPERDIR=$UP"
 
-  echo "== 3. 补跑 summary（生成 summary.csv + logs/summary_build.log）=="
-  dex "cd $P && env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG \
-        -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR \
-        /opt/corex311-cpython-vllm/bin/python $HT/lhctl.py summary $P > $P/logs/summary_build.log 2>&1; \
-        echo rc=\$?; tail -n 30 $P/logs/summary_build.log"
+  echo "== 3. host 上可写层里的实际路径 =="
+  ls -ld "$UP/usr/local/corex-5.0.0" "$UP/usr/local/corex-5.0.0/vllmBench" "$UP/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257" 2>&1
+  du -sh "$UP/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257" 2>&1
+  echo "-- 从 host 直接看文件数 --"
+  find "$UP/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257" -type f 2>/dev/null | wc -l
+  echo "-- 从 host 直接读 summary.csv --"
+  head -3 "$UP/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/summary.csv" 2>&1
 
-  echo "== 4. 补跑 analyze_litehost（生成 host_summary/）=="
-  dex "env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT \
-        /opt/corex311-cpython-vllm/bin/python $HT/analyze_litehost.py $P/litehost \
-        --link-percent 0 --out $P/host_summary --quiet; echo rc=\$?"
+  echo "== 4. host 上是否还有别的同名副本 =="
+  find /var/lib/docker /home /usr/local /data /opt -maxdepth 8 -name 'litehost_gap_20261112_150257' 2>/dev/null | head -10
 
-  echo "== 5. 产出检查 =="
-  dex "ls -la --time-style=full-iso $P/summary.csv $P/host_summary 2>&1"
-  echo "--- summary.csv ---"
-  dex "cat $P/summary.csv 2>&1 | head -20"
-  echo "--- host_summary/report.txt ---"
-  dex "head -60 $P/host_summary/report.txt 2>&1"
-  echo "--- host_summary/four_rank_totals.csv ---"
-  dex "cat $P/host_summary/four_rank_totals.csv 2>&1"
+  echo "== 5. 挂载点列表（确认 /home 是哪个 bind）=="
+  findmnt -T /home/qch -o TARGET,SOURCE,FSTYPE 2>/dev/null
+  findmnt -T /usr/local -o TARGET,SOURCE,FSTYPE 2>/dev/null
 
   # ---- 命令结束 ----
 
