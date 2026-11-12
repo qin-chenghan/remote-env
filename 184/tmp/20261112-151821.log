@@ -1,0 +1,260 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T07:18:21Z
+
++ D=/home/qch/scripts/timeline
++ T=/home/qch/scripts/timeline
++ echo '################ PART 1: vllmBench 报告 ################'
+################ PART 1: vllmBench 报告 ################
++ for f in "$D/261109_oe-2403-sp3_report.txt" "$D/261110-2403_sp3-64k-report.txt"
++ echo ''
+
+++ basename /home/qch/scripts/timeline/261109_oe-2403-sp3_report.txt
++ echo '################ 261109_oe-2403-sp3_report.txt ################'
+################ 261109_oe-2403-sp3_report.txt ################
++ ls -l /home/qch/scripts/timeline/261109_oe-2403-sp3_report.txt
+-rw-r--r--. 1 root root 8899 Nov 12 15:08 /home/qch/scripts/timeline/261109_oe-2403-sp3_report.txt
++ cat /home/qch/scripts/timeline/261109_oe-2403-sp3_report.txt
+H = T - S + S * 0/100. Formal scopes only. Unit = SECONDS.
+G = sum(start_next - end_current) across adjacent formal scopes on EACH rank.
+H+G = H_total + G_total (gap wall time included; sync/idle within G NOT removed).
+Primary H remains unchanged; four-rank means are TOTAL seconds, NOT per iteration or instance latency.
+
+CASE: bs8_in1024_out1024  run_id=a50af23962c04db58c4ec3be106048c2
+  rank0 pid=1142613 formal=13342 warmup_excluded=2058 T_total=505.427963s S_total=484.020706s H_total=21.407257s G_total=8.457445s H+G=29.864702s
+  rank1 pid=1142614 formal=13342 warmup_excluded=2058 T_total=505.386427s S_total=485.263408s H_total=20.123019s G_total=8.498923s H+G=28.621942s
+  rank2 pid=1142615 formal=13342 warmup_excluded=2058 T_total=504.759045s S_total=483.538884s H_total=21.220161s G_total=9.126303s H+G=30.346464s
+  rank3 pid=1142616 formal=13342 warmup_excluded=2058 T_total=504.798900s S_total=483.863026s H_total=20.935874s G_total=9.086488s H+G=30.022362s
+  all_formal       four_rank_mean_total_H_s=20.921578
+  graph_formal     four_rank_mean_total_H_s=17.141953
+  no_graph_formal  four_rank_mean_total_H_s=3.779625
+FINAL [bs8_in1024_out1024]: four_rank_mean_total_H_s = 20.921578 s G_total=8.792290s H+G=29.713867s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in1024_out128  run_id=4e5e89367c3e49759a70176541e6be71
+  rank0 pid=1142613 formal=1694 warmup_excluded=266 T_total=79.900427s S_total=74.021447s H_total=5.878980s G_total=1.126306s H+G=7.005286s
+  rank1 pid=1142614 formal=1694 warmup_excluded=266 T_total=79.905622s S_total=73.914747s H_total=5.990874s G_total=1.121136s H+G=7.112010s
+  rank2 pid=1142615 formal=1694 warmup_excluded=266 T_total=79.857308s S_total=73.963975s H_total=5.893333s G_total=1.169400s H+G=7.062733s
+  rank3 pid=1142616 formal=1694 warmup_excluded=266 T_total=79.851795s S_total=74.003000s H_total=5.848795s G_total=1.174879s H+G=7.023673s
+  all_formal       four_rank_mean_total_H_s=5.902995
+  graph_formal     four_rank_mean_total_H_s=2.143886
+  no_graph_formal  four_rank_mean_total_H_s=3.759109
+FINAL [bs8_in1024_out128]: four_rank_mean_total_H_s = 5.902995 s G_total=1.147930s H+G=7.050925s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in1024_out2048  run_id=96771e1b94044b4ebaa92f3a0a0819a0
+  rank0 pid=1142613 formal=26654 warmup_excluded=4106 T_total=985.090007s S_total=945.957070s H_total=39.132937s G_total=16.874666s H+G=56.007603s
+  rank1 pid=1142614 formal=26654 warmup_excluded=4106 T_total=984.890750s S_total=947.653329s H_total=37.237421s G_total=17.073911s H+G=54.311332s
+  rank2 pid=1142615 formal=26654 warmup_excluded=4106 T_total=983.931604s S_total=945.514724s H_total=38.416880s G_total=18.033039s H+G=56.449919s
+  rank3 pid=1142616 formal=26654 warmup_excluded=4106 T_total=983.742872s S_total=945.659603s H_total=38.083269s G_total=18.221763s H+G=56.305033s
+  all_formal       four_rank_mean_total_H_s=38.217627
+  graph_formal     four_rank_mean_total_H_s=34.443690
+  no_graph_formal  four_rank_mean_total_H_s=3.773937
+FINAL [bs8_in1024_out2048]: four_rank_mean_total_H_s = 38.217627 s G_total=17.550845s H+G=55.768472s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in128_out1024  run_id=90f9fd7b6c0644dc93667054aeb92407
+  rank0 pid=1142613 formal=13340 warmup_excluded=2054 T_total=477.308540s S_total=458.515968s H_total=18.792572s G_total=7.830242s H+G=26.622815s
+  rank1 pid=1142614 formal=13340 warmup_excluded=2054 T_total=476.339832s S_total=458.314209s H_total=18.025623s G_total=8.798903s H+G=26.824526s
+  rank2 pid=1142615 formal=13340 warmup_excluded=2054 T_total=476.046817s S_total=457.563272s H_total=18.483545s G_total=9.091918s H+G=27.575463s
+  rank3 pid=1142616 formal=13340 warmup_excluded=2054 T_total=476.057253s S_total=457.662064s H_total=18.395189s G_total=9.081498s H+G=27.476687s
+  all_formal       four_rank_mean_total_H_s=18.424232
+  graph_formal     four_rank_mean_total_H_s=17.397795
+  no_graph_formal  four_rank_mean_total_H_s=1.026437
+FINAL [bs8_in128_out1024]: four_rank_mean_total_H_s = 18.424232 s G_total=8.700640s H+G=27.124873s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in128_out128  run_id=7bcadd562ea043888479cbac8ea6fdac
+  rank0 pid=1142613 formal=1692 warmup_excluded=262 T_total=61.036831s S_total=57.733025s H_total=3.303806s G_total=1.076582s H+G=4.380387s
+  rank1 pid=1142614 formal=1692 warmup_excluded=262 T_total=61.004310s S_total=57.958758s H_total=3.045551s G_total=1.109101s H+G=4.154652s
+  rank2 pid=1142615 formal=1692 warmup_excluded=262 T_total=60.928061s S_total=57.776654s H_total=3.151408s G_total=1.185350s H+G=4.336758s
+  rank3 pid=1142616 formal=1692 warmup_excluded=262 T_total=60.936957s S_total=57.787207s H_total=3.149750s G_total=1.176471s H+G=4.326221s
+  all_formal       four_rank_mean_total_H_s=3.162629
+  graph_formal     four_rank_mean_total_H_s=2.149291
+  no_graph_formal  four_rank_mean_total_H_s=1.013337
+FINAL [bs8_in128_out128]: four_rank_mean_total_H_s = 3.162629 s G_total=1.136876s H+G=4.299505s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in128_out2048  run_id=04a1017d14074b2fa1d7d1d9470db2c1
+  rank0 pid=1142613 formal=26652 warmup_excluded=4102 T_total=962.496221s S_total=925.816758s H_total=36.679463s G_total=16.292013s H+G=52.971476s
+  rank1 pid=1142614 formal=26652 warmup_excluded=4102 T_total=961.709095s S_total=927.601868s H_total=34.107227s G_total=17.085861s H+G=51.193088s
+  rank2 pid=1142615 formal=26652 warmup_excluded=4102 T_total=960.902610s S_total=925.320727s H_total=35.581884s G_total=17.892315s H+G=53.474199s
+  rank3 pid=1142616 formal=26652 warmup_excluded=4102 T_total=960.852967s S_total=925.810061s H_total=35.042907s G_total=17.941965s H+G=52.984872s
+  all_formal       four_rank_mean_total_H_s=35.352870
+  graph_formal     four_rank_mean_total_H_s=34.341697
+  no_graph_formal  four_rank_mean_total_H_s=1.011173
+FINAL [bs8_in128_out2048]: four_rank_mean_total_H_s = 35.352870 s G_total=17.303038s H+G=52.655909s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in2048_out1024  run_id=3a4e23d154c04515bf3451205a15053b
+  rank0 pid=1142613 formal=13355 warmup_excluded=2062 T_total=520.636148s S_total=498.284704s H_total=22.351444s G_total=8.231054s H+G=30.582497s
+  rank1 pid=1142614 formal=13355 warmup_excluded=2062 T_total=520.185951s S_total=498.161266s H_total=22.024685s G_total=8.681272s H+G=30.705957s
+  rank2 pid=1142615 formal=13355 warmup_excluded=2062 T_total=520.197254s S_total=497.677098s H_total=22.520156s G_total=8.669970s H+G=31.190126s
+  rank3 pid=1142616 formal=13355 warmup_excluded=2062 T_total=520.050682s S_total=497.833839s H_total=22.216843s G_total=8.816527s H+G=31.033370s
+  all_formal       four_rank_mean_total_H_s=22.278282
+  graph_formal     four_rank_mean_total_H_s=17.151992
+  no_graph_formal  four_rank_mean_total_H_s=5.126290
+FINAL [bs8_in2048_out1024]: four_rank_mean_total_H_s = 22.278282 s G_total=8.599705s H+G=30.877987s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in2048_out128  run_id=b571a3b3440644d7a568d071a1e82464
+  rank0 pid=1142613 formal=1707 warmup_excluded=270 T_total=100.762947s S_total=93.724789s H_total=7.038158s G_total=1.141728s H+G=8.179886s
+  rank1 pid=1142614 formal=1707 warmup_excluded=270 T_total=100.746328s S_total=93.542782s H_total=7.203546s G_total=1.158296s H+G=8.361842s
+  rank2 pid=1142615 formal=1707 warmup_excluded=270 T_total=100.755498s S_total=93.536730s H_total=7.218768s G_total=1.149150s H+G=8.367919s
+  rank3 pid=1142616 formal=1707 warmup_excluded=270 T_total=100.678416s S_total=93.348590s H_total=7.329826s G_total=1.226205s H+G=8.556031s
+  all_formal       four_rank_mean_total_H_s=7.197575
+  graph_formal     four_rank_mean_total_H_s=2.055658
+  no_graph_formal  four_rank_mean_total_H_s=5.141917
+FINAL [bs8_in2048_out128]: four_rank_mean_total_H_s = 7.197575 s G_total=1.168845s H+G=8.366419s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in2048_out2048  run_id=c470cb94f70b4552b8b373d9a4a03cda
+  rank0 pid=1142613 formal=26667 warmup_excluded=4110 T_total=1005.379436s S_total=964.804117s H_total=40.575318s G_total=17.076277s H+G=57.651596s
+  rank1 pid=1142614 formal=26667 warmup_excluded=4110 T_total=1005.380029s S_total=966.638536s H_total=38.741493s G_total=17.075630s H+G=55.817123s
+  rank2 pid=1142615 formal=26667 warmup_excluded=4110 T_total=1004.236159s S_total=964.835102s H_total=39.401057s G_total=18.219524s H+G=57.620581s
+  rank3 pid=1142616 formal=26667 warmup_excluded=4110 T_total=1004.837568s S_total=965.392929s H_total=39.444639s G_total=17.618100s H+G=57.062739s
+  all_formal       four_rank_mean_total_H_s=39.540627
+  graph_formal     four_rank_mean_total_H_s=34.370709
+  no_graph_formal  four_rank_mean_total_H_s=5.169918
+FINAL [bs8_in2048_out2048]: four_rank_mean_total_H_s = 39.540627 s G_total=17.497383s H+G=57.038010s (all_formal, no warmup, gap sync NOT subtracted)
+
++ for f in "$D/261109_oe-2403-sp3_report.txt" "$D/261110-2403_sp3-64k-report.txt"
++ echo ''
+
+++ basename /home/qch/scripts/timeline/261110-2403_sp3-64k-report.txt
++ echo '################ 261110-2403_sp3-64k-report.txt ################'
+################ 261110-2403_sp3-64k-report.txt ################
++ ls -l /home/qch/scripts/timeline/261110-2403_sp3-64k-report.txt
+-rw-r--r--. 1 root root 8827 Nov 12 15:08 /home/qch/scripts/timeline/261110-2403_sp3-64k-report.txt
++ cat /home/qch/scripts/timeline/261110-2403_sp3-64k-report.txt
+H = T - S + S * 0/100. Formal scopes only. Unit = SECONDS.
+G = sum(start_next - end_current) across adjacent formal scopes on EACH rank.
+H+G = H_total + G_total (gap wall time included; sync/idle within G NOT removed).
+Primary H remains unchanged; four-rank means are TOTAL seconds, NOT per iteration or instance latency.
+
+CASE: bs8_in1024_out1024  run_id=8ed771a720f146df92472207ff6eb574
+  rank0 pid=76158 formal=13342 warmup_excluded=2058 T_total=505.928768s S_total=488.248186s H_total=17.680583s G_total=5.931239s H+G=23.611822s
+  rank1 pid=76159 formal=13342 warmup_excluded=2058 T_total=503.698565s S_total=487.029624s H_total=16.668940s G_total=8.161414s H+G=24.830354s
+  rank2 pid=76160 formal=13342 warmup_excluded=2058 T_total=503.674428s S_total=487.772797s H_total=15.901631s G_total=8.185549s H+G=24.087180s
+  rank3 pid=76161 formal=13342 warmup_excluded=2058 T_total=503.071492s S_total=485.444197s H_total=17.627294s G_total=8.788493s H+G=26.415787s
+  all_formal       four_rank_mean_total_H_s=16.969612
+  graph_formal     four_rank_mean_total_H_s=13.898234
+  no_graph_formal  four_rank_mean_total_H_s=3.071378
+FINAL [bs8_in1024_out1024]: four_rank_mean_total_H_s = 16.969612 s G_total=7.766674s H+G=24.736286s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in1024_out128  run_id=49dfe0a61bac4fb59981ccf1a599f5e2
+  rank0 pid=76158 formal=1694 warmup_excluded=266 T_total=79.205157s S_total=74.414121s H_total=4.791036s G_total=0.925957s H+G=5.716993s
+  rank1 pid=76159 formal=1694 warmup_excluded=266 T_total=79.046531s S_total=74.121261s H_total=4.925269s G_total=1.084505s H+G=6.009775s
+  rank2 pid=76160 formal=1694 warmup_excluded=266 T_total=79.160965s S_total=74.604716s H_total=4.556249s G_total=0.970076s H+G=5.526325s
+  rank3 pid=76161 formal=1694 warmup_excluded=266 T_total=78.981833s S_total=73.981149s H_total=5.000684s G_total=1.149247s H+G=6.149931s
+  all_formal       four_rank_mean_total_H_s=4.818310
+  graph_formal     four_rank_mean_total_H_s=1.723372
+  no_graph_formal  four_rank_mean_total_H_s=3.094938
+FINAL [bs8_in1024_out128]: four_rank_mean_total_H_s = 4.818310 s G_total=1.032446s H+G=5.850756s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in1024_out2048  run_id=627f9be408dd4052a7e11a385be028ce
+  rank0 pid=76158 formal=26654 warmup_excluded=4106 T_total=985.153963s S_total=952.102520s H_total=33.051443s G_total=13.115706s H+G=46.167149s
+  rank1 pid=76159 formal=26654 warmup_excluded=4106 T_total=982.324272s S_total=951.647853s H_total=30.676419s G_total=15.945357s H+G=46.621776s
+  rank2 pid=76160 formal=26654 warmup_excluded=4106 T_total=982.554678s S_total=953.919030s H_total=28.635648s G_total=15.714950s H+G=44.350599s
+  rank3 pid=76161 formal=26654 warmup_excluded=4106 T_total=981.991128s S_total=950.737600s H_total=31.253528s G_total=16.278610s H+G=47.532138s
+  all_formal       four_rank_mean_total_H_s=30.904260
+  graph_formal     four_rank_mean_total_H_s=27.829240
+  no_graph_formal  four_rank_mean_total_H_s=3.075020
+FINAL [bs8_in1024_out2048]: four_rank_mean_total_H_s = 30.904260 s G_total=15.263656s H+G=46.167915s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in128_out1024  run_id=43e1b7f97d6d4a25b0f09e03b8ed1d40
+  rank0 pid=76158 formal=13340 warmup_excluded=2054 T_total=475.208949s S_total=459.266614s H_total=15.942335s G_total=5.880448s H+G=21.822783s
+  rank1 pid=76159 formal=13340 warmup_excluded=2054 T_total=473.757257s S_total=458.408170s H_total=15.349087s G_total=7.332140s H+G=22.681226s
+  rank2 pid=76160 formal=13340 warmup_excluded=2054 T_total=472.659989s S_total=457.570021s H_total=15.089969s G_total=8.429407s H+G=23.519375s
+  rank3 pid=76161 formal=13340 warmup_excluded=2054 T_total=473.146235s S_total=458.922484s H_total=14.223751s G_total=7.943159s H+G=22.166910s
+  all_formal       four_rank_mean_total_H_s=15.151285
+  graph_formal     four_rank_mean_total_H_s=13.869924
+  no_graph_formal  four_rank_mean_total_H_s=1.281361
+FINAL [bs8_in128_out1024]: four_rank_mean_total_H_s = 15.151285 s G_total=7.396288s H+G=22.547574s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in128_out128  run_id=abbcec04ca97466084679e47da65908f
+  rank0 pid=76158 formal=1692 warmup_excluded=262 T_total=61.052490s S_total=58.383576s H_total=2.668915s G_total=0.863168s H+G=3.532083s
+  rank1 pid=76159 formal=1692 warmup_excluded=262 T_total=60.931344s S_total=58.229704s H_total=2.701640s G_total=0.984305s H+G=3.685946s
+  rank2 pid=76160 formal=1692 warmup_excluded=262 T_total=60.833752s S_total=58.190800s H_total=2.642952s G_total=1.081872s H+G=3.724824s
+  rank3 pid=76161 formal=1692 warmup_excluded=262 T_total=60.887437s S_total=58.273688s H_total=2.613749s G_total=1.028182s H+G=3.641931s
+  all_formal       four_rank_mean_total_H_s=2.656814
+  graph_formal     four_rank_mean_total_H_s=1.827207
+  no_graph_formal  four_rank_mean_total_H_s=0.829607
+FINAL [bs8_in128_out128]: four_rank_mean_total_H_s = 2.656814 s G_total=0.989382s H+G=3.646196s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in128_out2048  run_id=5e042a3385e74c0796a33fa4310c426e
+  rank0 pid=76158 formal=26652 warmup_excluded=4102 T_total=959.780557s S_total=929.742616s H_total=30.037941s G_total=13.476426s H+G=43.514367s
+  rank1 pid=76159 formal=26652 warmup_excluded=4102 T_total=957.713422s S_total=929.105970s H_total=28.607452s G_total=15.543534s H+G=44.150986s
+  rank2 pid=76160 formal=26652 warmup_excluded=4102 T_total=957.566567s S_total=931.253374s H_total=26.313193s G_total=15.690405s H+G=42.003598s
+  rank3 pid=76161 formal=26652 warmup_excluded=4102 T_total=955.779829s S_total=926.326992s H_total=29.452836s G_total=17.477155s H+G=46.929991s
+  all_formal       four_rank_mean_total_H_s=28.602855
+  graph_formal     four_rank_mean_total_H_s=27.765286
+  no_graph_formal  four_rank_mean_total_H_s=0.837570
+FINAL [bs8_in128_out2048]: four_rank_mean_total_H_s = 28.602855 s G_total=15.546880s H+G=44.149735s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in2048_out1024  run_id=bc376c35fb8b4993ae77990485f377b4
+  rank0 pid=76158 formal=13355 warmup_excluded=2062 T_total=519.879969s S_total=499.838564s H_total=20.041405s G_total=7.359797s H+G=27.401202s
+  rank1 pid=76159 formal=13355 warmup_excluded=2062 T_total=519.755768s S_total=501.958460s H_total=17.797308s G_total=7.483967s H+G=25.281275s
+  rank2 pid=76160 formal=13355 warmup_excluded=2062 T_total=519.446999s S_total=502.560403s H_total=16.886596s G_total=7.792734s H+G=24.679330s
+  rank3 pid=76161 formal=13355 warmup_excluded=2062 T_total=519.010925s S_total=500.251022s H_total=18.759903s G_total=8.228814s H+G=26.988716s
+  all_formal       four_rank_mean_total_H_s=18.371303
+  graph_formal     four_rank_mean_total_H_s=14.182228
+  no_graph_formal  four_rank_mean_total_H_s=4.189075
+FINAL [bs8_in2048_out1024]: four_rank_mean_total_H_s = 18.371303 s G_total=7.716328s H+G=26.087631s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in2048_out128  run_id=7302dd29def942b19196f897d53cb7fc
+  rank0 pid=76158 formal=1707 warmup_excluded=270 T_total=100.808896s S_total=94.764194s H_total=6.044702s G_total=0.968376s H+G=7.013078s
+  rank1 pid=76159 formal=1707 warmup_excluded=270 T_total=100.736233s S_total=95.024172s H_total=5.712060s G_total=1.040978s H+G=6.753038s
+  rank2 pid=76160 formal=1707 warmup_excluded=270 T_total=100.727796s S_total=95.141059s H_total=5.586737s G_total=1.049416s H+G=6.636153s
+  rank3 pid=76161 formal=1707 warmup_excluded=270 T_total=100.753574s S_total=95.116378s H_total=5.637196s G_total=1.023637s H+G=6.660833s
+  all_formal       four_rank_mean_total_H_s=5.745174
+  graph_formal     four_rank_mean_total_H_s=1.653138
+  no_graph_formal  four_rank_mean_total_H_s=4.092036
+FINAL [bs8_in2048_out128]: four_rank_mean_total_H_s = 5.745174 s G_total=1.020602s H+G=6.765775s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in2048_out2048  run_id=68982aee3ad74456b55340cb92a54843
+  rank0 pid=76158 formal=26667 warmup_excluded=4110 T_total=1006.048718s S_total=971.783731s H_total=34.264987s G_total=13.976465s H+G=48.241451s
+  rank1 pid=76159 formal=26667 warmup_excluded=4110 T_total=1004.810372s S_total=973.040091s H_total=31.770281s G_total=15.214802s H+G=46.985082s
+  rank2 pid=76160 formal=26667 warmup_excluded=4110 T_total=1004.569991s S_total=974.302926s H_total=30.267064s G_total=15.455186s H+G=45.722250s
+  rank3 pid=76161 formal=26667 warmup_excluded=4110 T_total=1003.917335s S_total=971.773748s H_total=32.143587s G_total=16.107856s H+G=48.251443s
+  all_formal       four_rank_mean_total_H_s=32.111480
+  graph_formal     four_rank_mean_total_H_s=27.922815
+  no_graph_formal  four_rank_mean_total_H_s=4.188664
+FINAL [bs8_in2048_out2048]: four_rank_mean_total_H_s = 32.111480 s G_total=15.188577s H+G=47.300057s (all_formal, no warmup, gap sync NOT subtracted)
+
++ echo '== 同目录其它报告 =='
+== 同目录其它报告 ==
++ head -10
++ ls -lt /home/qch/scripts/timeline/261109_oe-2403-sp3_report.txt /home/qch/scripts/timeline/261110-2403_sp3-64k-report.txt
+-rw-r--r--. 1 root root 8827 Nov 12 15:08 /home/qch/scripts/timeline/261110-2403_sp3-64k-report.txt
+-rw-r--r--. 1 root root 8899 Nov 12 15:08 /home/qch/scripts/timeline/261109_oe-2403-sp3_report.txt
++ echo ''
+
++ echo '################ PART 2: 阶段对比 T/S/H/G ################'
+################ PART 2: 阶段对比 T/S/H/G ################
+++ ls /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
+++ head -1
++ A=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
+++ ls /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
+++ head -1
++ B=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
++ echo A=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
+A=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
++ echo B=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
+B=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
++ '[' -n /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz ']'
++ '[' -n /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz ']'
++ python3 /home/qch/tools/remote-env/184/trace_phase_split.py /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz 4k2 64k2
+[4k2] steps=1692 prefill=50 decode=1642
+  prefill n=   50 T_tot= 5037.91ms S_tot= 3688.05ms H_tot= 1349.87ms G_tot=  51.63ms HG_tot= 1401.50ms cpu_op= 651.74ms py=20622.10ms rt=3918.21ms
+          per-step: T= 100.76ms S= 73.761ms H=  27.00ms
+  decode  n= 1642 T_tot=68639.99ms S_tot=  172.47ms H_tot=68467.52ms G_tot=1623.84ms HG_tot=70091.36ms cpu_op=1204.85ms py=210636.18ms rt=131348.97ms
+          per-step: T=  41.80ms S=  0.105ms H=  41.70ms
+[64k2] steps=1692 prefill=45 decode=1647
+  prefill n=   45 T_tot= 4958.26ms S_tot= 3439.82ms H_tot= 1518.44ms G_tot=  41.45ms HG_tot= 1559.89ms cpu_op= 807.30ms py=20361.85ms rt=3625.27ms
+          per-step: T= 110.18ms S= 76.440ms H=  33.74ms
+  decode  n= 1647 T_tot=68590.47ms S_tot=  170.87ms H_tot=68419.60ms G_tot=1522.89ms HG_tot=69942.50ms cpu_op=1327.65ms py=210377.02ms rt=131248.44ms
+          per-step: T=  41.65ms S=  0.104ms H=  41.54ms
+
+== 跨条件对比（B - A）==
+  prefill TOTAL: T 5037.91->4958.26ms (-1.58%)  S 3688.05->3439.82ms (-6.73%)  H 1349.87->1518.44ms (+12.49%)
+          CPU TOTAL: cpu_op 651.74->807.30ms (+23.9%)  py 20622.10->20361.85ms (-1.3%)  rt 3918.21->3625.27ms (-7.5%)
+          G 51.63->41.45ms (-19.72%)  H+G 1401.50->1559.89ms (+11.30%)
+  decode  TOTAL: T 68639.99->68590.47ms (-0.07%)  S 172.47->170.87ms (-0.93%)  H 68467.52->68419.60ms (-0.07%)
+          CPU TOTAL: cpu_op 1204.85->1327.65ms (+10.2%)  py 210636.18->210377.02ms (-0.1%)  rt 131348.97->131248.44ms (-0.1%)
+          G 1623.84->1522.89ms (-6.22%)  H+G 70091.36->69942.50ms (-0.21%)
++ set +x
+
+### exit: 0
