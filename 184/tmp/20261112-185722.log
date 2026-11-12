@@ -1,0 +1,79 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T10:57:22Z
+
++ C=corex5-py311
++ echo '== 1. 该根目录下所有 run =='
+== 1. 该根目录下所有 run ==
++ dex 'ls -lat --time-style=long-iso /usr/local/corex-5.0.0/vllmBench/ | head -40'
++ timeout 120 docker exec corex5-py311 bash -c 'ls -lat --time-style=long-iso /usr/local/corex-5.0.0/vllmBench/ | head -40'
+total 72
+drwxr-xr-x.  6 root root 4096 2026-11-12 17:19 litehost_gap_20261112_150257
+drwxr-xr-x. 17 root root 4096 2026-11-12 15:02 .
+drwxr-xr-x.  5 root root 4096 2026-11-12 14:52 litehost_gap_20261112_145014
+drwxr-xr-x.  3 root root 4096 2026-11-12 14:47 litehost_gap_20261112_144702
+drwxr-xr-x.  3 root root 4096 2026-11-12 14:46 litehost_gap_20261112_144653
+drwxr-xr-x.  6 root root 4096 2026-11-12 14:41 litehost_gap_20261112_143002
+drwxr-xr-x.  6 root root 4096 2026-11-12 14:25 litehost_gap_20261112_141359
+drwxr-xr-x.  6 root root 4096 2026-11-12 13:58 litehost_gap_20261112_134745
+drwxrwxr-x+  1 root root 4096 2026-11-11 20:05 ..
+drwxr-xr-x.  6 root root 4096 2026-11-11 17:07 litehost_gap_20261111_165738
+drwxr-xr-x.  6 root root 4096 2026-11-11 16:44 litehost_gap_20261111_150237
+drwxr-xr-x.  6 root root 4096 2026-11-11 10:59 litehost_gap_20261111_091630
+drwxr-xr-x.  4 root root 4096 2026-11-11 09:04 litehost_gap_20261111_090351
+drwxr-xr-x.  6 root root 4096 2026-11-10 18:29 litehost_gap_20261110_164715
+drwxr-xr-x.  4 root root 4096 2026-11-10 15:46 litehost_gap_20261110_154541
+drwxr-xr-x.  4 root root 4096 2026-11-10 15:38 litehost_gap_20261110_153807
+drwxr-xr-x.  3 root root 4096 2026-11-10 09:40 litehost_gap_20261110_093956
++ echo '== 2. 所有 1109 的 run，逐个看 case 数与 in128_out128 的 H+G =='
+== 2. 所有 1109 的 run，逐个看 case 数与 in128_out128 的 H+G ==
+++ timeout 60 docker exec corex5-py311 bash -c 'ls -d /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261109_* 2>/dev/null'
++ echo '== 3. 全根目录扫描：找 H+G 匹配 4.299 / 3.646 的 all_formal 行 =='
+== 3. 全根目录扫描：找 H+G 匹配 4.299 / 3.646 的 all_formal 行 ==
+++ timeout 120 docker exec corex5-py311 bash -c 'ls /usr/local/corex-5.0.0/vllmBench/litehost_gap_*/host_summary/four_rank_totals.csv 2>/dev/null'
++ for f in $(timeout 120 docker exec "$C" bash -c "ls /usr/local/corex-5.0.0/vllmBench/litehost_gap_*/host_summary/four_rank_totals.csv 2>/dev/null")
+++ timeout 60 docker exec corex5-py311 bash -c 'awk -F, '\''$1=="bs8_in128_out128" && $3=="all_formal"{print $11}'\'' /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715/host_summary/four_rank_totals.csv'
++ hit=3.64619587
++ '[' -n 3.64619587 ']'
++ echo '/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715/host_summary/four_rank_totals.csv  in128_out128 H+G=3.64619587'
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715/host_summary/four_rank_totals.csv  in128_out128 H+G=3.64619587
++ for f in $(timeout 120 docker exec "$C" bash -c "ls /usr/local/corex-5.0.0/vllmBench/litehost_gap_*/host_summary/four_rank_totals.csv 2>/dev/null")
+++ timeout 60 docker exec corex5-py311 bash -c 'awk -F, '\''$1=="bs8_in128_out128" && $3=="all_formal"{print $11}'\'' /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261111_091630/host_summary/four_rank_totals.csv'
++ hit=4.3154182975
++ '[' -n 4.3154182975 ']'
++ echo '/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261111_091630/host_summary/four_rank_totals.csv  in128_out128 H+G=4.3154182975'
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261111_091630/host_summary/four_rank_totals.csv  in128_out128 H+G=4.3154182975
++ for f in $(timeout 120 docker exec "$C" bash -c "ls /usr/local/corex-5.0.0/vllmBench/litehost_gap_*/host_summary/four_rank_totals.csv 2>/dev/null")
+++ timeout 60 docker exec corex5-py311 bash -c 'awk -F, '\''$1=="bs8_in128_out128" && $3=="all_formal"{print $11}'\'' /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261111_150237/host_summary/four_rank_totals.csv'
++ hit=4.266972904999999
++ '[' -n 4.266972904999999 ']'
++ echo '/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261111_150237/host_summary/four_rank_totals.csv  in128_out128 H+G=4.266972904999999'
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261111_150237/host_summary/four_rank_totals.csv  in128_out128 H+G=4.266972904999999
++ for f in $(timeout 120 docker exec "$C" bash -c "ls /usr/local/corex-5.0.0/vllmBench/litehost_gap_*/host_summary/four_rank_totals.csv 2>/dev/null")
+++ timeout 60 docker exec corex5-py311 bash -c 'awk -F, '\''$1=="bs8_in128_out128" && $3=="all_formal"{print $11}'\'' /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261111_165738/host_summary/four_rank_totals.csv'
++ hit=
++ '[' -n '' ']'
++ for f in $(timeout 120 docker exec "$C" bash -c "ls /usr/local/corex-5.0.0/vllmBench/litehost_gap_*/host_summary/four_rank_totals.csv 2>/dev/null")
+++ timeout 60 docker exec corex5-py311 bash -c 'awk -F, '\''$1=="bs8_in128_out128" && $3=="all_formal"{print $11}'\'' /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_134745/host_summary/four_rank_totals.csv'
++ hit=
++ '[' -n '' ']'
++ for f in $(timeout 120 docker exec "$C" bash -c "ls /usr/local/corex-5.0.0/vllmBench/litehost_gap_*/host_summary/four_rank_totals.csv 2>/dev/null")
+++ timeout 60 docker exec corex5-py311 bash -c 'awk -F, '\''$1=="bs8_in128_out128" && $3=="all_formal"{print $11}'\'' /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_141359/host_summary/four_rank_totals.csv'
++ hit=
++ '[' -n '' ']'
++ for f in $(timeout 120 docker exec "$C" bash -c "ls /usr/local/corex-5.0.0/vllmBench/litehost_gap_*/host_summary/four_rank_totals.csv 2>/dev/null")
+++ timeout 60 docker exec corex5-py311 bash -c 'awk -F, '\''$1=="bs8_in128_out128" && $3=="all_formal"{print $11}'\'' /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_143002/host_summary/four_rank_totals.csv'
++ hit=
++ '[' -n '' ']'
++ for f in $(timeout 120 docker exec "$C" bash -c "ls /usr/local/corex-5.0.0/vllmBench/litehost_gap_*/host_summary/four_rank_totals.csv 2>/dev/null")
+++ timeout 60 docker exec corex5-py311 bash -c 'awk -F, '\''$1=="bs8_in128_out128" && $3=="all_formal"{print $11}'\'' /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary/four_rank_totals.csv'
++ hit=4.10616051
++ '[' -n 4.10616051 ']'
++ echo '/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary/four_rank_totals.csv  in128_out128 H+G=4.10616051'
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary/four_rank_totals.csv  in128_out128 H+G=4.10616051
++ echo '== 4. 内核版本线索（4K vs 64K 应该写在某个 meta/日志里）=='
+== 4. 内核版本线索（4K vs 64K 应该写在某个 meta/日志里）==
+++ timeout 60 docker exec corex5-py311 bash -c 'ls -d /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261109_* 2>/dev/null'
++ set +x
+
+### exit: 0
