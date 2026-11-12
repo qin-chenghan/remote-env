@@ -1,0 +1,212 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T11:18:25Z
+
++ C=corex5-py311
++ Z=/home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip
++ W=/home/qch/transfer/r14
++ D=/home/qch/transfer/r14/host-opt-pr-validation-20261106-r14
++ V=/opt/corex311-cpython-vllm
++ SP=/opt/corex311-cpython-vllm/lib/python3.11/site-packages
++ PY=/opt/corex311-cpython-vllm/bin/python
++ echo '== 1. 服务占用检查 =='
+== 1. 服务占用检查 ==
+++ timeout 60 docker exec corex5-py311 bash -c 'ps -eo args | grep -E '\''vllm|benchmark|lhctl|api_server'\'' | grep -v grep | head -5'
++ BUSY=
++ '[' -n '' ']'
++ echo '无 vllm/bench 进程'
+无 vllm/bench 进程
++ dex 'ss -ltn 2>/dev/null | grep -E '\'':(8848|8000|8080)'\'' || echo '\''端口空闲'\'''
++ timeout 120 docker exec corex5-py311 bash -c 'ss -ltn 2>/dev/null | grep -E '\'':(8848|8000|8080)'\'' || echo '\''端口空闲'\'''
+端口空闲
++ echo '== 2. 解压并校验 =='
+== 2. 解压并校验 ==
++ '[' '!' -d /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 ']'
++ rm -rf /home/qch/transfer/r14
++ mkdir -p /home/qch/transfer/r14
++ unzip -q /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip -d /home/qch/transfer/r14
++ cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14
++ sha256sum -c SHA256SUMS
++ tail -6
+source/pr3/vllm/model_executor/layers/output_head.py: OK
+source/pr3/vllm/model_executor/layers/output_head_discovery.py: OK
+source/pr3/vllm/v1/worker/compact_greedy_backport.py: OK
+source/pr3/vllm/v1/worker/compact_greedy_graph.py: OK
+source/pr3/vllm/v1/worker/gpu/sample_logits_graph.py: OK
+source/pr3/vllm/v1/worker/gpu_model_runner.py: OK
++ echo '== 3. 安装器参数 =='
+== 3. 安装器参数 ==
++ dex 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && /opt/corex311-cpython-vllm/bin/python scripts/install.py --help 2>&1 | head -40'
++ timeout 120 docker exec corex5-py311 bash -c 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && /opt/corex311-cpython-vllm/bin/python scripts/install.py --help 2>&1 | head -40'
++ cat /tmp/r14_help.txt
+usage: install.py [-h] --root ROOT [--dry-run] [--uninstall] [--check]
+
+Digest-checked install/uninstall into an explicitly selected package root. The
+root contains vllm/, rather than being vllm/ itself. Build output and backups
+stay under this root; the build tree is generated output and is removed once
+it is no longer needed. No feature is enabled by this installer.
+
+options:
+  -h, --help   show this help message and exit
+  --root ROOT
+  --dry-run
+  --uninstall
+  --check
++ echo '== 4. 当前安装状态 =='
+== 4. 当前安装状态 ==
++ for VV in /opt/corex311 /opt/corex311-cpython-vllm
++ SSP=/opt/corex311/lib/python3.11/site-packages
++ echo '---- /opt/corex311'
+---- /opt/corex311
++ dex 'ls -ld /opt/corex311/lib/python3.11/site-packages/.host-opt-pr-backup 2>&1'
++ timeout 120 docker exec corex5-py311 bash -c 'ls -ld /opt/corex311/lib/python3.11/site-packages/.host-opt-pr-backup 2>&1'
+drwxr-xr-x. 3 root root 4096 Nov 10 10:18 /opt/corex311/lib/python3.11/site-packages/.host-opt-pr-backup
++ dex 'ls -l /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy_backport.py 2>&1'
++ timeout 120 docker exec corex5-py311 bash -c 'ls -l /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy_backport.py 2>&1'
+ls: cannot access '/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy_backport.py': No such file or directory
+-rw-r--r--. 1 root root 30242 Nov 10 10:18 /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py
++ dex 'grep -c VLLM_HOST_OPT_POSITIONS /opt/corex311/lib/python3.11/site-packages/vllm/envs.py 2>/dev/null || echo 0'
++ timeout 120 docker exec corex5-py311 bash -c 'grep -c VLLM_HOST_OPT_POSITIONS /opt/corex311/lib/python3.11/site-packages/vllm/envs.py 2>/dev/null || echo 0'
+0
+0
++ for VV in /opt/corex311 /opt/corex311-cpython-vllm
++ SSP=/opt/corex311-cpython-vllm/lib/python3.11/site-packages
++ echo '---- /opt/corex311-cpython-vllm'
+---- /opt/corex311-cpython-vllm
++ dex 'ls -ld /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup 2>&1'
++ timeout 120 docker exec corex5-py311 bash -c 'ls -ld /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup 2>&1'
+drwxr-xr-x. 3 root root 4096 Nov  9 19:25 /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup
++ dex 'ls -l /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy_backport.py 2>&1'
++ timeout 120 docker exec corex5-py311 bash -c 'ls -l /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy_backport.py 2>&1'
+ls: cannot access '/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy_backport.py': No such file or directory
+-rw-r--r--. 1 root root 30242 Nov  9 19:25 /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py
++ dex 'grep -c VLLM_HOST_OPT_POSITIONS /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py 2>/dev/null || echo 0'
++ timeout 120 docker exec corex5-py311 bash -c 'grep -c VLLM_HOST_OPT_POSITIONS /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py 2>/dev/null || echo 0'
+0
+0
++ echo '== 5. 如已有旧安装，先卸载恢复原厂源码 =='
+== 5. 如已有旧安装，先卸载恢复原厂源码 ==
++ timeout 30 docker exec corex5-py311 bash -c 'test -d /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup'
++ echo '发现 /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup'
+发现 /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup
++ grep -qE -- '--uninstall|--revert|--restore' /tmp/r14_help.txt
++ echo 使用安装器卸载
+使用安装器卸载
++ for flag in --uninstall --revert --restore
++ grep -q -- --uninstall /tmp/r14_help.txt
++ dex 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && /opt/corex311-cpython-vllm/bin/python scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages --uninstall 2>&1 | tail -20'
++ timeout 120 docker exec corex5-py311 bash -c 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && /opt/corex311-cpython-vllm/bin/python scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages --uninstall 2>&1 | tail -20'
+uninstalled: restored the exact pre-install files and removed the build tree
++ break
++ echo '== 6. dry-run =='
+== 6. dry-run ==
++ dex 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && /opt/corex311-cpython-vllm/bin/python scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages --dry-run 2>&1 | tail -40'
++ timeout 120 docker exec corex5-py311 bash -c 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && /opt/corex311-cpython-vllm/bin/python scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages --dry-run 2>&1 | tail -40'
++ /opt/corex311-cpython-vllm/bin/python /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/scripts/apply_patch.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages --check /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/container/patches/0001-host-paths.patch /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/container/patches/0002-ilu-metadata.patch /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/container/patches/0003-compact-greedy.patch
+would apply 0001-host-paths.patch
+would apply 0002-ilu-metadata.patch
+would apply 0003-compact-greedy.patch
+dry run: baseline and patches PASS; nothing changed
++ echo '== 7. 正式安装（编译原生模块，耗时可能几分钟）=='
+== 7. 正式安装（编译原生模块，耗时可能几分钟）==
++ dexl 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && /opt/corex311-cpython-vllm/bin/python scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages 2>&1 | tee /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/install-r14.log | tail -40'
++ timeout 1800 docker exec corex5-py311 bash -c 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && /opt/corex311-cpython-vllm/bin/python scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages 2>&1 | tee /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/install-r14.log | tail -40'
+-- Found python matching: /opt/corex311-cpython-vllm/bin/python.
+CMake Error at cmake/utils.cmake:37 (message):
+  Failed to locate torch path: Traceback (most recent call last):
+
+    File "<string>", line 1, in <module>
+    File "/usr/local/lib/python3.12/site-packages/torch/__init__.py", line 1034, in <module>
+      raise ImportError(
+
+  ImportError: Failed to load PyTorch C extensions:
+
+      It appears that PyTorch has loaded the `torch/_C` folder
+      of the PyTorch repository rather than the C extensions which
+      are expected in the `torch._C` namespace. This can occur when
+      using the `install` workflow. e.g.
+          $ python -m pip install --no-build-isolation -v . && python -c "import torch"
+
+  
+
+      This error can generally be solved using the `develop` workflow
+          $ python -m pip install --no-build-isolation -v -e . && python -c "import torch"  # This should succeed
+      or by running Python from a different directory.
+
+Call Stack (most recent call first):
+  cmake/utils.cmake:45 (run_python)
+  CMakeLists.txt:81 (append_cmake_prefix_path)
+
+
+-- Configuring incomplete, errors occurred!
+Traceback (most recent call last):
+  File "/home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/scripts/install.py", line 202, in <module>
+    main()
+  File "/home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/scripts/install.py", line 185, in main
+    build(root)
+  File "/home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/scripts/install.py", line 100, in build
+    run("cmake", "-S", PACKAGE / "source/pr1", "-B", work / "pr1",
+  File "/home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/scripts/install.py", line 30, in run
+    subprocess.run(list(map(str, args)), check=True)
+  File "/opt/cpython-vllm/v1/lib/python3.11/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['cmake', '-S', '/home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/source/pr1', '-B', '/opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-build/pr1', '-DCMAKE_BUILD_TYPE=Release', '-DVLLM_TARGET_DEVICE=empty', '-DVLLM_PYTHON_EXECUTABLE=/opt/corex311-cpython-vllm/bin/python', '-DCMAKE_INSTALL_PREFIX=/opt/corex311-cpython-vllm/lib/python3.11/site-packages']' returned non-zero exit status 1.
++ echo '== 8. check =='
+== 8. check ==
++ dex 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && /opt/corex311-cpython-vllm/bin/python scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages --check 2>&1 | tail -30'
++ timeout 120 docker exec corex5-py311 bash -c 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && /opt/corex311-cpython-vllm/bin/python scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages --check 2>&1 | tail -30'
+Traceback (most recent call last):
+  File "/home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/scripts/install.py", line 202, in <module>
+    main()
+  File "/home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/scripts/install.py", line 139, in main
+    check_sources(root, manifest["patched"])
+  File "/home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/scripts/install.py", line 49, in check_sources
+    raise RuntimeError("source digest mismatch: " + relative)
+RuntimeError: source digest mismatch: vllm/v1/worker/host_opt.py
++ echo '== 9. verify =='
+== 9. verify ==
++ dexl 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && /opt/corex311-cpython-vllm/bin/python scripts/verify.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages 2>&1 | tail -40'
++ timeout 1800 docker exec corex5-py311 bash -c 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && /opt/corex311-cpython-vllm/bin/python scripts/verify.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages 2>&1 | tail -40'
+Traceback (most recent call last):
+  File "/home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/scripts/verify.py", line 128, in <module>
+    main()
+  File "/home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/scripts/verify.py", line 59, in main
+    assert hashlib.sha256((root / relative).read_bytes()).hexdigest() == expected, relative
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/cpython-vllm/v1/lib/python3.11/pathlib.py", line 1050, in read_bytes
+    with self.open(mode='rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/cpython-vllm/v1/lib/python3.11/pathlib.py", line 1044, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py'
++ echo '== 10. 安装后状态 =='
+== 10. 安装后状态 ==
++ dex 'ls -ld /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup; ls /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup | head'
++ timeout 120 docker exec corex5-py311 bash -c 'ls -ld /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup; ls /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup | head'
+ls: cannot access '/opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup': No such file or directory
+ls: cannot access '/opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup': No such file or directory
++ dex 'ls -l /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy_backport.py 2>&1'
++ timeout 120 docker exec corex5-py311 bash -c 'ls -l /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy_backport.py 2>&1'
+ls: cannot access '/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py': No such file or directory
+ls: cannot access '/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy_backport.py': No such file or directory
++ echo -n 'envs.py POSITIONS: '
+envs.py POSITIONS: + dex 'grep -c VLLM_HOST_OPT_POSITIONS /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py'
++ timeout 120 docker exec corex5-py311 bash -c 'grep -c VLLM_HOST_OPT_POSITIONS /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py'
+0
++ echo -n 'compilation.py compact_greedy: '
+compilation.py compact_greedy: + dex 'grep -c compact_greedy /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/compilation.py'
++ timeout 120 docker exec corex5-py311 bash -c 'grep -c compact_greedy /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/compilation.py'
+0
++ dex '/opt/corex311-cpython-vllm/bin/pip list 2>/dev/null | grep -iE '\''^vllm|metadata'\'''
++ timeout 120 docker exec corex5-py311 bash -c '/opt/corex311-cpython-vllm/bin/pip list 2>/dev/null | grep -iE '\''^vllm|metadata'\'''
+vllm                                     0.23.0+corex.5.0.0
+vllm-corex-metadata                      0.2.0
++ echo '--- 开关默认值（应全关）---'
+--- 开关默认值（应全关）---
++ dex 'env | grep VLLM_HOST_OPT || echo '\''未设置 VLLM_HOST_OPT*（默认关闭）'\'''
++ timeout 120 docker exec corex5-py311 bash -c 'env | grep VLLM_HOST_OPT || echo '\''未设置 VLLM_HOST_OPT*（默认关闭）'\'''
+未设置 VLLM_HOST_OPT*（默认关闭）
++ set +x
+
+### exit: 0
