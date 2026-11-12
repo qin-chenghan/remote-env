@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 解压 r14 包、校验、看安装器用法，并确认当前 r10 装在哪个 venv。
+# 定位 2026-11-09 采的两份 9-case run（4K / 64K），用 in128_out128 的 H+G 4.299 / 3.646 匹配。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,47 +18,35 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
   C=corex5-py311
-  Z=/home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip
-  W=/home/qch/transfer/r14
-  D=$W/host-opt-pr-validation-20261106-r14
-  dex() { timeout 180 docker exec "$C" bash -c "$1"; }
+  dex() { timeout 120 docker exec "$C" bash -c "$1"; }
 
-  echo "== 1. 解压 =="
-  rm -rf "$W"
-  mkdir -p "$W"
-  unzip -q "$Z" -d "$W"
-  ls -la "$D"
+  echo "== 1. 该根目录下所有 run =="
+  dex "ls -lat --time-style=long-iso /usr/local/corex-5.0.0/vllmBench/ | head -40"
 
-  echo "== 2. 校验 SHA256SUMS =="
-  ( cd "$D" && sha256sum -c SHA256SUMS 2>&1 | tail -8 )
-
-  echo "== 3. 安装器用法 =="
-  dex "/opt/corex311-cpython-vllm/bin/python $D/scripts/install.py --help"
-  echo "--- verify.py ---"
-  dex "/opt/corex311-cpython-vllm/bin/python $D/scripts/verify.py --help"
-
-  echo "== 4. 两个 venv 的当前状态 =="
-  for V in /opt/corex311 /opt/corex311-cpython-vllm; do
-    SP=$V/lib/python3.11/site-packages
-    echo "---- $V ----"
-    dex "ls -ld $SP/.host-opt-pr-backup 2>&1"
-    dex "ls $SP/.host-opt-pr-backup 2>/dev/null | head"
-    dex "ls -l $SP/vllm/v1/worker/host_opt.py $SP/vllm/v1/worker/compact_greedy_backport.py $SP/vllm/model_executor/layers/output_head.py 2>&1"
-    echo -n "envs.py 里 POSITIONS 出现次数: "
-    dex "grep -c VLLM_HOST_OPT_POSITIONS $SP/vllm/envs.py 2>/dev/null || echo 0"
-    echo -n "compilation.py 里 compact_greedy 出现次数: "
-    dex "grep -c compact_greedy $SP/vllm/config/compilation.py 2>/dev/null || echo 0"
-    echo "ROOT 解析:"
-    dex "$V/bin/python -I -c 'import importlib.util,pathlib; print(pathlib.Path(next(iter(importlib.util.find_spec(\"vllm\").submodule_search_locations))).parent)'"
+  echo "== 2. 所有 1109 的 run，逐个看 case 数与 in128_out128 的 H+G =="
+  for d in $(timeout 60 docker exec "$C" bash -c "ls -d /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261109_* 2>/dev/null"); do
+    echo "---- $d"
+    echo -n "  started: "; dex "grep -m1 '^started=' $d/config.txt 2>/dev/null"
+    echo -n "  cases:   "; dex "ls $d/bs8_*.json 2>/dev/null | wc -l"
+    echo -n "  has summary/host_summary: "; dex "ls -d $d/summary.csv $d/host_summary 2>/dev/null | tr '\n' ' '; echo"
+    echo "  in128_out128 H+G:"
+    dex "grep -h ',all_formal,' $d/host_summary/four_rank_totals.csv 2>/dev/null | awk -F, '\$1==\"bs8_in128_out128\"{print \"    \"\$11}'"
+    dex "grep -h ',all_formal,' $d/litehost/bs8_in128_out128/host_report/four_rank_totals.csv 2>/dev/null | awk -F, '{print \"    per-case \"\$11}'"
+    echo "  config:"
+    dex "sed -n '1,12p' $d/config.txt 2>/dev/null | sed 's/^/    /'"
   done
 
-  echo "== 5. 是否有 vllm 服务在跑 =="
-  dex "ps -eo pid,etime,args | grep -E 'vllm|api_server' | grep -v grep | head -10"
-  dex "ss -ltnp 2>/dev/null | grep -E ':88|:80' | head -10"
+  echo "== 3. 全根目录扫描：找 H+G 匹配 4.299 / 3.646 的 all_formal 行 =="
+  for f in $(timeout 120 docker exec "$C" bash -c "ls /usr/local/corex-5.0.0/vllmBench/litehost_gap_*/host_summary/four_rank_totals.csv 2>/dev/null"); do
+    hit=$(timeout 60 docker exec "$C" bash -c "awk -F, '\$1==\"bs8_in128_out128\" && \$3==\"all_formal\"{print \$11}' $f")
+    [ -n "$hit" ] && echo "$f  in128_out128 H+G=$hit"
+  done
 
-  echo "== 6. 容器里编译环境 =="
-  dex "which cmake gcc g++ ninja 2>&1; cmake --version 2>/dev/null | head -1; gcc --version | head -1"
-  dex "df -h /opt | tail -1"
+  echo "== 4. 内核版本线索（4K vs 64K 应该写在某个 meta/日志里）=="
+  for d in $(timeout 60 docker exec "$C" bash -c "ls -d /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261109_* 2>/dev/null"); do
+    echo "---- $d"
+    dex "grep -rhiE 'uname|kernel|64K|4K|PAGESIZE' $d/config.txt $d/*.meta.json $d/logs/preflight.log 2>/dev/null | head -5"
+  done
 
   # ---- 命令结束 ----
 
