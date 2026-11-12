@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：查 metadata 快路径的真实开关名与是否已在运行。
+# 只读：确认 metadata 快路径在已安装版本里的实际开关方式。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,33 +17,26 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  SITE=/opt/corex311/lib/python3.11/site-packages
   PKG=/home/qch/transfer/host-opt-pr-validation-20261106-r10
+  SITE=/opt/corex311/lib/python3.11/site-packages
 
-  echo "== envs.py 里所有 VLLM_HOST_OPT* 名字 =="
-  docker exec corex5-py311 grep -oE '"VLLM_HOST_OPT[A-Z_]*"' "$SITE/vllm/envs.py" 2>&1 | sort -u
+  echo "== 实际安装用的 container patch =="
+  ls -l "$PKG/container/patches" 2>&1
+  grep -n 'VLLM_HOST_OPT_METADATA\|environ\|getenv' "$PKG/container/patches/0002-ilu-metadata.patch" 2>&1 | head -12
 
-  echo "== envs.py 里 META 相关 =="
-  docker exec corex5-py311 grep -nE 'META|metadata' "$SITE/vllm/envs.py" 2>&1 | head -10
+  echo "== 已安装包里是否有该字符串 =="
+  docker exec corex5-py311 grep -rn 'VLLM_HOST_OPT_METADATA' "$SITE/vllm" 2>/dev/null | head -5
+  echo "(空=没有)"
 
-  echo "== 谁引用 _host_opt_meta_native =="
-  docker exec corex5-py311 grep -rn '_host_opt_meta_native' "$SITE/vllm" 2>&1 | head -10
+  echo "== ilu_flash_attn.py 100-130 行 =="
+  docker exec corex5-py311 sed -n '100,130p' "$SITE/vllm/v1/attention/backends/ilu_flash_attn.py" 2>&1 | cut -c1-170
 
-  echo "== ilu_flash_attn 里的 metadata =="
-  docker exec corex5-py311 grep -n 'metadata' "$SITE/vllm/v1/attention/backends/ilu_flash_attn.py" 2>&1 | head -15
+  echo "== 本次 run 有没有 metadata off 日志 =="
+  grep -c 'host attention metadata off' /home/qch/scripts/timeline/4k/logs/server.log 2>&1
+  grep -n 'host attention metadata' /home/qch/scripts/timeline/4k/logs/server.log 2>&1 | head -5
 
-  echo "== host_opt.py 模式解析段 =="
-  docker exec corex5-py311 sed -n '60,120p' "$SITE/vllm/v1/worker/host_opt.py" 2>&1 | cut -c1-160
-
-  echo "== r10 源码里有没有 VLLM_HOST_OPT_METADATA =="
-  grep -rn 'VLLM_HOST_OPT_METADATA' "$PKG" 2>/dev/null | head -10
-  grep -rln 'metadata' "$PKG/source" 2>/dev/null | head -10
-
-  echo "== r10 文档/清单里的 metadata 开关 =="
-  grep -rn 'METADATA' "$PKG"/MANIFEST* "$PKG"/README* "$PKG"/docs 2>/dev/null | head -10
-
-  echo "== 本次 run 是否出现 metadata 警告 =="
-  grep -n 'Host metadata arena unavailable\|metadata' /home/qch/scripts/timeline/4k/logs/server.log 2>/dev/null | head -10
+  echo "== 本次 run 的 attention backend / ilu 日志 =="
+  grep -iE 'IluFlashAttention|ilu_flash_attn|attention backend|_host_opt_meta_native' /home/qch/scripts/timeline/4k/logs/server.log 2>&1 | cut -c1-190 | head -10
 
   # ---- 命令结束 ----
 
