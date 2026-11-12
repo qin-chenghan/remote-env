@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 203 清理 corex-4.4.0（用户确认已用不上）：删前查占用，删后核对软链与空间。
+# 203 docker 盘点（只读）：容器/镜像清单、占用、可回收项；不做任何删除。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,47 +17,34 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  T=/usr/local/corex-4.4.0
+  echo "== 1. 空间现状（docker 在 /home/docker）=="
+  df -h / /home | tail -3
+  docker info 2>/dev/null | grep 'Docker Root Dir'
+  docker system df 2>&1 | head -8
 
-  echo "== 1. 删前状态 =="
-  df -h /
-  du -sh "$T" 2>/dev/null
-  ls -ld /usr/local/corex
-  readlink -f /usr/local/corex
+  echo "== 2. 容器全清单（含可写层大小）=="
+  docker ps -a -s --format 'table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Size}}' 2>&1 | head -40
 
-  echo "== 2. 是否有进程在用（文件被打开或路径在环境里）=="
-  lsof +D "$T" 2>/dev/null | head -20 || true
-  echo "--- 进程命令行里带 corex-4.4.0 的 ---"
-  ps -eo pid,args 2>/dev/null | grep 'corex-4.4.0' | grep -v grep | head -10 || echo "无"
-  echo "--- 容器挂载/环境里带 corex-4.4.0 的 ---"
-  for c in $(docker ps -q 2>/dev/null); do
-    docker inspect -f '{{.Name}} {{range .Mounts}}{{.Source}} {{end}}' "$c" 2>/dev/null | grep -l 'corex-4.4.0' 2>/dev/null
-    docker exec "$c" bash -c "env | grep -i 'corex-4.4.0' || true" 2>/dev/null | head -2
-  done
-  echo "--- ld.so 缓存里是否仍登记该目录 ---"
-  ldconfig -p 2>/dev/null | grep 'corex-4.4.0' | head -5 || echo "无"
-  ls -l /etc/ld.so.conf.d/ 2>/dev/null | grep -i corex || echo "无 corex conf"
+  echo "== 3. 镜像全清单 =="
+  docker images --format 'table {{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.Size}}\t{{.CreatedSince}}' 2>&1 | head -30
+  echo "--- dangling（无 tag）---"
+  docker images -f dangling=true --format '{{.ID}}  {{.Size}}  {{.CreatedSince}}' 2>&1 | head -20
+  echo "--- build cache ---"
+  docker system df -v 2>&1 | sed -n '/Build cache/,$p' | head -10
 
-  echo "== 3. 执行删除 =="
-  if [ -d "$T" ]; then
-    rm -rf "$T" && echo "removed $T"
-  else
-    echo "$T 不存在，跳过"
-  fi
-  rm -f /etc/ld.so.conf.d/corex-4.4.0.conf.bak_500 2>/dev/null || true
+  echo "== 4. 未被运行中容器使用的镜像（候选）=="
+  used=$(docker ps --format '{{.Image}}' 2>/dev/null | sort -u)
+  docker images --format '{{.Repository}}:{{.Tag}} {{.ID}} {{.Size}} {{.CreatedSince}}' 2>/dev/null | while read -r tag id size since; do
+    printf '%s\n' "$used" | grep -qxF "$tag" || printf '%s | %s | %s | %s\n' "$tag" "$id" "$size" "$since"
+  done | head -25
 
-  echo "== 4. 删后核对 =="
-  du -sh "$T" 2>/dev/null || echo "$T 已不存在"
-  ls -ld /usr/local/corex
-  readlink -f /usr/local/corex
-  ls /usr/local/corex/bin 2>/dev/null | head -5
-  echo "--- 重建 ld 缓存（去掉已删路径）---"
-  ldconfig 2>&1 | head -5; echo "ldconfig rc=$?"
-  ldconfig -p 2>/dev/null | grep -c 'corex-4.4.0' || true
+  echo "== 5. 已停止容器汇总 =="
+  docker ps -a --filter status=exited --format '{{.ID}} {{.Names}} {{.Image}} {{.Status}}' 2>&1 | head -20
+  echo "--- 每个已停止容器的可写层大小 ---"
+  docker ps -a -s --filter status=exited --format '{{.Names}} {{.Size}}' 2>&1 | head -20
 
-  echo "== 5. 空间 =="
-  df -h /
-  df -B1 / | tail -1
+  echo "== 6. 运行中容器（不要动）=="
+  docker ps --format '{{.ID}} {{.Names}} {{.Image}} {{.Status}}' 2>&1 | head -15
 
   # ---- 命令结束 ----
 
