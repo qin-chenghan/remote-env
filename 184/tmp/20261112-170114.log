@@ -1,0 +1,346 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T09:01:14Z
+
++ RUN=/home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924
+++ basename /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924
++ NAME=litehost_gap_20261112_145924
++ echo '== 1. 确认没有写进程 =='
+== 1. 确认没有写进程 ==
++ pgrep -af 'vllmBench_lite|bench_driver|lhctl'
++ grep -v cmd.sh
++ head -5
++ echo '(空=无写入)'
+(空=无写入)
++ echo '== 2. 原始目录完整性 =='
+== 2. 原始目录完整性 ==
++ '[' -d /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924 ']'
++ echo 'RUN ok'
+RUN ok
++ du -sh /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924
+1.9M	/home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924
++ find /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924 -type f -printf '%10s  %p\n'
++ sort -k2
++ head -40
+        81  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/bench.process.json
+      1029  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/bs8_in128_out128.json
+       249  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/config.txt
+       199  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/control/rank0.ready.json
+       199  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/control/rank1.ready.json
+       199  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/control/rank2.ready.json
+       199  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/control/rank3.ready.json
+       668  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/four_rank_totals.csv
+      2239  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/per_rank.csv
+      1248  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/report.txt
+      9775  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/summary.json
+     18835  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/benchmark_hooked.py.txt
+      1587  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/case.json
+       668  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
+      2239  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/host_report/per_rank.csv
+      1248  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/host_report/report.txt
+      9775  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/host_report/summary.json
+    419900  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank0_pid888390.csv
+       972  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank0_pid888390.meta.json
+    419899  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank1_pid888391.csv
+       972  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank1_pid888391.meta.json
+    419894  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank2_pid888392.csv
+       972  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank2_pid888392.meta.json
+    419895  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank3_pid888393.csv
+       972  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank3_pid888393.meta.json
+      6324  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/window.json
+      6585  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/bench_bs8_in128_out128.log
+        42  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/preflight.log
+     48906  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/server.log
+        91  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/summary_build.log
+        81  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/server.process.json
+       884  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/session.json
+       546  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/summary.csv
+++ find /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924 -type f
+++ wc -l
++ echo '文件数: 33'
+文件数: 33
++ echo '== 3. 关键文件 sha256 =='
+== 3. 关键文件 sha256 ==
++ for f in summary.csv config.txt host_summary/four_rank_totals.csv host_summary/per_rank.csv host_summary/report.txt logs/server.log
++ '[' -f /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/summary.csv ']'
++ sha256sum /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/summary.csv
+15314de8b9758054f4bd1a70c4383e6dafffc3722d36a6a5e81db87c175f9808  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/summary.csv
++ for f in summary.csv config.txt host_summary/four_rank_totals.csv host_summary/per_rank.csv host_summary/report.txt logs/server.log
++ '[' -f /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/config.txt ']'
++ sha256sum /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/config.txt
+4b342a4fc02635a4460919a09fe70039ccb02deb925330258145285875c65022  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/config.txt
++ for f in summary.csv config.txt host_summary/four_rank_totals.csv host_summary/per_rank.csv host_summary/report.txt logs/server.log
++ '[' -f /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/four_rank_totals.csv ']'
++ sha256sum /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/four_rank_totals.csv
+6cfcb33615558924fe87ba27e07f78cbed531abf8b23b292eb1af95a8c7fef19  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/four_rank_totals.csv
++ for f in summary.csv config.txt host_summary/four_rank_totals.csv host_summary/per_rank.csv host_summary/report.txt logs/server.log
++ '[' -f /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/per_rank.csv ']'
++ sha256sum /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/per_rank.csv
+554c659b4595847fd72da0eb4e44a714f14e6139f0b043fe2606f99146a087a1  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/per_rank.csv
++ for f in summary.csv config.txt host_summary/four_rank_totals.csv host_summary/per_rank.csv host_summary/report.txt logs/server.log
++ '[' -f /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/report.txt ']'
++ sha256sum /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/report.txt
+e30daea42ffa43544b6a4d0e4393a376f504b56410c986401b989583ae1e8c6e  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/report.txt
++ for f in summary.csv config.txt host_summary/four_rank_totals.csv host_summary/per_rank.csv host_summary/report.txt logs/server.log
++ '[' -f /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/server.log ']'
++ sha256sum /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/server.log
+126afd708d004ce56433d5de9998ebd4c53b1fd7762a6a92124cab3d3804b3e4  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/server.log
++ echo '== 4. 本地打包备份 =='
+== 4. 本地打包备份 ==
++ mkdir -p /home/qch/backup
++ TAR=/home/qch/backup/litehost_gap_20261112_145924-20261112-170114.tar.gz
++ tar -czf /home/qch/backup/litehost_gap_20261112_145924-20261112-170114.tar.gz -C /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924 .
++ tail -2
++ ls -lh /home/qch/backup/litehost_gap_20261112_145924-20261112-170114.tar.gz
+-rw-r--r--. 1 root root 279K Nov 12 17:01 /home/qch/backup/litehost_gap_20261112_145924-20261112-170114.tar.gz
++ tar -tzf /home/qch/backup/litehost_gap_20261112_145924-20261112-170114.tar.gz
++ wc -l
+40
++ echo '== 5. 完整复制到仓库 export =='
+== 5. 完整复制到仓库 export ==
++ EX=/home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full
++ rm -rf /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full
++ cp -a /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924 /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full
+++ find /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full -type f
+++ wc -l
++ echo 'repo copy files: 33'
+repo copy files: 33
++ du -sh /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full
+1.9M	/home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full
++ echo '-- 目录树 --'
+-- 目录树 --
++ find /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full -maxdepth 2 -type d
++ sort
++ head -20
+/home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full
+/home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/control
+/home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/host_summary
+/home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost
+/home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128
+/home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/logs
++ echo '== 6. 校验复制一致性 =='
+== 6. 校验复制一致性 ==
+++ find /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924 -type f
+++ sed 's|/home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924||'
+++ sort
+++ xargs '-I{}' sha256sum '/home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924{}'
+++ sort
++ A='00e44c5f4070f189845a155ac536ec11823f61f6e39b0a65ed982d90265eaf16  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank3_pid888393.meta.json
+126afd708d004ce56433d5de9998ebd4c53b1fd7762a6a92124cab3d3804b3e4  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/server.log
+15314de8b9758054f4bd1a70c4383e6dafffc3722d36a6a5e81db87c175f9808  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/summary.csv
+3be218d7b8ea4bcb8e2dde5591430cc1a0fa35c7f1f9c60f15d69691ded12943  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/bs8_in128_out128.json
+3d042fc6489e720606ff1186d467dd0decdd5bc601401c101c08392696d1ccac  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank0_pid888390.meta.json
+42a9129f0db7ce4dac57ef927333b51ae884e2429c36db0b1d445124f6fde99a  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/bench.process.json
+48307dd885f15aa1e8624ab8ad2732491662b8e6a196a35ba3ab128fc1371e30  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank2_pid888392.csv
+4b342a4fc02635a4460919a09fe70039ccb02deb925330258145285875c65022  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/config.txt
+4fe0fe2788c74779cd297627b9ecb39fa87047ae87b3a54443da2b98674d0b87  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank2_pid888392.meta.json
+554c659b4595847fd72da0eb4e44a714f14e6139f0b043fe2606f99146a087a1  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/per_rank.csv
+554c659b4595847fd72da0eb4e44a714f14e6139f0b043fe2606f99146a087a1  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/host_report/per_rank.csv
+62760514300fcab9bf07a64e3b47f7e458ca1e0b63270305707c360c895855f4  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank3_pid888393.csv
+67b0d356f766c85ab324cd5414e7f36050ee1ed5f8b6d8b1340e9a0e9d10eb48  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/bench_bs8_in128_out128.log
+6ca04ffe7dfb2b8a18539db6cd2eef03aa11800842b0d65b9f19a39a43d3fa74  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/server.process.json
+6cca271973d14498775b376f906a808f8649df8d7a372b2110508a28ed9519bc  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/control/rank2.ready.json
+6cfcb33615558924fe87ba27e07f78cbed531abf8b23b292eb1af95a8c7fef19  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/four_rank_totals.csv
+6cfcb33615558924fe87ba27e07f78cbed531abf8b23b292eb1af95a8c7fef19  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
+88c8bc067fdb88833852eced9353627d2338ca03bc9a5c8ac6469319bef2e027  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/session.json
+8ada45b5dff26cc46f536c0c4156af8f499f7d31bc4322627ec4fb16b52dcc8d  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/case.json
+8de4607df0bb999cf6d656e07130ca762315248c21700bd51ec02d49bf9d8c76  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/summary.json
+8de4607df0bb999cf6d656e07130ca762315248c21700bd51ec02d49bf9d8c76  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/host_report/summary.json
+8fee8da7472966299c3c5a77fc70870b9378dc22c1cba8016c25fbbfb7159f94  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/window.json
+9db7f26aa472dea3343f8fc57bf0c4b01921b560bf929839e028422c3b536903  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank1_pid888391.meta.json
+ca612e41daded35920efe28adf9870de5ec6fdefa69bf5986f98163c2d578430  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank0_pid888390.csv
+ca8bfd0854a2bc5141aa0738c04e82900f31c03ac783f9737e4431b8d33aa9a1  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/preflight.log
+ceb1e13f4be7d909dbe9e3c2b78269d97e245521577c86b26b028c6813728b4c  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/control/rank0.ready.json
+d08694eceddb5d593d7102cd1689e6f544f1357a2995c6d69e5d87e83ae9be2c  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/control/rank1.ready.json
+db393be91b7564d721664d92e1e68ba36a6d14f493b70e5f7d9586152b19bfb7  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/benchmark_hooked.py.txt
+e30daea42ffa43544b6a4d0e4393a376f504b56410c986401b989583ae1e8c6e  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/report.txt
+e30daea42ffa43544b6a4d0e4393a376f504b56410c986401b989583ae1e8c6e  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/host_report/report.txt
+e66f9e80f5a6c0aef1785db853d3d07490bc15283b71efdb2c15a63281db9001  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/summary_build.log
+f4e0f60a62c221017b83b024800127d94d4d818219325b1fb463deda271cedac  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank1_pid888391.csv
+f53ba4a3be9dad009630fd27b1e493c7c9093c669bbf055ef9eff18fbcadfd4b  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/control/rank3.ready.json'
+++ find /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full -type f
+++ sed 's|/home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full||'
+++ sort
+++ xargs '-I{}' sha256sum '/home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full{}'
+++ sort
++ B='00e44c5f4070f189845a155ac536ec11823f61f6e39b0a65ed982d90265eaf16  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank3_pid888393.meta.json
+126afd708d004ce56433d5de9998ebd4c53b1fd7762a6a92124cab3d3804b3e4  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/logs/server.log
+15314de8b9758054f4bd1a70c4383e6dafffc3722d36a6a5e81db87c175f9808  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/summary.csv
+3be218d7b8ea4bcb8e2dde5591430cc1a0fa35c7f1f9c60f15d69691ded12943  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/bs8_in128_out128.json
+3d042fc6489e720606ff1186d467dd0decdd5bc601401c101c08392696d1ccac  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank0_pid888390.meta.json
+42a9129f0db7ce4dac57ef927333b51ae884e2429c36db0b1d445124f6fde99a  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/bench.process.json
+48307dd885f15aa1e8624ab8ad2732491662b8e6a196a35ba3ab128fc1371e30  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank2_pid888392.csv
+4b342a4fc02635a4460919a09fe70039ccb02deb925330258145285875c65022  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/config.txt
+4fe0fe2788c74779cd297627b9ecb39fa87047ae87b3a54443da2b98674d0b87  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank2_pid888392.meta.json
+554c659b4595847fd72da0eb4e44a714f14e6139f0b043fe2606f99146a087a1  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/host_summary/per_rank.csv
+554c659b4595847fd72da0eb4e44a714f14e6139f0b043fe2606f99146a087a1  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/host_report/per_rank.csv
+62760514300fcab9bf07a64e3b47f7e458ca1e0b63270305707c360c895855f4  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank3_pid888393.csv
+67b0d356f766c85ab324cd5414e7f36050ee1ed5f8b6d8b1340e9a0e9d10eb48  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/logs/bench_bs8_in128_out128.log
+6ca04ffe7dfb2b8a18539db6cd2eef03aa11800842b0d65b9f19a39a43d3fa74  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/server.process.json
+6cca271973d14498775b376f906a808f8649df8d7a372b2110508a28ed9519bc  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/control/rank2.ready.json
+6cfcb33615558924fe87ba27e07f78cbed531abf8b23b292eb1af95a8c7fef19  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/host_summary/four_rank_totals.csv
+6cfcb33615558924fe87ba27e07f78cbed531abf8b23b292eb1af95a8c7fef19  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
+88c8bc067fdb88833852eced9353627d2338ca03bc9a5c8ac6469319bef2e027  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/session.json
+8ada45b5dff26cc46f536c0c4156af8f499f7d31bc4322627ec4fb16b52dcc8d  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/case.json
+8de4607df0bb999cf6d656e07130ca762315248c21700bd51ec02d49bf9d8c76  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/host_summary/summary.json
+8de4607df0bb999cf6d656e07130ca762315248c21700bd51ec02d49bf9d8c76  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/host_report/summary.json
+8fee8da7472966299c3c5a77fc70870b9378dc22c1cba8016c25fbbfb7159f94  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/window.json
+9db7f26aa472dea3343f8fc57bf0c4b01921b560bf929839e028422c3b536903  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank1_pid888391.meta.json
+ca612e41daded35920efe28adf9870de5ec6fdefa69bf5986f98163c2d578430  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank0_pid888390.csv
+ca8bfd0854a2bc5141aa0738c04e82900f31c03ac783f9737e4431b8d33aa9a1  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/logs/preflight.log
+ceb1e13f4be7d909dbe9e3c2b78269d97e245521577c86b26b028c6813728b4c  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/control/rank0.ready.json
+d08694eceddb5d593d7102cd1689e6f544f1357a2995c6d69e5d87e83ae9be2c  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/control/rank1.ready.json
+db393be91b7564d721664d92e1e68ba36a6d14f493b70e5f7d9586152b19bfb7  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/benchmark_hooked.py.txt
+e30daea42ffa43544b6a4d0e4393a376f504b56410c986401b989583ae1e8c6e  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/host_summary/report.txt
+e30daea42ffa43544b6a4d0e4393a376f504b56410c986401b989583ae1e8c6e  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/host_report/report.txt
+e66f9e80f5a6c0aef1785db853d3d07490bc15283b71efdb2c15a63281db9001  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/logs/summary_build.log
+f4e0f60a62c221017b83b024800127d94d4d818219325b1fb463deda271cedac  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank1_pid888391.csv
+f53ba4a3be9dad009630fd27b1e493c7c9093c669bbf055ef9eff18fbcadfd4b  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/control/rank3.ready.json'
++ '[' '00e44c5f4070f189845a155ac536ec11823f61f6e39b0a65ed982d90265eaf16  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank3_pid888393.meta.json
+126afd708d004ce56433d5de9998ebd4c53b1fd7762a6a92124cab3d3804b3e4  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/server.log
+15314de8b9758054f4bd1a70c4383e6dafffc3722d36a6a5e81db87c175f9808  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/summary.csv
+3be218d7b8ea4bcb8e2dde5591430cc1a0fa35c7f1f9c60f15d69691ded12943  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/bs8_in128_out128.json
+3d042fc6489e720606ff1186d467dd0decdd5bc601401c101c08392696d1ccac  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank0_pid888390.meta.json
+42a9129f0db7ce4dac57ef927333b51ae884e2429c36db0b1d445124f6fde99a  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/bench.process.json
+48307dd885f15aa1e8624ab8ad2732491662b8e6a196a35ba3ab128fc1371e30  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank2_pid888392.csv
+4b342a4fc02635a4460919a09fe70039ccb02deb925330258145285875c65022  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/config.txt
+4fe0fe2788c74779cd297627b9ecb39fa87047ae87b3a54443da2b98674d0b87  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank2_pid888392.meta.json
+554c659b4595847fd72da0eb4e44a714f14e6139f0b043fe2606f99146a087a1  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/per_rank.csv
+554c659b4595847fd72da0eb4e44a714f14e6139f0b043fe2606f99146a087a1  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/host_report/per_rank.csv
+62760514300fcab9bf07a64e3b47f7e458ca1e0b63270305707c360c895855f4  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank3_pid888393.csv
+67b0d356f766c85ab324cd5414e7f36050ee1ed5f8b6d8b1340e9a0e9d10eb48  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/bench_bs8_in128_out128.log
+6ca04ffe7dfb2b8a18539db6cd2eef03aa11800842b0d65b9f19a39a43d3fa74  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/server.process.json
+6cca271973d14498775b376f906a808f8649df8d7a372b2110508a28ed9519bc  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/control/rank2.ready.json
+6cfcb33615558924fe87ba27e07f78cbed531abf8b23b292eb1af95a8c7fef19  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/four_rank_totals.csv
+6cfcb33615558924fe87ba27e07f78cbed531abf8b23b292eb1af95a8c7fef19  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
+88c8bc067fdb88833852eced9353627d2338ca03bc9a5c8ac6469319bef2e027  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/session.json
+8ada45b5dff26cc46f536c0c4156af8f499f7d31bc4322627ec4fb16b52dcc8d  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/case.json
+8de4607df0bb999cf6d656e07130ca762315248c21700bd51ec02d49bf9d8c76  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/summary.json
+8de4607df0bb999cf6d656e07130ca762315248c21700bd51ec02d49bf9d8c76  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/host_report/summary.json
+8fee8da7472966299c3c5a77fc70870b9378dc22c1cba8016c25fbbfb7159f94  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/window.json
+9db7f26aa472dea3343f8fc57bf0c4b01921b560bf929839e028422c3b536903  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank1_pid888391.meta.json
+ca612e41daded35920efe28adf9870de5ec6fdefa69bf5986f98163c2d578430  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank0_pid888390.csv
+ca8bfd0854a2bc5141aa0738c04e82900f31c03ac783f9737e4431b8d33aa9a1  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/preflight.log
+ceb1e13f4be7d909dbe9e3c2b78269d97e245521577c86b26b028c6813728b4c  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/control/rank0.ready.json
+d08694eceddb5d593d7102cd1689e6f544f1357a2995c6d69e5d87e83ae9be2c  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/control/rank1.ready.json
+db393be91b7564d721664d92e1e68ba36a6d14f493b70e5f7d9586152b19bfb7  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/benchmark_hooked.py.txt
+e30daea42ffa43544b6a4d0e4393a376f504b56410c986401b989583ae1e8c6e  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/report.txt
+e30daea42ffa43544b6a4d0e4393a376f504b56410c986401b989583ae1e8c6e  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/host_report/report.txt
+e66f9e80f5a6c0aef1785db853d3d07490bc15283b71efdb2c15a63281db9001  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/summary_build.log
+f4e0f60a62c221017b83b024800127d94d4d818219325b1fb463deda271cedac  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank1_pid888391.csv
+f53ba4a3be9dad009630fd27b1e493c7c9093c669bbf055ef9eff18fbcadfd4b  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/control/rank3.ready.json' = '00e44c5f4070f189845a155ac536ec11823f61f6e39b0a65ed982d90265eaf16  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank3_pid888393.meta.json
+126afd708d004ce56433d5de9998ebd4c53b1fd7762a6a92124cab3d3804b3e4  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/logs/server.log
+15314de8b9758054f4bd1a70c4383e6dafffc3722d36a6a5e81db87c175f9808  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/summary.csv
+3be218d7b8ea4bcb8e2dde5591430cc1a0fa35c7f1f9c60f15d69691ded12943  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/bs8_in128_out128.json
+3d042fc6489e720606ff1186d467dd0decdd5bc601401c101c08392696d1ccac  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank0_pid888390.meta.json
+42a9129f0db7ce4dac57ef927333b51ae884e2429c36db0b1d445124f6fde99a  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/bench.process.json
+48307dd885f15aa1e8624ab8ad2732491662b8e6a196a35ba3ab128fc1371e30  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank2_pid888392.csv
+4b342a4fc02635a4460919a09fe70039ccb02deb925330258145285875c65022  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/config.txt
+4fe0fe2788c74779cd297627b9ecb39fa87047ae87b3a54443da2b98674d0b87  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank2_pid888392.meta.json
+554c659b4595847fd72da0eb4e44a714f14e6139f0b043fe2606f99146a087a1  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/host_summary/per_rank.csv
+554c659b4595847fd72da0eb4e44a714f14e6139f0b043fe2606f99146a087a1  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/host_report/per_rank.csv
+62760514300fcab9bf07a64e3b47f7e458ca1e0b63270305707c360c895855f4  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank3_pid888393.csv
+67b0d356f766c85ab324cd5414e7f36050ee1ed5f8b6d8b1340e9a0e9d10eb48  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/logs/bench_bs8_in128_out128.log
+6ca04ffe7dfb2b8a18539db6cd2eef03aa11800842b0d65b9f19a39a43d3fa74  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/server.process.json
+6cca271973d14498775b376f906a808f8649df8d7a372b2110508a28ed9519bc  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/control/rank2.ready.json
+6cfcb33615558924fe87ba27e07f78cbed531abf8b23b292eb1af95a8c7fef19  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/host_summary/four_rank_totals.csv
+6cfcb33615558924fe87ba27e07f78cbed531abf8b23b292eb1af95a8c7fef19  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
+88c8bc067fdb88833852eced9353627d2338ca03bc9a5c8ac6469319bef2e027  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/session.json
+8ada45b5dff26cc46f536c0c4156af8f499f7d31bc4322627ec4fb16b52dcc8d  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/case.json
+8de4607df0bb999cf6d656e07130ca762315248c21700bd51ec02d49bf9d8c76  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/host_summary/summary.json
+8de4607df0bb999cf6d656e07130ca762315248c21700bd51ec02d49bf9d8c76  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/host_report/summary.json
+8fee8da7472966299c3c5a77fc70870b9378dc22c1cba8016c25fbbfb7159f94  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/window.json
+9db7f26aa472dea3343f8fc57bf0c4b01921b560bf929839e028422c3b536903  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank1_pid888391.meta.json
+ca612e41daded35920efe28adf9870de5ec6fdefa69bf5986f98163c2d578430  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank0_pid888390.csv
+ca8bfd0854a2bc5141aa0738c04e82900f31c03ac783f9737e4431b8d33aa9a1  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/logs/preflight.log
+ceb1e13f4be7d909dbe9e3c2b78269d97e245521577c86b26b028c6813728b4c  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/control/rank0.ready.json
+d08694eceddb5d593d7102cd1689e6f544f1357a2995c6d69e5d87e83ae9be2c  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/control/rank1.ready.json
+db393be91b7564d721664d92e1e68ba36a6d14f493b70e5f7d9586152b19bfb7  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/benchmark_hooked.py.txt
+e30daea42ffa43544b6a4d0e4393a376f504b56410c986401b989583ae1e8c6e  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/host_summary/report.txt
+e30daea42ffa43544b6a4d0e4393a376f504b56410c986401b989583ae1e8c6e  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/host_report/report.txt
+e66f9e80f5a6c0aef1785db853d3d07490bc15283b71efdb2c15a63281db9001  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/logs/summary_build.log
+f4e0f60a62c221017b83b024800127d94d4d818219325b1fb463deda271cedac  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank1_pid888391.csv
+f53ba4a3be9dad009630fd27b1e493c7c9093c669bbf055ef9eff18fbcadfd4b  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/control/rank3.ready.json' ']'
++ echo 'COPY MISMATCH'
+COPY MISMATCH
++ head -10
++ diff /dev/fd/63 /dev/fd/62
+++ echo '00e44c5f4070f189845a155ac536ec11823f61f6e39b0a65ed982d90265eaf16  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank3_pid888393.meta.json
+126afd708d004ce56433d5de9998ebd4c53b1fd7762a6a92124cab3d3804b3e4  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/server.log
+15314de8b9758054f4bd1a70c4383e6dafffc3722d36a6a5e81db87c175f9808  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/summary.csv
+3be218d7b8ea4bcb8e2dde5591430cc1a0fa35c7f1f9c60f15d69691ded12943  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/bs8_in128_out128.json
+3d042fc6489e720606ff1186d467dd0decdd5bc601401c101c08392696d1ccac  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank0_pid888390.meta.json
+42a9129f0db7ce4dac57ef927333b51ae884e2429c36db0b1d445124f6fde99a  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/bench.process.json
+48307dd885f15aa1e8624ab8ad2732491662b8e6a196a35ba3ab128fc1371e30  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank2_pid888392.csv
+4b342a4fc02635a4460919a09fe70039ccb02deb925330258145285875c65022  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/config.txt
+4fe0fe2788c74779cd297627b9ecb39fa87047ae87b3a54443da2b98674d0b87  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank2_pid888392.meta.json
+554c659b4595847fd72da0eb4e44a714f14e6139f0b043fe2606f99146a087a1  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/per_rank.csv
+554c659b4595847fd72da0eb4e44a714f14e6139f0b043fe2606f99146a087a1  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/host_report/per_rank.csv
+62760514300fcab9bf07a64e3b47f7e458ca1e0b63270305707c360c895855f4  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank3_pid888393.csv
+67b0d356f766c85ab324cd5414e7f36050ee1ed5f8b6d8b1340e9a0e9d10eb48  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/bench_bs8_in128_out128.log
+6ca04ffe7dfb2b8a18539db6cd2eef03aa11800842b0d65b9f19a39a43d3fa74  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/server.process.json
+6cca271973d14498775b376f906a808f8649df8d7a372b2110508a28ed9519bc  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/control/rank2.ready.json
+6cfcb33615558924fe87ba27e07f78cbed531abf8b23b292eb1af95a8c7fef19  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/four_rank_totals.csv
+6cfcb33615558924fe87ba27e07f78cbed531abf8b23b292eb1af95a8c7fef19  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
+88c8bc067fdb88833852eced9353627d2338ca03bc9a5c8ac6469319bef2e027  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/session.json
+8ada45b5dff26cc46f536c0c4156af8f499f7d31bc4322627ec4fb16b52dcc8d  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/case.json
+8de4607df0bb999cf6d656e07130ca762315248c21700bd51ec02d49bf9d8c76  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/summary.json
+8de4607df0bb999cf6d656e07130ca762315248c21700bd51ec02d49bf9d8c76  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/host_report/summary.json
+8fee8da7472966299c3c5a77fc70870b9378dc22c1cba8016c25fbbfb7159f94  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/window.json
+9db7f26aa472dea3343f8fc57bf0c4b01921b560bf929839e028422c3b536903  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank1_pid888391.meta.json
+ca612e41daded35920efe28adf9870de5ec6fdefa69bf5986f98163c2d578430  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank0_pid888390.csv
+ca8bfd0854a2bc5141aa0738c04e82900f31c03ac783f9737e4431b8d33aa9a1  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/preflight.log
+ceb1e13f4be7d909dbe9e3c2b78269d97e245521577c86b26b028c6813728b4c  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/control/rank0.ready.json
+d08694eceddb5d593d7102cd1689e6f544f1357a2995c6d69e5d87e83ae9be2c  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/control/rank1.ready.json
+db393be91b7564d721664d92e1e68ba36a6d14f493b70e5f7d9586152b19bfb7  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/benchmark_hooked.py.txt
+e30daea42ffa43544b6a4d0e4393a376f504b56410c986401b989583ae1e8c6e  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/host_summary/report.txt
+e30daea42ffa43544b6a4d0e4393a376f504b56410c986401b989583ae1e8c6e  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/host_report/report.txt
+e66f9e80f5a6c0aef1785db853d3d07490bc15283b71efdb2c15a63281db9001  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/summary_build.log
+f4e0f60a62c221017b83b024800127d94d4d818219325b1fb463deda271cedac  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank1_pid888391.csv
+f53ba4a3be9dad009630fd27b1e493c7c9093c669bbf055ef9eff18fbcadfd4b  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/control/rank3.ready.json'
+++ echo '00e44c5f4070f189845a155ac536ec11823f61f6e39b0a65ed982d90265eaf16  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank3_pid888393.meta.json
+126afd708d004ce56433d5de9998ebd4c53b1fd7762a6a92124cab3d3804b3e4  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/logs/server.log
+15314de8b9758054f4bd1a70c4383e6dafffc3722d36a6a5e81db87c175f9808  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/summary.csv
+3be218d7b8ea4bcb8e2dde5591430cc1a0fa35c7f1f9c60f15d69691ded12943  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/bs8_in128_out128.json
+3d042fc6489e720606ff1186d467dd0decdd5bc601401c101c08392696d1ccac  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank0_pid888390.meta.json
+42a9129f0db7ce4dac57ef927333b51ae884e2429c36db0b1d445124f6fde99a  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/bench.process.json
+48307dd885f15aa1e8624ab8ad2732491662b8e6a196a35ba3ab128fc1371e30  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank2_pid888392.csv
+4b342a4fc02635a4460919a09fe70039ccb02deb925330258145285875c65022  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/config.txt
+4fe0fe2788c74779cd297627b9ecb39fa87047ae87b3a54443da2b98674d0b87  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank2_pid888392.meta.json
+554c659b4595847fd72da0eb4e44a714f14e6139f0b043fe2606f99146a087a1  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/host_summary/per_rank.csv
+554c659b4595847fd72da0eb4e44a714f14e6139f0b043fe2606f99146a087a1  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/host_report/per_rank.csv
+62760514300fcab9bf07a64e3b47f7e458ca1e0b63270305707c360c895855f4  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank3_pid888393.csv
+67b0d356f766c85ab324cd5414e7f36050ee1ed5f8b6d8b1340e9a0e9d10eb48  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/logs/bench_bs8_in128_out128.log
+6ca04ffe7dfb2b8a18539db6cd2eef03aa11800842b0d65b9f19a39a43d3fa74  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/server.process.json
+6cca271973d14498775b376f906a808f8649df8d7a372b2110508a28ed9519bc  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/control/rank2.ready.json
+6cfcb33615558924fe87ba27e07f78cbed531abf8b23b292eb1af95a8c7fef19  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/host_summary/four_rank_totals.csv
+6cfcb33615558924fe87ba27e07f78cbed531abf8b23b292eb1af95a8c7fef19  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
+88c8bc067fdb88833852eced9353627d2338ca03bc9a5c8ac6469319bef2e027  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/session.json
+8ada45b5dff26cc46f536c0c4156af8f499f7d31bc4322627ec4fb16b52dcc8d  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/case.json
+8de4607df0bb999cf6d656e07130ca762315248c21700bd51ec02d49bf9d8c76  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/host_summary/summary.json
+8de4607df0bb999cf6d656e07130ca762315248c21700bd51ec02d49bf9d8c76  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/host_report/summary.json
+8fee8da7472966299c3c5a77fc70870b9378dc22c1cba8016c25fbbfb7159f94  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/window.json
+9db7f26aa472dea3343f8fc57bf0c4b01921b560bf929839e028422c3b536903  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank1_pid888391.meta.json
+ca612e41daded35920efe28adf9870de5ec6fdefa69bf5986f98163c2d578430  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank0_pid888390.csv
+ca8bfd0854a2bc5141aa0738c04e82900f31c03ac783f9737e4431b8d33aa9a1  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/logs/preflight.log
+ceb1e13f4be7d909dbe9e3c2b78269d97e245521577c86b26b028c6813728b4c  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/control/rank0.ready.json
+d08694eceddb5d593d7102cd1689e6f544f1357a2995c6d69e5d87e83ae9be2c  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/control/rank1.ready.json
+db393be91b7564d721664d92e1e68ba36a6d14f493b70e5f7d9586152b19bfb7  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/benchmark_hooked.py.txt
+e30daea42ffa43544b6a4d0e4393a376f504b56410c986401b989583ae1e8c6e  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/host_summary/report.txt
+e30daea42ffa43544b6a4d0e4393a376f504b56410c986401b989583ae1e8c6e  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/host_report/report.txt
+e66f9e80f5a6c0aef1785db853d3d07490bc15283b71efdb2c15a63281db9001  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/logs/summary_build.log
+f4e0f60a62c221017b83b024800127d94d4d818219325b1fb463deda271cedac  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/litehost/bs8_in128_out128/rank1_pid888391.csv
+f53ba4a3be9dad009630fd27b1e493c7c9093c669bbf055ef9eff18fbcadfd4b  /home/qch/tools/remote-env/184/export/litehost_gap_20261112_145924_full/control/rank3.ready.json'
+1,33c1,33
+< 00e44c5f4070f189845a155ac536ec11823f61f6e39b0a65ed982d90265eaf16  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank3_pid888393.meta.json
+< 126afd708d004ce56433d5de9998ebd4c53b1fd7762a6a92124cab3d3804b3e4  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/logs/server.log
+< 15314de8b9758054f4bd1a70c4383e6dafffc3722d36a6a5e81db87c175f9808  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/summary.csv
+< 3be218d7b8ea4bcb8e2dde5591430cc1a0fa35c7f1f9c60f15d69691ded12943  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/bs8_in128_out128.json
+< 3d042fc6489e720606ff1186d467dd0decdd5bc601401c101c08392696d1ccac  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank0_pid888390.meta.json
+< 42a9129f0db7ce4dac57ef927333b51ae884e2429c36db0b1d445124f6fde99a  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/bench.process.json
+< 48307dd885f15aa1e8624ab8ad2732491662b8e6a196a35ba3ab128fc1371e30  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank2_pid888392.csv
+< 4b342a4fc02635a4460919a09fe70039ccb02deb925330258145285875c65022  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/config.txt
+< 4fe0fe2788c74779cd297627b9ecb39fa87047ae87b3a54443da2b98674d0b87  /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924/litehost/bs8_in128_out128/rank2_pid888392.meta.json
++ set +x
+
+### exit: 0
