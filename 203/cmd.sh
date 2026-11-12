@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 203 根盘满：只读盘点可回收项（不清任何东西）。
+# 203 根盘数字对不上账：df 全表、挂载点、保留块、du -x 对账、近期增长来源。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,54 +17,55 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== 1. 根盘现状 =="
-  df -h /
-  df -i / | tail -1
+  echo "== 1. 全部挂载与 df =="
+  df -h
+  echo "--- 具体设备 ---"
+  findmnt -T / -o TARGET,SOURCE,FSTYPE,OPTIONS
+  findmnt -T /data -o TARGET,SOURCE,FSTYPE 2>/dev/null
+  findmnt -T /usr/local -o TARGET,SOURCE,FSTYPE 2>/dev/null
+  lsblk 2>/dev/null | head -20
 
-  echo "== 2. / 一层目录占用（排除挂载点）=="
-  for d in /usr /var /opt /data /root /etc /srv /tmp /boot; do
-    [ -d "$d" ] && du -sh "$d" 2>/dev/null
+  echo "== 2. 空间去哪了：Used + Avail + Reserved =="
+  df -B1 /
+  echo "--- 文件系统保留块 ---"
+  fs=$(findmnt -no FSTYPE /)
+  dev=$(findmnt -no SOURCE /)
+  echo "fs=$fs dev=$dev"
+  if [ "$fs" = ext4 ] || [ "$fs" = ext3 ]; then
+    tune2fs -l "$dev" 2>/dev/null | grep -iE 'Block count|Free blocks|Reserved block count|Block size|Filesystem features' | head -6
+  elif [ "$fs" = xfs ]; then
+    xfs_info "$dev" 2>/dev/null | head -10
+    xfs_db -r -c 'freesp -s' "$dev" 2>/dev/null | head -10
+  fi
+
+  echo "== 3. du 对账（-x 不跨挂载点）=="
+  du -xsh / 2>/dev/null
+  echo "--- 不跨挂载点的一层 ---"
+  du -xsh /* 2>/dev/null | sort -rh | head -12
+  echo "--- /data 是否独立设备 ---"
+  du -sh /data 2>/dev/null
+  du -xsh /data 2>/dev/null
+  echo "--- /usr/local 是否独立设备 ---"
+  du -sh /usr/local 2>/dev/null
+  du -xsh /usr/local 2>/dev/null
+
+  echo "== 4. swap =="
+  swapon --show 2>/dev/null || echo "无 swap 设备"
+  find / -xdev -maxdepth 2 -name '*swap*' -size +1G 2>/dev/null | head -5
+
+  echo "== 5. 近两天根盘上新增长的大文件/目录 =="
+  find / -xdev -type f -mtime -2 -size +50M 2>/dev/null | head -20 | while read -r f; do du -h "$f"; done
+  echo "--- /var/log 近两天 ---"
+  find /var/log -type f -mtime -2 -size +10M 2>/dev/null | head -10 | while read -r f; do du -h "$f"; done
+
+  echo "== 6. 可直接回收项汇总（当前实测）=="
+  for p in /opt/maca-3.3.0 /usr/local/corex-4.4.0 /usr/src/linux-6.6.0-72.0.0.76.oe2403sp1.x86_64 /var/cache/dnf /var/log /boot; do
+    [ -e "$p" ] && du -sh "$p"
   done
-  echo "--- /usr 二层 ---"
-  du -sh /usr/* 2>/dev/null | sort -rh | head -8
-  echo "--- /var 二层 ---"
-  du -sh /var/* 2>/dev/null | sort -rh | head -8
-  echo "--- /opt 二层 ---"
-  du -sh /opt/* 2>/dev/null | sort -rh | head -8
-  echo "--- /root 二层 ---"
-  du -sh /root/* 2>/dev/null | sort -rh | head -8
-
-  echo "== 3. 候选可回收项 =="
-  du -sh /var/cache/dnf 2>/dev/null
-  du -sh /var/log 2>/dev/null
   journalctl --disk-usage 2>/dev/null
-  du -sh /usr/src/* 2>/dev/null | sort -rh | head -5
-  du -sh /opt/maca /opt/maca-3.3.0 /usr/local/corex-4.4.0 /usr/local/corex-5.0.0 2>/dev/null
-  du -sh /data/log 2>/dev/null
-  ls -l /lib/modules 2>/dev/null
-
-  echo "== 4. 已装内核与可删旧内核 =="
-  rpm -q kernel kernel-devel kernel-source kernel-headers 2>/dev/null | head -20
-  echo "--- /usr/src 里的 kernel 源 ---"
-  ls -d /usr/src/linux-* 2>/dev/null
-  echo "--- 当前内核 / 默认启动内核 ---"
-  uname -r
-  grubby --default-kernel 2>/dev/null || echo "no grubby"
-  echo "--- /boot ---"
-  du -sh /boot 2>/dev/null
-  ls -lt /boot 2>/dev/null | head -8
-
-  echo "== 5. 大文件（>200M，根盘，跳过挂载点）=="
-  find / -xdev -type f -size +200M 2>/dev/null | head -25 | while read -r f; do
-    du -h "$f" 2>/dev/null
-  done
-
-  echo "== 6. docker =="
-  docker info 2>/dev/null | grep -E 'Docker Root Dir|Storage Driver'
-  timeout 60 docker system df 2>&1 | head -8
-
-  echo "== 7. 是否有进程仍持有已删大文件 =="
-  lsof +D / 2>/dev/null | grep -i deleted | head -10 || echo "lsof 无输出或无权限"
+  echo "--- 是否有人引用 corex-4.4.0 / maca ---"
+  grep -rIl 'corex-4.4.0' /etc/profile.d /root/.bashrc /etc/ld.so.conf.d /usr/local/bin 2>/dev/null | head -5 || true
+  ls -l /usr/local/corex /usr/local/corex-5.0.0 2>/dev/null | head -5
 
   # ---- 命令结束 ----
 
