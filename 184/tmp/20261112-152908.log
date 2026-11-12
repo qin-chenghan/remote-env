@@ -1,0 +1,45 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T07:29:08Z
+
++ T=/home/qch/scripts/timeline
+++ head -1
+++ ls /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
++ A=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
+++ ls /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
+++ head -1
++ B=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
++ echo A=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
+A=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
++ echo B=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
+B=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
++ '[' -n /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz ']'
++ '[' -n /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz ']'
++ python3 /home/qch/tools/remote-env/184/trace_tshg_split.py /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz 4k2 64k2
+[4k2] steps=1692 prefill=50 decode=1642
+  prefill n=   50 T=  5037.91ms S=  3237.53ms ( 64.3% of T) H= 2631.02ms G=  51.63ms H+G= 2682.66ms
+  decode  n= 1642 T= 68639.99ms S=130992.31ms (190.8% of T) H=    5.56ms G=1623.84ms H+G= 1629.39ms
+  sync 明细（全 trace，self 时长 ms）:
+     68496.71  cudaEventSynchronize
+     65714.59  cudaStreamSynchronize
+       346.04  cudaEventQuery
+        59.19  <built-in method synchronize of torch.Event object at 0xfffe517ca3f0>
+        18.48  <built-in method synchronize of Stream object at 0xff7dcc6abe70>
+         3.15  torch/cuda/streams.py(63): wait_stream
+[64k2] steps=1692 prefill=45 decode=1647
+  prefill n=   45 T=  4958.26ms S=  3081.39ms ( 62.1% of T) H= 2660.45ms G=  41.45ms H+G= 2701.90ms
+  decode  n= 1647 T= 68590.47ms S=130942.27ms (190.9% of T) H=   17.88ms G=1522.89ms H+G= 1540.78ms
+  sync 明细（全 trace，self 时长 ms）:
+     68423.91  cudaEventSynchronize
+     65583.24  cudaStreamSynchronize
+       361.45  cudaEventQuery
+        31.55  <built-in method synchronize of torch.Event object at 0xfffad313c170>
+        18.25  <built-in method synchronize of Stream object at 0xff7a3134b9a0>
+         2.95  torch/cuda/streams.py(63): wait_stream
+
+== 跨条件对比（B - A）==
+  prefill T 5037.91->4958.26ms (-1.58%)  S 3237.53->3081.39ms (-4.82%)  H 2631.02->2660.45ms (+1.12%)  G 51.63->41.45ms (-19.72%)  H+G 2682.66->2701.90ms (+0.72%)
+  decode  T 68639.99->68590.47ms (-0.07%)  S 130992.31->130942.27ms (-0.04%)  H 5.56->17.88ms (+221.69%)  G 1623.84->1522.89ms (-6.22%)  H+G 1629.39->1540.78ms (-5.44%)
++ set +x
+
+### exit: 0
