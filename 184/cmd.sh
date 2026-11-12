@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 全量保全：把完整 run 目录打包备份到 /home/qch/backup，并完整复制到仓库 export。
+# 正确校验保全（相对路径 hash 对比），并删除仓库里的数据副本（不该上库）。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,42 +18,50 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
   RUN=/home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924
-  NAME=$(basename "$RUN")
-  echo "== 1. 确认没有写进程 =="
-  pgrep -af 'vllmBench_lite|bench_driver|lhctl' 2>/dev/null | grep -v cmd.sh | head -5
-  echo "(空=无写入)"
+  TAR=$(ls -t /home/qch/backup/litehost_gap_20261112_145924-*.tar.gz 2>/dev/null | head -1)
+  EX="$DIR/export/litehost_gap_20261112_145924_full"
 
-  echo "== 2. 原始目录完整性 =="
-  [ -d "$RUN" ] && echo "RUN ok" || { echo "RUN MISSING"; exit 3; }
-  du -sh "$RUN"
-  find "$RUN" -type f -printf '%10s  %p\n' | sort -k2 | head -40
-  echo "文件数: $(find "$RUN" -type f | wc -l)"
+  echo "== 1. 三份副本状态 =="
+  [ -d "$RUN" ] && echo "原始目录: OK  $(du -sh "$RUN" | cut -f1)" || echo "原始目录: MISSING"
+  [ -f "$TAR" ] && echo "tar 备份: OK  $(du -h "$TAR" | cut -f1)  $TAR" || echo "tar 备份: MISSING"
+  [ -d "$EX" ] && echo "仓库副本: 存在 $(du -sh "$EX" | cut -f1)" || echo "仓库副本: 不存在"
 
-  echo "== 3. 关键文件 sha256 =="
-  for f in summary.csv config.txt host_summary/four_rank_totals.csv host_summary/per_rank.csv host_summary/report.txt logs/server.log; do
-    [ -f "$RUN/$f" ] && sha256sum "$RUN/$f"
-  done
+  echo "== 2. 用相对路径 hash 校验 =="
+  man() { ( cd "$1" && find . -type f -print0 | sort -z | xargs -0 sha256sum ) | sort; }
+  man "$RUN" > /tmp/a.txt
+  if [ -d "$EX" ]; then
+    man "$EX" > /tmp/b.txt
+    if cmp -s /tmp/a.txt /tmp/b.txt; then
+      echo "VERIFIED: 原始目录与仓库副本 $(wc -l < /tmp/a.txt) 个文件 hash 完全一致"
+    else
+      echo "MISMATCH:"; diff /tmp/a.txt /tmp/b.txt | head -10
+    fi
+  fi
+  echo "原始目录文件数: $(wc -l < /tmp/a.txt)"
 
-  echo "== 4. 本地打包备份 =="
-  mkdir -p /home/qch/backup
-  TAR=/home/qch/backup/${NAME}-$TS.tar.gz
-  tar -czf "$TAR" -C "$RUN" . 2>&1 | tail -2
-  ls -lh "$TAR"
-  tar -tzf "$TAR" | wc -l
+  echo "== 3. 校验 tar 可解且文件数一致 =="
+  if [ -f "$TAR" ]; then
+    echo "tar 内条目数: $(tar -tzf "$TAR" | wc -l)"
+    tar -tzf "$TAR" > /tmp/t.txt 2>&1 && echo "tar 完整性: OK"
+  fi
 
-  echo "== 5. 完整复制到仓库 export =="
-  EX="$DIR/export/${NAME}_full"
-  rm -rf "$EX"
-  cp -a "$RUN" "$EX"
-  echo "repo copy files: $(find "$EX" -type f | wc -l)"
-  du -sh "$EX"
-  echo "-- 目录树 --"
-  find "$EX" -maxdepth 2 -type d | sort | head -20
+  echo "== 4. 删除仓库里的数据副本（不该上库）=="
+  if [ -d "$DIR/export" ]; then
+    echo "将删除: $DIR/export"
+    ls -la "$DIR/export" | head
+    if [ -d "$RUN" ] && [ -f "$TAR" ]; then
+      rm -rf "$DIR/export"
+      echo "已删除（原始目录与 tar 备份均存在）"
+    else
+      echo "保留：原始目录或 tar 备份缺失，先不删"
+    fi
+  else
+    echo "仓库内无 export 目录"
+  fi
 
-  echo "== 6. 校验复制一致性 =="
-  A=$(find "$RUN" -type f | sed "s|$RUN||" | sort | xargs -I{} sha256sum "$RUN{}" 2>/dev/null | sort)
-  B=$(find "$EX" -type f | sed "s|$EX||" | sort | xargs -I{} sha256sum "$EX{}" 2>/dev/null | sort)
-  if [ "$A" = "$B" ]; then echo "COPY VERIFIED: 全部文件 hash 一致"; else echo "COPY MISMATCH"; diff <(echo "$A") <(echo "$B") | head -10; fi
+  echo "== 5. 确认未上库 =="
+  git -C "$DIR/.." ls-files 184/export | head
+  git -C "$DIR/.." status --short | head
 
   # ---- 命令结束 ----
 
