@@ -1,0 +1,346 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T09:17:43Z
+
++ C=corex5-py311
++ P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
++ echo '== config =='
+== config ==
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/config.txt'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/config.txt'
+test_id=litehost_gap_20261112_150257
+started=2026-11-12T15:02:57+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=192-255
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
++ for case_id in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048
++ echo '########## CASE bs8_in128_out128'
+########## CASE bs8_in128_out128
++ echo '--- json ---'
+--- json ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in128_out128.json'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in128_out128.json'
+{"date": "20261112-150517", "endpoint_type": "vllm", "backend": "vllm", "label": null, "model_id": "/home/model/Qwen3-32B-W8A8", "tokenizer_id": "/home/model/Qwen3-32B-W8A8", "num_prompts": 100, "request_rate": "inf", "burstiness": 1.0, "max_concurrency": 8, "duration": 74.03838711999924, "completed": 100, "failed": 0, "total_input_tokens": 12800, "total_output_tokens": 12800, "request_throughput": 1.3506507082322436, "request_goodput": null, "output_throughput": 172.8832906537272, "total_token_throughput": 345.7665813074544, "max_output_tokens_per_s": 192.0, "max_concurrent_requests": 16, "rtfx": 0.0, "mean_ttft_ms": 242.52089970012094, "median_ttft_ms": 260.71545500053617, "std_ttft_ms": 47.918349394497454, "p99_ttft_ms": 275.1722119999613, "mean_tpot_ms": 43.26797901338497, "median_tpot_ms": 43.49520342519844, "std_tpot_ms": 1.705750798053921, "p99_tpot_ms": 44.60452657007566, "mean_itl_ms": 43.26797991732174, "median_itl_ms": 43.530830000236165, "std_itl_ms": 5.138658356868473, "p99_itl_ms": 47.28452540017315}+ echo
+
++ echo '--- four_rank_totals ---'
+--- four_rank_totals ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in128_out128/host_report/four_rank_totals.csv'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in128_out128/host_report/four_rank_totals.csv'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,all_formal,0.0,4,1692,72.92442203,69.921152585,3.003269445,1.102891065,4.10616051,2.90671299,3.06420683
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,graph_formal,0.0,4,1664,71.25606623499999,69.17839404,2.077672195,,,1.99866046,2.12579965
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,no_graph_formal,0.0,4,28,1.668355795,0.7427585449999999,0.92559725,,,0.90805253,0.93840718
++ echo '--- per_rank ---'
+--- per_rank ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in128_out128/host_report/per_rank.csv'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in128_out128/host_report/per_rank.csv'
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,0,900029,all_formal,0.0,262,1692,73.0638182,70.03197724,3.03184096,0.0,3.03184096,1.7918681796690308,3382,3328,0.96352396,3.9953649199999997
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,0,900029,graph_formal,0.0,262,1664,71.40163282,69.28934166,2.11229116,0.0,2.11229116,1.2694057451923078,3328,3328,,
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,0,900029,no_graph_formal,0.0,262,28,1.66218538,0.74263558,0.9195498,0.0,0.9195498,32.84106428571429,54,0,,
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,1,900030,all_formal,0.0,262,1692,72.93695786,70.03024487,2.90671299,0.0,2.90671299,1.7179154787234043,3382,3328,1.09033689,3.9970498799999996
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,1,900030,graph_formal,0.0,262,1664,71.28528046,69.28662,1.99866046,0.0,1.99866046,1.2011180649038462,3328,3328,,
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,1,900030,no_graph_formal,0.0,262,28,1.6516774,0.74362487,0.90805253,0.0,0.90805253,32.4304475,54,0,,
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,2,900031,all_formal,0.0,262,1692,72.83603614,69.82571914,3.010317,0.0,3.010317,1.7791471631205673,3382,3328,1.19125426,4.20157126
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,2,900031,graph_formal,0.0,262,1664,71.15758063,69.08364312,2.07393751,0.0,2.07393751,1.2463566766826923,3328,3328,,
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,2,900031,no_graph_formal,0.0,262,28,1.67845551,0.74207602,0.93637949,0.0,0.93637949,33.442124642857145,54,0,,
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,3,900032,all_formal,0.0,262,1692,72.86087592,69.79666909,3.06420683,0.0,3.06420683,1.8109969444444445,3382,3328,1.16644915,4.23065598
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,3,900032,graph_formal,0.0,262,1664,71.17977103,69.05397138,2.12579965,0.0,2.12579965,1.277523828125,3328,3328,,
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,3,900032,no_graph_formal,0.0,262,28,1.68110489,0.74269771,0.93840718,0.0,0.93840718,33.514542142857145,54,0,,
++ echo
+
++ for case_id in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048
++ echo '########## CASE bs8_in128_out1024'
+########## CASE bs8_in128_out1024
++ echo '--- json ---'
+--- json ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in128_out1024.json'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in128_out1024.json'
+{"date": "20261112-151638", "endpoint_type": "vllm", "backend": "vllm", "label": null, "model_id": "/home/model/Qwen3-32B-W8A8", "tokenizer_id": "/home/model/Qwen3-32B-W8A8", "num_prompts": 100, "request_rate": "inf", "burstiness": 1.0, "max_concurrency": 8, "duration": 526.2999685700015, "completed": 100, "failed": 0, "total_input_tokens": 12800, "total_output_tokens": 102400, "request_throughput": 0.19000571151791606, "request_goodput": null, "output_throughput": 194.56584859434605, "total_token_throughput": 218.8865796686393, "max_output_tokens_per_s": 216.0, "max_concurrent_requests": 16, "rtfx": 0.0, "mean_ttft_ms": 241.70983109997906, "median_ttft_ms": 260.79674000084196, "std_ttft_ms": 50.999636338965885, "p99_ttft_ms": 281.3609465002628, "mean_tpot_ms": 39.50997837917889, "median_tpot_ms": 39.68276269305919, "std_tpot_ms": 0.9011307010328472, "p99_tpot_ms": 39.848184455717366, "mean_itl_ms": 39.5099784988269, "median_itl_ms": 39.142859999628854, "std_itl_ms": 2.6458197828842533, "p99_itl_ms": 44.47232010163134}+ echo
+
++ echo '--- four_rank_totals ---'
+--- four_rank_totals ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in128_out1024/host_report/four_rank_totals.csv'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in128_out1024/host_report/four_rank_totals.csv'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,all_formal,0.0,4,13340,517.9893268425,501.1890813225,16.800245519999997,8.299323165,25.099568684999998,15.62637144,17.60560459
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,graph_formal,0.0,4,13312,516.3729363150001,500.50239913250005,15.8705371825,,,14.70341685,16.67934904
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,no_graph_formal,0.0,4,28,1.6163905275,0.68668219,0.9297083375,,,0.91651186,0.95311135
++ echo '--- per_rank ---'
+--- per_rank ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in128_out1024/host_report/per_rank.csv'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in128_out1024/host_report/per_rank.csv'
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,0,900029,all_formal,0.0,2054,13340,518.21443673,500.60883214,17.60560459,0.0,17.60560459,1.319760464017991,26678,26624,8.07423234,25.67983693
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,0,900029,graph_formal,0.0,2054,13312,516.60755042,499.92820138,16.67934904,0.0,16.67934904,1.252955907451923,26624,26624,,
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,0,900029,no_graph_formal,0.0,2054,28,1.60688631,0.68063076,0.92625555,0.0,0.92625555,33.080555357142856,54,0,,
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,1,900030,all_formal,0.0,2054,13340,518.23262972,501.50416452,16.7284652,0.0,16.7284652,1.2540078860569714,26678,26624,8.05603723,24.784502429999996
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,1,900030,graph_formal,0.0,2054,13312,516.61925416,500.80730082,15.81195334,0.0,15.81195334,1.1877969756610578,26624,26624,,
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,1,900030,no_graph_formal,0.0,2054,28,1.61337556,0.6968637,0.91651186,0.0,0.91651186,32.73256642857143,54,0,,
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,2,900031,all_formal,0.0,2054,13340,517.83699094,502.2106195,15.62637144,0.0,15.62637144,1.1713921619190404,26678,26624,8.45162197,24.077993409999998
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,2,900031,graph_formal,0.0,2054,13312,516.22971938,501.52630253,14.70341685,0.0,14.70341685,1.1045235013521635,26624,26624,,
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,2,900031,no_graph_formal,0.0,2054,28,1.60727156,0.68431697,0.92295459,0.0,0.92295459,32.96266392857143,54,0,,
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,3,900032,all_formal,0.0,2054,13340,517.67324998,500.43270913,17.24054085,0.0,17.24054085,1.2923943665667168,26678,26624,8.61540112,25.855941969999996
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,3,900032,graph_formal,0.0,2054,13312,516.0352213,499.7477918,16.2874295,0.0,16.2874295,1.2235148362379809,26624,26624,,
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,3,900032,no_graph_formal,0.0,2054,28,1.63802868,0.68491733,0.95311135,0.0,0.95311135,34.03969107142858,54,0,,
++ echo
+
++ for case_id in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048
++ echo '########## CASE bs8_in128_out2048'
+########## CASE bs8_in128_out2048
++ echo '--- json ---'
+--- json ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in128_out2048.json'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in128_out2048.json'
+{"date": "20261112-153821", "endpoint_type": "vllm", "backend": "vllm", "label": null, "model_id": "/home/model/Qwen3-32B-W8A8", "tokenizer_id": "/home/model/Qwen3-32B-W8A8", "num_prompts": 100, "request_rate": "inf", "burstiness": 1.0, "max_concurrency": 8, "duration": 1064.2708786500007, "completed": 100, "failed": 0, "total_input_tokens": 12800, "total_output_tokens": 204800, "request_throughput": 0.09396104131576666, "request_goodput": null, "output_throughput": 192.43221261469012, "total_token_throughput": 204.45922590310826, "max_output_tokens_per_s": 216.0, "max_concurrent_requests": 16, "rtfx": 0.0, "mean_ttft_ms": 233.11450390010577, "median_ttft_ms": 269.70107499982987, "std_ttft_ms": 63.822213372679805, "p99_ttft_ms": 286.1775969984956, "mean_tpot_ms": 40.07058544567652, "median_tpot_ms": 40.27564565705971, "std_tpot_ms": 1.00816229409879, "p99_tpot_ms": 40.39039677870109, "mean_itl_ms": 40.07058550337068, "median_itl_ms": 39.645809999456105, "std_itl_ms": 2.914897381165924, "p99_itl_ms": 45.342790299273474}+ echo
+
++ echo '--- four_rank_totals ---'
+--- four_rank_totals ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in128_out2048/host_report/four_rank_totals.csv'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in128_out2048/host_report/four_rank_totals.csv'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,all_formal,0.0,4,26652,1047.3607850725,1013.4948805825,33.86590449,16.897952545,50.763857035,31.89400196,35.8496112
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,graph_formal,0.0,4,26611,1045.1306122775,1012.684334115,32.4462781625,,,30.5077461,34.35847785
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,no_graph_formal,0.0,4,41,2.230172795,0.8105464675,1.4196263275,,,1.38625586,1.49113335
++ echo '--- per_rank ---'
+--- per_rank ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in128_out2048/host_report/per_rank.csv'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in128_out2048/host_report/per_rank.csv'
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,0,900029,all_formal,0.0,4102,26652,1048.33841952,1014.02512162,34.3132979,0.0,34.3132979,1.2874567724748613,53302,53222,15.9203211,50.233619000000004
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,0,900029,graph_formal,0.0,4102,26611,1046.11795069,1013.21325159,32.9046991,0.0,32.9046991,1.236507425500733,53222,53222,,
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,0,900029,no_graph_formal,0.0,4102,41,2.22046883,0.81187003,1.4085988,0.0,1.4085988,34.35606829268292,80,0,,
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,1,900030,all_formal,0.0,4102,26652,1047.80201635,1014.39530945,33.4067069,0.0,33.4067069,1.253440901245685,53302,53222,16.45673878,49.86344568
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,1,900030,graph_formal,0.0,4102,26611,1045.58311412,1013.56892452,32.0141896,0.0,32.0141896,1.2030434632294915,53222,53222,,
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,1,900030,no_graph_formal,0.0,4102,41,2.21890223,0.82638493,1.3925173,0.0,1.3925173,33.963836585365854,80,0,,
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,2,900031,all_formal,0.0,4102,26652,1046.93172908,1015.03772712,31.89400196,0.0,31.89400196,1.196683249287108,53302,53222,17.32701254,49.221014499999995
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,2,900031,graph_formal,0.0,4102,26611,1044.71278682,1014.20504072,30.5077461,0.0,30.5077461,1.14643365901319,53222,53222,,
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,2,900031,no_graph_formal,0.0,4102,41,2.21894226,0.8326864,1.38625586,0.0,1.38625586,33.81111853658537,80,0,,
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,3,900032,all_formal,0.0,4102,26652,1046.37097534,1010.52136414,35.8496112,0.0,35.8496112,1.345100225123818,53302,53222,17.88773776,53.73734896
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,3,900032,graph_formal,0.0,4102,26611,1044.10859748,1009.75011963,34.35847785,0.0,34.35847785,1.291138170305513,53222,53222,,
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,3,900032,no_graph_formal,0.0,4102,41,2.26237786,0.77124451,1.49113335,0.0,1.49113335,36.36910609756097,80,0,,
++ echo
+
++ for case_id in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048
++ echo '########## CASE bs8_in1024_out128'
+########## CASE bs8_in1024_out128
++ echo '--- json ---'
+--- json ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in1024_out128.json'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in1024_out128.json'
+{"date": "20261112-154113", "endpoint_type": "vllm", "backend": "vllm", "label": null, "model_id": "/home/model/Qwen3-32B-W8A8", "tokenizer_id": "/home/model/Qwen3-32B-W8A8", "num_prompts": 100, "request_rate": "inf", "burstiness": 1.0, "max_concurrency": 8, "duration": 84.13555216999885, "completed": 100, "failed": 0, "total_input_tokens": 102400, "total_output_tokens": 12800, "request_throughput": 1.1885581947325488, "request_goodput": null, "output_throughput": 152.13544892576624, "total_token_throughput": 1369.2190403318962, "max_output_tokens_per_s": 208.0, "max_concurrent_requests": 16, "rtfx": 0.0, "mean_ttft_ms": 712.8486033002628, "median_ttft_ms": 674.0922500011948, "std_ttft_ms": 329.7706906916044, "p99_ttft_ms": 1758.0002128996784, "mean_tpot_ms": 45.915773376376684, "median_tpot_ms": 46.149652322844666, "std_tpot_ms": 2.6101705599010927, "p99_tpot_ms": 49.5614173921247, "mean_itl_ms": 45.91577438897658, "median_itl_ms": 38.62519499853079, "std_itl_ms": 39.54001620825025, "p99_itl_ms": 226.25702779740095}+ echo
+
++ echo '--- four_rank_totals ---'
+--- four_rank_totals ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in1024_out128/host_report/four_rank_totals.csv'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in1024_out128/host_report/four_rank_totals.csv'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,all_formal,0.0,4,1694,82.9885801325,77.413730785,5.5748493475,1.133484865,6.7083342125000005,5.41764212,5.75202958
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,graph_formal,0.0,4,1601,64.10052115,62.04949197,2.05102918,,,1.99223175,2.11683273
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,no_graph_formal,0.0,4,93,18.8880589825,15.364238815,3.5238201675,,,3.42374406,3.63519685
++ echo '--- per_rank ---'
+--- per_rank ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in1024_out128/host_report/per_rank.csv'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in1024_out128/host_report/per_rank.csv'
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,0,900029,all_formal,0.0,266,1694,83.04043066,77.55517216,5.4852585,0.0,5.4852585,3.2380510625737897,3386,3202,1.08165693,6.56691543
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,0,900029,graph_formal,0.0,266,1601,64.16895232,62.10743788,2.06151444,0.0,2.06151444,1.2876417489069332,3202,3202,,
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,0,900029,no_graph_formal,0.0,266,93,18.87147834,15.44773428,3.42374406,0.0,3.42374406,36.81445225806451,184,0,,
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,1,900030,all_formal,0.0,266,1694,83.04898616,77.63134404,5.41764212,0.0,5.41764212,3.1981358441558445,3386,3202,1.07308694,6.49072906
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,1,900030,graph_formal,0.0,266,1601,64.18138462,62.18915287,1.99223175,0.0,1.99223175,1.2443671143035602,3202,3202,,
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,1,900030,no_graph_formal,0.0,266,93,18.86760154,15.44219117,3.42541037,0.0,3.42541037,36.83236956989247,184,0,,
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,2,900031,all_formal,0.0,266,1694,82.92653275,77.28206556,5.64446719,0.0,5.64446719,3.3320349409681227,3386,3202,1.19550954,6.83997673
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,2,900031,graph_formal,0.0,266,1601,64.02480457,61.99126677,2.0335378,0.0,2.0335378,1.270167270455965,3202,3202,,
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,2,900031,no_graph_formal,0.0,266,93,18.90172818,15.29079879,3.61092939,0.0,3.61092939,38.827197741935485,184,0,,
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,3,900032,all_formal,0.0,266,1694,82.93837096,77.18634138,5.75202958,0.0,5.75202958,3.395531038961039,3386,3202,1.18368605,6.935715630000001
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,3,900032,graph_formal,0.0,266,1601,64.02694309,61.91011036,2.11683273,0.0,2.11683273,1.3221940849469083,3202,3202,,
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,3,900032,no_graph_formal,0.0,266,93,18.91142787,15.27623102,3.63519685,0.0,3.63519685,39.08813817204301,184,0,,
++ echo
+
++ for case_id in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048
++ echo '########## CASE bs8_in1024_out1024'
+########## CASE bs8_in1024_out1024
++ echo '--- json ---'
+--- json ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in1024_out1024.json'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in1024_out1024.json'
+{"date": "20261112-155314", "endpoint_type": "vllm", "backend": "vllm", "label": null, "model_id": "/home/model/Qwen3-32B-W8A8", "tokenizer_id": "/home/model/Qwen3-32B-W8A8", "num_prompts": 100, "request_rate": "inf", "burstiness": 1.0, "max_concurrency": 8, "duration": 560.7147570199995, "completed": 100, "failed": 0, "total_input_tokens": 102400, "total_output_tokens": 102400, "request_throughput": 0.17834379913855775, "request_goodput": null, "output_throughput": 182.62405031788313, "total_token_throughput": 365.24810063576626, "max_output_tokens_per_s": 216.0, "max_concurrent_requests": 16, "rtfx": 0.0, "mean_ttft_ms": 716.0869093002475, "median_ttft_ms": 674.7565450004913, "std_ttft_ms": 327.70726885691084, "p99_ttft_ms": 1757.5405877003868, "mean_tpot_ms": 41.73242898260014, "median_tpot_ms": 42.009576344085765, "std_tpot_ms": 1.3023500043617953, "p99_tpot_ms": 42.47510478064289, "mean_itl_ms": 41.73242910821093, "median_itl_ms": 40.526034999857075, "std_itl_ms": 14.276295269908337, "p99_itl_ms": 47.895240900797944}+ echo
+
++ echo '--- four_rank_totals ---'
+--- four_rank_totals ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in1024_out1024/host_report/four_rank_totals.csv'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in1024_out1024/host_report/four_rank_totals.csv'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,all_formal,0.0,4,13342,551.946133645,531.8690338425,20.0770998025,8.7546401625,28.831739965,19.25076693,20.65101904
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,graph_formal,0.0,4,13249,532.95436281,516.4166381225,16.5377246875,,,15.79092043,17.02924875
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,no_graph_formal,0.0,4,93,18.991770835,15.45239572,3.539375115,,,3.45110377,3.6247799
++ echo '--- per_rank ---'
+--- per_rank ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in1024_out1024/host_report/per_rank.csv'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in1024_out1024/host_report/per_rank.csv'
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,0,900029,all_formal,0.0,2058,13342,552.87139631,533.06862962,19.80276669,0.0,19.80276669,1.4842427439664219,26682,26498,7.82938891,27.632155599999997
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,0,900029,graph_formal,0.0,2058,13249,533.90424432,517.5525814,16.35166292,0.0,16.35166292,1.2341809132764738,26498,26498,,
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,0,900029,no_graph_formal,0.0,2058,93,18.96715199,15.51604822,3.45110377,0.0,3.45110377,37.10864268817204,184,0,,
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,1,900030,all_formal,0.0,2058,13342,552.79736605,533.54659912,19.25076693,0.0,19.25076693,1.4428696544745916,26682,26498,7.90340446,27.154171390000002
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,1,900030,graph_formal,0.0,2058,13249,533.81918191,518.02826148,15.79092043,0.0,15.79092043,1.1918575311344253,26498,26498,,
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,1,900030,no_graph_formal,0.0,2058,93,18.97818414,15.51833764,3.4598465,0.0,3.4598465,37.20265053763441,184,0,,
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,2,900031,all_formal,0.0,2058,13342,551.53276517,530.92891862,20.60384655,0.0,20.60384655,1.544284706190976,26682,26498,9.16797904,29.77182559
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,2,900031,graph_formal,0.0,2058,13249,532.5189169,515.53985025,16.97906665,0.0,16.97906665,1.2815357121292172,26498,26498,,
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,2,900031,no_graph_formal,0.0,2058,93,19.01384827,15.38906837,3.6247799,0.0,3.6247799,38.976127956989245,184,0,,
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,3,900032,all_formal,0.0,2058,13342,550.58300705,529.93198801,20.65101904,0.0,20.65101904,1.5478203447758956,26682,26498,10.11778824,30.76880728
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,3,900032,graph_formal,0.0,2058,13249,531.57510811,514.54585936,17.02924875,0.0,17.02924875,1.2853233262887764,26498,26498,,
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,3,900032,no_graph_formal,0.0,2058,93,19.00789894,15.38612865,3.62177029,0.0,3.62177029,38.94376655913979,184,0,,
++ echo
+
++ for case_id in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048
++ echo '########## CASE bs8_in1024_out2048'
+########## CASE bs8_in1024_out2048
++ echo '--- json ---'
+--- json ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in1024_out2048.json'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in1024_out2048.json'
+{"date": "20261112-161512", "endpoint_type": "vllm", "backend": "vllm", "label": null, "model_id": "/home/model/Qwen3-32B-W8A8", "tokenizer_id": "/home/model/Qwen3-32B-W8A8", "num_prompts": 100, "request_rate": "inf", "burstiness": 1.0, "max_concurrency": 8, "duration": 1075.6622054, "completed": 100, "failed": 0, "total_input_tokens": 102400, "total_output_tokens": 204800, "request_throughput": 0.09296598829816988, "request_goodput": null, "output_throughput": 190.3943440346519, "total_token_throughput": 285.59151605197786, "max_output_tokens_per_s": 216.0, "max_concurrent_requests": 16, "rtfx": 0.0, "mean_ttft_ms": 714.5238435000647, "median_ttft_ms": 675.1099399989471, "std_ttft_ms": 328.99671143445977, "p99_ttft_ms": 1758.1401500005813, "mean_tpot_ms": 40.27718577811426, "median_tpot_ms": 40.466114633609855, "std_tpot_ms": 1.0162207298597639, "p99_tpot_ms": 40.741580038689904, "mean_itl_ms": 40.27718584386904, "median_itl_ms": 39.4525399988197, "std_itl_ms": 10.261683011790863, "p99_itl_ms": 45.90061039907596}+ echo
+
++ echo '--- four_rank_totals ---'
+--- four_rank_totals ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in1024_out2048/host_report/four_rank_totals.csv'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in1024_out2048/host_report/four_rank_totals.csv'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,all_formal,0.0,4,26654,1058.176624965,1021.3179994525,36.8586255125,17.4714785775,54.330104090000006,35.28888957,38.00925577
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,graph_formal,0.0,4,26561,1039.2661046575,1005.9141334575,33.3519712,,,31.88216976,34.39995337
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,no_graph_formal,0.0,4,93,18.9105203075,15.403865995,3.5066543125,,,3.40671981,3.6093024
++ echo '--- per_rank ---'
+--- per_rank ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in1024_out2048/host_report/per_rank.csv'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in1024_out2048/host_report/per_rank.csv'
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,0,900029,all_formal,0.0,4106,26654,1059.9409847,1023.57943383,36.36155087,0.0,36.36155087,1.3642061555488858,53306,53122,15.707129,52.068679870000004
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,0,900029,graph_formal,0.0,4106,26561,1041.03504821,1008.12509305,32.90995516,0.0,32.90995516,1.2390329867098377,53122,53122,,
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,0,900029,no_graph_formal,0.0,4106,93,18.90593649,15.45434078,3.45159571,0.0,3.45159571,37.1139323655914,184,0,,
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,1,900030,all_formal,0.0,4106,26654,1060.07980311,1024.79091354,35.28888957,0.0,35.28888957,1.3239622409394463,53306,53122,15.56829272,50.857182290000004
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,1,900030,graph_formal,0.0,4106,26561,1041.18067487,1009.29850511,31.88216976,0.0,31.88216976,1.2003377041527052,53122,53122,,
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,1,900030,no_graph_formal,0.0,4106,93,18.89912824,15.49240843,3.40671981,0.0,3.40671981,36.631395806451614,184,0,,
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,2,900031,all_formal,0.0,4106,26654,1057.39769528,1019.62288944,37.77480584,0.0,37.77480584,1.4172284024911832,53306,53122,18.25040685,56.025212690000004
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,2,900031,graph_formal,0.0,4106,26561,1038.49656714,1004.28076063,34.21580651,0.0,34.21580651,1.288197225631565,53122,53122,,
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,2,900031,no_graph_formal,0.0,4106,93,18.90112814,15.34212881,3.55899933,0.0,3.55899933,38.26881,184,0,,
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,3,900032,all_formal,0.0,4106,26654,1055.28801677,1017.278761,38.00925577,0.0,38.00925577,1.4260244529901704,53306,53122,20.36008574,58.36934151
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,3,900032,graph_formal,0.0,4106,26561,1036.35212841,1001.95217504,34.39995337,0.0,34.39995337,1.2951302048115658,53122,53122,,
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,3,900032,no_graph_formal,0.0,4106,93,18.93588836,15.32658596,3.6093024,0.0,3.6093024,38.80970322580645,184,0,,
++ echo
+
++ for case_id in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048
++ echo '########## CASE bs8_in2048_out128'
+########## CASE bs8_in2048_out128
++ echo '--- json ---'
+--- json ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in2048_out128.json'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in2048_out128.json'
+{"date": "20261112-161829", "endpoint_type": "vllm", "backend": "vllm", "label": null, "model_id": "/home/model/Qwen3-32B-W8A8", "tokenizer_id": "/home/model/Qwen3-32B-W8A8", "num_prompts": 100, "request_rate": "inf", "burstiness": 1.0, "max_concurrency": 8, "duration": 104.99175155000194, "completed": 100, "failed": 0, "total_input_tokens": 204800, "total_output_tokens": 12800, "request_throughput": 0.952455774131698, "request_goodput": null, "output_throughput": 121.91433908885735, "total_token_throughput": 2072.543764510575, "max_output_tokens_per_s": 216.0, "max_concurrent_requests": 12, "rtfx": 0.0, "mean_ttft_ms": 1495.2467269000772, "median_ttft_ms": 1597.2692949999328, "std_ttft_ms": 565.8303936355499, "p99_ttft_ms": 3573.368250199856, "mean_tpot_ms": 52.816627258268184, "median_tpot_ms": 50.78158625984205, "std_tpot_ms": 4.453668610620283, "p99_tpot_ms": 60.25714652204578, "mean_itl_ms": 52.81662822913357, "median_itl_ms": 37.4061550010083, "std_itl_ms": 76.97579988925803, "p99_itl_ms": 448.10379080045095}+ echo
+
++ echo '--- four_rank_totals ---'
+--- four_rank_totals ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in2048_out128/host_report/four_rank_totals.csv'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in2048_out128/host_report/four_rank_totals.csv'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,all_formal,0.0,4,1707,103.79659275750001,97.009865805,6.7867269525000005,1.17635398,7.9630809325000005,6.55055891,6.95602624
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,graph_formal,0.0,4,1580,57.90187597,55.892018895,2.009857075,,,1.92712254,2.0737327
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,no_graph_formal,0.0,4,127,45.8947167875,41.11784691,4.7768698775,,,4.62343637,4.93813138
++ echo '--- per_rank ---'
+--- per_rank ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in2048_out128/host_report/per_rank.csv'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in2048_out128/host_report/per_rank.csv'
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,0,900029,all_formal,0.0,270,1707,103.86439887,97.1136136,6.75078527,0.0,6.75078527,3.9547658289396606,3412,3160,1.1085536,7.85933887
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,0,900029,graph_formal,0.0,270,1580,57.97963589,55.90590319,2.0737327,0.0,2.0737327,1.3124890506329114,3160,3160,,
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,0,900029,no_graph_formal,0.0,270,127,45.88476298,41.20771041,4.67705257,0.0,4.67705257,36.82718559055118,252,0,,
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,1,900030,all_formal,0.0,270,1707,103.90311789,97.35255898,6.55055891,0.0,6.55055891,3.8374686057410665,3412,3160,1.06980853,7.620367440000001
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,1,900030,graph_formal,0.0,270,1580,58.02191542,56.09479288,1.92712254,0.0,1.92712254,1.2196978101265823,3160,3160,,
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,1,900030,no_graph_formal,0.0,270,127,45.88120247,41.2577661,4.62343637,0.0,4.62343637,36.40501078740157,252,0,,
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,2,900031,all_formal,0.0,270,1707,103.7642327,96.87469531,6.88953739,0.0,6.88953739,4.0360500234329235,3412,3160,1.20868935,8.09822674
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,2,900031,graph_formal,0.0,270,1580,57.8557504,55.8350722,2.0206782,0.0,2.0206782,1.278910253164557,3160,3160,,
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,2,900031,no_graph_formal,0.0,270,127,45.9084823,41.03962311,4.86885919,0.0,4.86885919,38.33747393700787,252,0,,
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,3,900032,all_formal,0.0,270,1707,103.65462157,96.69859533,6.95602624,0.0,6.95602624,4.075000726420621,3412,3160,1.31836444,8.27439068
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,3,900032,graph_formal,0.0,270,1580,57.75020217,55.73230731,2.01789486,0.0,2.01789486,1.2771486455696202,3160,3160,,
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,3,900032,no_graph_formal,0.0,270,127,45.9044194,40.96628802,4.93813138,0.0,4.93813138,38.882924251968504,252,0,,
++ echo
+
++ for case_id in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048
++ echo '########## CASE bs8_in2048_out1024'
+########## CASE bs8_in2048_out1024
++ echo '--- json ---'
+--- json ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in2048_out1024.json'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in2048_out1024.json'
+{"date": "20261112-163027", "endpoint_type": "vllm", "backend": "vllm", "label": null, "model_id": "/home/model/Qwen3-32B-W8A8", "tokenizer_id": "/home/model/Qwen3-32B-W8A8", "num_prompts": 100, "request_rate": "inf", "burstiness": 1.0, "max_concurrency": 8, "duration": 557.732775970002, "completed": 100, "failed": 0, "total_input_tokens": 204800, "total_output_tokens": 102400, "request_throughput": 0.17929733433019288, "request_goodput": null, "output_throughput": 183.6004703541175, "total_token_throughput": 550.8014110623525, "max_output_tokens_per_s": 216.0, "max_concurrent_requests": 12, "rtfx": 0.0, "mean_ttft_ms": 1494.5446360001006, "median_ttft_ms": 1592.3283399988577, "std_ttft_ms": 565.0419428476614, "p99_ttft_ms": 3568.698922000149, "mean_tpot_ms": 40.73083733567943, "median_tpot_ms": 40.68933937439093, "std_tpot_ms": 1.134107393368949, "p99_tpot_ms": 41.87100220977211, "mean_itl_ms": 40.73083746529835, "median_itl_ms": 39.08130499985418, "std_itl_ms": 27.538268728263546, "p99_itl_ms": 44.72883010199439}+ echo
+
++ echo '--- four_rank_totals ---'
+--- four_rank_totals ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in2048_out1024/host_report/four_rank_totals.csv'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in2048_out1024/host_report/four_rank_totals.csv'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,all_formal,0.0,4,13355,548.830826215,527.27572732,21.555098895,8.8889778025,30.4440766975,21.24631632,21.77387202
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,graph_formal,0.0,4,13228,502.9664607625,486.2201611475,16.746299614999998,,,16.53213985,17.01245426
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,no_graph_formal,0.0,4,127,45.8643654525,41.0555661725,4.808799280000001,,,4.71417647,4.90255941
++ echo '--- per_rank ---'
+--- per_rank ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in2048_out1024/host_report/per_rank.csv'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in2048_out1024/host_report/per_rank.csv'
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,0,900029,all_formal,0.0,2062,13355,549.57709418,527.83353403,21.74356015,0.0,21.74356015,1.6281213141145638,26708,26456,8.14274213,29.886302280000002
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,0,900029,graph_formal,0.0,2062,13228,503.71835591,486.70590165,17.01245426,0.0,17.01245426,1.2860942137889326,26456,26456,,
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,0,900029,no_graph_formal,0.0,2062,127,45.85873827,41.12763238,4.73110589,0.0,4.73110589,37.25280228346457,252,0,,
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,1,900030,all_formal,0.0,2062,13355,549.57154385,528.32522753,21.24631632,0.0,21.24631632,1.590888530138525,26708,26456,8.14822858,29.3945449
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,1,900030,graph_formal,0.0,2062,13228,503.70959568,487.17745583,16.53213985,0.0,16.53213985,1.2497837806168735,26456,26456,,
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,1,900030,no_graph_formal,0.0,2062,127,45.86194817,41.1477717,4.71417647,0.0,4.71417647,37.11949976377953,252,0,,
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,2,900031,all_formal,0.0,2062,13355,548.60646928,526.83259726,21.77387202,0.0,21.77387202,1.6303910160988395,26708,26456,9.11334132,30.88721334
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,2,900031,graph_formal,0.0,2062,13228,502.74250014,485.85598347,16.88651667,0.0,16.88651667,1.2765736823404898,26456,26456,,
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,2,900031,no_graph_formal,0.0,2062,127,45.86396914,40.97661379,4.88735535,0.0,4.88735535,38.48311299212598,252,0,,
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,3,900032,all_formal,0.0,2062,13355,547.56819755,526.11155046,21.45664709,0.0,21.45664709,1.6066377454137026,26708,26456,10.15159918,31.608246270000002
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,3,900032,graph_formal,0.0,2062,13228,501.69539132,485.14130364,16.55408768,0.0,16.55408768,1.2514429755065013,26456,26456,,
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,3,900032,no_graph_formal,0.0,2062,127,45.87280623,40.97024682,4.90255941,0.0,4.90255941,38.60283,252,0,,
++ echo
+
++ for case_id in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048
++ echo '########## CASE bs8_in2048_out2048'
+########## CASE bs8_in2048_out2048
++ echo '--- json ---'
+--- json ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in2048_out2048.json'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in2048_out2048.json'
+{"date": "20261112-165215", "endpoint_type": "vllm", "backend": "vllm", "label": null, "model_id": "/home/model/Qwen3-32B-W8A8", "tokenizer_id": "/home/model/Qwen3-32B-W8A8", "num_prompts": 100, "request_rate": "inf", "burstiness": 1.0, "max_concurrency": 8, "duration": 1067.1270528000023, "completed": 100, "failed": 0, "total_input_tokens": 204800, "total_output_tokens": 204800, "request_throughput": 0.09370955383205123, "request_goodput": null, "output_throughput": 191.91716624804093, "total_token_throughput": 383.83433249608186, "max_output_tokens_per_s": 216.0, "max_concurrent_requests": 12, "rtfx": 0.0, "mean_ttft_ms": 1496.3849114001277, "median_ttft_ms": 1601.4847499991447, "std_ttft_ms": 566.8319777004971, "p99_ttft_ms": 3574.809096499703, "mean_tpot_ms": 39.55219709623833, "median_tpot_ms": 39.59927307034686, "std_tpot_ms": 0.8468767353688992, "p99_tpot_ms": 40.18295136946758, "mean_itl_ms": 39.55219715930626, "median_itl_ms": 38.61932000108936, "std_itl_ms": 19.540093902942328, "p99_itl_ms": 43.21805269930337}+ echo
+
++ echo '--- four_rank_totals ---'
+--- four_rank_totals ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in2048_out2048/host_report/four_rank_totals.csv'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in2048_out2048/host_report/four_rank_totals.csv'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,all_formal,0.0,4,26667,1050.49926107,1012.61175489,37.88750618,16.6102329325,54.4977391125,36.78437605,38.63427575
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,graph_formal,0.0,4,26540,1004.6260554749999,971.4937213000001,33.132334175,,,32.13596523,34.02714819
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,no_graph_formal,0.0,4,127,45.873205595,41.118033589999996,4.755172005,,,4.60712756,4.89369683
++ echo '--- per_rank ---'
+--- per_rank ---
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in2048_out2048/host_report/per_rank.csv'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in2048_out2048/host_report/per_rank.csv'
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,0,900029,all_formal,0.0,4110,26667,1053.50665034,1014.87237459,38.63427575,0.0,38.63427575,1.448767231034612,53332,53080,13.6027664,52.23704215
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,0,900029,graph_formal,0.0,4110,26540,1007.64340022,973.61625203,34.02714819,0.0,34.02714819,1.2821080704596834,53080,53080,,
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,0,900029,no_graph_formal,0.0,4110,127,45.86325012,41.25612256,4.60712756,0.0,4.60712756,36.276594960629915,252,0,,
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,1,900030,all_formal,0.0,4110,26667,1052.40682124,1015.62244519,36.78437605,0.0,36.78437605,1.3793968594142574,53332,53080,14.70269386,51.48706991
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,1,900030,graph_formal,0.0,4110,26540,1006.53918027,974.40321504,32.13596523,0.0,32.13596523,1.2108502347400152,53080,53080,,
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,1,900030,no_graph_formal,0.0,4110,127,45.86764097,41.21923015,4.64841082,0.0,4.64841082,36.60166,252,0,,
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,2,900031,all_formal,0.0,4110,26667,1049.32820622,1010.92978333,38.39842289,0.0,38.39842289,1.4399228593392581,53332,53080,17.78132788,56.17975077
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,2,900031,graph_formal,0.0,4110,26540,1003.43859591,969.93386985,33.50472606,0.0,33.50472606,1.2624237400150715,53080,53080,,
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,2,900031,no_graph_formal,0.0,4110,127,45.88961031,40.99591348,4.89369683,0.0,4.89369683,38.53304590551181,252,0,,
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,3,900032,all_formal,0.0,4110,26667,1046.75536648,1009.02241645,37.73295003,0.0,37.73295003,1.4149679390257623,53332,53080,20.35414359,58.08709362
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,3,900032,graph_formal,0.0,4110,26540,1000.8830455,968.02154828,32.86149722,0.0,32.86149722,1.238187536548606,53080,53080,,
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,3,900032,no_graph_formal,0.0,4110,127,45.87232098,41.00086817,4.87145281,0.0,4.87145281,38.35789614173228,252,0,,
++ echo
+
++ set +x
+
+### exit: 0
