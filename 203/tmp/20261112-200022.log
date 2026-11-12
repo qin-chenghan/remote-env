@@ -1,0 +1,190 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-12T12:00:22Z
+
++ echo '== 1. 全部挂载与 df =='
+== 1. 全部挂载与 df ==
++ df -h
+Filesystem                  Size  Used Avail Use% Mounted on
+/dev/mapper/openeuler-root   69G   65G  584M 100% /
+devtmpfs                    4.0M     0  4.0M   0% /dev
+tmpfs                       361G  332K  361G   1% /dev/shm
+tmpfs                       4.0M     0  4.0M   0% /sys/fs/cgroup
+efivarfs                    128K   89K   35K  73% /sys/firmware/efi/efivars
+tmpfs                       145G  141M  144G   1% /run
+tmpfs                       361G   86M  360G   1% /tmp
+/dev/sdc2                   974M  349M  558M  39% /boot
+/dev/mapper/openeuler-home  804G  723G   41G  95% /home
+/dev/sdb1                   744G   16G  729G   3% /data/cubelet
+/dev/sdc1                   599M  6.1M  593M   2% /boot/efi
+overlay                     804G  723G   41G  95% /home/docker/overlay2/9cfae872a222303b16b4fada2263720806ce27b0898397de8e49f6fd7a0da53d/merged
+overlay                     804G  723G   41G  95% /home/docker/overlay2/a8fa981dc2e075f91984dcf2851144ee283ed1f5bee3febbbad0f2ca603a2183/merged
+overlay                     804G  723G   41G  95% /home/docker/overlay2/cbb431ad1519a855fc3148acfedea94530eac34092290da83abf3de7b2cc60ec/merged
+overlay                     804G  723G   41G  95% /home/docker/overlay2/6c0cc86bf85538217177f45948b7c76133877b351251566c66a9891272bc36d8/merged
+overlay                     804G  723G   41G  95% /home/docker/overlay2/1d164e9867afa62cfec8cc788f4debb3fc257d2e4a4b89353e01d878af7220a8/merged
+overlay                     804G  723G   41G  95% /home/docker/overlay2/f5846e512abfdbf358ea586d81b5895e41d153375fcead4644c433fdf0cbe290/merged
+overlay                     804G  723G   41G  95% /home/docker/overlay2/13082d06f62d352b8669cb8ad213dda9b88ec290503799cc428cb56384948736/merged
++ echo '--- 具体设备 ---'
+--- 具体设备 ---
++ findmnt -T / -o TARGET,SOURCE,FSTYPE,OPTIONS
+TARGET SOURCE                     FSTYPE OPTIONS
+/      /dev/mapper/openeuler-root ext4   rw,relatime,seclabel,stripe=128
++ findmnt -T /data -o TARGET,SOURCE,FSTYPE
+TARGET SOURCE                     FSTYPE
+/      /dev/mapper/openeuler-root ext4
++ findmnt -T /usr/local -o TARGET,SOURCE,FSTYPE
+TARGET SOURCE                     FSTYPE
+/      /dev/mapper/openeuler-root ext4
++ lsblk
++ head -20
+NAME                      MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
+sda                         8:0    0   1.1T  0 disk 
+sdb                         8:16   0 744.1G  0 disk 
+└─sdb1                      8:17   0 743.8G  0 part /data/cubelet
+sdc                         8:32   0 893.3G  0 disk 
+├─sdc1                      8:33   0   600M  0 part /boot/efi
+├─sdc2                      8:34   0     1G  0 part /boot
+└─sdc3                      8:35   0 891.7G  0 part 
+  ├─openeuler-root        253:0    0    70G  0 lvm  /usr/local/services/cubetoolbox/cubeletmnt
+  │                                                 /
+  ├─openeuler-swap        253:1    0     4G  0 lvm  [SWAP]
+  └─openeuler-home        253:3    0 817.7G  0 lvm  /home
+sdd                         8:48   0 893.8G  0 disk 
+├─sdd1                      8:49   0     1G  0 part 
+├─sdd2                      8:50   0     2G  0 part 
+└─sdd3                      8:51   0 890.7G  0 part 
+  └─ubuntu--vg-ubuntu--lv 253:2    0   100G  0 lvm  
+sde                         8:64   0 893.8G  0 disk 
++ echo '== 2. 空间去哪了：Used + Avail + Reserved =='
+== 2. 空间去哪了：Used + Avail + Reserved ==
++ df -B1 /
+Filesystem                   1B-blocks        Used Available Use% Mounted on
+/dev/mapper/openeuler-root 73391005696 69004222464 611909632 100% /
++ echo '--- 文件系统保留块 ---'
+--- 文件系统保留块 ---
+++ findmnt -no FSTYPE /
++ fs=ext4
+++ findmnt -no SOURCE /
++ dev=/dev/mapper/openeuler-root
++ echo 'fs=ext4 dev=/dev/mapper/openeuler-root'
+fs=ext4 dev=/dev/mapper/openeuler-root
++ '[' ext4 = ext4 ']'
++ tune2fs -l /dev/mapper/openeuler-root
++ grep -iE 'Block count|Free blocks|Reserved block count|Block size|Filesystem features'
++ head -6
+Filesystem features:      has_journal ext_attr resize_inode dir_index filetype needs_recovery extent 64bit flex_bg sparse_super large_file huge_file dir_nlink extra_isize metadata_csum
+Block count:              18350080
+Reserved block count:     917504
+Free blocks:              1070903
+Block size:               4096
++ echo '== 3. du 对账（-x 不跨挂载点）=='
+== 3. du 对账（-x 不跨挂载点）==
++ du -xsh /
+65G	/
++ echo '--- 不跨挂载点的一层 ---'
+--- 不跨挂载点的一层 ---
++ du -xsh /afs /bin /boot /data /dev /etc /home /lib /lib64 /lost+found /media /mnt /opt /proc /root /run /sbin /srv /sys /tmp /usr /var /workspace
++ sort -rh
++ head -12
+723G	/home
+27G	/usr
+18G	/data
+14G	/opt
+5.2G	/root
+882M	/var
+647M	/mnt
+349M	/boot
+141M	/run
+86M	/tmp
+35M	/etc
+16K	/lost+found
++ echo '--- /data 是否独立设备 ---'
+--- /data 是否独立设备 ---
++ du -sh /data
+20G	/data
++ du -xsh /data
+18G	/data
++ echo '--- /usr/local 是否独立设备 ---'
+--- /usr/local 是否独立设备 ---
++ du -sh /usr/local
+21G	/usr/local
++ du -xsh /usr/local
+21G	/usr/local
++ echo '== 4. swap =='
+== 4. swap ==
++ swapon --show
+NAME      TYPE      SIZE USED PRIO
+/dev/dm-1 partition   4G   0B   -2
++ find / -xdev -maxdepth 2 -name '*swap*' -size +1G
++ head -5
++ echo '== 5. 近两天根盘上新增长的大文件/目录 =='
+== 5. 近两天根盘上新增长的大文件/目录 ==
++ find / -xdev -type f -mtime -2 -size +50M
++ head -20
++ read -r f
++ du -h /data/log/Cubelet/Cubelet-stat.log
+142M	/data/log/Cubelet/Cubelet-stat.log
++ read -r f
++ du -h /data/log/Cubelet/Cubelet-req.log
+363M	/data/log/Cubelet/Cubelet-req.log
++ read -r f
++ du -h /data/log/CubeMaster/cubemaster-req.log
+14G	/data/log/CubeMaster/cubemaster-req.log
++ read -r f
++ echo '--- /var/log 近两天 ---'
+--- /var/log 近两天 ---
++ find /var/log -type f -mtime -2 -size +10M
++ head -10
++ read -r f
++ du -h /var/log/messages
+15M	/var/log/messages
++ read -r f
++ du -h /var/log/messages-20261111
+18M	/var/log/messages-20261111
++ read -r f
++ du -h /var/log/messages-20261112
+21M	/var/log/messages-20261112
++ read -r f
++ echo '== 6. 可直接回收项汇总（当前实测）=='
+== 6. 可直接回收项汇总（当前实测）==
++ for p in /opt/maca-3.3.0 /usr/local/corex-4.4.0 /usr/src/linux-6.6.0-72.0.0.76.oe2403sp1.x86_64 /var/cache/dnf /var/log /boot
++ '[' -e /opt/maca-3.3.0 ']'
++ du -sh /opt/maca-3.3.0
+13G	/opt/maca-3.3.0
++ for p in /opt/maca-3.3.0 /usr/local/corex-4.4.0 /usr/src/linux-6.6.0-72.0.0.76.oe2403sp1.x86_64 /var/cache/dnf /var/log /boot
++ '[' -e /usr/local/corex-4.4.0 ']'
++ du -sh /usr/local/corex-4.4.0
+9.3G	/usr/local/corex-4.4.0
++ for p in /opt/maca-3.3.0 /usr/local/corex-4.4.0 /usr/src/linux-6.6.0-72.0.0.76.oe2403sp1.x86_64 /var/cache/dnf /var/log /boot
++ '[' -e /usr/src/linux-6.6.0-72.0.0.76.oe2403sp1.x86_64 ']'
++ du -sh /usr/src/linux-6.6.0-72.0.0.76.oe2403sp1.x86_64
+1.6G	/usr/src/linux-6.6.0-72.0.0.76.oe2403sp1.x86_64
++ for p in /opt/maca-3.3.0 /usr/local/corex-4.4.0 /usr/src/linux-6.6.0-72.0.0.76.oe2403sp1.x86_64 /var/cache/dnf /var/log /boot
++ '[' -e /var/cache/dnf ']'
++ du -sh /var/cache/dnf
+186M	/var/cache/dnf
++ for p in /opt/maca-3.3.0 /usr/local/corex-4.4.0 /usr/src/linux-6.6.0-72.0.0.76.oe2403sp1.x86_64 /var/cache/dnf /var/log /boot
++ '[' -e /var/log ']'
++ du -sh /var/log
+497M	/var/log
++ for p in /opt/maca-3.3.0 /usr/local/corex-4.4.0 /usr/src/linux-6.6.0-72.0.0.76.oe2403sp1.x86_64 /var/cache/dnf /var/log /boot
++ '[' -e /boot ']'
++ du -sh /boot
+355M	/boot
++ journalctl --disk-usage
+Archived and active journals take up 133.4M in the file system.
++ echo '--- 是否有人引用 corex-4.4.0 / maca ---'
+--- 是否有人引用 corex-4.4.0 / maca ---
++ grep -rIl corex-4.4.0 /etc/profile.d /root/.bashrc /etc/ld.so.conf.d /usr/local/bin
++ head -5
+/etc/ld.so.conf.d/corex-4.4.0.conf.bak_500
++ ls -l /usr/local/corex /usr/local/corex-5.0.0
++ head -5
+lrwxrwxrwx. 1 root root   23 Sep 24 15:59 /usr/local/corex -> /usr/local/corex-5.0.0/
+
+/usr/local/corex-5.0.0:
+total 56
+drwxr-xr-x. 3 root root  4096 Sep 24 15:59 bin
++ set +x
+
+### exit: 0
