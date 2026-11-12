@@ -1,0 +1,74 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T08:23:26Z
+
++ python3 /home/qch/tools/remote-env/184/scan_lite_configs.py
+共 31 个文件
+
+status CPU_RANGE              tcmalloc         model      PYTHONPATH CLEAN_ENV  file
+----------------------------------------------------------------------------------------------------------------------------------
+ok     OK                     none             OK         OK         OK        /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
+ok     OK                     OK               OK         OK         OK        /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+BAD    '192-255'              none             OK         OK         OK        /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh
+BAD    '192-255'              OK               OK         OK         OK        /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh
+BAD    '192-255'              OK               OK         OK         OK        /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh
+BAD    '192-255'              OK               OK         OK         OK        /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh
+BAD    '192-255'              OK               OK         OK         OK        /home/qch/pmu_litehost_toolkit/vllmBench_lite_pmu.sh
+BAD    '192-255'              none             OK         OK         OK        /home/s00806700/litehost_perf_opt/vllmBench_lite_base.sh
+BAD    '192-255'              WRONG:libtcmalloc.so OK         POLLUTED   MISSING   /home/s00806700/litehost_perf_optbak/vllmBench_lite_opt.sh
+BAD    OK                     none             n/a        POLLUTED   MISSING   /home/s00806700/litehost_perf_base/vllmBench_lite.sh
+BAD    OK                     none             n/a        POLLUTED   MISSING   /home/s00806700/litehost_perf/vllmBench_lite.sh
+BAD    '192-255'              none             WRONG:'/home/model/ts/Qwen3-32B-W8A8' POLLUTED   MISSING   /home/s00806700/litehost_perf_optbak/vllmBench_lite_base.sh
+BAD    OK                     none             n/a        POLLUTED   MISSING   /home/s00806700/old_script/litehost_perf/vllmBench_lite.sh
+BAD    OK                     none             n/a        POLLUTED   MISSING   /home/s00806700/litehost_perf_gen/vllmBench_lite_pgo.sh
+BAD    OK                     none             n/a        POLLUTED   MISSING   /home/s00806700/python311-ir-pgo-corex-integrated-v3/litehost_perf_gen/vllmBench_lite_pgo.sh
+BAD    OK                     OK               n/a        POLLUTED   MISSING   /home/qch/scripts/litehost_perf/vllmBench_lite_opt.sh
+BAD    '240-319'              none             n/a        POLLUTED   MISSING   /home/z30059427/litehost_perf/vllmBench_lite.sh
+BAD    OK                     none             n/a        POLLUTED   MISSING   /home/s00806700/litehost_perf_genold/vllmBench_lite.sh
+BAD    OK                     none             n/a        n/a        MISSING   /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
+BAD    OK                     none             n/a        POLLUTED   MISSING   /home/qch/transfer/litehost_perf_bak/vllmBench_lite.sh
+BAD    OK                     none             n/a        POLLUTED   MISSING   /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
+BAD    OK                     none             n/a        POLLUTED   MISSING   /home/c00986490/litehost_perf/vllmBench_lite.sh
+BAD    OK                     none             n/a        POLLUTED   MISSING   /home/s00806700/litehost_perf_llvmopt/vllmBench_lite.sh
+BAD    OK                     none             n/a        n/a        MISSING   /home/qch/tools/vllm_topdown_qch/scripts/vllmBench_lite.sh
+BAD    OK                     none             n/a        POLLUTED   MISSING   /home/s00806700/litehost_perf_gccnopgo/vllmBench_lite.sh
+BAD    OK                     none             n/a        POLLUTED   MISSING   /home/z30059427/litehost_perf_py312/vllmBench_lite.sh
+BAD    OK                     none             n/a        n/a        MISSING   /home/qch/scripts/vllmBench_lite_on.sh
+BAD    OK                     none             n/a        POLLUTED   MISSING   /home/g30061491/litehost_perf/vllmBench_lite.sh
+BAD    OK                     none             n/a        POLLUTED   MISSING   /home/s00806700/litehost_perf_gen/vllmBench_lite.sh
+BAD    OK                     none             n/a        POLLUTED   MISSING   /home/huawei_ts_program/test_metrics/litehost_perf/vllmBench_lite.sh
+BAD    OK                     none             n/a        POLLUTED   MISSING   /home/qch/scripts/vllmBench_lite.sh
+
+需要修正: 29
+  ❌ /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh
+  ❌ /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh
+  ❌ /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh
+  ❌ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh
+  ❌ /home/qch/pmu_litehost_toolkit/vllmBench_lite_pmu.sh
+  ❌ /home/s00806700/litehost_perf_opt/vllmBench_lite_base.sh
+  ❌ /home/s00806700/litehost_perf_optbak/vllmBench_lite_opt.sh
+  ❌ /home/s00806700/litehost_perf_base/vllmBench_lite.sh
+  ❌ /home/s00806700/litehost_perf/vllmBench_lite.sh
+  ❌ /home/s00806700/litehost_perf_optbak/vllmBench_lite_base.sh
+  ❌ /home/s00806700/old_script/litehost_perf/vllmBench_lite.sh
+  ❌ /home/s00806700/litehost_perf_gen/vllmBench_lite_pgo.sh
+  ❌ /home/s00806700/python311-ir-pgo-corex-integrated-v3/litehost_perf_gen/vllmBench_lite_pgo.sh
+  ❌ /home/qch/scripts/litehost_perf/vllmBench_lite_opt.sh
+  ❌ /home/z30059427/litehost_perf/vllmBench_lite.sh
+  ❌ /home/s00806700/litehost_perf_genold/vllmBench_lite.sh
+  ❌ /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
+  ❌ /home/qch/transfer/litehost_perf_bak/vllmBench_lite.sh
+  ❌ /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
+  ❌ /home/c00986490/litehost_perf/vllmBench_lite.sh
+  ❌ /home/s00806700/litehost_perf_llvmopt/vllmBench_lite.sh
+  ❌ /home/qch/tools/vllm_topdown_qch/scripts/vllmBench_lite.sh
+  ❌ /home/s00806700/litehost_perf_gccnopgo/vllmBench_lite.sh
+  ❌ /home/z30059427/litehost_perf_py312/vllmBench_lite.sh
+  ❌ /home/qch/scripts/vllmBench_lite_on.sh
+  ❌ /home/g30061491/litehost_perf/vllmBench_lite.sh
+  ❌ /home/s00806700/litehost_perf_gen/vllmBench_lite.sh
+  ❌ /home/huawei_ts_program/test_metrics/litehost_perf/vllmBench_lite.sh
+  ❌ /home/qch/scripts/vllmBench_lite.sh
++ set +x
+
+### exit: 0
