@@ -1,0 +1,149 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T00:42:29Z
+
++ SITE=/opt/corex311/lib/python3.11/site-packages
++ PKG=/home/qch/transfer/host-opt-pr-validation-20261106-r10
++ echo '== envs.py 里所有 VLLM_HOST_OPT* 名字 =='
+== envs.py 里所有 VLLM_HOST_OPT* 名字 ==
++ docker exec corex5-py311 grep -oE '"VLLM_HOST_OPT[A-Z_]*"' /opt/corex311/lib/python3.11/site-packages/vllm/envs.py
++ sort -u
+"VLLM_HOST_OPT"
+"VLLM_HOST_OPT_ARENA"
+"VLLM_HOST_OPT_ARENA_MAX_REQS"
+"VLLM_HOST_OPT_BOOKKEEPING"
+"VLLM_HOST_OPT_DIAGNOSTICS"
+"VLLM_HOST_OPT_INPUTS"
++ echo '== envs.py 里 META 相关 =='
+== envs.py 里 META 相关 ==
++ docker exec corex5-py311 grep -nE 'META|metadata' /opt/corex311/lib/python3.11/site-packages/vllm/envs.py
++ head -10
++ echo '== 谁引用 _host_opt_meta_native =='
+== 谁引用 _host_opt_meta_native ==
++ docker exec corex5-py311 grep -rn _host_opt_meta_native /opt/corex311/lib/python3.11/site-packages/vllm
++ head -10
+grep: /opt/corex311/lib/python3.11/site-packages/vllm/v1/attention/backends/__pycache__/ilu_flash_attn.cpython-311.pyc: binary file matches
+/opt/corex311/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py:111:        from vllm import _host_opt_meta_native as _corex_native
+grep: /opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so: binary file matches
++ echo '== ilu_flash_attn 里的 metadata =='
+== ilu_flash_attn 里的 metadata ==
++ docker exec corex5-py311 grep -n metadata /opt/corex311/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py
++ head -15
+64:# -- host-side attention metadata --------------------------------------------
+116:        logger.info("host attention metadata off: %s: %s",
+338:    scheduler_metadata: torch.Tensor | None = None
+339:    prefix_scheduler_metadata: torch.Tensor | None = None
+442:    def _corex_cpu_mirrors(self, common_attn_metadata, num_reqs):
+444:        query_cpu = common_attn_metadata.query_start_loc_cpu
+445:        seq_cpu = common_attn_metadata._seq_lens_cpu
+468:        common_attn_metadata: CommonAttentionMetadata,
+471:        """Derive this step's metadata on the host, or None to run build().
+491:        cam = common_attn_metadata
+573:        prefix_scheduler_metadata = None
+576:        scheduler_metadata = None
+578:        prefill_metadata = None
+579:        decode_metadata = None
+588:            prefill_metadata = IluFlashAttentionPrefillMetadata(
++ echo '== host_opt.py 模式解析段 =='
+== host_opt.py 模式解析段 ==
++ docker exec corex5-py311 sed -n 60,120p /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py
++ cut -c1-160
+                    if self.modes[name] != "off"
+                }
+            )
+        elif self.modes["bookkeeping"] != "off":
+            try:
+                from vllm import _host_opt_native
+
+                if not callable(getattr(_host_opt_native, "commit_arrays", None)):
+                    raise ImportError("missing commit_arrays entry point")
+                self.native = _host_opt_native
+            except (ImportError, OSError) as error:
+                self.reasons["bookkeeping"] = str(error)
+        self.arena_verify = self.modes["arena"] == "verify"
+        self._templates: tuple[tuple[int, np.dtype], np.ndarray, np.ndarray] | None = (
+            None
+        )
+        # Single-step state shared by prepare_inputs and _prepare_input_ids.
+        # Reset at every prepare_inputs entry, including fallback steps.
+        self._gather_skipped = False
+        self.stats = {
+            "inputs": dict(
+                calls=0, fast=0, fallback=0, verified=0, mismatched=0, template_builds=0
+            ),
+            "bookkeeping": dict(calls=0, fast=0, fallback=0, verified=0, mismatched=0),
+            "arena": dict(bound=0, refused=0, reasons={}),
+        }
+        self.arena: RequestMetadataArena | None = None
+        if runner is not None and self.modes["arena"] != "off" and supported:
+            self._bind_arena()
+        self._admit()
+        self.inputs = self.modes["inputs"] != "off" and self._inputs_admitted
+        self.bookkeeping = (
+            self.modes["bookkeeping"] != "off" and self._bookkeeping_admitted
+        )
+        self.inputs_verify = self.inputs and self.modes["inputs"] == "verify"
+        self.bookkeeping_verify = (
+            self.bookkeeping and self.modes["bookkeeping"] == "verify"
+        )
+        self._inputs_track = self.diagnostics or self.inputs_verify
+        self._bookkeeping_track = self.diagnostics or self.bookkeeping_verify
+        if any(mode != "off" for mode in self.modes.values()):
+            logger.info(
+                "Host opt modes=%s, active=%s, fallback reasons=%s",
+                self.modes,
+                self.status()["active"],
+                self.reasons,
+            )
+
+    def _admit(self) -> None:
+        """Check runner-lifetime contracts after arena buffer binding."""
+        # The arena rebinds cpu/gpu/np for its four fields. query_pos is outside
+        # that set; keep reading its np view and arange_np at each step anyway.
+        # No array references are cached across buffer binding here.
+        self._inputs_admitted = False
+        self._bookkeeping_admitted = False
+        self._admitted_batch: InputBatch | None = None
+        runner = self.runner
+        if runner is None:
+            self.reasons.update(
+                {
+                    part: "model runner unavailable"
++ echo '== r10 源码里有没有 VLLM_HOST_OPT_METADATA =='
+== r10 源码里有没有 VLLM_HOST_OPT_METADATA ==
++ grep -rn VLLM_HOST_OPT_METADATA /home/qch/transfer/host-opt-pr-validation-20261106-r10
++ head -10
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/prs/pr2.patch:112:+| `VLLM_HOST_OPT_METADATA` | `off` / `on` / `verify` | `VLLM_HOST_OPT`, itself `off` |
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/prs/pr2.patch:165:+`VLLM_HOST_OPT_METADATA=off` is enough to stop using the fast path
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/prs/pr2.patch:192:+The r4 delivery uses `VLLM_HOST_OPT_METADATA`, with `VLLM_HOST_OPT` as its
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/prs/pr2.patch:262:+Run separately from timing, with `VLLM_HOST_OPT_METADATA=verify`:
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/prs/pr2.patch:717:+Default off. Selected by VLLM_HOST_OPT_METADATA (falling back to
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/prs/pr2.patch:735:++# Optional and default off. Selected by VLLM_HOST_OPT_METADATA, which
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/prs/pr2.patch:753:++    value = os.environ.get("VLLM_HOST_OPT_METADATA")
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/prs/pr2.patch:758:++        raise ValueError("VLLM_HOST_OPT_METADATA must be one of "
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/prs/pr2.patch:1077:+        ("VLLM_HOST_OPT_METADATA", metadata),
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/prs/pr2.patch:1087:+    monkeypatch.setenv("VLLM_HOST_OPT_METADATA", "enabled")
++ grep -rln metadata /home/qch/transfer/host-opt-pr-validation-20261106-r10/source
++ head -10
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/source/pr2/CoreX-5.0.0/VERIFICATION.md
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/source/pr2/CoreX-5.0.0/README.md
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/source/pr2/CoreX-5.0.0/tests/test_metadata.py
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/source/pr2/CoreX-5.0.0/tests/__pycache__/test_metadata.cpython-311-pytest-9.1.1.pyc
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/source/pr2/CoreX-5.0.0/patches/0001-corex-host-opt-metadata-ilu.patch
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/source/pr2/CoreX-5.0.0/native/native.c
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/source/pr2/CoreX-5.0.0/native/CMakeLists.txt
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/source/pr2/CoreX-5.0.0/BASELINE.json
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/source/pr3/tests/v1/worker/__pycache__/test_compact_greedy.cpython-311-pytest-9.1.1.pyc
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/source/pr3/tests/v1/worker/test_compact_greedy.py
++ echo '== r10 文档/清单里的 metadata 开关 =='
+== r10 文档/清单里的 metadata 开关 ==
++ grep -rn METADATA /home/qch/transfer/host-opt-pr-validation-20261106-r10/MANIFEST.json /home/qch/transfer/host-opt-pr-validation-20261106-r10/README.md /home/qch/transfer/host-opt-pr-validation-20261106-r10/docs
++ head -10
+/home/qch/transfer/host-opt-pr-validation-20261106-r10/README.md:42:export VLLM_HOST_OPT_METADATA=on
++ echo '== 本次 run 是否出现 metadata 警告 =='
+== 本次 run 是否出现 metadata 警告 ==
++ grep -n 'Host metadata arena unavailable\|metadata' /home/qch/scripts/timeline/4k/logs/server.log
++ head -10
++ set +x
+
+### exit: 0
