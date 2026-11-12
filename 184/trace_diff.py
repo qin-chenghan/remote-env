@@ -67,9 +67,11 @@ def self_time(data):
             if stack:
                 stack[-1][2] += top[1]
 
-    steps = calls.get(("cpu_op", "vllm/v1/worker/gpu_model_runner.py(4241): execute_model"), 0)
+    steps = max((c for (cat, n), c in calls.items() if "execute_model" in n), default=0)
     if steps == 0:
-        steps = max((c for (cat, n), c in calls.items() if n.endswith(": execute_model")), default=0)
+        steps = max((c for (cat, n), c in calls.items() if n.startswith("execute_context")), default=0)
+    if steps == 0:
+        print("WARNING: no step event found, normalization disabled", file=sys.stderr)
     span_ms = (hi - lo) / 1000 if hi > lo else 0.0
     return self_us, calls, steps, span_ms
 
@@ -121,7 +123,6 @@ def main():
     show("self time 最大（B）", lambda a, b: b)
     show("B 比 A 慢最多", lambda a, b: b - a)
     show("B 比 A 快最多", lambda a, b: a - b)
-    show("每步调用次数差异最大", lambda a, b: abs(b - a) * 0 + (abs(0)), n=1) if False else None
 
 
 if __name__ == "__main__":
