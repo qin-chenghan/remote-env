@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 203 容器内现状（只读，修正变量引用）：r14 / 旧 fastpath / tcmalloc / Python.h / PGO 复核。
+# 203 PGO 前置条件盘点（只读）：/opt/cpython-vllm、建 PGO 解释器和 venv 的脚本/物料、tcmalloc。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,42 +20,45 @@ mkdir -p "$DIR/tmp"
   C=corex5-py311
   dex() { timeout 240 docker exec "$C" bash -c "$1"; }
 
-  echo "== 1. r14 三补丁在容器内的落盘状态 =="
-  dex 'V=/opt/corex311; SP=$V/lib/python3.11/site-packages; echo "SP=$SP"; ls -ld $SP/.host-opt-pr-backup 2>&1; ls $SP/vllm/v1/worker/host_opt.py $SP/vllm/v1/worker/compact_greedy_backport.py 2>&1'
-  dex 'SP=/opt/corex311/lib/python3.11/site-packages; echo -n "envs VLLM_HOST_OPT*: "; grep -oE "VLLM_HOST_OPT[A-Z_]*" $SP/vllm/envs.py 2>/dev/null | sort -u | tr "\n" " "; echo; echo -n "compilation compact_greedy: "; grep -c compact_greedy $SP/vllm/config/compilation.py 2>/dev/null'
+  echo "== 1. PGO 解释器与 venv 物料 =="
+  dex 'ls -d /opt/cpython-vllm* 2>&1; ls /opt/cpython-vllm/v1/bin 2>&1 | head -5'
+  dex 'ls -d /opt/corex311* 2>&1; du -sh /opt/corex311 2>/dev/null; ls /opt/corex311-manifest 2>/dev/null | head -10'
+  dex 'command -v cpython-vllm-rebase 2>/dev/null || echo "无 rebase 工具"; ls /opt/corex311/bin | grep -iE "rebase|corex|pip" | head -10'
 
-  echo "== 2. 旧版 host fastpath =="
-  dex 'SP=/opt/corex311/lib/python3.11/site-packages; ls -l $SP/vllm/v1/worker/corex_host_opt.py 2>&1; ls -d $SP/vllm/v1/worker/host_fastpath 2>&1; echo -n "envs VLLM_HOST_FASTPATH: "; grep -c VLLM_HOST_FASTPATH $SP/vllm/envs.py 2>/dev/null; echo -n "worker 内引用: "; grep -rIl VLLM_HOST_FASTPATH $SP/vllm/v1/worker/ 2>/dev/null | head -5'
-  dex 'SP=/opt/corex311/lib/python3.11/site-packages; grep -oE "COREX_HOST[A-Z_]*" $SP/vllm/envs.py 2>/dev/null | sort -u | head -10'
+  echo "== 2. 建解释器的脚本 build_corex.py =="
+  dex 'ls -l /home/qch/scripts/litehost_perf/build_corex.py /home/qch/transfer/litehost_perf/build_corex.py 2>&1'
+  echo "--- 头部注释/用法 ---"
+  head -40 /home/qch/scripts/litehost_perf/build_corex.py 2>/dev/null
+  echo "--- grep 关键参数 ---"
+  grep -nE "with-lto|enable-optimizations|PGO|profile|prefix|configure|make -j|BUILD" /home/qch/scripts/litehost_perf/build_corex.py 2>/dev/null | head -20
 
-  echo "== 3. torch module attrs fastpath =="
-  dex 'SP=/opt/corex311/lib/python3.11/site-packages; grep -rIl TORCH_MODULE_ATTR_FASTPATH $SP/vllm $SP/torch 2>/dev/null | head -6; ls -l $SP/torch/_C*.so 2>/dev/null | head -3'
+  echo "== 3. 建 venv 的脚本与 bundle =="
+  dex 'ls -l /home/z30059427/corex5-py311-* 2>/dev/null | head -10'
+  find /home -maxdepth 3 -name 'install_corex311.sh' 2>/dev/null | head -5
+  dex 'ls /home/qch/transfer/*.whl /home/qch/transfer/*.tar.gz 2>/dev/null | head -10'
 
-  echo "== 4. tcmalloc =="
-  dex 'V=/opt/corex311; find /usr/lib /usr/lib64 /usr/local/lib /usr/local/lib64 $V/lib $V/lib64 -maxdepth 3 -name "libtcmalloc*.so*" 2>/dev/null | head -10; echo "--- venv 内 ---"; find $V -maxdepth 4 -name "libtcmalloc*.so*" 2>/dev/null | head -5'
-  echo "--- 宿主 /home 全盘（限深度）---"
-  find /home -maxdepth 5 -name 'libtcmalloc*.so*' 2>/dev/null | head -5 || true
-  find /home -maxdepth 4 -type d -name 'gperftools*' 2>/dev/null | head -5 || true
+  echo "== 4. CPython 源码与 gperftools 物料 =="
+  find /home /opt -maxdepth 4 \( -iname 'Python-3.11*' -o -iname 'cpython-3.11*' -o -iname 'Python-3*.tar.*' \) 2>/dev/null | head -10
+  find /home -maxdepth 4 \( -iname 'gperftools*' -o -iname 'libtcmalloc*' \) 2>/dev/null | head -10
+  dex 'find /opt /usr/local /usr/lib -maxdepth 3 -iname "libtcmalloc*" 2>/dev/null | head -5'
 
-  echo "== 5. Python.h 与构建依赖 =="
-  dex 'ls -l /opt/python-3.11.6/include/python3.11/Python.h 2>&1; ls -l /opt/corex311/include/python3.11/Python.h 2>&1; python3 -c "print(1)" 2>/dev/null'
-  dex 'ls /usr/include/torch 2>/dev/null | head -3; ls /opt/corex311/lib/python3.11/site-packages/torch/include/torch 2>/dev/null | head -3'
+  echo "== 5. 网络与 pip（建 venv 要联网）=="
+  dex 'cat /root/.pip/pip.conf 2>/dev/null | head -10; env | grep -iE "proxy|CONSTRAINT" || echo "容器无 proxy 变量"'
+  echo "--- 代理可达性 ---"
+  timeout 20 curl -sS -o /dev/null -w 'proxy_http=%{http_code}\n' -x http://141.1.61.31:3129 http://mirrors.aliyun.com/ 2>&1 || echo "代理不可达"
+  timeout 20 docker exec -e http_proxy=http://141.1.61.31:3129 -e https_proxy=http://141.1.61.31:3129 "$C" bash -c 'curl -sS -o /dev/null -w "container_mirror=%{http_code}\n" https://mirrors.aliyun.com/ 2>&1 | tail -2' || echo "容器内代理不可达"
 
-  echo "== 6. r14 包在 203 上的状态 =="
-  Z=/home/z30059427/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip
-  D=/home/z30059427/host-opt-pr-validation-20261106-r14
-  ls -l "$Z" "$D" 2>&1 | head -5
-  ls "$D" 2>/dev/null | head -10
-  ls "$D/scripts" "$D/container/patches" 2>/dev/null | head -10
-  echo "--- 证据文件 ---"
-  head -30 "$D/evidence/r14-performance-20261112.md" 2>/dev/null
+  echo "== 6. 构建能力与空间 =="
+  nproc
+  dex 'nproc; df -h /opt /home | tail -3'
+  dex 'ls /usr/include/zlib.h /usr/include/ssl/opensslconf.h /usr/include/ffi.h /usr/include/ncurses.h 2>&1 | head -6; dpkg -l | grep -cE "^ii  (build-essential|libssl-dev|zlib1g-dev|libffi-dev|libncurses.*dev|libbz2-dev|liblzma-dev|libsqlite3-dev)"'
 
-  echo "== 7. PGO 复核 =="
-  dex 'ls -d /opt/cpython-vllm 2>&1; ls /opt/cpython-vllm/v1/bin 2>&1 | head -5; command -v cpython-vllm-rebase || echo "无 rebase 工具"; /opt/corex311/bin/python -c "import sys,sysconfig;print(sys.base_prefix);print(sysconfig.get_config_var(\"CONFIG_ARGS\"))"'
+  echo "== 7. r14 与旧 fastpath 复核（沿用上一轮）=="
+  dex 'SP=/opt/corex311/lib/python3.11/site-packages; echo -n "r14 backup: "; ls -d $SP/.host-opt-pr-backup 2>/dev/null || echo 无; echo -n "host_opt.py: "; ls -l $SP/vllm/v1/worker/host_opt.py 2>/dev/null || echo 无; echo -n "envs opts: "; grep -oE "VLLM_HOST_OPT[A-Z_]*" $SP/vllm/envs.py 2>/dev/null | sort -u | tr "\n" " "; echo; echo -n "fastpath file: "; ls -l $SP/vllm/v1/worker/corex_host_opt.py 2>/dev/null || echo 无; echo -n "envs fastpath: "; grep -c VLLM_HOST_FASTPATH $SP/vllm/envs.py 2>/dev/null'
 
-  echo "== 8. 容器内空间与现有服务 =="
-  dex 'df -h /opt /home | tail -3; du -sh /opt/corex311 2>/dev/null'
-  dex 'ps -eo pid,etime,args | grep -E "vllm|bench_driver" | grep -v grep | head -5 || echo "无 vllm 进程"'
+  echo "== 8. 203 上已有的 r14 包与证据 =="
+  ls -l /home/z30059427/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip 2>&1
+  head -20 /home/z30059427/host-opt-pr-validation-20261106-r14/evidence/r14-performance-20261112.md 2>/dev/null
 
   # ---- 命令结束 ----
 
