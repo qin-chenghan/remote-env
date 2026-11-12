@@ -1,13 +1,22 @@
 #!/usr/bin/env python3
-"""对比两份 PyTorch profiler trace：按 step 归一化的函数/类别 self time。
+"""对比两份 PyTorch profiler trace：按 step 归一化的 self time（独占时间）。
 
 用法: trace_diff.py A.json.gz B.json.gz [top_n]
-输出: 步骤数、span、按 cat 汇总、按 name 的 Top 差异。
+- 事件名里的对象地址（at 0x...）会被剥离
+- self time 按 (pid, tid) 栈式计算，父事件去掉子事件
+- step 基准取 gpu_model_runner 里的 execute_model 调用次数
 """
 import collections
 import gzip
 import json
+import re
 import sys
+
+ADDR_RE = re.compile(r" at 0x[0-9a-fA-F]+")
+
+
+def clean_name(n):
+    return ADDR_RE.sub("", n)
 
 
 def load(path):
@@ -15,42 +24,54 @@ def load(path):
         return json.load(f)
 
 
-def aggregate(data):
+def self_time(data):
+    """返回 (self_us[(cat,name)], calls[(cat,name)], steps, span_ms)."""
     events = data.get("traceEvents") or data.get("events") or []
-    steps = 0
-    span_lo = float("inf")
-    span_hi = float("-inf")
-    cats = collections.defaultdict(lambda: [0.0, 0])
-    names = collections.defaultdict(lambda: [0.0, 0])
+    by_tid = collections.defaultdict(list)
+    lo = float("inf")
+    hi = float("-inf")
+
     for e in events:
-        ts = e.get("ts")
-        if ts is not None:
-            span_lo = min(span_lo, ts)
-            span_hi = max(span_hi, ts + (e.get("dur") or 0))
         if e.get("ph") != "X":
             continue
-        name = e.get("name", "")
-        cat = e.get("cat", "")
-        dur = e.get("dur") or 0
-        cats[cat][0] += dur
-        cats[cat][1] += 1
-        if name.startswith("ProfilerStep"):
-            steps += 1
-        else:
-            names[name][0] += dur
-            names[name][1] += 1
-    return {
-        "steps": steps,
-        "span": (span_lo, span_hi),
-        "cats": cats,
-        "names": names,
-        "total_events": len(events),
-    }
+        ts = e.get("ts")
+        dur = e.get("dur")
+        if ts is None or dur is None:
+            continue
+        by_tid[(e.get("pid"), e.get("tid"))].append(
+            (ts, ts + dur, dur, clean_name(e.get("name", "")), e.get("cat", ""))
+        )
+        lo = min(lo, ts)
+        hi = max(hi, ts + dur)
 
+    self_us = collections.defaultdict(float)
+    calls = collections.defaultdict(int)
 
-def per_step(agg):
-    s = agg["steps"] or 1
-    return s
+    for evs in by_tid.values():
+        evs.sort(key=lambda x: (x[0], -x[1]))
+        stack = []  # [end, dur, child_sum, name, cat]
+        for ts, end, dur, name, cat in evs:
+            while stack and ts >= stack[-1][0]:
+                top = stack.pop()
+                key = (top[4], top[3])
+                self_us[key] += top[1] - top[2]
+                calls[key] += 1
+                if stack:
+                    stack[-1][2] += top[1]
+            stack.append([end, dur, 0.0, name, cat])
+        while stack:
+            top = stack.pop()
+            key = (top[4], top[3])
+            self_us[key] += top[1] - top[2]
+            calls[key] += 1
+            if stack:
+                stack[-1][2] += top[1]
+
+    steps = calls.get(("cpu_op", "vllm/v1/worker/gpu_model_runner.py(4241): execute_model"), 0)
+    if steps == 0:
+        steps = max((c for (cat, n), c in calls.items() if n.endswith(": execute_model")), default=0)
+    span_ms = (hi - lo) / 1000 if hi > lo else 0.0
+    return self_us, calls, steps, span_ms
 
 
 def main():
@@ -60,43 +81,47 @@ def main():
     top_n = int(sys.argv[3]) if len(sys.argv) > 3 else 25
 
     print("loading A:", a_path, flush=True)
-    A = aggregate(load(a_path))
+    A_self, A_calls, A_steps, A_span = self_time(load(a_path))
     print("loading B:", b_path, flush=True)
-    B = aggregate(load(b_path))
+    B_self, B_calls, B_steps, B_span = self_time(load(b_path))
 
-    for tag, agg in (("A(4k)", A), ("B(64k)", B)):
-        lo, hi = agg["span"]
-        span_ms = (hi - lo) / 1000 if hi > lo else 0
-        print(f"\n[{tag}] steps={agg['steps']} events={agg['total_events']} "
-              f"span={span_ms:.1f}ms")
+    sa = A_steps or 1
+    sb = B_steps or 1
+    print(f"\n[A] steps={A_steps} span={A_span:.1f}ms  [B] steps={B_steps} span={B_span:.1f}ms")
 
-    sa = A["steps"] or 1
-    sb = B["steps"] or 1
-    print(f"\n== 每 step 归一化（A 除以 {sa}，B 除以 {sb}）==")
-    print(f"{'cat':28s} {'A_us/step':>12s} {'B_us/step':>12s} {'diff%':>9s}")
-    cats = sorted(set(A["cats"]) | set(B["cats"]),
-                  key=lambda c: -max(A["cats"][c][0], B["cats"][c][0]))
-    for c in cats:
-        av = A["cats"][c][0] / sa
-        bv = B["cats"][c][0] / sb
-        pct = (bv - av) / av * 100 if av else float("nan")
-        print(f"{c[:28]:28s} {av:12.1f} {bv:12.1f} {pct:8.2f}%")
+    print("\n== 按 cat 的 self time（us/step）==")
+    print(f"{'cat':24s} {'A':>12s} {'B':>12s} {'delta':>11s} {'diff%':>8s}")
+    cats = collections.defaultdict(lambda: [0.0, 0.0])
+    for (cat, n), v in A_self.items():
+        cats[cat][0] += v
+    for (cat, n), v in B_self.items():
+        cats[cat][1] += v
+    for cat, (av, bv) in sorted(cats.items(), key=lambda kv: -(kv[1][0] + kv[1][1])):
+        a, b = av / sa, bv / sb
+        pct = (b - a) / a * 100 if a else float("nan")
+        print(f"{cat[:24]:24s} {a:12.1f} {b:12.1f} {b - a:11.1f} {pct:7.2f}%")
 
-    def table(title, key):
+    def rows(keyfn):
+        out = []
+        for k in set(A_self) | set(B_self):
+            a = A_self.get(k, 0.0) / sa
+            b = B_self.get(k, 0.0) / sb
+            ca = A_calls.get(k, 0)
+            cb = B_calls.get(k, 0)
+            out.append((keyfn(a, b), k, a, b, b - a, (b - a) / a * 100 if a else float("nan"), ca / sa, cb / sb))
+        out.sort(reverse=True)
+        return out
+
+    def show(title, keyfn, n=top_n):
         print(f"\n== {title} ==")
-        print(f"{'name':60s} {'A_us/step':>11s} {'B_us/step':>11s} {'delta':>10s} {'diff%':>8s}")
-        rows = []
-        for n in set(A["names"]) | set(B["names"]):
-            da = A["names"][n][0] / sa
-            db = B["names"][n][0] / sb
-            rows.append((key(da, db), n, da, db, db - da, (db - da) / da * 100 if da else float("nan")))
-        rows.sort(reverse=True)
-        for _, n, da, db, d, pct in rows[:top_n]:
-            print(f"{n[:60]:60s} {da:11.1f} {db:11.1f} {d:10.1f} {pct:7.2f}%")
+        print(f"{'name':58s} {'A_us/step':>11s} {'B_us/step':>11s} {'delta':>10s} {'diff%':>8s} {'A_calls/st':>10s} {'B_calls/st':>10s}")
+        for _, k, a, b, d, pct, ca, cb in rows(keyfn)[:n]:
+            print(f"{k[1][:58]:58s} {a:11.1f} {b:11.1f} {d:10.1f} {pct:7.2f}% {ca:10.2f} {cb:10.2f}")
 
-    table("按 B 绝对耗时排序", lambda da, db: db)
-    table("按差值排序（B 慢于 A 在前）", lambda da, db: db - da)
-    table("按差值排序（B 快于 A 在前）", lambda da, db: da - db)
+    show("self time 最大（B）", lambda a, b: b)
+    show("B 比 A 慢最多", lambda a, b: b - a)
+    show("B 比 A 快最多", lambda a, b: a - b)
+    show("每步调用次数差异最大", lambda a, b: abs(b - a) * 0 + (abs(0)), n=1) if False else None
 
 
 if __name__ == "__main__":
