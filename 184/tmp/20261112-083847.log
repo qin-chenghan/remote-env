@@ -1,0 +1,148 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T00:38:47Z
+
++ echo '== timeline run dirs =='
+== timeline run dirs ==
++ ls -lt /home/qch/scripts/timeline/
++ head -8
+total 60
+drwxr-xr-x. 4 root root 4096 Nov 12 08:34 4k
+drwxrwxr-x+ 5 root root 4096 Oct 14 16:28 timeline_on4
+drwxrwxr-x+ 4 root root 4096 Oct 14 16:25 timeline_off4
+drwxrwxr-x+ 4 root root 4096 Oct 14 15:39 timeline_off3
+drwxrwxr-x+ 5 root root 4096 Oct 14 14:58 timeline_on2
+drwxrwxr-x+ 4 root root 4096 Oct 14 14:54 timeline_off2
+drwxrwxr-x+ 4 root root 4096 Oct 14 14:45 timeline_off1
+++ head -1
+++ ls -dt /home/qch/scripts/timeline/4k/ /home/qch/scripts/timeline/timeline_off1/ /home/qch/scripts/timeline/timeline_off2/ /home/qch/scripts/timeline/timeline_off3/ /home/qch/scripts/timeline/timeline_off4/ /home/qch/scripts/timeline/timeline_on1/ /home/qch/scripts/timeline/timeline_on2/ /home/qch/scripts/timeline/timeline_on4/
++ R=/home/qch/scripts/timeline/4k/
++ echo RUN=/home/qch/scripts/timeline/4k/
+RUN=/home/qch/scripts/timeline/4k/
++ '[' -n /home/qch/scripts/timeline/4k/ ']'
++ '[' -d /home/qch/scripts/timeline/4k/ ']'
++ echo '== run dir =='
+== run dir ==
++ ls -la /home/qch/scripts/timeline/4k/
++ head -12
+total 20
+drwxr-xr-x.  4 root root 4096 Nov 12 08:34 .
+drwxrwxr-x+ 10 root root 4096 Nov 12 08:29 ..
+drwxr-xr-x.  2 root root 4096 Nov 12 08:29 logs
+drwxr-xr-x.  3 root root 4096 Nov 12 08:29 profile
++ echo '-- profile tree --'
+-- profile tree --
++ find /home/qch/scripts/timeline/4k//profile -type f -printf '%10s  %TY-%Tm-%Td %TH:%TM  %p\n'
++ sort -k3
++ head -30
+     20652  2026-11-12 08:33  /home/qch/scripts/timeline/4k//profile/case0_in128_out128/profiler_out_1.txt
+     20652  2026-11-12 08:33  /home/qch/scripts/timeline/4k//profile/case0_in128_out128/profiler_out_3.txt
+  90611470  2026-11-12 08:33  /home/qch/scripts/timeline/4k//profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
+  83125663  2026-11-12 08:33  /home/qch/scripts/timeline/4k//profile/case0_in128_out128/rank1.1794443503568578280.pt.trace.json.gz
+  83197981  2026-11-12 08:33  /home/qch/scripts/timeline/4k//profile/case0_in128_out128/rank2.1794443503861682570.pt.trace.json.gz
+  82756722  2026-11-12 08:33  /home/qch/scripts/timeline/4k//profile/case0_in128_out128/rank3.1794443503310842050.pt.trace.json.gz
+     20652  2026-11-12 08:34  /home/qch/scripts/timeline/4k//profile/case0_in128_out128/profiler_out_0.txt
+     20652  2026-11-12 08:34  /home/qch/scripts/timeline/4k//profile/case0_in128_out128/profiler_out_2.txt
++ echo '-- profile size --'
+-- profile size --
++ du -sh /home/qch/scripts/timeline/4k//profile
+325M	/home/qch/scripts/timeline/4k//profile
++ echo '== logs =='
+== logs ==
++ ls -l /home/qch/scripts/timeline/4k//logs
+total 88
+-rw-r--r--. 1 root root  6401 Nov 12 08:34 bench_instance0.log
+-rw-r--r--. 1 root root 76882 Nov 12 08:34 server.log
++ echo '== bench log: case 标记与吞吐 =='
+== bench log: case 标记与吞吐 ==
++ grep -hE '^(INFO|WARNING).*(Request throughput|Output token throughput|Mean TTFT|Mean TPOT)|profile' /home/qch/scripts/timeline/4k//logs/bench_instance0.log
++ cut -c1-200
++ head -20
+Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfffcf4aa62a0>, trust_remote_code=True, seed=42, num_prompts=100, dataset_name='random',
+Starting profiler...
+Stopping profiler...
++ echo '== server.log: profiler =='
+== server.log: profiler ==
++ grep -hiE 'profiler|start_profile|stop_profile|trace' /home/qch/scripts/timeline/4k//logs/server.log
++ cut -c1-200
++ head -15
+(APIServer pid=3923895) INFO 11-12 08:29:08 [api_utils.py:273] non-default args: {'host': '127.0.0.1', 'model': '/home/model/Qwen3-32B-W8A8', 'trust_remote_code': True, 'max_model_len': 4096, 'quantiz
+(EngineCore pid=3924562) INFO 11-12 08:29:19 [core.py:114] Initializing a V1 LLM engine (v0.23.0) with config: model='/home/model/Qwen3-32B-W8A8', speculative_config=None, tokenizer='/home/model/Qwen3
+(Worker_TP2 pid=3925270) INFO 11-12 08:29:42 [gpu_worker.py:495] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.9000 is equivalent to --gpu-memo
+(Worker_TP3 pid=3925271) INFO 11-12 08:29:42 [gpu_worker.py:495] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.9000 is equivalent to --gpu-memo
+(Worker_TP1 pid=3925269) INFO 11-12 08:29:43 [gpu_worker.py:495] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.9000 is equivalent to --gpu-memo
+(Worker_TP0 pid=3925268) INFO 11-12 08:29:43 [gpu_worker.py:495] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.9000 is equivalent to --gpu-memo
+(EngineCore pid=3924562) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(APIServer pid=3923895) WARNING 11-12 08:29:50 [api_router.py:41] Profiler with mode 'torch' is enabled in the API server. This should ONLY be used for local development!
+(APIServer pid=3923895) INFO 11-12 08:29:51 [launcher.py:46] Route: /start_profile, Methods: POST
+(APIServer pid=3923895) INFO 11-12 08:29:51 [launcher.py:46] Route: /stop_profile, Methods: POST
+(APIServer pid=3923895) INFO 11-12 08:30:10 [api_router.py:23] Starting profiler...
+(Worker_TP0 pid=3925268) INFO 11-12 08:30:10 [wrapper.py:174] Torch profiling enabled. Traces will be saved to: /home/qch/scripts/timeline/4k/profile/case0_in128_out128
+(Worker_TP3 pid=3925271) /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/profiler/profiler.py:217: UserWarning: Warning: Profiler clears events at the end of each cycle.Only events from 
+(Worker_TP2 pid=3925270) /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/profiler/profiler.py:217: UserWarning: Warning: Profiler clears events at the end of each cycle.Only events from 
+(Worker_TP1 pid=3925269) /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/profiler/profiler.py:217: UserWarning: Warning: Profiler clears events at the end of each cycle.Only events from 
++ echo '== server.log: r10 特性 =='
+== server.log: r10 特性 ==
++ grep -hiE 'Host opt modes|metadata|compact.greedy|sample.logits|host_opt' /home/qch/scripts/timeline/4k//logs/server.log
++ cut -c1-200
++ head -20
+(APIServer pid=3923895) INFO 11-12 08:29:08 [api_utils.py:273] non-default args: {'host': '127.0.0.1', 'model': '/home/model/Qwen3-32B-W8A8', 'trust_remote_code': True, 'max_model_len': 4096, 'quantiz
+(APIServer pid=3923895) WARNING 11-12 08:29:08 [envs.py:2051] Unknown vLLM environment variable detected: VLLM_HOST_OPT_METADATA
+(APIServer pid=3923895) INFO 11-12 08:29:10 [compilation.py:1162] Sample logits cudagraph on: capture sizes [1, 2, 3, 4, 5, 6, 7, 8], budget 67108864 bytes
+(EngineCore pid=3924562) INFO 11-12 08:29:19 [core.py:114] Initializing a V1 LLM engine (v0.23.0) with config: model='/home/model/Qwen3-32B-W8A8', speculative_config=None, tokenizer='/home/model/Qwen3
+(Worker pid=3925271) INFO 11-12 08:29:29 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True}, fallback re
+(Worker pid=3925270) INFO 11-12 08:29:29 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True}, fallback re
+(Worker pid=3925268) INFO 11-12 08:29:29 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True}, fallback re
+(Worker pid=3925269) INFO 11-12 08:29:29 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True}, fallback re
+(Worker_TP2 pid=3925270) INFO 11-12 08:29:37 [compact_greedy.py:164] Compact greedy mode=on, active=True, reason=
+(Worker_TP3 pid=3925271) INFO 11-12 08:29:37 [compact_greedy.py:164] Compact greedy mode=on, active=True, reason=
+(Worker_TP1 pid=3925269) INFO 11-12 08:29:37 [compact_greedy.py:164] Compact greedy mode=on, active=True, reason=
+(Worker_TP0 pid=3925268) INFO 11-12 08:29:37 [compact_greedy.py:164] Compact greedy mode=on, active=True, reason=
+(Worker_TP2 pid=3925270) INFO 11-12 08:29:38 [compact_greedy.py:525] Sample logits graph kind=token_ids, status=ready, keys=[1, 2, 3, 4, 5, 6, 7, 8], retained=50700288 bytes, reason=
+(Worker_TP0 pid=3925268) INFO 11-12 08:29:38 [compact_greedy.py:525] Sample logits graph kind=token_ids, status=ready, keys=[1, 2, 3, 4, 5, 6, 7, 8], retained=50700288 bytes, reason=
+(Worker_TP1 pid=3925269) INFO 11-12 08:29:38 [compact_greedy.py:525] Sample logits graph kind=token_ids, status=ready, keys=[1, 2, 3, 4, 5, 6, 7, 8], retained=52797440 bytes, reason=
+(Worker_TP3 pid=3925271) INFO 11-12 08:29:38 [compact_greedy.py:525] Sample logits graph kind=token_ids, status=ready, keys=[1, 2, 3, 4, 5, 6, 7, 8], retained=52797440 bytes, reason=
+(EngineCore pid=3924562) INFO 11-12 08:29:50 [compilation.py:1162] Sample logits cudagraph on: capture sizes [1, 2, 3, 4, 5, 6, 7, 8], budget 67108864 bytes
++ echo '== server.log: tcmalloc / fastpath / 参数 =='
+== server.log: tcmalloc / fastpath / 参数 ==
++ grep -hiE 'tcmalloc|ld.so|slot_native|fastpath|compilation-config|numa-bind|async' /home/qch/scripts/timeline/4k//logs/server.log
++ cut -c1-220
++ head -15
+(APIServer pid=3923895) INFO 11-12 08:29:08 [api_utils.py:273] non-default args: {'host': '127.0.0.1', 'model': '/home/model/Qwen3-32B-W8A8', 'trust_remote_code': True, 'max_model_len': 4096, 'quantization': 'compressed-
+(APIServer pid=3923895) INFO 11-12 08:29:10 [vllm.py:1016] Asynchronous scheduling is enabled.
+(EngineCore pid=3924562) INFO 11-12 08:29:50 [vllm.py:1016] Asynchronous scheduling is enabled.
+(Worker_TP0 pid=3925268)                                         cudaMemcpyAsync         0.18%     137.964ms         0.18%     137.964ms       6.332us     569.442us         0.01%     569.442us       0.026us         21789
+(APIServer pid=3923895) /opt/cpython-vllm/v1/lib/python3.11/asyncio/runners.py:118: ResourceWarning: Unclosed context <zmq.Context() at 0xfffcfbb296d0>
++ echo '== server.log: worker python =='
+== server.log: worker python ==
++ grep -oE '/opt/[^ ]*/bin/python[0-9.]*|site-packages/torch' /home/qch/scripts/timeline/4k//logs/server.log
++ sort -u
++ head -6
+site-packages/torch
++ echo '== script state =='
+== script state ==
++ sed -n 212,222p /home/qch/scripts/timeline_opt.sh
++ cut -c1-160
+    local input_len="$2"
+    local output_len="$3"
+    local bench_log="${LOG_DIR}/bench_instance${case_idx}.log"
+
+    BENCH_PROFILE_ARGS=()
+    if should_profile_instance "$case_idx"; then
+        BENCH_PROFILE_ARGS=(--profile)
+    fi
+
+    local profile_state
+    if [ ${#BENCH_PROFILE_ARGS[@]} -gt 0 ]; then
++ grep -n sample_logits_cudagraph /home/qch/scripts/timeline_opt.sh
++ cut -c1-120
+162:        --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sampl
++ echo '== kernel =='
+== kernel ==
++ uname -r
+6.6.0-145.3.37.168.oe2403sp3.aarch64
++ getconf PAGE_SIZE
+4096
++ set +x
+
+### exit: 0
