@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：确认 metadata 快路径在已安装版本里的实际开关方式。
+# 只读：64K 内核重启后的环境体检（跑 timeline 前）。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,26 +17,41 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  PKG=/home/qch/transfer/host-opt-pr-validation-20261106-r10
-  SITE=/opt/corex311/lib/python3.11/site-packages
+  echo "== kernel =="
+  uname -r; uname -v
+  getconf PAGE_SIZE
+  cat /proc/config.gz 2>/dev/null | zcat 2>/dev/null | grep -E '^CONFIG_ARM64_64K_PAGES' || grep -E '^CONFIG_ARM64_64K_PAGES' /boot/config-$(uname -r) 2>/dev/null
 
-  echo "== 实际安装用的 container patch =="
-  ls -l "$PKG/container/patches" 2>&1
-  grep -n 'VLLM_HOST_OPT_METADATA\|environ\|getenv' "$PKG/container/patches/0002-ilu-metadata.patch" 2>&1 | head -12
+  echo "== container =="
+  docker ps --format '{{.Names}}\t{{.Status}}' 2>&1 | head -3
+  docker exec corex5-py311 bash -c 'ls -l /dev/iluvatar* 2>&1 | head -5' 2>&1
 
-  echo "== 已安装包里是否有该字符串 =="
-  docker exec corex5-py311 grep -rn 'VLLM_HOST_OPT_METADATA' "$SITE/vllm" 2>/dev/null | head -5
-  echo "(空=没有)"
+  echo "== gpu in container =="
+  docker exec corex5-py311 ixsmi 2>&1 | sed -n '5,20p'
 
-  echo "== ilu_flash_attn.py 100-130 行 =="
-  docker exec corex5-py311 sed -n '100,130p' "$SITE/vllm/v1/attention/backends/ilu_flash_attn.py" 2>&1 | cut -c1-170
+  echo "== venv imports =="
+  for V in /opt/corex311 /opt/corex311-cpython-vllm; do
+    docker exec corex5-py311 env -u PYTHONPATH -u PYTHONHOME "$V/bin/python3" -c \
+      "import torch,vllm;print('$V',torch.__version__,vllm.__version__)" 2>&1 | tail -2
+  done
 
-  echo "== 本次 run 有没有 metadata off 日志 =="
-  grep -c 'host attention metadata off' /home/qch/scripts/timeline/4k/logs/server.log 2>&1
-  grep -n 'host attention metadata' /home/qch/scripts/timeline/4k/logs/server.log 2>&1 | head -5
+  echo "== PYTHONPATH in container =="
+  docker exec corex5-py311 bash -c 'echo "PYTHONPATH=${PYTHONPATH:-<unset>}"' 2>&1
 
-  echo "== 本次 run 的 attention backend / ilu 日志 =="
-  grep -iE 'IluFlashAttention|ilu_flash_attn|attention backend|_host_opt_meta_native' /home/qch/scripts/timeline/4k/logs/server.log 2>&1 | cut -c1-190 | head -10
+  echo "== r10 artifacts =="
+  docker exec corex5-py311 bash -c 'ls /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py /opt/corex311/lib/python3.11/site-packages/vllm/_host_opt_meta_native*.so 2>&1' 2>&1
+
+  echo "== tcmalloc preload =="
+  docker exec corex5-py311 env LD_PRELOAD=/home/lw/gperftools/.libs/libtcmalloc.so /bin/true; echo "preload rc=$?"
+
+  echo "== free mem =="
+  free -g 2>&1 | head -3
+
+  echo "== multi engine =="
+  cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>&1
+
+  echo "== timeline dirs =="
+  ls -lt /home/qch/scripts/timeline/ 2>&1 | head -5
 
   # ---- 命令结束 ----
 
