@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：查看两次运行中 prefill/decode 划分不一致的步。
+# 只读：打印两份 vllmBench 报告，用于和 timeline 结果对照。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,10 +17,17 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  T=/home/qch/scripts/timeline
-  A=$(ls "$T"/4k2/profile/*/rank0*.pt.trace.json.gz 2>/dev/null | head -1)
-  B=$(ls "$T"/64k2/profile/*/rank0*.pt.trace.json.gz 2>/dev/null | head -1)
-  python3 "$DIR/trace_phase_delta.py" "$A" "$B" 2>&1
+  D=/home/qch/scripts/timeline
+  for f in "$D/261109_oe-2403-sp3_report.txt" "$D/261110-2403_sp3-64k-report.txt"; do
+    echo ""
+    echo "################ $(basename "$f") ################"
+    ls -l "$f" 2>&1
+    cat "$f" 2>&1
+  done
+
+  echo ""
+  echo "== 同目录其它报告 =="
+  ls -lt "$D"/*.txt 2>&1 | head -10
 
   # ---- 命令结束 ----
 
