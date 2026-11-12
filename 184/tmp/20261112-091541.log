@@ -1,0 +1,164 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T01:15:41Z
+
++ T=/home/qch/scripts/timeline
+++ head -1
+++ ls /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
++ A=/home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
+++ ls /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz
+++ head -1
++ B=/home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz
++ echo A=/home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
+A=/home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
++ echo B=/home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz
+B=/home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz
++ '[' -n /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz ']'
++ '[' -n /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz ']'
++ python3 -V
+Python 3.13.5
++ /usr/bin/time -v python3 /home/qch/tools/remote-env/184/trace_diff.py /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz 30
++ tail -200
+loading A: /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
+loading B: /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz
+
+[A(4k)] steps=0 events=4408930 span=80896.7ms
+
+[B(64k)] steps=0 events=4397405 span=80257.7ms
+
+== 每 step 归一化（A 除以 1，B 除以 1）==
+cat                             A_us/step    B_us/step     diff%
+python_function              3744524950.2 3738441566.1    -0.16%
+cuda_runtime                  137068305.8  136576067.2    -0.36%
+Trace                          76093324.9   75915823.4    -0.23%
+user_annotation                74120387.0   73966500.8    -0.21%
+cpu_op                          6194403.7    6263799.5     1.12%
+gpu_user_annotation             4126937.0    4257471.4     3.16%
+kernel                          3560532.8    3185322.5   -10.54%
+gpu_memcpy                       240582.9     239299.2    -0.53%
+cuda_driver                        7174.0       9740.0    35.77%
+
+== 按 B 绝对耗时排序 ==
+name                                                           A_us/step   B_us/step      delta    diff%
+threading.py(1002): _bootstrap                               380465956.9 379578578.3  -887378.6   -0.23%
+threading.py(1045): _bootstrap_inner                         380465952.6 379578574.0  -887378.5   -0.23%
+threading.py(982): run                                       228279559.5 227747132.6  -532426.9   -0.23%
+threading.py(295): wait                                      155102007.1 155704892.6   602885.4    0.39%
+<built-in method acquire of _thread.lock object at 0xfffab8c         0.0 155671057.0 155671057.0     nan%
+tqdm/_monitor.py(60): run                                    152186386.7 151831435.5  -354951.2   -0.23%
+torch/utils/_contextlib.py(120): decorate_context            151252170.9 150968247.4  -283923.5   -0.19%
+threading.py(611): wait                                      148699290.9 149296277.7   596986.7    0.40%
+PyTorch Profiler (0)                                          76093324.9  75915823.4  -177501.5   -0.23%
+vllm/v1/executor/multiproc_executor.py(788): death_pipe_moni  76093196.3  75915719.2  -177477.1   -0.23%
+multiprocessing/connection.py(250): recv                      76093195.0  75915717.9  -177477.1   -0.23%
+multiprocessing/connection.py(430): _recv_bytes               76093193.4  75915716.0  -177477.4   -0.23%
+multiprocessing/connection.py(395): _recv                     76093192.4  75915714.8  -177477.6   -0.23%
+vllm/v1/executor/multiproc_executor.py(966): async_output_bu  76093187.3  75915710.2  -177477.0   -0.23%
+vllm/usage/usage_lib.py(174): _report_usage_worker            76093172.9  75915700.4  -177472.6   -0.23%
+vllm/usage/usage_lib.py(256): _report_continuous_usage        76093171.7  75915699.4  -177472.4   -0.23%
+<string>(1): <module>                                         76093165.9  75915694.2  -177471.7   -0.23%
+multiprocessing/spawn.py(122): spawn_main                     76093161.9  75915691.7  -177470.2   -0.23%
+multiprocessing/spawn.py(135): _main                          76093159.7  75915689.6  -177470.1   -0.23%
+multiprocessing/process.py(314): _bootstrap                   76093157.6  75915687.6  -177469.9   -0.23%
+multiprocessing/process.py(108): run                          76093156.4  75915686.5  -177469.9   -0.23%
+vllm/v1/executor/multiproc_executor.py(879): worker_main      76093153.4  75915683.5  -177469.8   -0.23%
+vllm/v1/executor/multiproc_executor.py(982): worker_busy_loo  76093151.1  75915681.1  -177470.1   -0.23%
+vllm/v1/worker/worker_base.py(340): execute_model             74245913.8  74098189.8  -147724.0   -0.20%
+vllm/v1/worker/gpu_worker.py(807): execute_model              74217908.3  74057529.1  -160379.1   -0.22%
+vllm/v1/worker/gpu_model_runner.py(4241): execute_model       73897575.0  73797272.0  -100303.0   -0.14%
+vllm/v1/executor/multiproc_executor.py(926): enqueue_output   69570561.3  69202751.5  -367809.8   -0.53%
+<built-in method synchronize of torch.Event object at 0xfffa         0.0  68807666.4 68807666.4     nan%
+vllm/v1/worker/gpu_model_runner.py(290): get_output           69227895.3  68783132.5  -444762.9   -0.64%
+cudaEventSynchronize                                          69104153.2  68678366.5  -425786.7   -0.62%
+
+== 按差值排序（B 慢于 A 在前） ==
+name                                                           A_us/step   B_us/step      delta    diff%
+<built-in method acquire of _thread.lock object at 0xfffab8c         0.0 155671057.0 155671057.0     nan%
+<built-in method synchronize of torch.Event object at 0xfffa         0.0  68807666.4 68807666.4     nan%
+<built-in method synchronize of Stream object at 0xff7a181ab         0.0  65695924.5 65695924.5     nan%
+<built-in method to of Tensor object at 0xff7a181e8c30>              0.0   1290701.9  1290701.9     nan%
+<built-in method all_reduce of pybind11_builtins.pybind11_de         0.0    620485.2   620485.2     nan%
+threading.py(295): wait                                      155102007.1 155704892.6   602885.4    0.39%
+threading.py(611): wait                                      148699290.9 149296277.7   596986.7    0.40%
+<built-in method replay of pybind11_builtins.pybind11_detail         0.0    391384.1   391384.1     nan%
+torch/nn/modules/module.py(1780): _call_impl                  12180262.8  12565468.5   385205.7    3.16%
+<built-in method empty of type object at 0xfffc090ed130>             0.0    373596.9   373596.9     nan%
+<built-in method copy_ of Tensor object at 0xff7a1bf7a350>           0.0    337303.0   337303.0     nan%
+<built-in method empty_like of type object at 0xfffc090ed130         0.0    330358.3   330358.3     nan%
+<built-in method w8a8_gemm of PyCapsule object at 0xfffad96f         0.0    213287.2   213287.2     nan%
+<built-in method scaled_int8_quant of PyCapsule object at 0x         0.0    202052.6   202052.6     nan%
+vllm/compilation/cuda_graph.py(233): __call__                  3483356.7   3662815.3   179458.7    5.15%
+vllm/v1/worker/gpu_model_runner.py(3955): _model_forward       3487468.1   3666522.8   179054.7    5.13%
+execute_context_1(128)_generation_0(0)                         2982358.8   3141628.8   159270.0    5.34%
+<built-in method fill_ of Tensor object at 0xff7a1bf7a350>           0.0    156362.5   156362.5     nan%
+<built-in method view of Tensor object at 0xfffab6f9bed0>            0.0    139400.9   139400.9     nan%
+<built-in method record of Event object at 0xff7a181f0a70>           0.0    114688.5   114688.5     nan%
+<built-in method residual_rms_norm of PyCapsule object at 0x         0.0    100019.1   100019.1     nan%
+torch/cuda/streams.py(63): wait_stream                           75707.5    174992.6    99285.2  131.14%
+torch/cuda/streams.py(197): record                               18427.5    116374.5    97947.0  531.53%
+torch/cuda/streams.py(77): record_event                          24970.4    122577.7    97607.3  390.89%
+torch/cuda/graphs.py(141): replay                               303522.4    396048.5    92526.1   30.48%
+cudaGraphLaunch                                                 233481.9    325148.7    91666.7   39.26%
+vllm/model_executor/models/qwen3.py(226): forward              3181253.0   3270450.7    89197.7    2.80%
+vllm/model_executor/layers/quantization/compressed_tensors/s   1016543.2   1103354.8    86811.6    8.54%
+vllm/model_executor/models/qwen3.py(334): forward              3230807.9   3316802.4    85994.5    2.66%
+vllm/compilation/decorators.py(502): __call__                  3230550.4   3316525.3    85974.8    2.66%
+
+== 按差值排序（B 快于 A 在前） ==
+name                                                           A_us/step   B_us/step      delta    diff%
+<built-in method acquire of _thread.lock object at 0xfffe649 155070935.3         0.0 -155070935.3 -100.00%
+<built-in method synchronize of torch.Event object at 0xfffe  69215050.8         0.0 -69215050.8 -100.00%
+<built-in method synchronize of Stream object at 0xff7ddf7ab  65902267.9         0.0 -65902267.9 -100.00%
+<built-in method to of Tensor object at 0xff7ddf8442d0>        1419245.1         0.0 -1419245.1 -100.00%
+threading.py(629): wait                                        3485461.7   2533333.6  -952128.1  -27.32%
+threading.py(331): wait                                        3485445.5   2533318.0  -952127.5  -27.32%
+threading.py(1002): _bootstrap                               380465956.9 379578578.3  -887378.6   -0.23%
+threading.py(1045): _bootstrap_inner                         380465952.6 379578574.0  -887378.5   -0.23%
+<built-in method all_reduce of pybind11_builtins.pybind11_de    587187.3         0.0  -587187.3 -100.00%
+threading.py(982): run                                       228279559.5 227747132.6  -532426.9   -0.23%
+vllm/v1/worker/gpu_model_runner.py(290): get_output           69227895.3  68783132.5  -444762.9   -0.64%
+cudaEventSynchronize                                          69104153.2  68678366.5  -425786.7   -0.62%
+vllm/v1/executor/multiproc_executor.py(926): enqueue_output   69570561.3  69202751.5  -367809.8   -0.53%
+tqdm/_monitor.py(60): run                                    152186386.7 151831435.5  -354951.2   -0.23%
+<built-in method empty of type object at 0xffffb44ad130>        330765.2         0.0  -330765.2 -100.00%
+<built-in method empty_like of type object at 0xffffb44ad130    316106.2         0.0  -316106.2 -100.00%
+<built-in method replay of pybind11_builtins.pybind11_detail    298587.4         0.0  -298587.4 -100.00%
+<built-in method copy_ of Tensor object at 0xff7de339ffc0>      292166.2         0.0  -292166.2 -100.00%
+torch/utils/_contextlib.py(120): decorate_context            151252170.9 150968247.4  -283923.5   -0.19%
+vllm/v1/worker/gpu_model_runner.py(2364): _build_attention_m  67143091.9  66879809.4  -263282.5   -0.39%
+vllm/v1/worker/gpu_model_runner.py(2535): _build_attn_group_  66839707.8  66600956.9  -238750.8   -0.36%
+vllm/v1/attention/backends/ilu_flash_attn.py(465): _corex_fa  66770693.4  66532589.0  -238104.3   -0.36%
+vllm/v1/attention/backends/ilu_flash_attn.py(650): build      66799297.5  66563745.4  -235552.0   -0.35%
+execute_context_0(0)_generation_8(8)                          64650920.4  64426135.4  -224784.9   -0.35%
+void ixformer::comm::allreduce_ring_step_sum_fused<__ix_bflo    708722.8    484298.2  -224424.6  -31.67%
+cudaStreamSynchronize                                         66361379.9  66143662.3  -217717.7   -0.33%
+torch/cuda/streams.py(100): synchronize                       65904061.2  65698446.3  -205614.9   -0.31%
+<built-in method w8a8_gemm of PyCapsule object at 0xfffe84ad    197071.6         0.0  -197071.6 -100.00%
+PyTorch Profiler (0)                                          76093324.9  75915823.4  -177501.5   -0.23%
+multiprocessing/connection.py(395): _recv                     76093192.4  75915714.8  -177477.6   -0.23%
+	Command being timed: "python3 /home/qch/tools/remote-env/184/trace_diff.py /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz 30"
+	User time (seconds): 34.23
+	System time (seconds): 2.85
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:37.15
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 4838732
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 1
+	Minor (reclaiming a frame) page faults: 2345770
+	Voluntary context switches: 3
+	Involuntary context switches: 726
+	Swaps: 0
+	File system inputs: 120
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
++ set +x
+
+### exit: 0
