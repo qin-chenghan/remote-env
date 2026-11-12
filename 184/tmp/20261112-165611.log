@@ -1,0 +1,125 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T08:56:11Z
+
++ F=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ echo '== 文件 =='
+== 文件 ==
++ ls -l /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+-rwxr-xr-x. 1 root root 14041 Nov 12 16:06 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ echo '== bash -n =='
+== bash -n ==
++ bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ echo rc=0
+rc=0
++ echo '== 第 225-260 行（带行号）=='
+== 第 225-260 行（带行号）==
++ sed -n 225,260p /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ nl -ba -v225
++ cut -c1-200
+   225	    echo "cpu_range=$CPU_RANGE"
+   226	    echo "hotspot_opt=${HOTSPOT_OPT:-unset}"
+   227	    echo "model_path=$MODEL_PATH"
+   228	    echo "gpus=$GPU_LIST tp=$GPUS_PER_INSTANCE"
+   229	    echo "prompts=$NUM_PROMPTS concurrency=$MAX_CONCURRENCY warmups=$NUM_WARMUPS"
+   230	} > "$RUN_DIR/config.txt" 2>/dev/null || true
+   231	if [[ "$HOST_MEASURE" == lite ]]; then
+   232	    "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" init --run-dir "$RUN_DIR" \
+   233	        --timeout "$HOST_TIMEOUT" --max-scopes "$HOST_MAX_SCOPES" > "$LOG_DIR/preflight.log" 2>&1 || { cat "$LOG_DIR/preflight.log"; exit 2; }
+   234	    INIT_DONE=1
+   235	fi
+   236	if ! start_server; then log 'FATAL: 启动失败'; exit 1; fi
+   237	FAILED=0
+   238	for idx in "${!CASES[@]}"; do
+   239	    read -r input_len output_len <<< "${CASES[$idx]}"
+   240	    if ! run_case "$input_len" "$output_len"; then
+   241	        FAILED=1; log '停止后续 case，避免未完成请求或测量状态污染下一轮'; break
+   242	    fi
+   243	    if (( idx < ${#CASES[@]}-1 )); then log "等待 ${CASE_INTERVAL}s"; sleep "$CASE_INTERVAL"; fi
+   244	done
+   245	# Intermediate case results have already been validated and saved by
+   246	# lhctl.py finish (quietly). Build all-case CSV + Host report SILENTLY;
+   247	# print both result summaries only ONCE, after all cases and server cleanup.
+   248	if ! "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" summary "$RUN_DIR" \
+   249	        > "$LOG_DIR/summary_build.log"; then
+   250	    FAILED=1
+   251	fi
+   252	if [[ "$HOST_MEASURE" == lite && "$FAILED" == 0 ]]; then
+   253	    "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/analyze_litehost.py" "$RUN_DIR/litehost" \
+   254	        --link-percent "$HOST_LINK_PERCENT" --out "$RUN_DIR/host_summary" --quiet || FAILED=1
+   255	fi
+   256	cleanup
+   257	(( FAILED == 0 )) || { log "部分失败，保留诊断：$RUN_DIR"; exit 2; }
+   258	
+   259	log "========== 所有 case 最终结果（仅此处打印一次） =========="
+   260	"${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$SUMMARY_CSV" "$MAX_CONCURRENCY" "${CASES[@]}" <<'PY' || exit 2
++ echo '== 备份文件 =='
+== 备份文件 ==
++ head -5
++ ls -lt /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-20261109-105413 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-20261109-153627 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-fix-20261110-095844 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-modelpath-20261109-193513 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-r10-20261109-192734
+-rwxr-xr-x. 1 root root 14050 Nov  9 19:35 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-fix-20261110-095844
+-rwxr-xr-x. 1 root root 14053 Nov  9 19:27 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-modelpath-20261109-193513
+-rwxr-xr-x. 1 root root 13706 Nov  9 15:36 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-r10-20261109-192734
+-rwxr-xr-x. 1 root root 14128 Nov  9 15:22 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-20261109-153627
+-rwxr-xr-x. 1 root root 17970 Nov  6 14:26 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-20261109-105413
++ echo '== 与最近备份的差异（前 60 行）=='
+== 与最近备份的差异（前 60 行）==
+++ ls -t /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-20261109-105413 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-20261109-153627 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-fix-20261110-095844 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-modelpath-20261109-193513 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-r10-20261109-192734
+++ head -1
++ B=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-fix-20261110-095844
++ echo backup=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-fix-20261110-095844
+backup=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-fix-20261110-095844
++ '[' -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-fix-20261110-095844 ']'
++ diff -u /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-fix-20261110-095844 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ head -60
++ cut -c1-180
+--- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-fix-20261110-095844	2026-11-09 19:35:13.397020740 +0800
++++ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh	2026-11-12 16:06:33.557240064 +0800
+@@ -15,7 +15,7 @@
+ NUM_WARMUPS="${NUM_WARMUPS:-16}"
+ MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+ CASE_INTERVAL="${CASE_INTERVAL:-60}"
+-CPU_RANGE="${CPU_RANGE-192-255}"
++CPU_RANGE="${CPU_RANGE-80-159,240-319}"
+ HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
+ HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
+ HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
+@@ -75,7 +75,7 @@
+ fi
+ log() { printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"; }
+ # Child processes only: drop old measurement/audit injection; keep CoreX library paths.
+-CLEAN_ENV=(env -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
++CLEAN_ENV=(env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+     -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+ SERVER_PREFIX=()
+ [[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+@@ -148,8 +148,8 @@
+     local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1
+         "${SERVER_EXTRA_ENV[@]}")
+     if [[ "$HOST_MEASURE" == lite ]]; then
+-        env_args+=(PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}"
+-            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/huawei_ts_program/gperftools/.libs/libtcmalloc.so"
++        env_args+=(PYTHONPATH="$HOST_TOOLKIT"
++            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/lw/gperftools/.libs/libtcmalloc.so"
+             TCMALLOC_MAX_TOTAL_THREAD_CACHE_BYTES=536870912
+             MALLOCSTATS=1
+             LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
++ echo '== 近期该目录的跑测日志 =='
+== 近期该目录的跑测日志 ==
++ ls -lt /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ head -5
+total 96
+drwxr-xr-x. 6 root root 4096 Nov  6 19:08 litehost_gap_20261106_172326
+drwxr-xr-x. 6 root root 4096 Nov  6 16:20 litehost_gap_20261106_142706
+drwxr-xr-x. 6 root root 4096 Nov  6 10:05 litehost_gap_20261106_100311
+drwxr-xr-x. 6 root root 4096 Nov  5 22:01 litehost_gap_20261105_201703
++ ls -lt /home/s00806700/vllmBench
++ head -5
+total 416
+drwxr-xr-x. 3 root root 4096 Nov 10 09:33 litehost_gap_20261110_093301
+drwxr-xr-x. 6 root root 4096 Nov  6 17:08 litehost_gap_20261106_170506
+drwxr-xr-x. 6 root root 4096 Nov  6 17:04 litehost_gap_20261106_170036
+drwxr-xr-x. 6 root root 4096 Nov  6 17:00 litehost_gap_20261106_165637
++ set +x
+
+### exit: 0
