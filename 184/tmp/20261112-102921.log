@@ -1,0 +1,93 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T02:29:21Z
+
++ echo '== kernel =='
+== kernel ==
++ uname -r
+6.6.0-145.3.37.168.oe2403sp3.aarch64
++ getconf PAGE_SIZE
+4096
++ uptime
+ 10:29:21 up  1:20,  7 users,  load average: 5.10, 1.92, 1.23
++ echo '== who =='
+== who ==
++ who
++ head -8
+root     pts/0        2026-11-12 09:09 (141.1.52.189)
+root     pts/1        2026-11-12 09:09 (141.1.61.31)
+root     pts/3        2026-11-12 09:11 (141.1.61.31)
+q30087713 pts/4        2026-11-12 09:15 (141.5.133.14)
+root     pts/6        2026-11-12 09:30 (141.5.20.28)
+root     pts/7        2026-11-12 09:31 (141.1.52.189)
+root     pts/8        2026-11-12 10:14 (141.1.61.31)
++ echo '== vllm / bench processes =='
+== vllm / bench processes ==
++ ps -eo pid,user,etime,args
++ grep -E 'vllm.entrypoints|bench_driver|lhctl|vllmBench|timeline_opt'
++ grep -v grep
++ cut -c1-180
++ head -10
++ echo '(空=没有)'
+(空=没有)
++ echo '== gpu processes (ixsmi full) =='
+== gpu processes (ixsmi full) ==
++ ixsmi
++ tail -25
++--------------------------------------------------------------------------------+
+|  IX-ML: 5.0.0            Driver Version: 5.0.0          CUDA Version: 10.2     |
+|----------------------------------+----------------------+----------------------|
+| GPU  Name                        | Bus-Id               | Clock-SM  Clock-Mem  |
+| Fan  Temp  Perf    Pwr:Usage/Cap |      Memory-Usage    | GPU-Util  Compute M. |
+|==================================+======================+======================|
+| 0    Iluvatar BI-V150            | 00000000:45:00.0     | 1500MHz   1600MHz    |
+| N/A  43C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 1    Iluvatar BI-V150            | 00000000:48:00.0     | 1500MHz   1600MHz    |
+| N/A  44C   P0       104W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 2    Iluvatar BI-V150            | 00000000:AF:00.0     | 1500MHz   1600MHz    |
+| N/A  41C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 3    Iluvatar BI-V150            | 00000000:B2:00.0     | 1500MHz   1600MHz    |
+| N/A  42C   P0       104W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+
++--------------------------------------------------------------------------------+
+| Processes:                                                          GPU Memory |
+|  GPU        PID      Process name                                   Usage(MiB) |
+|================================================================================|
+|  No running processes found                                                    |
++--------------------------------------------------------------------------------+
++ echo '== containers =='
+== containers ==
++ docker ps --format '{{.Names}}\t{{.Status}}'
++ head -8
+corex5-py311	Up About an hour
+supabase_db_agentpress	Up About an hour (healthy)
+supabase_studio_agentpress	Up About an hour (healthy)
+supabase_pg_meta_agentpress	Up 48 minutes (healthy)
+supabase_imgproxy_agentpress	Up About an hour (healthy)
+supabase_storage_agentpress	Up 48 minutes (healthy)
+supabase_rest_agentpress	Up About an hour
+supabase_realtime_agentpress	Up About an hour (healthy)
++ echo '== port 8000 =='
+== port 8000 ==
++ ss -lntp
++ grep :8000
++ echo '  8000 未占用'
+  8000 未占用
++ echo '== cpu top =='
+== cpu top ==
++ ps -eo pcpu,pmem,user,args --sort=-pcpu
++ head -6
++ cut -c1-160
+%CPU %MEM USER     COMMAND
+16.7  0.8 root     /root/.remotedev-server/extensions/spb-wecode.wecode-cpp-1.9.0/artifacts/linux-aarch64/wecode-db --ctags-path=/root/.remotedev-server/extensi
+12.6  0.2 root     /opt/app/rel/logflare/erts-13.2.2/bin/beam.smp -sbwt medium -sbwtdcpu medium -sbwtdio medium -zdbbl 10240 -P 1000000 -t 32000000 -- -root /op
+ 2.8  0.2 root     /app/erts-15.1.2/bin/beam.smp -hmax 1000000000 -zdbbl 100000 -sbwt none -sbwtdio none -sbwtdcpu none -- -root /app -bindir /app/erts-15.1.2/b
+ 1.0  0.0 root     /usr/sbin/rngd -f -O jitter:timeout:10
+ 1.0  0.0 root     /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
++ set +x
+
+### exit: 0
