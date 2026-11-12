@@ -1,0 +1,164 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T07:40:56Z
+
++ show /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ local f=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ echo '################ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh ################'
+################ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh ################
++ ls -l /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+-rwxr-xr-x. 1 root root 14034 Nov 10 09:58 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ echo '-- 默认参数 --'
+-- 默认参数 --
++ grep -nE '^[A-Z_]+="\${\s*[A-Z_]+:?-' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ cut -c1-170
++ head -25
+7:MODEL_PATH="${MODEL_PATH:-/home/model/Qwen3-32B-W8A8}"
+8:TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
+9:PREFIX="${PREFIX:-/opt/corex311-cpython-vllm}"
+10:PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+11:GPU_LIST="${GPU_LIST:-0,1,2,3}"
+12:GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+13:PORT="${PORT:-8848}"
+14:NUM_PROMPTS="${NUM_PROMPTS:-100}"
+15:NUM_WARMUPS="${NUM_WARMUPS:-16}"
+16:MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+17:CASE_INTERVAL="${CASE_INTERVAL:-60}"
+18:CPU_RANGE="${CPU_RANGE-192-255}"
+19:HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
+20:HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
+21:HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
+22:HOST_MAX_SCOPES="${HOST_MAX_SCOPES:-200000}"
+23:HOST_DRY_RUN="${HOST_DRY_RUN:-0}"
++ echo '-- SERVER_ARGS --'
+-- SERVER_ARGS --
++ awk '/SERVER_ARGS=(/,/^ *\)/' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ cut -c1-170
++ head -40
++ echo '-- 服务端 env 数组 --'
+-- 服务端 env 数组 --
++ awk '/SERVER_EXTRA_ENV=(/,/^ *\)/' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ cut -c1-170
++ head -25
++ awk '/SERVER_ENV=(/,/^ *\)/' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ cut -c1-170
++ head -25
++ echo '-- env / 预载 / 绑核 --'
+-- env / 预载 / 绑核 --
++ grep -nE 'LD_PRELOAD|TCMALLOC|VLLM_[A-Z_]+=|UMD_|TORCH_MODULE|taskset|CPU_RANGE|ENABLE_TASKSET|numa-bind' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ cut -c1-170
++ head -30
+18:CPU_RANGE="${CPU_RANGE-192-255}"
+25:    UMD_MAXCOMMANDBUFFERNUMBER=256
+26:    UMD_MAXCOMMANDBUFFERSIZE=16384
+27:    VLLM_HOST_OPT=on
+28:    VLLM_HOST_OPT_INPUTS=on
+29:    VLLM_HOST_OPT_ARENA=on
+30:    VLLM_HOST_OPT_BOOKKEEPING=on
+31:    VLLM_HOST_OPT_METADATA=on
+32:    VLLM_HOST_OPT_DIAGNOSTICS=0
+33:    VLLM_COMPACT_GREEDY=on
+34:    VLLM_COMPACT_GREEDY_DIAGNOSTICS=0
+35:    TORCH_MODULE_ATTR_FASTPATH=slot_native
+78:CLEAN_ENV=(env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+81:[[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+148:    local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1
+152:            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/lw/gperftools/.libs/libtcmalloc.so"
+153:            TCMALLOC_MAX_TOTAL_THREAD_CACHE_BYTES=536870912
+210:log "TEST_ID=$TEST_ID | MODE=$HOST_MEASURE | WARMUP=$NUM_WARMUPS | CPU_RANGE=$CPU_RANGE"
+225:    echo "cpu_range=$CPU_RANGE"
++ echo '-- bench 调用 --'
+-- bench 调用 --
++ grep -nE 'bench_driver|vllm.entrypoints.cli.main bench|bench serve|num_prompts|num-warmups|max-concurrency|random_input|random_output|dataset_name|--profile|profiler-config' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ cut -c1-170
++ head -30
+172:        client=("$HOST_TOOLKIT/bench_driver.py")
+175:        client=(-m vllm.entrypoints.cli.main bench serve)
+181:        --num_prompts "$NUM_PROMPTS" --num-warmups "$NUM_WARMUPS" --max-concurrency "$MAX_CONCURRENCY" \
+182:        --dataset_name random --random_input_len "$input_len" --random_output_len "$output_len" \
++ echo ''
+
++ show /home/qch/scripts/timeline_opt.sh
++ local f=/home/qch/scripts/timeline_opt.sh
++ echo '################ /home/qch/scripts/timeline_opt.sh ################'
+################ /home/qch/scripts/timeline_opt.sh ################
++ ls -l /home/qch/scripts/timeline_opt.sh
+-rwxr-xr-x. 1 root root 12509 Nov 11 15:33 /home/qch/scripts/timeline_opt.sh
++ echo '-- 默认参数 --'
+-- 默认参数 --
++ grep -nE '^[A-Z_]+="\${\s*[A-Z_]+:?-' /home/qch/scripts/timeline_opt.sh
++ cut -c1-170
++ head -25
+23:PYTHON_BIN="${PYTHON_BIN:-python3}"
+24:GPU_LIST="${GPU_LIST:-0,1,2,3}"
+25:GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+26:PORT="${PORT:-8000}"
+27:NUM_PROMPTS="${NUM_PROMPTS:-100}"
+28:NUM_WARMUPS="${NUM_WARMUPS:-16}"
+29:MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+30:ENABLE_TASKSET_BINDING="${ENABLE_TASKSET_BINDING:-0}"
+31:CPU_RANGE="${CPU_RANGE:-}"
+33:VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
+36:PROFILE_EVERY="${PROFILE_EVERY:-1}"
+39:CASE_INTERVAL="${CASE_INTERVAL:-60}"
+48:PROFILE_DELAY_ITERATIONS="${PROFILE_DELAY_ITERATIONS:-0}"
+49:PROFILE_MAX_ITERATIONS="${PROFILE_MAX_ITERATIONS:-0}"
+50:PROFILE_WARMUP_ITERATIONS="${PROFILE_WARMUP_ITERATIONS:-0}"
+51:PROFILE_ACTIVE_ITERATIONS="${PROFILE_ACTIVE_ITERATIONS:-2000}"
+57:PROFILE_ROOT_DIR="${PROFILE_ROOT_DIR:-${RUN_DIR}/profile}"
+58:PROFILE_DIRS="${PROFILE_DIRS:-${PROFILE_ROOT_DIR}}"
++ echo '-- SERVER_ARGS --'
+-- SERVER_ARGS --
++ awk '/SERVER_ARGS=(/,/^ *\)/' /home/qch/scripts/timeline_opt.sh
++ cut -c1-170
++ head -40
++ echo '-- 服务端 env 数组 --'
+-- 服务端 env 数组 --
++ awk '/SERVER_EXTRA_ENV=(/,/^ *\)/' /home/qch/scripts/timeline_opt.sh
++ cut -c1-170
++ head -25
++ awk '/SERVER_ENV=(/,/^ *\)/' /home/qch/scripts/timeline_opt.sh
++ cut -c1-170
++ head -25
++ echo '-- env / 预载 / 绑核 --'
+-- env / 预载 / 绑核 --
++ grep -nE 'LD_PRELOAD|TCMALLOC|VLLM_[A-Z_]+=|UMD_|TORCH_MODULE|taskset|CPU_RANGE|ENABLE_TASKSET|numa-bind' /home/qch/scripts/timeline_opt.sh
++ cut -c1-170
++ head -30
+12:#       NUM_WARMUPS / MAX_CONCURRENCY / ENABLE_TASKSET_BINDING / CPU_RANGE /
+30:ENABLE_TASKSET_BINDING="${ENABLE_TASKSET_BINDING:-0}"
+31:CPU_RANGE="${CPU_RANGE:-}"
+33:VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
+117:    if [ "$ENABLE_TASKSET_BINDING" = "1" ]; then
+118:        if [ -z "$CPU_RANGE" ]; then
+119:            log "ERROR: ENABLE_TASKSET_BINDING=1 时必须设置 CPU_RANGE"
+122:        SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+123:        log "taskset 绑定: ${SERVER_PREFIX[*]}"
+144:    VLLM_ENFORCE_CUDA_GRAPH=1 \
+146:    VLLM_RPC_TIMEOUT="$VLLM_RPC_TIMEOUT" \
+273:log "TASKSET:            $ENABLE_TASKSET_BINDING ${CPU_RANGE:-}"
++ echo '-- bench 调用 --'
+-- bench 调用 --
++ grep -nE 'bench_driver|vllm.entrypoints.cli.main bench|bench serve|num_prompts|num-warmups|max-concurrency|random_input|random_output|dataset_name|--profile|profiler-config' /home/qch/scripts/timeline_opt.sh
++ cut -c1-170
++ head -30
+42:# vLLM 0.23 完全弃用 VLLM_TORCH_PROFILER_DIR 环境变量,改用 --profiler-config。
+44:# 之间的 worker iteration;模型预热由 bench serve 在 /start_profile 前完成。
+126:    # vLLM 0.23+ 完全弃用 VLLM_TORCH_PROFILER_DIR 环境变量,改用 --profiler-config。
+131:    #  3. warmup_iterations=0 时连续记录;模型 warmup 在 bench serve 中先执行
+164:        --profiler-config "$profiler_config_json" \
+170:    log "profiler-config: $profiler_config_json"
+184:        log "   请确认启动参数包含 --profiler-config '...profiler\\\":\\\"torch\\\"...' "
+218:        BENCH_PROFILE_ARGS=(--profile)
+229:    "$PYTHON_BIN" -m vllm.entrypoints.cli.main bench serve \
+230:        --num_prompts "$NUM_PROMPTS" \
+231:        --num-warmups "$NUM_WARMUPS" \
+232:        --max-concurrency "$MAX_CONCURRENCY" \
+233:        --dataset_name random \
+234:        --random_input_len "$input_len" \
+235:        --random_output_len "$output_len" \
++ echo ''
+
++ set +x
+
+### exit: 0
