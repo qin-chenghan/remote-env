@@ -1,0 +1,134 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T07:35:08Z
+
++ T=/home/qch/scripts/timeline
+++ head -1
+++ ls /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
++ A=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
+++ ls /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
+++ head -1
++ B=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
++ echo A=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
+A=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
++ echo B=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
+B=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
++ '[' -n /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz ']'
++ '[' -n /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz ']'
++ for X in "$A" "$B"
++ echo ''
+
+++++ dirname /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
++++ dirname /home/qch/scripts/timeline/4k2/profile/case0_in128_out128
+++ basename /home/qch/scripts/timeline/4k2/profile
++ echo '################ profile ################'
+################ profile ################
++ python3 /home/qch/tools/remote-env/184/trace_hg.py /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz --all-intervals --top 15
+file: /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
+main tid: 576451  events: 4311217  execute_context scopes: 1692
+long syncs: 1686  intervals: 1660  mode: all
+H+G per interval: 3697 us (profiler-inflated)
+markers: fast_build frames=1690  (present => metadata fastpath active)
+
+category (self):
+  python_function      2203 us/step   59.6%
+  cpu_op                834 us/step   22.6%
+  cuda_runtime          496 us/step   13.4%
+  cuda_driver             4 us/step    0.1%
+  untracked             160 us/step    4.3%
+
+self time top 15:
+   us/step   share  calls/step  function
+     267.3   7.23%        15.0  aten::copy_
+     205.3   5.55%         2.0  cudaEventQuery
+     178.1   4.82%         1.0  vllm/v1/worker/gpu_model_runner.py(2005): _prepare_inputs
+     142.5   3.85%         2.0  cudaGraphLaunch
+     115.2   3.12%        43.1  aten::slice
+      92.1   2.49%         6.0  aten::empty_strided
+      92.1   2.49%         2.0  aten::index
+      75.3   2.04%         4.0  Tensor.to
+      67.7   1.83%         1.0  vllm/v1/worker/gpu_model_runner.py(1822): _prepare_input_ids
+      61.4   1.66%         6.0  aten::fill_
+      60.9   1.65%         1.0  _record_function_enter_new (pybind)
+      60.1   1.63%         1.0  vllm/v1/worker/gpu_model_runner.py(2364): _build_attention_metadata
+      60.0   1.62%        11.0  cudaMemcpyAsync
+      58.5   1.58%         3.0  aten::add
+      56.8   1.54%        10.1  cudaLaunchKernel
+
+owner (subtree) top 15:
+   us/step   share  owner
+     562.0  15.20%  vllm/v1/worker/gpu_model_runner.py(2005): _prepare_inputs
+     279.9   7.57%  vllm/v1/worker/gpu_model_runner.py(248): __init__
+     188.2   5.09%  vllm/v1/utils.py(138): copy_to_gpu
+     184.2   4.98%  torch/cuda/graphs.py(141): replay
+     178.4   4.82%  vllm/v1/worker/compact_greedy.py(309): commit
+     169.2   4.58%  (no .py frame)
+     130.4   3.53%  vllm/v1/worker/gpu_model_runner.py(1822): _prepare_input_ids
+     114.8   3.10%  vllm/v1/attention/backends/ilu_flash_attn.py(465): _corex_fast_build
+     108.3   2.93%  vllm/v1/worker/gpu_model_runner.py(2364): _build_attention_metadata
+      83.7   2.26%  vllm/v1/worker/sample_logits_graph.py(308): run
+      62.2   1.68%  torch/_ops.py(1197): __call__
+      52.8   1.43%  triton/runtime/jit.py(729): run
+      46.4   1.26%  vllm/distributed/device_communicators/shm_broadcast.py(772): dequeue
+      45.8   1.24%  vllm/v1/attention/backends/utils.py(637): reorder_batch_to_split_decodes_and_prefills
+      43.5   1.18%  vllm/v1/worker/gpu_model_runner.py(3770): _bookkeeping_sync
++ for X in "$A" "$B"
++ echo ''
+
+++++ dirname /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
++++ dirname /home/qch/scripts/timeline/64k2/profile/case0_in128_out128
+++ basename /home/qch/scripts/timeline/64k2/profile
++ echo '################ profile ################'
+################ profile ################
++ python3 /home/qch/tools/remote-env/184/trace_hg.py /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz --all-intervals --top 15
+file: /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
+main tid: 24743  events: 4309174  execute_context scopes: 1692
+long syncs: 1677  intervals: 1651  mode: all
+H+G per interval: 3639 us (profiler-inflated)
+markers: fast_build frames=1690  (present => metadata fastpath active)
+
+category (self):
+  python_function      2099 us/step   57.7%
+  cpu_op                911 us/step   25.0%
+  cuda_runtime          465 us/step   12.8%
+  cuda_driver             3 us/step    0.1%
+  untracked             160 us/step    4.4%
+
+self time top 15:
+   us/step   share  calls/step  function
+     300.7   8.26%        15.0  aten::copy_
+     214.8   5.90%         2.0  cudaEventQuery
+     201.5   5.54%         1.0  vllm/v1/worker/gpu_model_runner.py(2005): _prepare_inputs
+     126.9   3.49%         2.0  cudaGraphLaunch
+     115.8   3.18%        43.1  aten::slice
+     113.7   3.12%         6.0  aten::empty_strided
+      99.2   2.73%         2.0  aten::index
+      74.5   2.05%         4.0  Tensor.to
+      70.8   1.95%         3.0  aten::add
+      70.1   1.93%         6.0  aten::fill_
+      62.1   1.71%         1.0  vllm/v1/worker/gpu_model_runner.py(1822): _prepare_input_ids
+      61.3   1.68%         1.0  vllm/v1/worker/gpu_model_runner.py(2364): _build_attention_metadata
+      58.4   1.60%         6.0  Tensor.copy_
+      51.8   1.42%         1.0  _record_function_enter_new (pybind)
+      49.8   1.37%        11.0  cudaMemcpyAsync
+
+owner (subtree) top 15:
+   us/step   share  owner
+     626.0  17.20%  vllm/v1/worker/gpu_model_runner.py(2005): _prepare_inputs
+     284.6   7.82%  vllm/v1/worker/gpu_model_runner.py(248): __init__
+     203.1   5.58%  vllm/v1/utils.py(138): copy_to_gpu
+     178.6   4.91%  torch/cuda/graphs.py(141): replay
+     162.4   4.46%  (no .py frame)
+     161.1   4.43%  vllm/v1/worker/compact_greedy.py(309): commit
+     119.4   3.28%  vllm/v1/worker/gpu_model_runner.py(1822): _prepare_input_ids
+     117.6   3.23%  vllm/v1/attention/backends/ilu_flash_attn.py(465): _corex_fast_build
+     107.0   2.94%  vllm/v1/worker/gpu_model_runner.py(2364): _build_attention_metadata
+      94.9   2.61%  vllm/v1/worker/sample_logits_graph.py(308): run
+      52.9   1.45%  torch/_ops.py(1197): __call__
+      48.6   1.34%  triton/runtime/jit.py(729): run
+      43.6   1.20%  vllm/v1/worker/gpu_model_runner.py(4189): _get_slot_mapping
+      43.5   1.19%  vllm/distributed/device_communicators/shm_broadcast.py(772): dequeue
+      40.9   1.12%  vllm/v1/attention/backends/utils.py(637): reorder_batch_to_split_decodes_and_prefills
++ set +x
+
+### exit: 0
