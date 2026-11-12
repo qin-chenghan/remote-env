@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 203 内存状况诊断：总量/可用、top 进程、容器占用、tmpfs 与 hugepage、OOM 历史。
+# 203 第二轮：宿主内存充足，查显存、容器 cgroup OOM 计数、近期 run 日志里的内存报错。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,44 +17,52 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== 1. 总体内存 =="
-  free -h
-  grep -E 'MemTotal|MemFree|MemAvailable|Buffers|Cached|SwapTotal|SwapFree|Dirty|Writeback|SReclaimable|Shmem|HugePages_Total|HugePages_Free|HugePages_Rsvd|Hugepagesize|AnonPages|Committed_AS|CommitLimit' /proc/meminfo
+  echo "== 1. 显存现状 =="
+  timeout 30 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | head -30
+  echo "--- 显存总览 ---"
+  timeout 30 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | grep -E 'MiB /' | head -10
 
-  echo "== 2. 占用最高的进程（RSS 前 25，含子进程合并前）=="
-  ps -eo pid,ppid,user,rss,vsz,etime,args --sort=-rss 2>/dev/null | head -26
+  echo "== 2. 容器 cgroup 内存与 OOM 计数 =="
+  for c in $(docker ps -q 2>/dev/null); do
+    full=$(docker inspect -f '{{.Id}}' "$c" 2>/dev/null)
+    name=$(docker inspect -f '{{.Name}}' "$c" 2>/dev/null)
+    d=/sys/fs/cgroup/docker/$full
+    [ -d "$d" ] || d=$(ls -d /sys/fs/cgroup/docker/${full:0:12}* 2>/dev/null | head -1)
+    echo "---- $name ($d)"
+    [ -d "$d" ] && {
+      printf 'memory.max=%s  current=%s\n' "$(cat "$d/memory.max" 2>/dev/null)" "$(cat "$d/memory.current" 2>/dev/null)"
+      echo -n "memory.events: "; tr '\n' ' ' < "$d/memory.events" 2>/dev/null; echo
+      echo -n "memory.swap.max: "; cat "$d/memory.swap.max" 2>/dev/null; echo
+    } || echo "cgroup dir not found"
+  done
 
-  echo "== 3. 按进程名合并 RSS（前 15）=="
-  ps -eo rss,comm --no-headers 2>/dev/null | awk '{a[$2]+=$1} END{for(k in a) printf "%10.1f MB  %s\n", a[k]/1024, k}' | sort -rn | head -15
+  echo "== 3. 内核侧 iluvatar / 内存报错 =="
+  dmesg -T 2>/dev/null | grep -iE 'iluvatar|corex|oom|out of memory|alloc.*fail' | tail -25 || echo "dmesg 不可读"
 
-  echo "== 4. 容器内存占用 =="
-  docker ps --format '{{.ID}}  {{.Names}}  {{.Status}}' 2>&1 | head -15
-  timeout 90 docker stats --no-stream --format '{{.Name}}  mem={{.MemUsage}}  pids={{.PIDs}}' 2>&1 | head -15
+  echo "== 4. 最近一次 run 的日志里找内存类报错 =="
+  R=$(ls -dt /home/qch/scripts/litehost_perf/vllmBench/*/ 2>/dev/null | head -3)
+  echo "$R"
+  for d in $R; do
+    echo "---- $d"
+    ls -l "$d" 2>/dev/null | head -5
+    grep -iE 'out of memory|OutOfMemory|OOM|CUDA error|allocation failed|insufficient memory|memory pool' "$d/logs/server.log" 2>/dev/null | tail -5
+    tail -3 "$d/logs/server.log" 2>/dev/null
+  done
 
-  echo "== 5. tmpfs / shm（内存记账）=="
-  df -h /dev/shm /tmp /run 2>&1 | head -6
-  du -sh /dev/shm 2>/dev/null | head -3
-  du -sh /dev/shm/* 2>/dev/null | sort -rh | head -10
+  echo "== 5. 近期失败/异常痕迹 =="
+  find /home -maxdepth 5 -name 'server.log' -newermt '-3 days' 2>/dev/null | head -10 | while read -r f; do
+    n=$(grep -icE 'out of memory|oom|allocation failed' "$f" 2>/dev/null)
+    echo "$n  $f"
+  done
 
-  echo "== 6. hugepage =="
-  cat /proc/sys/vm/nr_hugepages 2>/dev/null
-  grep -i huge /proc/meminfo
+  echo "== 6. 磁盘与日志占用（'/' 只剩几百兆，可能与报错混淆）=="
+  df -h / | tail -1
+  du -sh /var/log /var/cache/dnf 2>/dev/null | head -4
+  ls -lt /var/log 2>/dev/null | head -6
 
-  echo "== 7. overcommit =="
-  cat /proc/sys/vm/overcommit_memory /proc/sys/vm/overcommit_ratio 2>/dev/null
-  cat /proc/sys/vm/swappiness 2>/dev/null
-
-  echo "== 8. OOM / 内存告警历史（近 20 条）=="
-  (dmesg -T 2>/dev/null || dmesg 2>/dev/null) | grep -iE 'out of memory|oom-kill|oom_reaper|killed process|memory cgroup' | tail -20 || echo "无 OOM 记录或无 dmesg 权限"
-  echo "--- 本次启动以来 OOM 计数 ---"
-  grep -c . /dev/null 2>/dev/null; journalctl -k --since "-24h" 2>/dev/null | grep -icE 'out of memory|oom-kill|killed process' || echo "journal 不可读"
-
-  echo "== 9. 谁在申请/持有大块内存（活跃 vllm 进程）=="
-  ps -eo pid,rss,etime,args 2>/dev/null | grep -E 'vllm|bench_driver|ixsys|python' | grep -v grep | head -10
-  docker exec corex5-py311 bash -c 'ps -eo pid,rss,etime,args | grep -E "vllm|bench_driver" | grep -v grep | head -10' 2>&1
-
-  echo "== 10. 磁盘（与内存无关，顺带）=="
-  df -h / /home | tail -2
+  echo "== 7. 当前是否有 GPU 进程 =="
+  timeout 30 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | grep -iE 'process|python|vllm' | head -10 || echo "无进程列表输出"
+  ps -eo pid,rss,etime,args 2>/dev/null | grep -E 'vllm|bench_driver|light_host' | grep -v grep | head -5 || echo "无 vllm 进程"
 
   # ---- 命令结束 ----
 
