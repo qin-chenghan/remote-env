@@ -1,0 +1,98 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T06:03:54Z
+
++ T=/home/qch/scripts/timeline
++ for R in 4k2 64k2
+++ head -1
+++ ls /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
++ F=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
++ echo '== 4k2: /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz =='
+== 4k2: /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz ==
++ '[' -n /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz ']'
++ python3 /home/qch/tools/remote-env/184/trace_phase.py /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz 4k2
+[4k2] execute_model 候选:
+     1692  vllm/v1/worker/worker_base.py(340): execute_model
+     1692  vllm/v1/worker/gpu_worker.py(807): execute_model
+     1692  vllm/v1/worker/gpu_model_runner.py(4241): execute_model
+[4k2] 采用步数=1692；allreduce kernel 数=22833
+  有 allreduce 的步数=50 (3.0%)
+  每步（有 allreduce 的步）均值: calls=456.66 time=38145.6us
+  全部步均值: calls=13.49 time=1127.2us
+  allreduce 总时长=1907.3ms
+    top 1 step#    2 ar_time=  66794.5us calls= 616 step_dur=  177.70ms  cum=  3.5%
+    top 2 step# 1170 ar_time=  65336.9us calls= 782 step_dur=  148.67ms  cum=  6.9%
+    top 3 step#  652 ar_time=  65208.6us calls= 637 step_dur=  177.90ms  cum= 10.3%
+    top 4 step#  132 ar_time=  64876.4us calls= 656 step_dur=  178.75ms  cum= 13.7%
+    top 5 step# 1300 ar_time=  63645.0us calls= 818 step_dur=  149.96ms  cum= 17.1%
+    top 6 step#  650 ar_time=  62545.2us calls= 807 step_dur=  150.27ms  cum= 20.4%
+    top 7 step# 1040 ar_time=  62012.8us calls= 783 step_dur=  145.04ms  cum= 23.6%
+    top 8 step#  780 ar_time=  61935.9us calls= 819 step_dur=  150.47ms  cum= 26.9%
+    top 9 step#  390 ar_time=  61833.1us calls= 798 step_dur=  149.22ms  cum= 30.1%
+    top10 step#  782 ar_time=  61231.5us calls= 641 step_dur=  175.09ms  cum= 33.3%
+    top11 step#  392 ar_time=  60354.1us calls= 644 step_dur=  173.87ms  cum= 36.5%
+    top12 step#  912 ar_time=  60307.5us calls= 644 step_dur=  173.87ms  cum= 39.6%
+    top13 step#  520 ar_time=  60286.9us calls= 764 step_dur=  145.17ms  cum= 42.8%
+    top14 step# 1042 ar_time=  59943.8us calls= 644 step_dur=  174.19ms  cum= 45.9%
+    top15 step# 1432 ar_time=  59717.5us calls= 638 step_dur=  172.99ms  cum= 49.1%
+    top16 step#  260 ar_time=  59627.2us calls= 777 step_dur=  145.34ms  cum= 52.2%
+    top17 step#    0 ar_time=  59165.9us calls= 258 step_dur=  106.77ms  cum= 55.3%
+    top18 step# 1172 ar_time=  58698.7us calls= 632 step_dur=  171.97ms  cum= 58.4%
+    top19 step#  262 ar_time=  58620.4us calls= 644 step_dur=  173.43ms  cum= 61.5%
+    top20 step#  910 ar_time=  58036.0us calls= 812 step_dur=  151.88ms  cum= 64.5%
+  top  5 步占 allreduce 总时长:  17.1%
+  top 10 步占 allreduce 总时长:  33.3%
+  top 20 步占 allreduce 总时长:  64.5%
+  top 50 步占 allreduce 总时长: 100.0%
+  top100 步占 allreduce 总时长: 100.0%
+  step duration: min=0.4ms p50=42.5ms p95=43.9ms max=178.7ms
+  长步（>3x p50）数=25，其中带 allreduce 的=25
+  allreduce 单次耗时分布: {'100us-1ms': 8477, '<10us': 799, '>=1ms': 186, '10-100us': 13371}
++ for R in 4k2 64k2
+++ ls /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
+++ head -1
++ F=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
++ echo '== 64k2: /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz =='
+== 64k2: /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz ==
++ '[' -n /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz ']'
++ python3 /home/qch/tools/remote-env/184/trace_phase.py /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz 64k2
+[64k2] execute_model 候选:
+     1692  vllm/v1/worker/worker_base.py(340): execute_model
+     1692  vllm/v1/worker/gpu_worker.py(807): execute_model
+     1692  vllm/v1/worker/gpu_model_runner.py(4241): execute_model
+[64k2] 采用步数=1692；allreduce kernel 数=22833
+  有 allreduce 的步数=45 (2.7%)
+  每步（有 allreduce 的步）均值: calls=507.40 time=36854.4us
+  全部步均值: calls=13.49 time=980.2us
+  allreduce 总时长=1658.4ms
+    top 1 step# 1560 ar_time=  70920.2us calls= 812 step_dur=  155.31ms  cum=  4.3%
+    top 2 step#  390 ar_time=  65989.1us calls= 868 step_dur=  156.60ms  cum=  8.3%
+    top 3 step#  262 ar_time=  64203.1us calls= 625 step_dur=  174.72ms  cum= 12.1%
+    top 4 step#  780 ar_time=  64148.5us calls= 889 step_dur=  154.32ms  cum= 16.0%
+    top 5 step#  520 ar_time=  64011.2us calls= 885 step_dur=  156.44ms  cum= 19.9%
+    top 6 step# 1042 ar_time=  62316.2us calls= 623 step_dur=  173.82ms  cum= 23.6%
+    top 7 step#  522 ar_time=  61651.0us calls= 644 step_dur=  176.78ms  cum= 27.3%
+    top 8 step# 1302 ar_time=  61435.1us calls= 630 step_dur=  173.89ms  cum= 31.0%
+    top 9 step#  782 ar_time=  61351.2us calls= 609 step_dur=  171.62ms  cum= 34.7%
+    top10 step# 1172 ar_time=  60466.6us calls= 630 step_dur=  174.47ms  cum= 38.4%
+    top11 step# 1432 ar_time=  59742.8us calls= 623 step_dur=  170.98ms  cum= 42.0%
+    top12 step# 1562 ar_time=  58561.1us calls= 812 step_dur=  143.70ms  cum= 45.5%
+    top13 step#  392 ar_time=  58094.0us calls= 641 step_dur=  171.48ms  cum= 49.0%
+    top14 step#  912 ar_time=  56270.1us calls= 616 step_dur=  164.93ms  cum= 52.4%
+    top15 step#  132 ar_time=  54392.3us calls= 602 step_dur=  160.62ms  cum= 55.7%
+    top16 step#  652 ar_time=  53803.3us calls= 609 step_dur=  161.84ms  cum= 58.9%
+    top17 step#    2 ar_time=  50748.9us calls= 557 step_dur=  149.80ms  cum= 62.0%
+    top18 step#    0 ar_time=  49563.4us calls= 258 step_dur=   96.89ms  cum= 65.0%
+    top19 step#  260 ar_time=  45057.1us calls= 883 step_dur=  131.66ms  cum= 67.7%
+    top20 step# 1300 ar_time=  41269.5us calls= 903 step_dur=  158.81ms  cum= 70.2%
+  top  5 步占 allreduce 总时长:  19.9%
+  top 10 步占 allreduce 总时长:  38.4%
+  top 20 步占 allreduce 总时长:  70.2%
+  top 50 步占 allreduce 总时长: 100.0%
+  top100 步占 allreduce 总时长: 100.0%
+  step duration: min=0.3ms p50=42.4ms p95=43.8ms max=176.8ms
+  长步（>3x p50）数=25，其中带 allreduce 的=25
+  allreduce 单次耗时分布: {'100us-1ms': 8449, '<10us': 977, '>=1ms': 63, '10-100us': 13344}
++ set +x
+
+### exit: 0
