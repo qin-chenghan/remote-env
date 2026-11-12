@@ -1,0 +1,254 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T09:13:12Z
+
++ C=corex5-py311
++ P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
++ echo '== 1. 顶层目录结构（含时间）=='
+== 1. 顶层目录结构（含时间）==
++ docker exec corex5-py311 bash -c 'ls -la --time-style=full-iso /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257'
+total 72
+drwxr-xr-x.  5 root root 4096 2026-11-12 16:52:22.457240064 +0800 .
+drwxr-xr-x. 17 root root 4096 2026-11-12 15:02:57.869240064 +0800 ..
+-rw-------.  1 root root   84 2026-11-12 16:31:31.609240064 +0800 bench.process.json
+-rw-r--r--.  1 root root 1037 2026-11-12 15:53:14.489240064 +0800 bs8_in1024_out1024.json
+-rw-r--r--.  1 root root 1032 2026-11-12 15:41:13.281240064 +0800 bs8_in1024_out128.json
+-rw-r--r--.  1 root root 1029 2026-11-12 16:15:12.017240064 +0800 bs8_in1024_out2048.json
+-rw-r--r--.  1 root root 1034 2026-11-12 15:16:38.173240064 +0800 bs8_in128_out1024.json
+-rw-r--r--.  1 root root 1029 2026-11-12 15:05:17.861240064 +0800 bs8_in128_out128.json
+-rw-r--r--.  1 root root 1034 2026-11-12 15:38:21.021240064 +0800 bs8_in128_out2048.json
+-rw-r--r--.  1 root root 1030 2026-11-12 16:30:27.593240064 +0800 bs8_in2048_out1024.json
+-rw-r--r--.  1 root root 1030 2026-11-12 16:18:29.245240064 +0800 bs8_in2048_out128.json
+-rw-r--r--.  1 root root 1035 2026-11-12 16:52:15.209240064 +0800 bs8_in2048_out2048.json
+-rw-r--r--.  1 root root  249 2026-11-12 15:02:57.873240064 +0800 config.txt
+drwxr-xr-x.  2 root root 4096 2026-11-12 15:03:23.173240064 +0800 control
+drwxr-xr-x. 11 root root 4096 2026-11-12 16:31:31.553240064 +0800 litehost
+drwxr-xr-x.  2 root root 4096 2026-11-12 17:04:30.129240064 +0800 logs
+-rw-------.  1 root root   81 2026-11-12 15:02:58.101240064 +0800 server.process.json
+-rw-------.  1 root root  873 2026-11-12 15:02:58.005240064 +0800 session.json
++ docker exec corex5-py311 bash -c 'ls -la --time-style=full-iso /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost'
+total 44
+drwxr-xr-x. 11 root root 4096 2026-11-12 16:31:31.553240064 +0800 .
+drwxr-xr-x.  5 root root 4096 2026-11-12 16:52:22.457240064 +0800 ..
+drwxr-xr-x.  3 root root 4096 2026-11-12 15:53:18.337240064 +0800 bs8_in1024_out1024
+drwxr-xr-x.  3 root root 4096 2026-11-12 15:41:16.205240064 +0800 bs8_in1024_out128
+drwxr-xr-x.  3 root root 4096 2026-11-12 16:15:16.933240064 +0800 bs8_in1024_out2048
+drwxr-xr-x.  3 root root 4096 2026-11-12 15:16:42.013240064 +0800 bs8_in128_out1024
+drwxr-xr-x.  3 root root 4096 2026-11-12 15:05:20.737240064 +0800 bs8_in128_out128
+drwxr-xr-x.  3 root root 4096 2026-11-12 15:38:25.925240064 +0800 bs8_in128_out2048
+drwxr-xr-x.  3 root root 4096 2026-11-12 16:30:31.497240064 +0800 bs8_in2048_out1024
+drwxr-xr-x.  3 root root 4096 2026-11-12 16:18:32.241240064 +0800 bs8_in2048_out128
+drwxr-xr-x.  3 root root 4096 2026-11-12 16:52:20.201240064 +0800 bs8_in2048_out2048
++ echo '== 2. 每个 case 的 four_rank_totals（T/S/H/G）=='
+== 2. 每个 case 的 four_rank_totals（T/S/H/G）==
++ for case_dir in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048
++ echo '--- bs8_in128_out128 ---'
+--- bs8_in128_out128 ---
++ docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in128_out128/host_report/four_rank_totals.csv 2>&1 | head -8'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,all_formal,0.0,4,1692,72.92442203,69.921152585,3.003269445,1.102891065,4.10616051,2.90671299,3.06420683
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,graph_formal,0.0,4,1664,71.25606623499999,69.17839404,2.077672195,,,1.99866046,2.12579965
+bs8_in128_out128,4a74edd1f8b041e997895a13f1eb59d3,no_graph_formal,0.0,4,28,1.668355795,0.7427585449999999,0.92559725,,,0.90805253,0.93840718
++ for case_dir in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048
++ echo '--- bs8_in128_out1024 ---'
+--- bs8_in128_out1024 ---
++ docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in128_out1024/host_report/four_rank_totals.csv 2>&1 | head -8'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,all_formal,0.0,4,13340,517.9893268425,501.1890813225,16.800245519999997,8.299323165,25.099568684999998,15.62637144,17.60560459
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,graph_formal,0.0,4,13312,516.3729363150001,500.50239913250005,15.8705371825,,,14.70341685,16.67934904
+bs8_in128_out1024,5d8b3cbc5a234e44a0871269fe37c1b5,no_graph_formal,0.0,4,28,1.6163905275,0.68668219,0.9297083375,,,0.91651186,0.95311135
++ for case_dir in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048
++ echo '--- bs8_in128_out2048 ---'
+--- bs8_in128_out2048 ---
++ docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in128_out2048/host_report/four_rank_totals.csv 2>&1 | head -8'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,all_formal,0.0,4,26652,1047.3607850725,1013.4948805825,33.86590449,16.897952545,50.763857035,31.89400196,35.8496112
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,graph_formal,0.0,4,26611,1045.1306122775,1012.684334115,32.4462781625,,,30.5077461,34.35847785
+bs8_in128_out2048,c5a4b2971b9d42338bb4d77751371e3f,no_graph_formal,0.0,4,41,2.230172795,0.8105464675,1.4196263275,,,1.38625586,1.49113335
++ for case_dir in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048
++ echo '--- bs8_in1024_out128 ---'
+--- bs8_in1024_out128 ---
++ docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in1024_out128/host_report/four_rank_totals.csv 2>&1 | head -8'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,all_formal,0.0,4,1694,82.9885801325,77.413730785,5.5748493475,1.133484865,6.7083342125000005,5.41764212,5.75202958
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,graph_formal,0.0,4,1601,64.10052115,62.04949197,2.05102918,,,1.99223175,2.11683273
+bs8_in1024_out128,d2770c418d42461da466b30a65aa2bc3,no_graph_formal,0.0,4,93,18.8880589825,15.364238815,3.5238201675,,,3.42374406,3.63519685
++ for case_dir in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048
++ echo '--- bs8_in1024_out1024 ---'
+--- bs8_in1024_out1024 ---
++ docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in1024_out1024/host_report/four_rank_totals.csv 2>&1 | head -8'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,all_formal,0.0,4,13342,551.946133645,531.8690338425,20.0770998025,8.7546401625,28.831739965,19.25076693,20.65101904
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,graph_formal,0.0,4,13249,532.95436281,516.4166381225,16.5377246875,,,15.79092043,17.02924875
+bs8_in1024_out1024,89c6894f77044282b3e2c679026b6c0e,no_graph_formal,0.0,4,93,18.991770835,15.45239572,3.539375115,,,3.45110377,3.6247799
++ for case_dir in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048
++ echo '--- bs8_in1024_out2048 ---'
+--- bs8_in1024_out2048 ---
++ docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in1024_out2048/host_report/four_rank_totals.csv 2>&1 | head -8'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,all_formal,0.0,4,26654,1058.176624965,1021.3179994525,36.8586255125,17.4714785775,54.330104090000006,35.28888957,38.00925577
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,graph_formal,0.0,4,26561,1039.2661046575,1005.9141334575,33.3519712,,,31.88216976,34.39995337
+bs8_in1024_out2048,64c739778fc84e49af7dcdbc306d0510,no_graph_formal,0.0,4,93,18.9105203075,15.403865995,3.5066543125,,,3.40671981,3.6093024
++ for case_dir in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048
++ echo '--- bs8_in2048_out128 ---'
+--- bs8_in2048_out128 ---
++ docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in2048_out128/host_report/four_rank_totals.csv 2>&1 | head -8'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,all_formal,0.0,4,1707,103.79659275750001,97.009865805,6.7867269525000005,1.17635398,7.9630809325000005,6.55055891,6.95602624
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,graph_formal,0.0,4,1580,57.90187597,55.892018895,2.009857075,,,1.92712254,2.0737327
+bs8_in2048_out128,b85cec71e75844abb459181b445f511f,no_graph_formal,0.0,4,127,45.8947167875,41.11784691,4.7768698775,,,4.62343637,4.93813138
++ for case_dir in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048
++ echo '--- bs8_in2048_out1024 ---'
+--- bs8_in2048_out1024 ---
++ docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in2048_out1024/host_report/four_rank_totals.csv 2>&1 | head -8'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,all_formal,0.0,4,13355,548.830826215,527.27572732,21.555098895,8.8889778025,30.4440766975,21.24631632,21.77387202
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,graph_formal,0.0,4,13228,502.9664607625,486.2201611475,16.746299614999998,,,16.53213985,17.01245426
+bs8_in2048_out1024,924099f940fd43b8b258aad089ba0eca,no_graph_formal,0.0,4,127,45.8643654525,41.0555661725,4.808799280000001,,,4.71417647,4.90255941
++ for case_dir in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048
++ echo '--- bs8_in2048_out2048 ---'
+--- bs8_in2048_out2048 ---
++ docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/litehost/bs8_in2048_out2048/host_report/four_rank_totals.csv 2>&1 | head -8'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,all_formal,0.0,4,26667,1050.49926107,1012.61175489,37.88750618,16.6102329325,54.4977391125,36.78437605,38.63427575
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,graph_formal,0.0,4,26540,1004.6260554749999,971.4937213000001,33.132334175,,,32.13596523,34.02714819
+bs8_in2048_out2048,2cbe49a54a0d4ff69e214385ab2e8188,no_graph_formal,0.0,4,127,45.873205595,41.118033589999996,4.755172005,,,4.60712756,4.89369683
++ echo '== 3. 每个 case 的日志结尾（是否正常收尾）=='
+== 3. 每个 case 的日志结尾（是否正常收尾）==
++ for case_dir in bs8_in128_out128 bs8_in1024_out1024 bs8_in2048_out2048
++ f=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/bench_bs8_in128_out128.log
++ echo '--- /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/bench_bs8_in128_out128.log ---'
+--- /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/bench_bs8_in128_out128.log ---
++ docker exec corex5-py311 bash -c 'tail -n 15 '\''/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/bench_bs8_in128_out128.log'\'' 2>&1'
+Total token throughput (tok/s):          345.77    
+---------------Time to First Token----------------
+Mean TTFT (ms):                          242.52    
+Median TTFT (ms):                        260.72    
+P99 TTFT (ms):                           275.17    
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          43.27     
+Median TPOT (ms):                        43.50     
+P99 TPOT (ms):                           44.60     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           43.27     
+Median ITL (ms):                         43.53     
+P99 ITL (ms):                            47.28     
+==================================================
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ for case_dir in bs8_in128_out128 bs8_in1024_out1024 bs8_in2048_out2048
++ f=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/bench_bs8_in1024_out1024.log
++ echo '--- /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/bench_bs8_in1024_out1024.log ---'
+--- /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/bench_bs8_in1024_out1024.log ---
++ docker exec corex5-py311 bash -c 'tail -n 15 '\''/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/bench_bs8_in1024_out1024.log'\'' 2>&1'
+Total token throughput (tok/s):          365.25    
+---------------Time to First Token----------------
+Mean TTFT (ms):                          716.09    
+Median TTFT (ms):                        674.76    
+P99 TTFT (ms):                           1757.54   
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          41.73     
+Median TPOT (ms):                        42.01     
+P99 TPOT (ms):                           42.48     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           41.73     
+Median ITL (ms):                         40.53     
+P99 ITL (ms):                            47.90     
+==================================================
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ for case_dir in bs8_in128_out128 bs8_in1024_out1024 bs8_in2048_out2048
++ f=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/bench_bs8_in2048_out2048.log
++ echo '--- /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/bench_bs8_in2048_out2048.log ---'
+--- /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/bench_bs8_in2048_out2048.log ---
++ docker exec corex5-py311 bash -c 'tail -n 15 '\''/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/bench_bs8_in2048_out2048.log'\'' 2>&1'
+Total token throughput (tok/s):          383.83    
+---------------Time to First Token----------------
+Mean TTFT (ms):                          1496.38   
+Median TTFT (ms):                        1601.48   
+P99 TTFT (ms):                           3574.81   
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          39.55     
+Median TPOT (ms):                        39.60     
+P99 TPOT (ms):                           40.18     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           39.55     
+Median ITL (ms):                         38.62     
+P99 ITL (ms):                            43.22     
+==================================================
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ echo '== 4. 每个 case 的 JSON 结果（吞吐/TTFT）=='
+== 4. 每个 case 的 JSON 结果（吞吐/TTFT）==
++ for case_dir in bs8_in128_out128 bs8_in1024_out1024 bs8_in2048_out2048
++ echo '--- bs8_in128_out128 ---'
+--- bs8_in128_out128 ---
++ docker exec corex5-py311 bash -c 'head -c 700 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in128_out128.json 2>&1'
+{"date": "20261112-150517", "endpoint_type": "vllm", "backend": "vllm", "label": null, "model_id": "/home/model/Qwen3-32B-W8A8", "tokenizer_id": "/home/model/Qwen3-32B-W8A8", "num_prompts": 100, "request_rate": "inf", "burstiness": 1.0, "max_concurrency": 8, "duration": 74.03838711999924, "completed": 100, "failed": 0, "total_input_tokens": 12800, "total_output_tokens": 12800, "request_throughput": 1.3506507082322436, "request_goodput": null, "output_throughput": 172.8832906537272, "total_token_throughput": 345.7665813074544, "max_output_tokens_per_s": 192.0, "max_concurrent_requests": 16, "rtfx": 0.0, "mean_ttft_ms": 242.52089970012094, "median_ttft_ms": 260.71545500053617, "std_ttft_ms": 4+ echo
+
++ for case_dir in bs8_in128_out128 bs8_in1024_out1024 bs8_in2048_out2048
++ echo '--- bs8_in1024_out1024 ---'
+--- bs8_in1024_out1024 ---
++ docker exec corex5-py311 bash -c 'head -c 700 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in1024_out1024.json 2>&1'
+{"date": "20261112-155314", "endpoint_type": "vllm", "backend": "vllm", "label": null, "model_id": "/home/model/Qwen3-32B-W8A8", "tokenizer_id": "/home/model/Qwen3-32B-W8A8", "num_prompts": 100, "request_rate": "inf", "burstiness": 1.0, "max_concurrency": 8, "duration": 560.7147570199995, "completed": 100, "failed": 0, "total_input_tokens": 102400, "total_output_tokens": 102400, "request_throughput": 0.17834379913855775, "request_goodput": null, "output_throughput": 182.62405031788313, "total_token_throughput": 365.24810063576626, "max_output_tokens_per_s": 216.0, "max_concurrent_requests": 16, "rtfx": 0.0, "mean_ttft_ms": 716.0869093002475, "median_ttft_ms": 674.7565450004913, "std_ttft_ms"+ echo
+
++ for case_dir in bs8_in128_out128 bs8_in1024_out1024 bs8_in2048_out2048
++ echo '--- bs8_in2048_out2048 ---'
+--- bs8_in2048_out2048 ---
++ docker exec corex5-py311 bash -c 'head -c 700 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/bs8_in2048_out2048.json 2>&1'
+{"date": "20261112-165215", "endpoint_type": "vllm", "backend": "vllm", "label": null, "model_id": "/home/model/Qwen3-32B-W8A8", "tokenizer_id": "/home/model/Qwen3-32B-W8A8", "num_prompts": 100, "request_rate": "inf", "burstiness": 1.0, "max_concurrency": 8, "duration": 1067.1270528000023, "completed": 100, "failed": 0, "total_input_tokens": 204800, "total_output_tokens": 204800, "request_throughput": 0.09370955383205123, "request_goodput": null, "output_throughput": 191.91716624804093, "total_token_throughput": 383.83433249608186, "max_output_tokens_per_s": 216.0, "max_concurrent_requests": 12, "rtfx": 0.0, "mean_ttft_ms": 1496.3849114001277, "median_ttft_ms": 1601.4847499991447, "std_ttft_+ echo
+
++ echo '== 5. server.log 结尾（死因线索）=='
+== 5. server.log 结尾（死因线索）==
++ docker exec corex5-py311 bash -c 'tail -n 40 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/server.log 2>&1'
+MALLOC: +    236847104 (  225.9 MiB) Bytes in page heap freelist
+MALLOC: +     34118016 (   32.5 MiB) Bytes in central cache freelist
+MALLOC: +      5946624 (    5.7 MiB) Bytes in transfer cache freelist
+MALLOC: +      7955064 (    7.6 MiB) Bytes in thread cache freelists
+MALLOC: +      4587584 (    4.4 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =    549879872 (  524.4 MiB) Actual memory used (physical + swap)
+MALLOC: +        24576 (    0.0 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =    549904448 (  524.4 MiB) Virtual address space used
+MALLOC:
+MALLOC:          21733              Spans in use
+MALLOC:             65              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+/opt/cpython-vllm/v1/lib/python3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 4 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+/opt/cpython-vllm/v1/lib/python3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 6 leaked shared_memory objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+------------------------------------------------
+MALLOC:         536064 (    0.5 MiB) Bytes in use by application
+MALLOC: +      1015808 (    1.0 MiB) Bytes in page heap freelist
+MALLOC: +       547240 (    0.5 MiB) Bytes in central cache freelist
+MALLOC: +       269312 (    0.3 MiB) Bytes in transfer cache freelist
+MALLOC: +       777304 (    0.7 MiB) Bytes in thread cache freelists
+MALLOC: +      2621504 (    2.5 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =      5767232 (    5.5 MiB) Actual memory used (physical + swap)
+MALLOC: +            0 (    0.0 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =      5767232 (    5.5 MiB) Virtual address space used
+MALLOC:
+MALLOC:            149              Spans in use
+MALLOC:              1              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
++ echo '== 6. server.log 里的错误关键字 =='
+== 6. server.log 里的错误关键字 ==
++ docker exec corex5-py311 bash -c 'grep -n -E '\''Traceback|Error|error|Exception|Killed|OOM|abort'\'' /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/server.log 2>&1 | tail -20'
+1972:(APIServer pid=898493) INFO 11-12 16:52:20 [launcher.py:116] [shutdown] API server: stopping engine client mode=abort timeout=0s
+1973:(EngineCore pid=899633) INFO 11-12 16:52:20 [core.py:1337] [shutdown] EngineCore: start mode=abort timeout=0s
++ echo '== 7. 容器里是否还有进程在跑 =='
+== 7. 容器里是否还有进程在跑 ==
++ docker exec corex5-py311 bash -c 'ps -eo pid,etime,args | grep -E '\''vllm|benchmark|lhctl'\'' | grep -v grep | head -20'
+1294338       00:31 bash vllmBench_lite_opt.sh
+1295033       00:30 /opt/corex311-cpython-vllm/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8848 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --dtype auto --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1 --tensor_parallel_size 4 --data_parallel_size 1 --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto --enable_chunked_prefill --compilation-config {"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]} --async-scheduling --no-enable-prefix-caching --worker-cls light_host_worker.LightHostWorker
+1295503       00:20 /opt/corex311-cpython-vllm/bin/python3 -c from multiprocessing.resource_tracker import main;main(36)
++ echo '== 8. 哪个脚本写的这个路径 =='
+== 8. 哪个脚本写的这个路径 ==
++ docker exec corex5-py311 bash -c 'grep -rl '\''/usr/local/corex-5.0.0/vllmBench'\'' /home /usr/local/bin /opt 2>/dev/null --include='\''*.sh'\'' --include='\''*.py'\'' | head -20'
