@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 本次：只改 timeline_opt.sh 第 162 行的 --compilation-config，加 sample logits cudagraph。
+# 只读：检查最新 4k timeline 采集结果与优化使能证据。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,45 +17,44 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  D=/home/qch/scripts
-  F=$(ls -t "$D"/timeline*opt*.sh 2>/dev/null | head -1)
-  echo "target=$F"
-  [ -n "$F" ] || { echo "ABORT: 没找到 timeline*opt*.sh"; exit 6; }
-  ls -l "$F"
-  echo "-- 改前第 162 行 --"
-  sed -n '162p' "$F"
+  echo "== timeline run dirs =="
+  ls -lt /home/qch/scripts/timeline/ 2>&1 | head -8
 
-  cp -a "$F" "$F.bak-cudagraph-$TS"
+  R=$(ls -dt /home/qch/scripts/timeline/*/ 2>/dev/null | head -1)
+  echo "RUN=$R"
+  [ -n "$R" ] && [ -d "$R" ] || exit 0
 
-  python3 - "$F" <<'PY'
-import sys
-p = sys.argv[1]
-lines = open(p).read().splitlines(True)
-i = 161
-if len(lines) <= i:
-    raise SystemExit("FAIL: 文件不足 162 行")
-old = lines[i]
-if "--compilation-config" not in old:
-    raise SystemExit("FAIL: 第 162 行不是 --compilation-config: " + old.strip())
-if "sample_logits_cudagraph" in old:
-    raise SystemExit("SKIP: 已包含 sample_logits_cudagraph")
-if not old.rstrip().endswith("\\"):
-    raise SystemExit("FAIL: 第 162 行未以反斜杠结尾")
-indent = old[:len(old) - len(old.lstrip())]
-new = indent + """--compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}' \\""" + "\n"
-lines[i] = new
-open(p, "w").writelines(lines)
-print("OLD:", old.rstrip())
-print("NEW:", new.rstrip())
-PY
-  echo "edit rc=$?"
+  echo "== run dir =="
+  ls -la "$R" 2>&1 | head -12
+  echo "-- profile tree --"
+  find "$R/profile" -type f -printf '%10s  %TY-%Tm-%Td %TH:%TM  %p\n' 2>/dev/null | sort -k3 | head -30
+  echo "-- profile size --"
+  du -sh "$R/profile" 2>&1
 
-  echo "-- 改后上下文 --"
-  sed -n '160,164p' "$F"
-  bash -n "$F" && echo "syntax OK"
+  echo "== logs =="
+  ls -l "$R/logs" 2>&1
 
-  echo "-- 校验 --"
-  grep -n 'sample_logits_cudagraph' "$F" | cut -c1-200
+  echo "== bench log: case 标记与吞吐 =="
+  grep -hE '^(INFO|WARNING).*(Request throughput|Output token throughput|Mean TTFT|Mean TPOT)|profile' "$R"/logs/bench*.log 2>/dev/null | cut -c1-200 | head -20
+
+  echo "== server.log: profiler =="
+  grep -hiE 'profiler|start_profile|stop_profile|trace' "$R/logs/server.log" 2>/dev/null | cut -c1-200 | head -15
+
+  echo "== server.log: r10 特性 =="
+  grep -hiE 'Host opt modes|metadata|compact.greedy|sample.logits|host_opt' "$R/logs/server.log" 2>/dev/null | cut -c1-200 | head -20
+
+  echo "== server.log: tcmalloc / fastpath / 参数 =="
+  grep -hiE 'tcmalloc|ld.so|slot_native|fastpath|compilation-config|numa-bind|async' "$R/logs/server.log" 2>/dev/null | cut -c1-220 | head -15
+
+  echo "== server.log: worker python =="
+  grep -oE '/opt/[^ ]*/bin/python[0-9.]*|site-packages/torch' "$R/logs/server.log" 2>/dev/null | sort -u | head -6
+
+  echo "== script state =="
+  sed -n '212,222p' /home/qch/scripts/timeline_opt.sh 2>&1 | cut -c1-160
+  grep -n 'sample_logits_cudagraph' /home/qch/scripts/timeline_opt.sh 2>&1 | cut -c1-120
+
+  echo "== kernel =="
+  uname -r; getconf PAGE_SIZE
 
   # ---- 命令结束 ----
 
