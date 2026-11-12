@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 直接进 corex5-py311 容器检查 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
+# 检查 150257 这次 9-case 跑的每个 case 是否有效，以及聚合层为什么缺失。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,44 +19,49 @@ mkdir -p "$DIR/tmp"
   # ---- 命令开始 ----
   C=corex5-py311
   P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
-  PB=/usr/local/corex-5.0.0/vllmBench
 
-  echo "== 1. 容器状态 =="
-  docker ps -a --filter "name=$C" --format '{{.ID}}  {{.Names}}  {{.Image}}  {{.Status}}'
-  docker exec "$C" echo alive || { echo "容器不可 exec，结束"; exit 3; }
+  echo "== 1. 顶层目录结构（含时间）=="
+  docker exec "$C" bash -c "ls -la --time-style=full-iso $P"
+  docker exec "$C" bash -c "ls -la --time-style=full-iso $P/litehost"
 
-  echo "== 2. vllmBench 下所有 run 目录 =="
-  docker exec "$C" bash -c "ls -lat $PB | head -20"
+  echo "== 2. 每个 case 的 four_rank_totals（T/S/H/G）=="
+  for case_dir in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 \
+                  bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 \
+                  bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048; do
+    echo "--- $case_dir ---"
+    docker exec "$C" bash -c "cat $P/litehost/$case_dir/host_report/four_rank_totals.csv 2>&1 | head -8"
+  done
 
-  echo "== 3. 目标目录 =="
-  docker exec "$C" bash -c "ls -ld $P; du -sh $P 2>/dev/null"
+  echo "== 3. 每个 case 的日志结尾（是否正常收尾）=="
+  for case_dir in bs8_in128_out128 bs8_in1024_out1024 bs8_in2048_out2048; do
+    f="$P/logs/bench_$case_dir.log"
+    echo "--- $f ---"
+    docker exec "$C" bash -c "tail -n 15 '$f' 2>&1"
+  done
 
-  echo "== 4. 文件清单 =="
-  docker exec "$C" bash -c "cd $P && find . -type f -printf '%10s  %TY-%Tm-%Td %TH:%TM  %p\n' | sort -k4 | head -60"
-  docker exec "$C" bash -c "echo 文件数: \$(find $P -type f | wc -l)"
+  echo "== 4. 每个 case 的 JSON 结果（吞吐/TTFT）=="
+  for case_dir in bs8_in128_out128 bs8_in1024_out1024 bs8_in2048_out2048; do
+    echo "--- $case_dir ---"
+    docker exec "$C" bash -c "head -c 700 $P/$case_dir.json 2>&1"
+    echo
+  done
 
-  echo "== 5. config.txt =="
-  docker exec "$C" bash -c "head -40 $P/config.txt 2>&1"
+  echo "== 5. server.log 结尾（死因线索）=="
+  docker exec "$C" bash -c "tail -n 40 $P/logs/server.log 2>&1"
 
-  echo "== 6. summary.csv =="
-  docker exec "$C" bash -c "head -20 $P/summary.csv 2>&1"
+  echo "== 6. server.log 里的错误关键字 =="
+  docker exec "$C" bash -c "grep -n -E 'Traceback|Error|error|Exception|Killed|OOM|abort' $P/logs/server.log 2>&1 | tail -20"
 
-  echo "== 7. host_summary =="
-  docker exec "$C" bash -c "ls -la $P/host_summary 2>&1"
-  docker exec "$C" bash -c "head -40 $P/host_summary/report.txt 2>&1"
-  echo "-- four_rank_totals.csv --"
-  docker exec "$C" bash -c "head -10 $P/host_summary/four_rank_totals.csv 2>&1"
+  echo "== 7. 容器里是否还有进程在跑 =="
+  docker exec "$C" bash -c "ps -eo pid,etime,args | grep -E 'vllm|benchmark|lhctl' | grep -v grep | head -20"
 
-  echo "== 8. 日志尾部 =="
-  docker exec "$C" bash -c "ls -la $P/logs 2>&1"
-  docker exec "$C" bash -c "tail -20 $P/logs/bench_*.log 2>&1"
+  echo "== 8. 哪个脚本写的这个路径 =="
+  docker exec "$C" bash -c "grep -rl '/usr/local/corex-5.0.0/vllmBench' /home /usr/local/bin /opt 2>/dev/null --include='*.sh' --include='*.py' | head -20"
+  docker exec "$C" bash -c "ps -eo args | grep -E 'vllmBench_lite|bench_driver|vllm' | grep -v grep | head -5"
 
-  echo "== 9. 与 145924 对比 =="
-  R=/home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924
-  docker exec "$C" bash -c "test -d $R && echo '145924 可见' || echo '145924 容器内不可见'"
-  docker exec "$C" bash -c "test -d $R && find $R -type f | wc -l"
-  echo "-- 两边顶层差异 --"
-  docker exec "$C" bash -c "diff <(cd $R && find . -maxdepth 2 | sort) <(cd $P && find . -maxdepth 2 | sort) 2>&1 | head -40"
+  echo "== 9. 最近的脚本修改时间 =="
+  docker exec "$C" bash -c "ls -lat --time-style=full-iso /home/huawei_ts_program/litehost_perf_opt/*.sh 2>/dev/null | head -6"
+  docker exec "$C" bash -c "ls -lat --time-style=full-iso /home/s00806700/litehost_perf_opt/*.sh 2>/dev/null | head -6"
 
   # ---- 命令结束 ----
 
