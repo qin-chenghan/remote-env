@@ -1,0 +1,942 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T10:51:40Z
+
++ C=corex5-py311
++ Z=/home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip
++ echo '== 1. 包文件本身 =='
+== 1. 包文件本身 ==
++ ls -l --time-style=full-iso /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip
+-rw-r--r--. 1 root root 514065 2026-11-12 18:46:25.681240064 +0800 /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip
++ sha256sum /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip
+f4431e763d5140b1d58532a1d0e943e625916a85e923515a5a77b943fe470337  /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip
++ command -v unzip
+/usr/bin/unzip
++ echo '== 2. 包内清单 =='
+== 2. 包内清单 ==
++ unzip -l /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip
++ head -60
+Archive:  /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+    12204  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/MANIFEST.json
+      682  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/PACKAGE_AUDIT.json
+     2622  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/PR_LINKS.json
+     5630  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/README.md
+     5985  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/SHA256SUMS
+    64290  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/container/patches/0001-host-paths.patch
+    14072  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/container/patches/0002-ilu-metadata.patch
+   102476  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/container/patches/0003-compact-greedy.patch
+     2701  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/evidence/PR3_VERIFICATION311.json
+     3989  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/evidence/VERIFICATION311.json
+      708  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/evidence/dry-run311.log
+     7921  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/evidence/install311.log
+       54  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/evidence/installed-check311.log
+      144  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/evidence/live-after.sha256
+      144  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/evidence/live-before.sha256
+       34  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/evidence/pr3-apply.log
+       34  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/evidence/pr3-revert.log
+     3706  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/evidence/pr3-tests311.log
+     2986  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/evidence/r14-performance-20261112.md
+      101  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/evidence/rollback311.log
+     5970  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/evidence/tests311.log
+       77  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/evidence/uninstall311.log
+   149790  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/prs/pr1.patch
+    49831  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/prs/pr2.patch
+   176836  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/prs/pr3.patch
+    10148  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/scripts/apply_patch.py
+     7597  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/scripts/install.py
+     5485  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/scripts/verify.py
+    57490  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr1/CMakeLists.txt
+    24434  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr1/cmake/utils.cmake
+     9584  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr1/csrc/host_opt_native.cpp
+     5418  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr1/csrc/spinloop.cpp
+    13347  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr1/docs/design/host_opt.md
+    12435  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr1/docs/design/host_opt_verification.md
+    45961  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr1/setup.py
+    40492  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr1/tests/v1/worker/test_host_opt.py
+   102500  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr1/vllm/envs.py
+   338327  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr1/vllm/v1/worker/gpu_model_runner.py
+    45133  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr1/vllm/v1/worker/host_opt.py
+     1848  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr2/CoreX-5.0.0/BASELINE.json
+     5124  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr2/CoreX-5.0.0/README.md
+     7890  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr2/CoreX-5.0.0/VERIFICATION.md
+     3095  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr2/CoreX-5.0.0/native/CMakeLists.txt
+     9134  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr2/CoreX-5.0.0/native/native.c
+    14072  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr2/CoreX-5.0.0/patches/0001-corex-host-opt-metadata-ilu.patch
+     5839  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr2/CoreX-5.0.0/tests/test_metadata.py
+    15386  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr3/docs/design/compact_greedy_token_graph.md
+    10947  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr3/tests/v1/worker/test_compact_greedy.py
+    11062  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr3/tests/v1/worker/test_compact_greedy_tp.py
+    12576  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr3/tests/v1/worker/test_independent_head_graph.py
+    20645  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr3/tests/v1/worker/test_output_head.py
+    67342  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr3/vllm/config/compilation.py
+     1719  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr3/vllm/model_executor/layers/compact_greedy_provider.py
+     9933  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr3/vllm/model_executor/layers/logits_processor.py
+    24777  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr3/vllm/model_executor/layers/output_head.py
+    12569  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr3/vllm/model_executor/layers/output_head_discovery.py
+    20660  11-12-2026 00:00   host-opt-pr-validation-20261106-r14/source/pr3/vllm/v1/worker/compact_greedy_backport.py
+++ unzip -l /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip
+++ tail -1
++ echo '条目总数:   1947473                     60 files'
+条目总数:   1947473                     60 files
++ echo '== 3. 包内说明文档 =='
+== 3. 包内说明文档 ==
+++ unzip -Z1 /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip
+++ grep -Ei '\.(md|txt|rst|sh|json|yaml|yml)$'
+++ head -10
++ for f in $(unzip -Z1 "$Z" 2> /dev/null | grep -Ei '\.(md|txt|rst|sh|json|yaml|yml)$' | head -10)
++ echo '--- host-opt-pr-validation-20261106-r14/MANIFEST.json ---'
+--- host-opt-pr-validation-20261106-r14/MANIFEST.json ---
++ unzip -p /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip host-opt-pr-validation-20261106-r14/MANIFEST.json
++ head -80
+{
+  "base_commit": "0fc695fc6d1d82e9a5ac6835ac8e4e1c83703665",
+  "prs": {
+    "pr1": {
+      "commit": "59b7198613039e33b992d2debda076b87ad9ad62",
+      "branch": "codex/host-fastpath-pr1",
+      "files": [
+        "CMakeLists.txt",
+        "cmake/utils.cmake",
+        "csrc/host_opt_native.cpp",
+        "docs/design/host_opt.md",
+        "docs/design/host_opt_verification.md",
+        "setup.py",
+        "tests/v1/worker/test_host_opt.py",
+        "vllm/envs.py",
+        "vllm/v1/worker/gpu_model_runner.py",
+        "vllm/v1/worker/host_opt.py"
+      ],
+      "working_tree_changes": false
+    },
+    "pr2": {
+      "commit": "55be31c3340fd2554024c7ec3a68c4026e943126",
+      "branch": "codex/host-fastpath-pr2",
+      "files": [
+        "CoreX-5.0.0/BASELINE.json",
+        "CoreX-5.0.0/README.md",
+        "CoreX-5.0.0/VERIFICATION.md",
+        "CoreX-5.0.0/native/CMakeLists.txt",
+        "CoreX-5.0.0/native/native.c",
+        "CoreX-5.0.0/patches/0001-corex-host-opt-metadata-ilu.patch",
+        "CoreX-5.0.0/tests/test_metadata.py"
+      ],
+      "working_tree_changes": false
+    },
+    "pr3": {
+      "commit": "6b972482f8ada0e8cd446761ffe5ee125c07d611",
+      "base": "028346cc401e9025f83af07fd743ecda9666095e",
+      "mr": 6,
+      "files": [
+        "docs/design/compact_greedy_token_graph.md",
+        "tests/v1/worker/test_compact_greedy.py",
+        "tests/v1/worker/test_compact_greedy_tp.py",
+        "tests/v1/worker/test_independent_head_graph.py",
+        "tests/v1/worker/test_output_head.py",
+        "vllm/config/compilation.py",
+        "vllm/model_executor/layers/compact_greedy_provider.py",
+        "vllm/model_executor/layers/logits_processor.py",
+        "vllm/model_executor/layers/output_head.py",
+        "vllm/model_executor/layers/output_head_discovery.py",
+        "vllm/v1/worker/compact_greedy_backport.py",
+        "vllm/v1/worker/compact_greedy_graph.py",
+        "vllm/v1/worker/gpu/sample_logits_graph.py",
+        "vllm/v1/worker/gpu_model_runner.py"
+      ],
+      "independent_of": [
+        "pr1",
+        "pr2"
+      ]
+    }
+  },
+  "baseline": {
+    "vllm/envs.py": "24e2e0aff019ca4a1f05517dfdba3764139fb775896e22904114715b258323bb",
+    "vllm/v1/worker/gpu_model_runner.py": "ff9f2df42976347b85fbd6e12623b217e1beda6d5248a5662b3cf397eacaef59",
+    "vllm/v1/attention/backends/ilu_flash_attn.py": "469e7198cfeb81135a7e043fa7ad885d8433571c7a629f30bd3057eff16e36cd",
+    "vllm/config/compilation.py": "608629bb70d6f66f7250c31e3af4333e9a10c86f7c3ef5b84527d4166b44b4d3",
+    "vllm/model_executor/layers/logits_processor.py": "d6dfec7287020d587f4a4d475ce113c383b2eb55afe5ae9b0e037df2e2d13310"
+  },
+  "patched": {
+    "vllm/v1/worker/host_opt.py": "18d24b7604121765a8375129310cecd8be1b3c40071789a0d4cc11fc282bd421",
+    "vllm/envs.py": "4f408ec02e28f71376c43e4449a46335d0fadd7d7ecd3bb4db0f6a8b24b3022f",
+    "vllm/v1/worker/gpu_model_runner.py": "4d5ea12ff1654da58be7f1c6aa891be31251c8c176388d1e2e04d38e2605b6a1",
+    "vllm/v1/attention/backends/ilu_flash_attn.py": "04049f511f8b2f3d0986d3494f70f5d596a409edc0ad3329aa48acd6e1b6a945",
+    "vllm/config/compilation.py": "4954c758bafe42d61190986ae22422d8590bf7ad6a1504760d867be2121cf444",
+    "vllm/model_executor/layers/compact_greedy_provider.py": "175afd94a25bf43ca734ffb69b6295406035f7908cc43e7c5c08289293d71ebf",
+    "vllm/model_executor/layers/logits_processor.py": "bd141ff523771e1d68cd988522c253dfbfd8d927d4f68ba01edab529ca4e8140",
+    "vllm/model_executor/layers/output_head.py": "d28a4e4d3f8d0af50462c33665270fa9e288cb353bb1ed36a244a2de4c8374f1",
+    "vllm/model_executor/layers/output_head_discovery.py": "d5dbe71adce602612092f87bf966c58791940dfe269042883f92c84335b95bbc",
+    "vllm/v1/worker/compact_greedy_backport.py": "1f15e0413ad6521487bd315bb090373d664e97f11147783d9e7cbd9b60a23d5b",
+    "vllm/v1/worker/compact_greedy_graph.py": "03fa29f8b7ac7d8873e05949f8494ce087ae23335dbec99cb6ceae0da615b329",
+    "vllm/v1/worker/gpu/sample_logits_graph.py": "ca6df65e8689973259dc4e9b418b0380d00fbd16d8ce20a55548607a0fee2a9a"
++ echo
+
++ for f in $(unzip -Z1 "$Z" 2> /dev/null | grep -Ei '\.(md|txt|rst|sh|json|yaml|yml)$' | head -10)
++ echo '--- host-opt-pr-validation-20261106-r14/PACKAGE_AUDIT.json ---'
+--- host-opt-pr-validation-20261106-r14/PACKAGE_AUDIT.json ---
++ unzip -p /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip host-opt-pr-validation-20261106-r14/PACKAGE_AUDIT.json
++ head -80
+{
+  "status": "PASS",
+  "pr3_commit": "6b972482f8ada0e8cd446761ffe5ee125c07d611",
+  "cp311_cpu_tests": 186,
+  "pr3_only_cpu_tests": 57,
+  "pr3_has_no_host_opt_or_host_native_dependency": true,
+  "all_patches_apply_in_15_subset_orders": true,
+  "full_install_native_build_and_hash_check": true,
+  "original_wheel_files_restored_byte_for_byte": true,
+  "live_runner_sha_unchanged": true,
+  "default_all_off": true,
+  "validation_scope": "ARM64 CoreX wheel copies, CPython 3.11.6, CPU only",
+  "gpu_performance_measured": true,
+  "gpu_performance_evidence": "evidence/r14-performance-20261112.md",
+  "gpu_performance_validation_scope": "CoreX 5.0.0; one independent service per arm"
+}
++ echo
+
++ for f in $(unzip -Z1 "$Z" 2> /dev/null | grep -Ei '\.(md|txt|rst|sh|json|yaml|yml)$' | head -10)
++ echo '--- host-opt-pr-validation-20261106-r14/PR_LINKS.json ---'
+--- host-opt-pr-validation-20261106-r14/PR_LINKS.json ---
++ unzip -p /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip host-opt-pr-validation-20261106-r14/PR_LINKS.json
++ head -80
+[
+  {
+    "number": 3,
+    "key": "pr1",
+    "url": "https://gitcode.com/boostkit/vllm-dev/merge_requests/3",
+    "head": "codex/host-fastpath-pr1",
+    "sha": "59b7198613039e33b992d2debda076b87ad9ad62",
+    "base": "vllm-0.23.0",
+    "base_sha": "028346cc401e9025f83af07fd743ecda9666095e",
+    "files": [
+      "CMakeLists.txt",
+      "cmake/utils.cmake",
+      "csrc/host_opt_native.cpp",
+      "docs/design/host_opt.md",
+      "docs/design/host_opt_verification.md",
+      "setup.py",
+      "tests/v1/worker/test_host_opt.py",
+      "vllm/envs.py",
+      "vllm/v1/worker/gpu_model_runner.py",
+      "vllm/v1/worker/host_opt.py"
+    ],
+    "current_head_sha": "0b6bf8dc2550eb02209771fad225015a43d37a6e",
+    "head_checked_date": "2026-11-12"
+  },
+  {
+    "number": 4,
+    "key": "pr2",
+    "url": "https://gitcode.com/boostkit/vllm-dev/merge_requests/4",
+    "head": "codex/host-fastpath-pr2",
+    "sha": "55be31c3340fd2554024c7ec3a68c4026e943126",
+    "base": "vllm-0.23.0",
+    "base_sha": "028346cc401e9025f83af07fd743ecda9666095e",
+    "files": [
+      "CoreX-5.0.0/BASELINE.json",
+      "CoreX-5.0.0/README.md",
+      "CoreX-5.0.0/VERIFICATION.md",
+      "CoreX-5.0.0/native/CMakeLists.txt",
+      "CoreX-5.0.0/native/native.c",
+      "CoreX-5.0.0/patches/0001-corex-host-opt-metadata-ilu.patch",
+      "CoreX-5.0.0/tests/test_metadata.py"
+    ],
+    "current_head_sha": "2be444ac1d3933f4f5f4f9a46a187c27225786f1",
+    "head_checked_date": "2026-11-12",
+    "current_upstream_directory": "adaptations/CoreX-5.0.0/"
+  },
+  {
+    "number": 6,
+    "key": "pr3",
+    "url": "https://gitcode.com/boostkit/vllm-dev/merge_requests/6",
+    "sha": "6b972482f8ada0e8cd446761ffe5ee125c07d611",
+    "base": "vllm-0.23.0",
+    "base_sha": "028346cc401e9025f83af07fd743ecda9666095e",
+    "files": [
+      "docs/design/compact_greedy_token_graph.md",
+      "tests/v1/worker/test_compact_greedy.py",
+      "tests/v1/worker/test_compact_greedy_tp.py",
+      "tests/v1/worker/test_independent_head_graph.py",
+      "tests/v1/worker/test_output_head.py",
+      "vllm/config/compilation.py",
+      "vllm/model_executor/layers/compact_greedy_provider.py",
+      "vllm/model_executor/layers/logits_processor.py",
+      "vllm/model_executor/layers/output_head.py",
+      "vllm/model_executor/layers/output_head_discovery.py",
+      "vllm/v1/worker/compact_greedy_backport.py",
+      "vllm/v1/worker/compact_greedy_graph.py",
+      "vllm/v1/worker/gpu/sample_logits_graph.py",
+      "vllm/v1/worker/gpu_model_runner.py"
+    ],
+    "current_head_sha": "6b972482f8ada0e8cd446761ffe5ee125c07d611",
+    "head_checked_date": "2026-11-12"
+  }
+]
++ echo
+
++ for f in $(unzip -Z1 "$Z" 2> /dev/null | grep -Ei '\.(md|txt|rst|sh|json|yaml|yml)$' | head -10)
++ echo '--- host-opt-pr-validation-20261106-r14/README.md ---'
+--- host-opt-pr-validation-20261106-r14/README.md ---
++ unzip -p /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip host-opt-pr-validation-20261106-r14/README.md
++ head -80
+# vLLM Host 优化验证包 r14
+
+Linux ARM64、CoreX 5.0.0、CPython 3.11.6、vLLM `0.23.0+corex.5.0.0`、Torch `2.10.0+corex.5.0.0`、NumPy `1.26.4`。
+
+本次更新于 2026-11-12，包含 r14 的安装说明、上游 MR 引用和业务实测记录。三份容器补丁沿用 2026-11-11 的 r14。
+
+r14 相对 r12 更新 `0001`：Host 路径采用 [MR !3](https://gitcode.com/boostkit/vllm-dev/merge_requests/3) `59b7198613039e33b992d2debda076b87ad9ad62`，新增 `positions` 一项，并在越界索引时于任何设备写入之前报合同错误。`0002` ILU metadata 延续 r10，`0003` 延续 r12，即 [MR !6](https://gitcode.com/boostkit/vllm-dev/merge_requests/6) `6b972482f8ada0e8cd446761ffe5ee125c07d611`，二者逐字节未变。`source/pr3` 和 `prs/pr3.patch` 保存原提交，CoreX 容器补丁保留厂商已有接入。三份容器补丁各自可应用，开关默认关闭。
+
+!6 在冷启动协商输出头与 processor 合同，运行时按共享请求生命周期选择评分分支。包内 `0003` 使用同事的提交，支持的本地合同异常在评分前报错。
+
+包内 `MANIFEST.json` 的 `prs` 记录打包时的源码提交，`PR_LINKS.json` 同时记录2026-11-12 核对的上游 head。!4 上游源码已迁至 `adaptations/CoreX-5.0.0/`，包内安装器使用同包提供的 `source/pr2/CoreX-5.0.0/`。`prs/` 保存打包时的上游差异。
+
+## 安装
+
+停止目标环境的模型服务。已安装其他版本时，先用对应包的卸载命令恢复原厂源码，再在 r14 解压目录执行：
+
+```bash
+VLLM_R14_PACKAGE_DIR="$PWD"
+source /opt/corex311/bin/activate
+cd "$VLLM_R14_PACKAGE_DIR"
+sha256sum -c SHA256SUMS
+ROOT=$(python -I -c 'import importlib.util,pathlib; print(pathlib.Path(next(iter(importlib.util.find_spec("vllm").submodule_search_locations))).parent)')
+python scripts/install.py --root "$ROOT" --dry-run
+python scripts/install.py --root "$ROOT"
+python scripts/install.py --root "$ROOT" --check
+python scripts/verify.py --root "$ROOT"
+```
+
+安装器保存原文件、应用三个补丁并编译两个 Host 原生模块。安装备份在 `$ROOT/.host-opt-pr-backup`。
+
+## 启用
+
+Host 路径继续使用 `VLLM_HOST_OPT*`，单项优先于总开关：
+
+```bash
+export VLLM_HOST_OPT=on
+export VLLM_HOST_OPT_INPUTS=on
+export VLLM_HOST_OPT_ARENA=on
+export VLLM_HOST_OPT_BOOKKEEPING=on
+export VLLM_HOST_OPT_POSITIONS=on
+export VLLM_HOST_OPT_METADATA=on
+export VLLM_HOST_OPT_DIAGNOSTICS=0
+```
+
+`positions` 是 r13 起新增的一项：`positions`、`seq_lens` 和 slot mapping 改由主机镜像计算后上传，替换每步在设备上的小算子和 slot mapping 内核。取值 `off` / `on` / `verify`。升级时注意三点：
+
+- 未显式设置时它继承 `VLLM_HOST_OPT`。只设了总开关的启动脚本在 r13 及之后的版本上会多开这一项；要复现 r12 的配置须显式设 `VLLM_HOST_OPT_POSITIONS=off`。
+- 它要求 `arena` 已生效，且块表的上下文并行世界大小为 1。条件不满足时保留原设备计算，启动日志或随后的一条 warning 给出原因。
+- 启动日志的 `active={…}` 多了 `'positions'` 一键。按整串匹配旧三键的检查需要更新。
+
+`verify` 保留设备计算并逐步比较三项结果。正式计时使用 `on`。发现越界块号时，`on` 和 `verify` 都会在该步设备写入前报错。
+
+!6 的 compact 和小图通过 `CompilationConfig` 布尔值控制。将以下字段合并进服务现有的 `--compilation-config`：
+
+```json
+{
+  "compact_greedy": true,
+  "sample_logits_cudagraph": true,
+  "sample_logits_cudagraph_scope": "all_admitted",
+  "sample_logits_cudagraph_capture_sizes": [1, 2, 3, 4, 5, 6, 7, 8],
+  "sample_logits_cudagraph_max_bytes": 67108864
+}
+```
+
+只启用 compact 时把 `sample_logits_cudagraph` 设为 `false`。小图捕获已准入的 compact 输出头并返回 token ID。`scope` 默认 `decode`。选择 `all_admitted` 时，符合跨阶段输出头契约且精确行数命中的步骤也可重放。原业务入口可使用：
+
+```bash
+source /opt/corex311/bin/activate
+cd /home/z30059427/litehost_perf
+COMPILATION_CONFIG_EXTRA='{"compact_greedy":true,"sample_logits_cudagraph":true,"sample_logits_cudagraph_scope":"all_admitted","sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}' \
+  bash ./vllmBench_lite.sh
+```
+
+升级前清理 r10 旧的采样配置。r12 起两个采样开关默认 `false`，使用 CPU 测试和 !6 的 snapshot 检查准入，不使用 r10 的 `verify` 模式。
+
+## 单独验证第三项
+
+在隔离的原厂源码根上执行：
+
+```bash
++ echo
+
++ for f in $(unzip -Z1 "$Z" 2> /dev/null | grep -Ei '\.(md|txt|rst|sh|json|yaml|yml)$' | head -10)
++ echo '--- host-opt-pr-validation-20261106-r14/evidence/PR3_VERIFICATION311.json ---'
+--- host-opt-pr-validation-20261106-r14/evidence/PR3_VERIFICATION311.json ---
++ unzip -p /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip host-opt-pr-validation-20261106-r14/evidence/PR3_VERIFICATION311.json
++ head -80
+{
+  "python": "3.11.6 (main, Oct 23 2026, 16:26:10) [GCC 13.3.0]",
+  "executable": "/opt/corex311/bin/python",
+  "architecture": "aarch64",
+  "pr3_only": true,
+  "imports": {
+    "vllm.config.compilation": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-pr3/vllm/config/compilation.py",
+      "sha256": "4954c758bafe42d61190986ae22422d8590bf7ad6a1504760d867be2121cf444"
+    },
+    "vllm.model_executor.layers.logits_processor": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-pr3/vllm/model_executor/layers/logits_processor.py",
+      "sha256": "bd141ff523771e1d68cd988522c253dfbfd8d927d4f68ba01edab529ca4e8140"
+    },
+    "vllm.model_executor.layers.compact_greedy_provider": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-pr3/vllm/model_executor/layers/compact_greedy_provider.py",
+      "sha256": "175afd94a25bf43ca734ffb69b6295406035f7908cc43e7c5c08289293d71ebf"
+    },
+    "vllm.model_executor.layers.output_head": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-pr3/vllm/model_executor/layers/output_head.py",
+      "sha256": "d28a4e4d3f8d0af50462c33665270fa9e288cb353bb1ed36a244a2de4c8374f1"
+    },
+    "vllm.model_executor.layers.output_head_discovery": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-pr3/vllm/model_executor/layers/output_head_discovery.py",
+      "sha256": "d5dbe71adce602612092f87bf966c58791940dfe269042883f92c84335b95bbc"
+    },
+    "vllm.v1.worker.compact_greedy_backport": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-pr3/vllm/v1/worker/compact_greedy_backport.py",
+      "sha256": "1f15e0413ad6521487bd315bb090373d664e97f11147783d9e7cbd9b60a23d5b"
+    },
+    "vllm.v1.worker.compact_greedy_graph": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-pr3/vllm/v1/worker/compact_greedy_graph.py",
+      "sha256": "03fa29f8b7ac7d8873e05949f8494ce087ae23335dbec99cb6ceae0da615b329"
+    },
+    "vllm.v1.worker.gpu.sample_logits_graph": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-pr3/vllm/v1/worker/gpu/sample_logits_graph.py",
+      "sha256": "ca6df65e8689973259dc4e9b418b0380d00fbd16d8ce20a55548607a0fee2a9a"
+    },
+    "vllm.v1.worker.gpu_model_runner": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-pr3/vllm/v1/worker/gpu_model_runner.py",
+      "sha256": "6d32eb652a5b8a70c1450ccc0180e503a8692626e61aa84539bc7d071f356f97"
+    }
+  },
+  "default_features": {},
+  "default_compact_greedy": false,
+  "default_sample_logits_graph": false,
+  "default_graph_scope": "decode",
+  "unchanged_backbone_compile_hash": true,
+  "pytest_exit_code": 0
+}
++ echo
+
++ for f in $(unzip -Z1 "$Z" 2> /dev/null | grep -Ei '\.(md|txt|rst|sh|json|yaml|yml)$' | head -10)
++ echo '--- host-opt-pr-validation-20261106-r14/evidence/VERIFICATION311.json ---'
+--- host-opt-pr-validation-20261106-r14/evidence/VERIFICATION311.json ---
++ unzip -p /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip host-opt-pr-validation-20261106-r14/evidence/VERIFICATION311.json
++ head -80
+{
+  "python": "3.11.6 (main, Oct 23 2026, 16:26:10) [GCC 13.3.0]",
+  "executable": "/opt/corex311/bin/python",
+  "architecture": "aarch64",
+  "pr3_only": false,
+  "imports": {
+    "vllm.config.compilation": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-full/vllm/config/compilation.py",
+      "sha256": "4954c758bafe42d61190986ae22422d8590bf7ad6a1504760d867be2121cf444"
+    },
+    "vllm.model_executor.layers.logits_processor": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-full/vllm/model_executor/layers/logits_processor.py",
+      "sha256": "bd141ff523771e1d68cd988522c253dfbfd8d927d4f68ba01edab529ca4e8140"
+    },
+    "vllm.model_executor.layers.compact_greedy_provider": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-full/vllm/model_executor/layers/compact_greedy_provider.py",
+      "sha256": "175afd94a25bf43ca734ffb69b6295406035f7908cc43e7c5c08289293d71ebf"
+    },
+    "vllm.model_executor.layers.output_head": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-full/vllm/model_executor/layers/output_head.py",
+      "sha256": "d28a4e4d3f8d0af50462c33665270fa9e288cb353bb1ed36a244a2de4c8374f1"
+    },
+    "vllm.model_executor.layers.output_head_discovery": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-full/vllm/model_executor/layers/output_head_discovery.py",
+      "sha256": "d5dbe71adce602612092f87bf966c58791940dfe269042883f92c84335b95bbc"
+    },
+    "vllm.v1.worker.compact_greedy_backport": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-full/vllm/v1/worker/compact_greedy_backport.py",
+      "sha256": "1f15e0413ad6521487bd315bb090373d664e97f11147783d9e7cbd9b60a23d5b"
+    },
+    "vllm.v1.worker.compact_greedy_graph": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-full/vllm/v1/worker/compact_greedy_graph.py",
+      "sha256": "03fa29f8b7ac7d8873e05949f8494ce087ae23335dbec99cb6ceae0da615b329"
+    },
+    "vllm.v1.worker.gpu.sample_logits_graph": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-full/vllm/v1/worker/gpu/sample_logits_graph.py",
+      "sha256": "ca6df65e8689973259dc4e9b418b0380d00fbd16d8ce20a55548607a0fee2a9a"
+    },
+    "vllm.v1.worker.gpu_model_runner": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-full/vllm/v1/worker/gpu_model_runner.py",
+      "sha256": "4d5ea12ff1654da58be7f1c6aa891be31251c8c176388d1e2e04d38e2605b6a1"
+    },
+    "vllm.envs": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-full/vllm/envs.py",
+      "sha256": "4f408ec02e28f71376c43e4449a46335d0fadd7d7ecd3bb4db0f6a8b24b3022f"
+    },
+    "vllm._host_opt_native": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-full/vllm/_host_opt_native.abi3.so",
+      "sha256": "6f8774f8c9e6839a3a1de15a763845511f200cb485f55ef10009475e30db8056"
+    },
+    "vllm._host_opt_meta_native": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-full/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so",
+      "sha256": "7c8686a72759d2e4f75e8157b819039fcdcf69c1b5eba5948e0d956859af1715"
+    },
+    "vllm.v1.worker.host_opt": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-full/vllm/v1/worker/host_opt.py",
+      "sha256": "18d24b7604121765a8375129310cecd8be1b3c40071789a0d4cc11fc282bd421"
+    },
+    "vllm.v1.attention.backends.ilu_flash_attn": {
+      "path": "/home/z30059427/host_opt_r14_20261111/verification/root-full/vllm/v1/attention/backends/ilu_flash_attn.py",
+      "sha256": "04049f511f8b2f3d0986d3494f70f5d596a409edc0ad3329aa48acd6e1b6a945"
+    }
+  },
+  "default_features": {
+    "inputs": false,
+    "arena": false,
+    "bookkeeping": false,
+    "positions": false
+  },
+  "default_compact_greedy": false,
+  "default_sample_logits_graph": false,
+  "default_graph_scope": "decode",
+  "unchanged_backbone_compile_hash": true,
+  "pytest_exit_code": 0
+}
++ echo
+
++ for f in $(unzip -Z1 "$Z" 2> /dev/null | grep -Ei '\.(md|txt|rst|sh|json|yaml|yml)$' | head -10)
++ echo '--- host-opt-pr-validation-20261106-r14/evidence/r14-performance-20261112.md ---'
+--- host-opt-pr-validation-20261106-r14/evidence/r14-performance-20261112.md ---
++ head -80
++ unzip -p /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip host-opt-pr-validation-20261106-r14/evidence/r14-performance-20261112.md
+# r14 业务实测
+
+2026-11-11 至 2026-11-12。使用原 `vllmBench_lite.sh`，Qwen3-32B-W8A8，TP4，输入/输出 128/128，并发 8，16 次预热，100 个正式请求。CPython 3.11.6，CoreX 5.0.0，P2P 开启，UMD 256/16384，多流开启。每臂重启服务后运行一次，均完成 100/100 请求。每 rank 有 1,692 个正式轮次，其中 1,664 个 decode 主干 Graph 轮次。
+
+H+G 为四 rank 正式窗口均值，H 为轮内墙钟减去同步耗时 S，G 为轮间时间。墙钟与吞吐取自客户端业务计时。各表以第一行为基准，结果为单轮观测。
+
+## PR1 四项
+
+PR2、!6 关闭。`positions` 依赖 `arena`。
+
+| 配置 | H+G（s） | H+G 变化 | S 变化（ms） | 墙钟（s） | 吞吐（token/s） | 吞吐变化 | TTFT（ms） | TPOT（ms） |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 全关 | 4.078 | +0.00% | +0.0 | 38.755 | 330.28 | +0.00% | 215.053 | 21.833 |
+| inputs | 3.980 | -2.40% | +96.5 | 38.751 | 330.31 | +0.01% | 214.717 | 21.835 |
+| arena | 4.004 | -1.82% | +26.2 | 38.704 | 330.71 | +0.13% | 214.888 | 21.803 |
+| arena + positions | 3.800 | -6.81% | +196.7 | 38.671 | 330.99 | +0.22% | 214.662 | 21.785 |
+| bookkeeping | 3.989 | -2.18% | +121.2 | 38.785 | 330.02 | -0.08% | 214.788 | 21.856 |
+| 四项全开 | 3.668 | -10.04% | +319.8 | 38.663 | 331.06 | +0.24% | 214.767 | 21.780 |
+
+加开 `positions` 相对 `arena` 单开，H+G 再降 5.08%，S 增加 170.6 ms。四项全开相对全关，H 减少 355.9 ms，G 减少 53.7 ms，业务墙钟缩短 92.3 ms。
+
+## PR2 ILU metadata
+
+PR1、!6 关闭。
+
+| 配置 | H+G（s） | H+G 变化 | S 变化（ms） | 墙钟（s） | 吞吐（token/s） | 吞吐变化 | TTFT（ms） | TPOT（ms） |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 全关 | 4.067 | +0.00% | +0.0 | 38.755 | 330.28 | +0.00% | 214.946 | 21.835 |
+| 仅开启 ILU metadata | 3.888 | -4.40% | +74.6 | 38.649 | 331.18 | +0.27% | 215.610 | 21.767 |
+
+单开后 H 减少 175.8 ms，G 减少 3.2 ms，业务墙钟缩短 105.3 ms。Graph decode 每轮流同步调用从 2 次降为 1 次。
+
+## !6 的两个采样开关
+
+PR1 四项（含 `positions`）和 PR2 固定开启。双开使用 `all_admitted`，每 rank 额外回放小图 1,690 次。
+
+| 配置 | H+G（s） | H+G 变化 | S 变化（ms） | 墙钟（s） | 吞吐（token/s） | 吞吐变化 | TTFT（ms） | TPOT（ms） |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 两项关闭 | 3.497 | +0.00% | +0.0 | 38.559 | 331.95 | +0.00% | 215.469 | 21.713 |
+| 仅 compact greedy | 3.746 | +7.12% | -710.3 | 38.098 | 335.97 | +1.21% | 215.334 | 21.429 |
+| compact greedy + 小图 | 3.318 | -5.11% | -277.2 | 38.103 | 335.93 | +1.20% | 215.703 | 21.430 |
+
+在 compact greedy 基础上加开小图，H+G 再降 427.5 ms（−11.41%），S 增加 433.1 ms，业务墙钟增加 5.4 ms。双开相对两项关闭，H 减少 88.1 ms，G 减少 90.5 ms，业务墙钟缩短 456.0 ms。
++ echo
+
++ for f in $(unzip -Z1 "$Z" 2> /dev/null | grep -Ei '\.(md|txt|rst|sh|json|yaml|yml)$' | head -10)
++ echo '--- host-opt-pr-validation-20261106-r14/source/pr1/CMakeLists.txt ---'
+--- host-opt-pr-validation-20261106-r14/source/pr1/CMakeLists.txt ---
++ unzip -p /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip host-opt-pr-validation-20261106-r14/source/pr1/CMakeLists.txt
++ head -80
+cmake_minimum_required(VERSION 3.26)
+
+# When building directly using CMake, make sure you run the install step
+# (it places the .so files in the correct location).
+#
+# Example:
+# mkdir build && cd build
+# cmake -G Ninja -DVLLM_PYTHON_EXECUTABLE=`which python3` -DCMAKE_INSTALL_PREFIX=.. ..
+# cmake --build . --target install
+#
+# If you want to only build one target, make sure to install it manually:
+# cmake --build . --target _C
+# cmake --install . --component _C
+project(vllm_extensions LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CUDA_STANDARD 20)
+set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+set(CMAKE_HIP_STANDARD 20)
+set(CMAKE_HIP_STANDARD_REQUIRED ON)
+
+
+# CUDA by default, can be overridden by using -DVLLM_TARGET_DEVICE=... (used by setup.py)
+set(VLLM_TARGET_DEVICE "cuda" CACHE STRING "Target device backend for vLLM")
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "Target device: ${VLLM_TARGET_DEVICE}")
+
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/utils.cmake)
+
+# Suppress potential warnings about unused manually-specified variables
+set(ignoreMe "${VLLM_PYTHON_PATH}")
+
+# Prevent installation of dependencies (cutlass) by default.
+install(CODE "set(CMAKE_INSTALL_LOCAL_ONLY TRUE)" ALL_COMPONENTS)
+
+#
+# Supported python versions.  These versions will be searched in order, the
+# first match will be selected.  These should be kept in sync with setup.py.
+#
+set(PYTHON_SUPPORTED_VERSIONS "3.10" "3.11" "3.12" "3.13" "3.14")
+
+# Supported AMD GPU architectures.
+set(HIP_SUPPORTED_ARCHS "gfx906;gfx908;gfx90a;gfx942;gfx950;gfx1030;gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151;gfx1152;gfx1153;gfx1200;gfx1201")
+
+# ROCm installation prefix. Default to /opt/rocm but allow override via
+# -DROCM_PATH=/your/rocm/path when invoking cmake.
+if(NOT DEFINED ROCM_PATH)
+  set(ROCM_PATH "/opt/rocm" CACHE PATH "ROCm installation prefix")
+else()
+  set(ROCM_PATH ${ROCM_PATH} CACHE PATH "ROCm installation prefix" FORCE)
+endif()
+#
+# Supported/expected torch versions for CUDA/ROCm.
+#
+# Currently, having an incorrect pytorch version results in a warning
+# rather than an error.
+#
+# Note: the CUDA torch version is derived from pyproject.toml and various
+# requirements.txt files and should be kept consistent.  The ROCm torch
+# versions are derived from docker/Dockerfile.rocm
+#
+set(TORCH_SUPPORTED_VERSION_CUDA "2.11.0")
+set(TORCH_SUPPORTED_VERSION_ROCM "2.11.0")
+
+#
+# Try to find python package with an executable that exactly matches
+# `VLLM_PYTHON_EXECUTABLE` and is one of the supported versions.
+#
+if (VLLM_PYTHON_EXECUTABLE)
+  find_python_from_executable(${VLLM_PYTHON_EXECUTABLE} "${PYTHON_SUPPORTED_VERSIONS}")
+else()
+  message(FATAL_ERROR
+    "Please set VLLM_PYTHON_EXECUTABLE to the path of the desired python version"
+    " before running cmake configure.")
+endif()
+
+#
+# Update cmake's `CMAKE_PREFIX_PATH` with torch location.
+#
++ echo
+
++ for f in $(unzip -Z1 "$Z" 2> /dev/null | grep -Ei '\.(md|txt|rst|sh|json|yaml|yml)$' | head -10)
++ echo '--- host-opt-pr-validation-20261106-r14/source/pr1/docs/design/host_opt.md ---'
+--- host-opt-pr-validation-20261106-r14/source/pr1/docs/design/host_opt.md ---
++ unzip -p /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip host-opt-pr-validation-20261106-r14/source/pr1/docs/design/host_opt.md
++ head -80
+# Host optimizations
+
+Four default-off optimisations of the host-side work
+`GPUModelRunner` does on every step. They exist because on ARM64 hosts driving
+an accelerator through CUDA Graphs, the Python and NumPy work between launches
+is a measurable part of each step rather than a rounding error.
+
+Nothing here changes what the device computes. Every feature either produces
+exactly what the original code produced, or declines and lets the original code
+run.
+
+## Integration with the model runner
+
+`GPUModelRunner` creates one `HostOpt` at the end of initialization, before
+warm-up and graph capture. Its modes are resolved through `vllm.envs`; its cached
+decode templates, arena and diagnostic counters belong to that runner. Importing
+the module does not resolve configuration, load native code or register exit hooks.
+Logging uses `vllm.logger.init_logger` and follows the existing logging settings.
+
+Admission checks model-level input layouts, bookkeeping container types and the
+runner's position buffers once, after arena binding. Each step checks request
+embeddings, current array views, device-fill eligibility and sampled-token data.
+Bookkeeping also checks that the
+current `InputBatch` is the admitted object. KV cache initialization can replace
+that object, in which case the original commit runs and `status()["reasons"]`
+reports `input batch replaced after admission`. The verify-only gather flag is
+reset at each input-preparation entry, including steps that use the original path.
+`positions` binds to the block tables of the `InputBatch` in use the first time it
+sees it, and binds again when the batch is replaced. A batch it does not recognise,
+or whose buffers cannot be allocated, turns the feature off for that runner: the
+device computation runs from then on, `status()` reports `positions` inactive with
+the reason, and a warning is logged.
+
+`RequestMetadataArena` extends `CpuGpuBuffer` for storage allocation and copying.
+The four fields and their commit point remain part of the worker's input
+preparation contract. It does not defer arbitrary `CpuGpuBuffer` copies or change
+the runner's existing CPU-buffer reuse event. Unsupported runner subclasses keep
+the original paths.
+In particular, `CPUModelRunner` and `XPUModelRunner` leave all four features disabled
+even with `VLLM_HOST_OPT=on`; this does not raise an error, and
+`runner.host_opt.status()["reasons"]` reports `unsupported model runner`
+for each requested feature. The reason is also included in the startup log.
+
+Bookkeeping keeps a named `_commit_sampled_tokens` reference method on the runner.
+Both fallback and correctness verification call that method. Verification uses
+isolated CPU state; it does not parse Python source, rerun the sampler or repeat
+device-to-host transfers.
+
+## The four features
+
+### `inputs` — skip a gather nobody reads
+
+`GPUModelRunner._prepare_inputs` ends with a CPU fragment that expands request
+indices with `np.repeat`, derives cumulative bounds and in-request positions,
+builds a read index, and gathers tokens into `input_ids.cpu` with
+`torch.index_select`.
+
+Under async scheduling, on a step where every request continues from the
+previous iteration, that gather's result is never read:
+
+- `_bookkeeping_sync` writes a `-1` placeholder into the host token table for a
+  continuing request — the real sampled token stays on the device in
+  `prev_sampled_token_ids`.
+- `_prepare_input_ids` copies it from there into `input_ids.gpu` on the device,
+  and skips the host upload entirely when every request was found in the
+  previous iteration's index.
+- on these admitted steps, `_prepare_input_ids` does not upload `input_ids.cpu`.
+
+So on those steps the feature computes nothing. Two arrays that depend only on
+the batch shape are served from a cache, `query_pos` is filled with zeros
+(one token per request means every in-request position is 0), and the gather is
+not performed. Pure Python and NumPy; no extension.
+
+The admission test must be **sufficient** for the condition
+`_prepare_input_ids` uses to skip its upload. Skipping the gather while the
+upload still happens would leave `input_ids.gpu` holding the previous step's
+data — wrong tokens, silently, with every request still reported as
+successful. The test therefore requires all of:
+
+- async scheduling is live (`prev_sampled_token_ids` exists);
++ echo
+
++ for f in $(unzip -Z1 "$Z" 2> /dev/null | grep -Ei '\.(md|txt|rst|sh|json|yaml|yml)$' | head -10)
++ echo '--- host-opt-pr-validation-20261106-r14/source/pr1/docs/design/host_opt_verification.md ---'
+--- host-opt-pr-validation-20261106-r14/source/pr1/docs/design/host_opt_verification.md ---
++ unzip -p /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip host-opt-pr-validation-20261106-r14/source/pr1/docs/design/host_opt_verification.md
++ head -80
+# Host optimization verification record
+
+What was measured, against what, how, and what is *not* signed off. Read
+[the feature description](host_opt.md) first.
+
+## r14 positions verification, 2026-11-11
+
+The full package passed 186 CPU tests on CPython 3.11.6, including 92 for PR1.
+The admitted positions path checks block-table bounds before any device write
+for the step. Verify performs the check before running the original device
+path, compares positions, sequence lengths and slot mappings, and logs every
+completed comparison.
+
+The r14 CoreX business verify run completed 100/100 requests. Each of the
+four Workers recorded 1,950 calls and 1,950 comparisons, with zero mismatches
+or fallbacks. The formal window covered 1,690 work steps per Worker.
+
+In the later r14 six-arm run, adding positions to arena changed H+G from
+4.004 s to 3.800 s (−5.08%), with S increasing by 170.6 ms. The run used
+one service per arm, with PR2 and the !6 sampling options off. See
+[the r14 business measurements](../../../../evidence/r14-performance-20261112.md).
+
+Sections below retain earlier validation for the original three PR1 features.
+
+## Naming and admission cleanup verification, 2026-11-05
+
+The r4 container delivery uses `HostOpt` and `VLLM_HOST_OPT*`. CPython 3.11.6
+and 3.12.11 each passed 105 CPU tests, comprising 68 for this PR and 37 for
+the independent ILU metadata PR. The same bookkeeping abi3 binary built by
+3.11 also passed all 105 tests on 3.12. Each PR passed its tests independently.
+Dry-run, installation, installed-source checks, normal uninstall and rollback
+after an injected build failure passed in private package roots.
+
+Before/after runs used the original `vllmBench_lite.sh`, with an isolated
+diagnostic toolkit recording verify counters. Both completed 100/100 requests.
+The actual four Workers used CPython 3.11.6, P2P enabled and
+`itr_multi_compute_engine=1`. All four features were active. Each rank's last
+formal-cleanup snapshot matched the previous implementation exactly.
+
+| Feature | Calls or commits | Fast | Fallback | Verified | Mismatched |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| inputs | 1950 | 1920 | 30 | 1920 | 0 |
+| arena | 1950 | 1950 | 0 refusals | 1950 | 0 |
+| bookkeeping | 1950 | 1950 | 0 | 1950 | 0 |
+| metadata | 2024 | 2024 | 0 | — | — |
+
+These are process-lifetime counters, including warmup and graph preparation.
+Metadata exposes handshake and hit counters; its CPU differential tests provide
+the numerical comparison. Timing from these diagnostic runs is excluded from
+performance acceptance. The performance measurements below retain their
+original dates and conditions.
+
+## Baseline
+
+| | |
+| --- | --- |
+| vLLM | `0.23.0+corex.5.0.0` (an installed distribution, not a git checkout) |
+| torch | `2.10.0+corex.5.0.0` |
+| NumPy | `1.26.4` |
+| Interpreter | CPython 3.11.6 |
+| Host | ARM64, 4 accelerators (tensor parallel 4) |
+| Scheduling | async on, prefix caching off |
+| Graph mode | decode-only capture |
+| Historical timing P2P setting | `NCCL_P2P_DISABLE=1`; do not compare with a P2P-enabled baseline |
+
+The measured source was the vendor distribution, which diverges from upstream
+v0.23.0 in every file these features touch — `gpu_model_runner.py` alone
+differs by 523 lines (7561 → 7813). The changes in this PR are the same
+changes, re-expressed against upstream; they are not byte-identical to what was
+measured, and the surrounding code is not the same code. Treat the figures
+below as the effect of these optimisations on that distribution.
+
+## Workload
+
+`128` input tokens, `128` output tokens, batch size `8`, `100` requests,
+`16` warm-up requests, concurrency `8`.
+
+Per rank per run the formal window holds `1692` steps: `1664` decode steps on
+the captured graph, and `28` off it (`13` prefill, `13` mixed, `2` cleanup).
+
++ echo
+
++ echo '== 4. 当前已安装的相关包 =='
+== 4. 当前已安装的相关包 ==
++ dex '/opt/corex311-cpython-vllm/bin/pip list 2>/dev/null | grep -iE '\''vllm|corex|iluvatar|torch'\'' '
++ timeout 120 docker exec corex5-py311 bash -c '/opt/corex311-cpython-vllm/bin/pip list 2>/dev/null | grep -iE '\''vllm|corex|iluvatar|torch'\'' '
+apex                                     0.1.0+corex.5.0.0
+dali                                     1.21.0+corex.5.0.0
+deep_ep                                  1.2.1+corex.5.0.0
+ixformer                                 0.7.0+corex.5.0.0
+pyg_lib                                  0.2.0+corex.5.0.0
+torch                                    2.10.0+corex.5.0.0
+torch_cluster                            1.6.0+corex.5.0.0
+torch-module-attr-fastpath               0.1.0.dev2
+torch_quiver                             0.1.0+corex.5.0.0
+torch_scatter                            2.1.0+corex.5.0.0
+torch_sparse                             0.6.16+corex.5.0.0
+torchaudio                               2.10.0+corex.5.0.0
+torchdebug                               5.0.0+corex.5.0.0
+torchvision                              0.25.0+corex.5.0.0
+triton                                   3.2.0+corex.5.0.0
+vllm                                     0.23.0+corex.5.0.0
+vllm-corex-metadata                      0.2.0
++ echo '-- 两个 venv 的版本 --'
+-- 两个 venv 的版本 --
++ dex '/opt/corex311/bin/pip list 2>/dev/null | grep -iE '\''vllm|corex|iluvatar'\'''
++ timeout 120 docker exec corex5-py311 bash -c '/opt/corex311/bin/pip list 2>/dev/null | grep -iE '\''vllm|corex|iluvatar'\'''
+apex                                     0.1.0+corex.5.0.0
+dali                                     1.21.0+corex.5.0.0
+deep_ep                                  1.2.1+corex.5.0.0
+ixformer                                 0.7.0+corex.5.0.0
+pyg_lib                                  0.2.0+corex.5.0.0
+torch                                    2.10.0+corex.5.0.0
+torch_cluster                            1.6.0+corex.5.0.0
+torch_quiver                             0.1.0+corex.5.0.0
+torch_scatter                            2.1.0+corex.5.0.0
+torch_sparse                             0.6.16+corex.5.0.0
+torchaudio                               2.10.0+corex.5.0.0
+torchdebug                               5.0.0+corex.5.0.0
+torchvision                              0.25.0+corex.5.0.0
+triton                                   3.2.0+corex.5.0.0
+vllm                                     0.23.0+corex.5.0.0
+vllm-corex-metadata                      0.2.0
++ echo '== 5. 当前 venv 里之前 r10 的安装痕迹 =='
+== 5. 当前 venv 里之前 r10 的安装痕迹 ==
++ dex 'ls -la /opt/corex311-cpython-vllm/lib/python3.11/site-packages 2>/dev/null | head -30'
++ timeout 120 docker exec corex5-py311 bash -c 'ls -la /opt/corex311-cpython-vllm/lib/python3.11/site-packages 2>/dev/null | head -30'
+total 3044
+drwxr-xr-x. 350 root root  20480 Nov  9 19:25 .
+drwxr-xr-x.   3 root root   4096 Nov  9 09:03 ..
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 agent_detector
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 agent_detector-2.0.0.dist-info
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 aiohappyeyeballs
+drwxr-xr-x.   2 root root   4096 Nov  9 09:08 aiohappyeyeballs-2.6.1.dist-info
+drwxr-xr-x.   5 root root   4096 Nov  9 09:09 aiohttp
+drwxr-xr-x.   3 root root   4096 Nov  9 09:09 aiohttp-3.13.3.dist-info
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 aiosignal
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 aiosignal-1.4.0.dist-info
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 annotated_doc
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 annotated_doc-0.0.4.dist-info
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 annotated_types
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 annotated_types-0.7.0.dist-info
+drwxr-xr-x.   8 root root   4096 Nov  9 09:09 anthropic
+drwxr-xr-x.   3 root root   4096 Nov  9 09:09 anthropic-0.71.0.dist-info
+drwxr-xr-x.   7 root root   4096 Nov  9 09:08 anyio
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 anyio-4.12.1.dist-info
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 apache_tvm_ffi-0.1.11+corex.5.0.0.dist-info
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 astor
+drwxr-xr-x.   2 root root   4096 Nov  9 09:08 astor-0.8.1.dist-info
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 attr
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 attrs
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 attrs-25.4.0.dist-info
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 blake3
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 blake3-1.0.8.dist-info
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 cachetools
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 cachetools-7.0.1.dist-info
+drwxr-xr-x.   3 root root   4096 Nov  9 09:08 cbor2
++ dex 'ls -d /opt/corex311-cpython-vllm/lib/python3.11/site-packages/*.dist-info 2>/dev/null | head -40'
++ timeout 120 docker exec corex5-py311 bash -c 'ls -d /opt/corex311-cpython-vllm/lib/python3.11/site-packages/*.dist-info 2>/dev/null | head -40'
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/agent_detector-2.0.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/aiohappyeyeballs-2.6.1.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/aiohttp-3.13.3.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/aiosignal-1.4.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/annotated_doc-0.0.4.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/annotated_types-0.7.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/anthropic-0.71.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/anyio-4.12.1.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/apache_tvm_ffi-0.1.11+corex.5.0.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/astor-0.8.1.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/attrs-25.4.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/blake3-1.0.8.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/cachetools-7.0.1.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/cbor2-5.8.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/certifi-2026.1.4.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/cffi-2.0.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/charset_normalizer-3.4.4.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/click-8.2.1.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/cloudpickle-3.1.2.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/compressed_tensors-0.17.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/cryptography-50.0.2.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/depyf-0.20.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/detect_installer-0.2.1.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/dill-0.4.1.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/diskcache-5.6.3.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/distro-1.9.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/dnspython-2.8.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/docstring_parser-0.18.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/einops-0.6.1.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/email_validator-2.3.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/et_xmlfile-2.0.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/exceptiongroup-1.3.1.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/fastapi-0.129.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/fastapi_cli-0.0.21.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/fastapi_cloud_cli-0.26.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/fastar-0.12.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/fastrlock-0.8.3.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/filelock-3.23.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/frozenlist-1.8.0.dist-info
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/fsspec-2025.10.0.dist-info
++ echo '== 6. 之前的安装记录（如果有）=='
+== 6. 之前的安装记录（如果有）==
++ dex 'ls -lat /home/qch/transfer/*.zip /home/qch/transfer/*.whl 2>/dev/null | head -20'
++ timeout 120 docker exec corex5-py311 bash -c 'ls -lat /home/qch/transfer/*.zip /home/qch/transfer/*.whl 2>/dev/null | head -20'
+-rw-r--r--. 1 root root 514065 Nov 12 18:46 /home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip
+-rw-r--r--. 1 root root  30734 Nov  6 12:39 /home/qch/transfer/torch_module_attr_fastpath-0.1.0.dev2-cp311-cp311-linux_aarch64.whl
+-rw-rw-r--+ 1 root root  73094 Oct 14 14:55 /home/qch/transfer/litehost_perf.zip
++ dex 'ls -lat /opt/corex311-cpython-vllm/*.bak* /opt/corex311-cpython-vllm/../*bak* 2>/dev/null | head'
++ timeout 120 docker exec corex5-py311 bash -c 'ls -lat /opt/corex311-cpython-vllm/*.bak* /opt/corex311-cpython-vllm/../*bak* 2>/dev/null | head'
++ set +x
+
+### exit: 0
