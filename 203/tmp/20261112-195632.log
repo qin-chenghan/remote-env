@@ -1,0 +1,266 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-12T11:56:32Z
+
++ echo '== 1. 根盘现状 =='
+== 1. 根盘现状 ==
++ df -h /
+Filesystem                  Size  Used Avail Use% Mounted on
+/dev/mapper/openeuler-root   69G   65G  585M 100% /
++ df -i /
++ tail -1
+/dev/mapper/openeuler-root 4587520 394660 4192860    9% /
++ echo '== 2. / 一层目录占用（排除挂载点）=='
+== 2. / 一层目录占用（排除挂载点）==
++ for d in /usr /var /opt /data /root /etc /srv /tmp /boot
++ '[' -d /usr ']'
++ du -sh /usr
+27G	/usr
++ for d in /usr /var /opt /data /root /etc /srv /tmp /boot
++ '[' -d /var ']'
++ du -sh /var
+882M	/var
++ for d in /usr /var /opt /data /root /etc /srv /tmp /boot
++ '[' -d /opt ']'
++ du -sh /opt
+14G	/opt
++ for d in /usr /var /opt /data /root /etc /srv /tmp /boot
++ '[' -d /data ']'
++ du -sh /data
+20G	/data
++ for d in /usr /var /opt /data /root /etc /srv /tmp /boot
++ '[' -d /root ']'
++ du -sh /root
+5.3G	/root
++ for d in /usr /var /opt /data /root /etc /srv /tmp /boot
++ '[' -d /etc ']'
++ du -sh /etc
+35M	/etc
++ for d in /usr /var /opt /data /root /etc /srv /tmp /boot
++ '[' -d /srv ']'
++ du -sh /srv
+4.0K	/srv
++ for d in /usr /var /opt /data /root /etc /srv /tmp /boot
++ '[' -d /tmp ']'
++ du -sh /tmp
+86M	/tmp
++ for d in /usr /var /opt /data /root /etc /srv /tmp /boot
++ '[' -d /boot ']'
++ du -sh /boot
+355M	/boot
++ echo '--- /usr 二层 ---'
+--- /usr 二层 ---
++ du -sh /usr/bin /usr/games /usr/include /usr/lib /usr/lib64 /usr/libexec /usr/local /usr/sbin /usr/share /usr/src /usr/tmp
++ sort -rh
++ head -8
+21G	/usr/local
+1.9G	/usr/lib
+1.7G	/usr/src
+1.3G	/usr/lib64
+638M	/usr/share
+526M	/usr/bin
+207M	/usr/libexec
+60M	/usr/sbin
++ echo '--- /var 二层 ---'
+--- /var 二层 ---
++ du -sh /var/adm /var/cache /var/crash /var/db /var/empty /var/ftp /var/games /var/kerberos /var/lib /var/local /var/lock /var/log /var/mail /var/nis /var/opt /var/preserve /var/run /var/spool /var/tmp /var/www /var/yp
++ sort -rh
++ head -8
+497M	/var/log
+198M	/var/lib
+188M	/var/cache
+32K	/var/spool
+28K	/var/tmp
+12K	/var/www
+12K	/var/kerberos
+12K	/var/db
++ echo '--- /opt 二层 ---'
+--- /opt 二层 ---
++ sort -rh
++ du -sh /opt/clabagent /opt/containerd /opt/hygon /opt/maca /opt/maca-3.3.0 /opt/mxdriver /opt/perf-host
++ head -8
+13G	/opt/maca-3.3.0
+505M	/opt/mxdriver
+289M	/opt/clabagent
+53M	/opt/hygon
+36M	/opt/perf-host
+12K	/opt/containerd
+0	/opt/maca
++ echo '--- /root 二层 ---'
+--- /root 二层 ---
++ du -sh /root/anaconda-ks.cfg /root/bidir_gpu0_big.json /root/d2h_gpu0_big.json /root/driver_backup_436 /root/driver_install_440.log /root/driver_precheck_rc6 /root/go /root/h2d_gpu0_big.json /root/hc.cer /root/j00568090 /root/mcRpcPort.ini /root/mxlog /root/Qwen3.5-32B-quant /root/smartctl
++ sort -rh
++ head -8
+59M	/root/j00568090
+20M	/root/driver_backup_436
+4.4M	/root/smartctl
+4.3M	/root/driver_precheck_rc6
+76K	/root/mxlog
+12K	/root/go
+4.0K	/root/Qwen3.5-32B-quant
+4.0K	/root/hc.cer
++ echo '== 3. 候选可回收项 =='
+== 3. 候选可回收项 ==
++ du -sh /var/cache/dnf
+186M	/var/cache/dnf
++ du -sh /var/log
+497M	/var/log
++ journalctl --disk-usage
+Archived and active journals take up 133.4M in the file system.
++ du -sh /usr/src/debug /usr/src/kernels /usr/src/linux-6.6.0-145.0.2.142.oe2403sp1.x86_64 /usr/src/linux-6.6.0-72.0.0.76.oe2403sp1.x86_64 /usr/src/nvidia-610.43.02
++ sort -rh
++ head -5
+1.6G	/usr/src/linux-6.6.0-72.0.0.76.oe2403sp1.x86_64
+110M	/usr/src/kernels
+32M	/usr/src/nvidia-610.43.02
+4.0K	/usr/src/linux-6.6.0-145.0.2.142.oe2403sp1.x86_64
+4.0K	/usr/src/debug
++ du -sh /opt/maca /opt/maca-3.3.0 /usr/local/corex-4.4.0 /usr/local/corex-5.0.0
+0	/opt/maca
+13G	/opt/maca-3.3.0
+9.3G	/usr/local/corex-4.4.0
+18M	/usr/local/corex-5.0.0
++ du -sh /data/log
+17G	/data/log
++ ls -l /lib/modules
+total 12
+drwxr-xr-x. 6 root root 4096 Nov 10 09:07 6.6.0-132.0.0.111.oe2403sp3.x86_64
+drwxr-xr-x. 2 root root 4096 Apr 17  2026 6.6.0-145.0.2.142.oe2403sp1.x86_64
+drwxr-xr-x. 7 root root 4096 Nov 10 09:04 6.6.0-72.0.0.76.oe2403sp1.x86_64
++ echo '== 4. 已装内核与可删旧内核 =='
+== 4. 已装内核与可删旧内核 ==
++ rpm -q kernel kernel-devel kernel-source kernel-headers
++ head -20
+kernel-6.6.0-72.0.0.76.oe2403sp1.x86_64
+kernel-6.6.0-132.0.0.111.oe2403sp3.x86_64
+kernel-devel-6.6.0-132.0.0.111.oe2403sp3.x86_64
+kernel-source-6.6.0-72.0.0.76.oe2403sp1.x86_64
+kernel-headers-6.6.0-145.0.2.142.oe2403sp1.x86_64
++ echo '--- /usr/src 里的 kernel 源 ---'
+--- /usr/src 里的 kernel 源 ---
++ ls -d /usr/src/linux-6.6.0-145.0.2.142.oe2403sp1.x86_64 /usr/src/linux-6.6.0-72.0.0.76.oe2403sp1.x86_64
+/usr/src/linux-6.6.0-145.0.2.142.oe2403sp1.x86_64
+/usr/src/linux-6.6.0-72.0.0.76.oe2403sp1.x86_64
++ echo '--- 当前内核 / 默认启动内核 ---'
+--- 当前内核 / 默认启动内核 ---
++ uname -r
+6.6.0-132.0.0.111.oe2403sp3.x86_64
++ grubby --default-kernel
+/boot/vmlinuz-6.6.0-132.0.0.111.oe2403sp3.x86_64
++ echo '--- /boot ---'
+--- /boot ---
++ du -sh /boot
+355M	/boot
++ ls -lt /boot
++ head -8
+total 356568
+-rw-------. 1 root root  37260288 Nov  9 14:08 initramfs-6.6.0-132.0.0.111.oe2403sp3.x86_64kdump.img
+-rw-------. 1 root root  31329749 Nov  9 13:56 initramfs-6.6.0-132.0.0.111.oe2403sp3.x86_64.img
+drwx------. 2 root root      4096 Sep  9 14:31 grub2
+-rw-------. 1 root root 140771840 Aug 23 09:53 initramfs-6.6.0-72.0.0.76.oe2403sp1.x86_64kdump.img
+-rw-------. 1 root root  30980254 Mar  2  2026 initramfs-6.6.0-72.0.0.76.oe2403sp1.x86_64.img
+-rw-r--r--. 1 root root  14119392 Mar  2  2026 vmlinuz-0-rescue-6d4243971f334440b5ee3d87dc6c89f8
+-rw-------. 1 root root  66989497 Mar  2  2026 initramfs-0-rescue-6d4243971f334440b5ee3d87dc6c89f8.img
++ echo '== 5. 大文件（>200M，根盘，跳过挂载点）=='
+== 5. 大文件（>200M，根盘，跳过挂载点）==
++ find / -xdev -type f -size +200M
++ head -25
++ read -r f
++ du -h /opt/maca-3.3.0/mxgpu_llvm/bin/flang-new
+215M	/opt/maca-3.3.0/mxgpu_llvm/bin/flang-new
++ read -r f
++ du -h /opt/maca-3.3.0/lib/libmcFlashAttn.so
+2.4G	/opt/maca-3.3.0/lib/libmcFlashAttn.so
++ read -r f
++ du -h /opt/maca-3.3.0/lib/libmcfft_static.a
+578M	/opt/maca-3.3.0/lib/libmcfft_static.a
++ read -r f
++ du -h /opt/maca-3.3.0/lib/libmcblasLt.so
+836M	/opt/maca-3.3.0/lib/libmcblasLt.so
++ read -r f
++ du -h /opt/maca-3.3.0/lib/libmcdnn.so
+277M	/opt/maca-3.3.0/lib/libmcdnn.so
++ read -r f
++ du -h /opt/maca-3.3.0/lib/libmcblasLt_static.a
+875M	/opt/maca-3.3.0/lib/libmcblasLt_static.a
++ read -r f
++ du -h /opt/maca-3.3.0/lib/libmccl.so
+353M	/opt/maca-3.3.0/lib/libmccl.so
++ read -r f
++ du -h /opt/maca-3.3.0/lib/libmcfft_static_nocallback.a
+578M	/opt/maca-3.3.0/lib/libmcfft_static_nocallback.a
++ read -r f
++ du -h /opt/maca-3.3.0/lib/mcdnn/mcdnn_xcore1000_bf16_infer1.mcfb
+516M	/opt/maca-3.3.0/lib/mcdnn/mcdnn_xcore1000_bf16_infer1.mcfb
++ read -r f
++ du -h /opt/maca-3.3.0/lib/mcdnn/mcdnn_xcore1000_fp16_infer2.mcfb
+299M	/opt/maca-3.3.0/lib/mcdnn/mcdnn_xcore1000_fp16_infer2.mcfb
++ read -r f
++ du -h /opt/maca-3.3.0/lib/mcdnn/mcdnn_xcore1000_int8_infer1.mcfb
+541M	/opt/maca-3.3.0/lib/mcdnn/mcdnn_xcore1000_int8_infer1.mcfb
++ read -r f
++ du -h /opt/maca-3.3.0/lib/mcdnn/mcdnn_xcore1000_fp16_infer1.mcfb
+562M	/opt/maca-3.3.0/lib/mcdnn/mcdnn_xcore1000_fp16_infer1.mcfb
++ read -r f
++ du -h /opt/maca-3.3.0/lib/mcdnn/mcdnn_xcore1000_int8_infer2.mcfb
+336M	/opt/maca-3.3.0/lib/mcdnn/mcdnn_xcore1000_int8_infer2.mcfb
++ read -r f
++ du -h /opt/maca-3.3.0/lib/mcdnn/mcdnn_xcore1000_bf16_infer2.mcfb
+298M	/opt/maca-3.3.0/lib/mcdnn/mcdnn_xcore1000_bf16_infer2.mcfb
++ read -r f
++ du -h /opt/maca-3.3.0/lib/libmcfft.so
+571M	/opt/maca-3.3.0/lib/libmcfft.so
++ read -r f
++ du -h /opt/maca-3.3.0/lib/libmcsolverIt.so
+299M	/opt/maca-3.3.0/lib/libmcsolverIt.so
++ read -r f
++ du -h /usr/local/corex-4.4.0/lib64/libcublas.so.10.2.3.254
+231M	/usr/local/corex-4.4.0/lib64/libcublas.so.10.2.3.254
++ read -r f
++ du -h /usr/local/corex-4.4.0/lib64/libixattnbkd_do_drop.so.1
+219M	/usr/local/corex-4.4.0/lib64/libixattnbkd_do_drop.so.1
++ read -r f
++ du -h /usr/local/corex-4.4.0/lib64/libcuinfer.so.7
+1.8G	/usr/local/corex-4.4.0/lib64/libcuinfer.so.7
++ read -r f
++ du -h /usr/local/corex-4.4.0/lib64/libixattnbkd.so.1
+827M	/usr/local/corex-4.4.0/lib64/libixattnbkd.so.1
++ read -r f
++ du -h /usr/local/corex-4.4.0/lib64/libcudnn.so.7
+1.2G	/usr/local/corex-4.4.0/lib64/libcudnn.so.7
++ read -r f
++ du -h /usr/local/corex-4.4.0/lib64/libcuinfer_conv.so
+445M	/usr/local/corex-4.4.0/lib64/libcuinfer_conv.so
++ read -r f
++ du -h /usr/local/cuda-13.3/targets/x86_64-linux/lib/libcufft.so.12.3.0.29
+245M	/usr/local/cuda-13.3/targets/x86_64-linux/lib/libcufft.so.12.3.0.29
++ read -r f
++ du -h /usr/local/cuda-13.3/targets/x86_64-linux/lib/libcublasLt.so.13.6.0.2
+493M	/usr/local/cuda-13.3/targets/x86_64-linux/lib/libcublasLt.so.13.6.0.2
++ read -r f
++ du -h /usr/local/cuda-13.3/targets/x86_64-linux/lib/libcusparse_static.a
+204M	/usr/local/cuda-13.3/targets/x86_64-linux/lib/libcusparse_static.a
++ read -r f
++ echo '== 6. docker =='
+== 6. docker ==
++ docker info
++ grep -E 'Docker Root Dir|Storage Driver'
+ Storage Driver: overlay2
+ Docker Root Dir: /home/docker
++ timeout 60 docker system df
++ head -8
+TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
+Images          23        17        162.6GB   69.48GB (42%)
+Containers      20        7         79.44GB   73.54GB (92%)
+Local Volumes   3         3         4.77GB    0B (0%)
+Build Cache     12        0         63.66MB   63.66MB
++ echo '== 7. 是否有进程仍持有已删大文件 =='
+== 7. 是否有进程仍持有已删大文件 ==
++ lsof +D /
++ grep -i deleted
++ head -10
++ echo 'lsof 无输出或无权限'
+lsof 无输出或无权限
++ set +x
+
+### exit: 0
