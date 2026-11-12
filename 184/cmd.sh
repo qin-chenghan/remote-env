@@ -19,49 +19,55 @@ mkdir -p "$DIR/tmp"
   # ---- 命令开始 ----
   C=corex5-py311
   P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
+  dex() { timeout 60 docker exec "$C" bash -c "$1"; }
 
   echo "== 1. 顶层目录结构（含时间）=="
-  docker exec "$C" bash -c "ls -la --time-style=full-iso $P"
-  docker exec "$C" bash -c "ls -la --time-style=full-iso $P/litehost"
+  dex "ls -la --time-style=full-iso $P"
+  dex "ls -la --time-style=full-iso $P/litehost"
 
   echo "== 2. 每个 case 的 four_rank_totals（T/S/H/G）=="
   for case_dir in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 \
                   bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 \
                   bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048; do
     echo "--- $case_dir ---"
-    docker exec "$C" bash -c "cat $P/litehost/$case_dir/host_report/four_rank_totals.csv 2>&1 | head -8"
+    dex "cat $P/litehost/$case_dir/host_report/four_rank_totals.csv 2>&1 | head -8"
   done
 
   echo "== 3. 每个 case 的日志结尾（是否正常收尾）=="
   for case_dir in bs8_in128_out128 bs8_in1024_out1024 bs8_in2048_out2048; do
-    f="$P/logs/bench_$case_dir.log"
-    echo "--- $f ---"
-    docker exec "$C" bash -c "tail -n 15 '$f' 2>&1"
+    echo "--- $case_dir ---"
+    dex "tail -n 15 $P/logs/bench_$case_dir.log 2>&1"
   done
 
-  echo "== 4. 每个 case 的 JSON 结果（吞吐/TTFT）=="
+  echo "== 4. 每个 case 的 JSON 结果 =="
   for case_dir in bs8_in128_out128 bs8_in1024_out1024 bs8_in2048_out2048; do
     echo "--- $case_dir ---"
-    docker exec "$C" bash -c "head -c 700 $P/$case_dir.json 2>&1"
+    dex "head -c 700 $P/$case_dir.json 2>&1"
     echo
   done
 
   echo "== 5. server.log 结尾（死因线索）=="
-  docker exec "$C" bash -c "tail -n 40 $P/logs/server.log 2>&1"
+  dex "tail -n 40 $P/logs/server.log 2>&1"
 
   echo "== 6. server.log 里的错误关键字 =="
-  docker exec "$C" bash -c "grep -n -E 'Traceback|Error|error|Exception|Killed|OOM|abort' $P/logs/server.log 2>&1 | tail -20"
+  dex "grep -n -E 'Traceback|Error|Exception|Killed|OOM|abort' $P/logs/server.log 2>&1 | tail -20"
 
   echo "== 7. 容器里是否还有进程在跑 =="
-  docker exec "$C" bash -c "ps -eo pid,etime,args | grep -E 'vllm|benchmark|lhctl' | grep -v grep | head -20"
+  dex "ps -eo pid,etime,args | grep -E 'vllm|benchmark|lhctl' | grep -v grep | head -20"
 
-  echo "== 8. 哪个脚本写的这个路径 =="
-  docker exec "$C" bash -c "grep -rl '/usr/local/corex-5.0.0/vllmBench' /home /usr/local/bin /opt 2>/dev/null --include='*.sh' --include='*.py' | head -20"
-  docker exec "$C" bash -c "ps -eo args | grep -E 'vllmBench_lite|bench_driver|vllm' | grep -v grep | head -5"
+  echo "== 8. 哪个脚本写了这个路径（有界查找）=="
+  dex "find /home -maxdepth 4 -type f -name 'vllmBench_lite*.sh' 2>/dev/null | head -40" > /tmp/scripts.txt
+  while read -r s; do
+    [ -n "$s" ] || continue
+    if timeout 20 docker exec "$C" bash -c "grep -q 'usr/local/corex-5.0.0/vllmBench' '$s'" 2>/dev/null; then
+      echo "HIT $s"
+    fi
+  done < /tmp/scripts.txt
+  echo "候选脚本数: $(wc -l < /tmp/scripts.txt)"
 
   echo "== 9. 最近的脚本修改时间 =="
-  docker exec "$C" bash -c "ls -lat --time-style=full-iso /home/huawei_ts_program/litehost_perf_opt/*.sh 2>/dev/null | head -6"
-  docker exec "$C" bash -c "ls -lat --time-style=full-iso /home/s00806700/litehost_perf_opt/*.sh 2>/dev/null | head -6"
+  dex "ls -lat --time-style=full-iso /home/huawei_ts_program/litehost_perf_opt/*.sh 2>/dev/null | head -6"
+  dex "ls -lat --time-style=full-iso /home/s00806700/litehost_perf_opt/*.sh 2>/dev/null | head -6"
 
   # ---- 命令结束 ----
 
