@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读 + 导出：定位正在跑的 vllmBench run，打印并在仓库里导出小结果文件。
+# 全量保全：把完整 run 目录打包备份到 /home/qch/backup，并完整复制到仓库 export。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,46 +17,43 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== 正在跑的 bench =="
-  pgrep -af 'vllmBench_lite|bench_driver|lhctl' 2>/dev/null | cut -c1-200 | head -10
+  RUN=/home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924
+  NAME=$(basename "$RUN")
+  echo "== 1. 确认没有写进程 =="
+  pgrep -af 'vllmBench_lite|bench_driver|lhctl' 2>/dev/null | grep -v cmd.sh | head -5
+  echo "(空=无写入)"
 
-  P=$(pgrep -af 'vllmBench_lite' 2>/dev/null | grep -v cmd.sh | awk '{print $1}' | head -1)
-  echo "main_pid=$P"
-  if [ -n "$P" ]; then
-    echo "cwd=$(readlink /proc/$P/cwd 2>/dev/null)"
-    echo "--- env ---"
-    tr '\0' '\n' < "/proc/$P/environ" 2>/dev/null | grep -E '^TEST_ID=|^CPU_RANGE=|^PREFIX=|^MODEL_PATH=|^NUM_PROMPTS=|^HOST_MEASURE=|^CASE_INTERVAL=' | head -10
-    CWD=$(readlink /proc/$P/cwd 2>/dev/null)
-  else
-    CWD=""
-  fi
+  echo "== 2. 原始目录完整性 =="
+  [ -d "$RUN" ] && echo "RUN ok" || { echo "RUN MISSING"; exit 3; }
+  du -sh "$RUN"
+  find "$RUN" -type f -printf '%10s  %p\n' | sort -k2 | head -40
+  echo "文件数: $(find "$RUN" -type f | wc -l)"
 
-  echo "== 候选 run 目录 =="
-  for base in "$CWD" /home/huawei_ts_program/litehost_perf_opt /home/s00806700/litehost_perf_opt /home/s00806700/litehost_perf; do
-    [ -n "$base" ] && [ -d "$base/vllmBench" ] && ls -lt "$base/vllmBench" 2>/dev/null | head -3
+  echo "== 3. 关键文件 sha256 =="
+  for f in summary.csv config.txt host_summary/four_rank_totals.csv host_summary/per_rank.csv host_summary/report.txt logs/server.log; do
+    [ -f "$RUN/$f" ] && sha256sum "$RUN/$f"
   done
 
-  RUN=$(ls -dt "$CWD"/vllmBench/*/ 2>/dev/null | head -1)
-  [ -n "$RUN" ] || RUN=$(ls -dt /home/*/vllmBench/*/ /home/*/*/vllmBench/*/ 2>/dev/null | head -1)
-  echo "RUN=$RUN"
-  if [ -n "$RUN" ] && [ -d "$RUN" ]; then
-    echo "-- 目录 --"; ls -la "$RUN" 2>&1 | head -15
-    echo "-- summary.csv --"; head -20 "$RUN/summary.csv" 2>&1
-    echo "-- config.txt --"; cat "$RUN/config.txt" 2>&1 | head -20
-    echo "-- host_summary --"; ls "$RUN/host_summary" 2>&1 | head
-    for f in "$RUN"/host_summary/*.csv; do [ -f "$f" ] && { echo "-- $(basename "$f") --"; head -12 "$f"; }; done
-    echo "-- logs --"; ls -lt "$RUN/logs" 2>&1 | head -8
+  echo "== 4. 本地打包备份 =="
+  mkdir -p /home/qch/backup
+  TAR=/home/qch/backup/${NAME}-$TS.tar.gz
+  tar -czf "$TAR" -C "$RUN" . 2>&1 | tail -2
+  ls -lh "$TAR"
+  tar -tzf "$TAR" | wc -l
 
-    echo "== 导出小结果到仓库 =="
-    NAME=$(basename "$RUN")
-    EX="$DIR/export/$NAME"
-    mkdir -p "$EX"
-    for f in summary.csv config.txt; do [ -f "$RUN/$f" ] && cp -a "$RUN/$f" "$EX/"; done
-    [ -d "$RUN/host_summary" ] && cp -a "$RUN/host_summary" "$EX/" 2>/dev/null
-    [ -f "$RUN/logs/server.log" ] && tail -c 200000 "$RUN/logs/server.log" > "$EX/server.tail.log"
-    ls -lr "$EX" 2>&1 | head -20
-    du -sh "$EX" 2>&1
-  fi
+  echo "== 5. 完整复制到仓库 export =="
+  EX="$DIR/export/${NAME}_full"
+  rm -rf "$EX"
+  cp -a "$RUN" "$EX"
+  echo "repo copy files: $(find "$EX" -type f | wc -l)"
+  du -sh "$EX"
+  echo "-- 目录树 --"
+  find "$EX" -maxdepth 2 -type d | sort | head -20
+
+  echo "== 6. 校验复制一致性 =="
+  A=$(find "$RUN" -type f | sed "s|$RUN||" | sort | xargs -I{} sha256sum "$RUN{}" 2>/dev/null | sort)
+  B=$(find "$EX" -type f | sed "s|$EX||" | sort | xargs -I{} sha256sum "$EX{}" 2>/dev/null | sort)
+  if [ "$A" = "$B" ]; then echo "COPY VERIFIED: 全部文件 hash 一致"; else echo "COPY MISMATCH"; diff <(echo "$A") <(echo "$B") | head -10; fi
 
   # ---- 命令结束 ----
 
