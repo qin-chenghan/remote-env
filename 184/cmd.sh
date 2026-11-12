@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 本次：把 32 复制来的 CPU_RANGE=192-255 统一改为 184 的 80-159,240-319。
+# 只读：诊断 vllmBench_lite_opt_pgosrv.sh 的语法错误，并复核已改文件。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,14 +17,25 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== 修改前统计 =="
-  grep -rl '192-255' /home --include='vllmBench_lite*.sh' 2>/dev/null | head -20
-
-  echo "== 执行修改 =="
-  python3 "$DIR/fix_cpu_range.py" 2>&1
-
-  echo "== 修改后复查 =="
-  python3 "$DIR/scan_lite_configs.py" 2>&1 | grep -E '^BAD|^需要修正' | head -20
+  F=/home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh
+  echo "== 语法检查 =="
+  bash -n "$F" 2>&1
+  echo "rc=$?"
+  echo "== 第 50-75 行 =="
+  sed -n '50,75p' "$F" | cat -n
+  echo "== 与备份对比（若存在）=="
+  ls -l "$F".bak-* 2>&1 | tail -3
+  echo "== 已修改文件的 CPU_RANGE 复核 =="
+  for f in /home/qch/pmu_litehost_toolkit/vllmBench_lite_pmu.sh \
+           /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh \
+           /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh \
+           /home/s00806700/litehost_perf_opt/vllmBench_lite_base.sh \
+           /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh; do
+    printf '%s  %s\n' "$(grep -m1 '^CPU_RANGE=' "$f")" "$f"
+  done
+  echo "== huawei_ts_program 两份里 192-255 出现在哪 =="
+  grep -n '192-255' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh \
+                   /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh 2>&1 | cut -c1-160
 
   # ---- 命令结束 ----
 
