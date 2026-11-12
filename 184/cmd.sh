@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 检查 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257 是什么、内容是否完整。
+# 150257 目录在 host 上不存在，去容器内定位并检查。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,56 +18,60 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
   P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
+  PB=/usr/local/corex-5.0.0/vllmBench
 
-  echo "== 1. 路径本身 =="
-  ls -ld "$P"
-  readlink -f "$P"
-  [ -L "$P" ] && echo "是符号链接 -> $(readlink "$P")"
-  du -sh "$P" 2>/dev/null
-  echo "顶层内容:"
-  ls -la "$P"
+  echo "== 1. host 上到底有没有 =="
+  ls -ld /usr/local/corex-5.0.0 2>&1
+  ls -ld "$PB" 2>&1
+  ls -ld "$P" 2>&1
 
-  echo "== 2. 文件清单（相对路径 + 大小 + 时间）=="
-  ( cd "$P" 2>/dev/null && find . -type f -printf '%10s  %TY-%Tm-%Td %TH:%TM  %p\n' | sort -k4 ) | head -60
-  echo "文件数: $(find "$P" -type f 2>/dev/null | wc -l)"
+  echo "== 2. 所有容器（含已停止）=="
+  docker ps -a --format '{{.ID}}  {{.Names}}  {{.Image}}  {{.Status}}'
 
-  echo "== 3. 关键文件内容 =="
-  for f in config.txt summary.csv meta.json; do
-    if [ -f "$P/$f" ]; then echo "--- $f ---"; head -40 "$P/$f"; fi
-  done
-  echo "--- host_summary 目录 ---"
-  ls -la "$P/host_summary" 2>/dev/null
-  for f in "$P"/host_summary/*; do
-    [ -f "$f" ] && { echo "--- $f ---"; head -25 "$f"; }
-  done
-
-  echo "== 4. 和已保全的那次（145924）对比 =="
-  R=/home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924
-  if [ -d "$R" ]; then
-    echo "145924 文件数: $(find "$R" -type f | wc -l)   $(du -sh "$R" | cut -f1)"
-    echo "150257 文件数: $(find "$P" -type f 2>/dev/null | wc -l)   $(du -sh "$P" 2>/dev/null | cut -f1)"
-    echo "-- 两边顶层目录 --"
-    diff <(cd "$R" && find . -maxdepth 2 | sort) <(cd "$P" && find . -maxdepth 2 | sort) | head -40
-  else
-    echo "145924 原目录不存在"
-  fi
-
-  echo "== 5. 归属与时间 =="
-  stat -c '%U:%G  %y  %n' "$P" 2>/dev/null
-  stat -c '%U:%G  %y  %n' "$(dirname "$P")" 2>/dev/null
-
-  echo "== 6. 清理仓库里的第三方数据副本（不该上库）=="
-  EX="$DIR/export/litehost_gap_20261112_145924_full"
-  TAR=$(ls -t /home/qch/backup/litehost_gap_20261112_145924-*.tar.gz 2>/dev/null | head -1)
-  if [ -d "$DIR/export" ]; then
-    if [ -d "$R" ] && [ -f "$TAR" ]; then
-      rm -rf "$DIR/export"; echo "已删除 $DIR/export（原始目录+tar 均在）"
+  echo "== 3. 在运行中的容器里找这个目录 =="
+  FOUND=""
+  for c in $(docker ps -q); do
+    n=$(docker inspect -f '{{.Name}}' "$c" 2>/dev/null)
+    if docker exec "$c" bash -c "test -d '$P'" 2>/dev/null; then
+      echo "命中: $n ($c)"
+      FOUND="$c"
     else
-      echo "保留 $DIR/export：原始目录或 tar 缺失"
+      echo "未命中: $n ; vllmBench 目录:"
+      docker exec "$c" bash -c "ls -ld '$PB'/* 2>&1 | tail -8" 2>&1
     fi
+  done
+
+  echo "== 4. 命中容器的详细内容 =="
+  if [ -n "$FOUND" ]; then
+    docker inspect -f '{{.Name}} {{.Id}} img={{.Config.Image}}' "$FOUND"
+    echo "-- mounts --"
+    docker inspect -f '{{range .Mounts}}{{.Type}} {{.Source}} -> {{.Destination}}{{"\n"}}{{end}}' "$FOUND"
+    echo "-- 顶层 --"
+    docker exec "$FOUND" ls -la "$P"
+    echo "-- 文件清单 --"
+    docker exec "$FOUND" bash -c "cd '$P' && find . -type f -printf '%10s  %TY-%Tm-%Td %TH:%TM  %p\n' | sort -k4 | head -60"
+    echo "文件数: $(docker exec "$FOUND" bash -c "find '$P' -type f | wc -l")"
+    echo "大小:   $(docker exec "$FOUND" du -sh "$P" | cut -f1)"
+    echo "-- config.txt --"
+    docker exec "$FOUND" bash -c "head -40 '$P/config.txt' 2>&1"
+    echo "-- summary.csv --"
+    docker exec "$FOUND" bash -c "head -20 '$P/summary.csv' 2>&1"
+    echo "-- host_summary/report.txt --"
+    docker exec "$FOUND" bash -c "head -40 '$P/host_summary/report.txt' 2>&1"
+    echo "-- host_summary/four_rank_totals.csv --"
+    docker exec "$FOUND" bash -c "head -10 '$P/host_summary/four_rank_totals.csv' 2>&1"
   else
-    echo "仓库内无 export 目录"
+    echo "所有运行中容器都没有 $P"
+    echo "== 4b. 全盘按名字搜（容器内）=="
+    for c in $(docker ps -q); do
+      n=$(docker inspect -f '{{.Name}}' "$c" 2>/dev/null)
+      echo "--- $n ---"
+      docker exec "$c" bash -c "find / -maxdepth 6 -name 'litehost_gap_20261112_15*' -print 2>/dev/null | head -10"
+    done
   fi
+
+  echo "== 5. host 上按名字搜（含 overlay 挂载点之外）=="
+  find /home /usr/local /data /opt -maxdepth 6 -name 'litehost_gap_20261112_15*' -print 2>/dev/null | head -20
 
   # ---- 命令结束 ----
 
