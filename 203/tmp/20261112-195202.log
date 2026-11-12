@@ -1,0 +1,183 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-12T11:52:02Z
+
++ echo '== 1. 总体内存 =='
+== 1. 总体内存 ==
++ free -h
+               total        used        free      shared  buff/cache   available
+Mem:           720Gi       102Gi       540Gi       238Mi        81Gi       617Gi
+Swap:          4.0Gi          0B       4.0Gi
++ grep -E 'MemTotal|MemFree|MemAvailable|Buffers|Cached|SwapTotal|SwapFree|Dirty|Writeback|SReclaimable|Shmem|HugePages_Total|HugePages_Free|HugePages_Rsvd|Hugepagesize|AnonPages|Committed_AS|CommitLimit' /proc/meminfo
+MemTotal:       755088008 kB
+MemFree:        566399788 kB
+MemAvailable:   648007816 kB
+Buffers:         2817204 kB
+Cached:         75422416 kB
+SwapCached:            0 kB
+SwapTotal:       4194300 kB
+SwapFree:        4194300 kB
+Dirty:              1000 kB
+Writeback:             0 kB
+AnonPages:      14027248 kB
+Shmem:            244212 kB
+SReclaimable:    7702076 kB
+WritebackTmp:          0 kB
+CommitLimit:    381738304 kB
+Committed_AS:   22678080 kB
+ShmemHugePages:        0 kB
+ShmemPmdMapped:        0 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+Hugepagesize:       2048 kB
++ echo '== 2. 占用最高的进程（RSS 前 25，含子进程合并前）=='
+== 2. 占用最高的进程（RSS 前 25，含子进程合并前）==
++ ps -eo pid,ppid,user,rss,vsz,etime,args --sort=-rss
++ head -26
+    PID    PPID USER       RSS    VSZ     ELAPSED COMMAND
+1264413 1263841 root     738876 1941572 2-11:06:06 /root/.remotedev-server/bin/3d20f360423740d9edda6670c2bcd6c2f8360515/1.109.2/node /root/.remotedev-server/bin/3d20f360423740d9edda6670c2bcd6c2f8360515/1.109.2/out/bootstrap-fork --type=fileWatcher
+1264650 1263841 root     525908 13191220 2-11:06:06 /root/.remotedev-server/bin/3d20f360423740d9edda6670c2bcd6c2f8360515/1.109.2/node --dns-result-order=ipv4first /root/.remotedev-server/bin/3d20f360423740d9edda6670c2bcd6c2f8360515/1.109.2/out/bootstrap-fork --type=extensionHost --transformURIs --useHostProxy=false
+   7410    7139 systemd+ 433860 2932580 3-05:43:41 mysqld --default-authentication-plugin=mysql_native_password --skip-name-resolve
+   3397       1 root     193276 286488 3-05:43:53 /usr/lib/systemd/systemd-journald
+   5290       1 root     142688 9593072 3-05:43:43 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+1263841 1263838 root     138380 11880836 2-11:06:08 /root/.remotedev-server/bin/3d20f360423740d9edda6670c2bcd6c2f8360515/1.109.2/node /root/.remotedev-server/bin/3d20f360423740d9edda6670c2bcd6c2f8360515/1.109.2/server-entry-point.js --without-connection-token --enable-remote-auto-shutdown --host=127.0.0.1 --port=0
+  25479       1 root     137052 9587192 3-05:33:37 /usr/local/services/cubetoolbox/network-agent/bin/network-agent --cubelet-config /usr/local/services/cubetoolbox/Cubelet/config/config.toml --state-dir /data/cubelet/network-agent/state
+   8948    4996 root     120796 397596 3-05:43:38 /opt/clabagent/plugins/vector/bin/vector -c /opt/clabagent/plugins/vector_metric/runtime/vector_metric.yml --watch-config
+   6583    6298 root     110744 1320088 3-05:43:41 docker-compose -f /usr/local/services/cubetoolbox/support/docker-compose.yaml up redis
+  25406       1 root     107444 4112352 3-05:33:38 /usr/local/services/cubetoolbox/Cubelet/bin/cubelet --config /usr/local/services/cubetoolbox/Cubelet/config/config.toml --dynamic-conf-path /usr/local/services/cubetoolbox/Cubelet/dynamicconf/conf.yaml
+   4996       1 root     90216 1494596 3-05:43:49 python3 main/agent.py
+  13058       1 root     79628 7165828 3-05:43:33 /usr/local/services/cubetoolbox/CubeMaster/bin/cubemaster
+   6852    6802 65532    75652 1349656 3-05:43:41 /coredns -conf /etc/coredns/Corefile
+      1       0 root     73296  80328  3-05:44:21 /usr/lib/systemd/systemd --switched-root --system --deserialize=34
+1269777 1264650 root     61484 1020348 2-11:05:44 /root/.remotedev-server/bin/3d20f360423740d9edda6670c2bcd6c2f8360515/1.109.2/node /root/.remotedev-server/bin/3d20f360423740d9edda6670c2bcd6c2f8360515/1.109.2/extensions/json-language-features/server/dist/node/jsonServerMain --node-ipc --clientProcessId=1264650
+   7990       1 root     60004 410976  3-05:43:40 /usr/sbin/NetworkManager --no-daemon
+  13495   13323 root     54248 1385432 3-05:43:30 docker-compose -f /usr/local/services/cubetoolbox/webui/docker-compose.yaml up webui
+  10630   10534 root     50164 315396  3-05:43:36 nginx: worker process
+  10668   10534 root     48728 314512  3-05:43:36 nginx: worker process
+  10675   10534 root     48728 314512  3-05:43:36 nginx: worker process
+  10679   10534 root     48728 314512  3-05:43:36 nginx: worker process
+  10687   10534 root     48728 314512  3-05:43:36 nginx: worker process
+  10688   10534 root     48728 314512  3-05:43:36 nginx: worker process
+  10689   10534 root     48728 314512  3-05:43:36 nginx: worker process
+  10690   10534 root     48728 314512  3-05:43:36 nginx: worker process
++ echo '== 3. 按进程名合并 RSS（前 15）=='
+== 3. 按进程名合并 RSS（前 15）==
++ ps -eo rss,comm --no-headers
++ awk '{a[$2]+=$1} END{for(k in a) printf "%10.1f MB  %s\n", a[k]/1024, k}'
++ sort -rn
++ head -15
+   12130.7 MB  nginx
+    1430.3 MB  node
+     752.0 MB  openresty
+     423.7 MB  mysqld
+     297.9 MB  docker-compose
+     188.7 MB  systemd-journal
+     144.6 MB  bash
+     139.3 MB  dockerd
+     133.8 MB  network-agent
+     124.6 MB  sshd
+     118.0 MB  vector
+     104.9 MB  cubelet
+     100.4 MB  containerd-shim
+      88.1 MB  python3
+      77.8 MB  cubemaster
++ echo '== 4. 容器内存占用 =='
+== 4. 容器内存占用 ==
++ docker ps --format '{{.ID}}  {{.Names}}  {{.Status}}'
++ head -15
+6ecd50315dc3  cube-lifecycle-manager  Up 3 days
+8463ad937b36  cube-webui  Up 3 days (healthy)
+5836c31d14d2  cube-proxy  Up 3 days
+a70742a79230  cube-sandbox-redis  Up 3 days (healthy)
+4367e0e68be3  cube-sandbox-mysql  Up 3 days (healthy)
+0863c32889b2  cube-proxy-coredns  Up 3 days
+ff15d2242dd4  corex5-py311  Up 3 days
++ timeout 90 docker stats --no-stream --format '{{.Name}}  mem={{.MemUsage}}  pids={{.PIDs}}'
++ head -15
+cube-lifecycle-manager  mem=25.03MiB / 720.1GiB  pids=39
+cube-webui  mem=142.6MiB / 720.1GiB  pids=256
+cube-proxy  mem=10.47GiB / 720.1GiB  pids=258
+cube-sandbox-redis  mem=20.78MiB / 720.1GiB  pids=6
+cube-sandbox-mysql  mem=415.6MiB / 720.1GiB  pids=46
+cube-proxy-coredns  mem=65.7MiB / 720.1GiB  pids=74
+corex5-py311  mem=12.44GiB / 720.1GiB  pids=3
++ echo '== 5. tmpfs / shm（内存记账）=='
+== 5. tmpfs / shm（内存记账）==
++ df -h /dev/shm /tmp /run
++ head -6
+Filesystem      Size  Used Avail Use% Mounted on
+tmpfs           361G  332K  361G   1% /dev/shm
+tmpfs           361G   86M  360G   1% /tmp
+tmpfs           145G  141M  144G   1% /run
++ du -sh /dev/shm
++ head -3
+332K	/dev/shm
++ du -sh /dev/shm/ixformer-comm_rank0_pid__26_-11_-77_-72_1744741371 /dev/shm/ixformer-comm_rank0_pid__2_-78_-59_115_1977927658 /dev/shm/ixformer-comm_rank0_pid__79_20_-77_-94_2029922891 /dev/shm/psm_3f0e7bc6 /dev/shm/psm_9bd6ddba /dev/shm/psm_a43d4eeb /dev/shm/psm_ceaffea6 /dev/shm/psm_cf00eab3 /dev/shm/psm_cfdae451 /dev/shm/sem.mp-3kj5lylp /dev/shm/sem.mp-8fmh850e /dev/shm/sem.mp-dtv7x8vz /dev/shm/sem.mp-vaahz9xh
++ sort -rh
++ head -10
+60K	/dev/shm/psm_3f0e7bc6
+48K	/dev/shm/psm_cf00eab3
+36K	/dev/shm/ixformer-comm_rank0_pid__79_20_-77_-94_2029922891
+36K	/dev/shm/ixformer-comm_rank0_pid__2_-78_-59_115_1977927658
+36K	/dev/shm/ixformer-comm_rank0_pid__26_-11_-77_-72_1744741371
+32K	/dev/shm/psm_cfdae451
+32K	/dev/shm/psm_ceaffea6
+32K	/dev/shm/psm_a43d4eeb
+4.0K	/dev/shm/sem.mp-vaahz9xh
+4.0K	/dev/shm/sem.mp-dtv7x8vz
++ echo '== 6. hugepage =='
+== 6. hugepage ==
++ cat /proc/sys/vm/nr_hugepages
+0
++ grep -i huge /proc/meminfo
+AnonHugePages:  12513280 kB
+ShmemHugePages:        0 kB
+FileHugePages:   2375680 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+Hugetlb:               0 kB
++ echo '== 7. overcommit =='
+== 7. overcommit ==
++ cat /proc/sys/vm/overcommit_memory /proc/sys/vm/overcommit_ratio
+0
+50
++ cat /proc/sys/vm/swappiness
+10
++ echo '== 8. OOM / 内存告警历史（近 20 条）=='
+== 8. OOM / 内存告警历史（近 20 条）==
++ dmesg -T
++ grep -iE 'out of memory|oom-kill|oom_reaper|killed process|memory cgroup'
++ tail -20
++ echo '无 OOM 记录或无 dmesg 权限'
+无 OOM 记录或无 dmesg 权限
++ echo '--- 本次启动以来 OOM 计数 ---'
+--- 本次启动以来 OOM 计数 ---
++ grep -c . /dev/null
+0
++ journalctl -k --since -24h
++ grep -icE 'out of memory|oom-kill|killed process'
+0
++ echo 'journal 不可读'
+journal 不可读
++ echo '== 9. 谁在申请/持有大块内存（活跃 vllm 进程）=='
+== 9. 谁在申请/持有大块内存（活跃 vllm 进程）==
++ ps -eo pid,rss,etime,args
++ grep -E 'vllm|bench_driver|ixsys|python'
++ grep -v grep
++ head -10
+   4996 90216  3-05:43:52 python3 main/agent.py
+   5009 28600  3-05:43:52 /usr/bin/python3 -Es /usr/sbin/tuned -l -P
++ docker exec corex5-py311 bash -c 'ps -eo pid,rss,etime,args | grep -E "vllm|bench_driver" | grep -v grep | head -10'
++ echo '== 10. 磁盘（与内存无关，顺带）=='
+== 10. 磁盘（与内存无关，顺带）==
++ df -h / /home
++ tail -2
+/dev/mapper/openeuler-root   69G   65G  586M 100% /
+/dev/mapper/openeuler-home  804G  731G   33G  96% /home
++ set +x
+
+### exit: 0
