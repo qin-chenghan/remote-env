@@ -138,8 +138,8 @@ def analyze(path, label):
         if ph not in res:
             continue
         r = res[ph]
-        print(f"  {ph:7s} n={r['n']:5d} T_tot={r['T_tot']:8.2f}s S_tot={r['S_tot']:8.2f}s H_tot={r['H_tot']:8.2f}s "
-              f"cpu_op={r['cpu_op_tot']:7.2f}s py={r['py_tot']:7.2f}s rt={r['rt_tot']:6.2f}s")
+        print(f"  {ph:7s} n={r['n']:5d} T_tot={r['T_tot']:8.2f}ms S_tot={r['S_tot']:8.2f}ms H_tot={r['H_tot']:8.2f}ms "
+              f"cpu_op={r['cpu_op_tot']:7.2f}ms py={r['py_tot']:7.2f}ms rt={r['rt_tot']:6.2f}ms")
         print(f"          per-step: T={r['T_mean']:7.2f}ms S={r['gpu_mean']:7.3f}ms H={r['H_mean']:7.2f}ms")
     return res
 
@@ -154,12 +154,12 @@ def cmp(ra, rb):
         def pct(x, y):
             return (y - x) / x * 100 if x else float("nan")
 
-        print(f"  {ph:7s} TOTAL: T {a['T_tot']:.2f}->{b['T_tot']:.2f}s ({pct(a['T_tot'], b['T_tot']):+.2f}%)  "
-              f"S {a['S_tot']:.2f}->{b['S_tot']:.2f}s ({pct(a['S_tot'], b['S_tot']):+.2f}%)  "
-              f"H {a['H_tot']:.2f}->{b['H_tot']:.2f}s ({pct(a['H_tot'], b['H_tot']):+.2f}%)")
-        print(f"          CPU TOTAL: cpu_op {a['cpu_op_tot']:.2f}->{b['cpu_op_tot']:.2f}s ({pct(a['cpu_op_tot'], b['cpu_op_tot']):+.1f}%)  "
-              f"py {a['py_tot']:.2f}->{b['py_tot']:.2f}s ({pct(a['py_tot'], b['py_tot']):+.1f}%)  "
-              f"rt {a['rt_tot']:.2f}->{b['rt_tot']:.2f}s ({pct(a['rt_tot'], b['rt_tot']):+.1f}%)")
+        print(f"  {ph:7s} TOTAL: T {a['T_tot']:.2f}->{b['T_tot']:.2f}ms ({pct(a['T_tot'], b['T_tot']):+.2f}%)  "
+              f"S {a['S_tot']:.2f}->{b['S_tot']:.2f}ms ({pct(a['S_tot'], b['S_tot']):+.2f}%)  "
+              f"H {a['H_tot']:.2f}->{b['H_tot']:.2f}ms ({pct(a['H_tot'], b['H_tot']):+.2f}%)")
+        print(f"          CPU TOTAL: cpu_op {a['cpu_op_tot']:.2f}->{b['cpu_op_tot']:.2f}ms ({pct(a['cpu_op_tot'], b['cpu_op_tot']):+.1f}%)  "
+              f"py {a['py_tot']:.2f}->{b['py_tot']:.2f}ms ({pct(a['py_tot'], b['py_tot']):+.1f}%)  "
+              f"rt {a['rt_tot']:.2f}->{b['rt_tot']:.2f}ms ({pct(a['rt_tot'], b['rt_tot']):+.1f}%)")
 
 
 def main():
