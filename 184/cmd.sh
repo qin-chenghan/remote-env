@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 查 corex5-py311 里 /usr/local/corex-5.0.0/vllmBench 是否落在 host 上，以及实际路径。
+# 检查 r14 安装包内容与当前已安装版本，确定安装方式（先只读）。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,32 +18,37 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
   C=corex5-py311
-  P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
+  Z=/home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip
+  dex() { timeout 120 docker exec "$C" bash -c "$1"; }
 
-  echo "== 1. 容器的挂载表 =="
-  docker inspect "$C" --format '{{range .Mounts}}{{.Type}}  {{.Source}} -> {{.Destination}}  (rw={{.RW}}){{println}}{{end}}'
-  echo "-- /usr/local 是否被单独挂载 --"
-  docker inspect "$C" --format '{{range .Mounts}}{{if eq .Destination "/usr/local"}}{{.Source}} -> /usr/local{{end}}{{end}}'
+  echo "== 1. 包文件本身 =="
+  ls -l --time-style=full-iso "$Z" 2>&1
+  sha256sum "$Z" 2>&1
+  command -v unzip || echo "host 无 unzip"
 
-  echo "== 2. 容器的存储驱动与可写层 =="
-  docker inspect "$C" --format 'driver={{.GraphDriver.Name}}{{println}}{{range $k,$v := .GraphDriver.Data}}{{$k}}={{$v}}{{println}}{{end}}'
-  UP=$(docker inspect "$C" --format '{{.GraphDriver.Data.UpperDir}}')
-  echo "UPPERDIR=$UP"
+  echo "== 2. 包内清单 =="
+  unzip -l "$Z" 2>&1 | head -60
+  echo "条目总数: $(unzip -l "$Z" 2>/dev/null | tail -1)"
 
-  echo "== 3. host 上可写层里的实际路径 =="
-  ls -ld "$UP/usr/local/corex-5.0.0" "$UP/usr/local/corex-5.0.0/vllmBench" "$UP/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257" 2>&1
-  du -sh "$UP/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257" 2>&1
-  echo "-- 从 host 直接看文件数 --"
-  find "$UP/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257" -type f 2>/dev/null | wc -l
-  echo "-- 从 host 直接读 summary.csv --"
-  head -3 "$UP/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/summary.csv" 2>&1
+  echo "== 3. 包内说明文档 =="
+  for f in $(unzip -Z1 "$Z" 2>/dev/null | grep -Ei '\.(md|txt|rst|sh|json|yaml|yml)$' | head -10); do
+    echo "--- $f ---"
+    unzip -p "$Z" "$f" 2>&1 | head -80
+    echo
+  done
 
-  echo "== 4. host 上是否还有别的同名副本 =="
-  find /var/lib/docker /home /usr/local /data /opt -maxdepth 8 -name 'litehost_gap_20261112_150257' 2>/dev/null | head -10
+  echo "== 4. 当前已安装的相关包 =="
+  dex "/opt/corex311-cpython-vllm/bin/pip list 2>/dev/null | grep -iE 'vllm|corex|iluvatar|torch' "
+  echo "-- 两个 venv 的版本 --"
+  dex "/opt/corex311/bin/pip list 2>/dev/null | grep -iE 'vllm|corex|iluvatar'"
 
-  echo "== 5. 挂载点列表（确认 /home 是哪个 bind）=="
-  findmnt -T /home/qch -o TARGET,SOURCE,FSTYPE 2>/dev/null
-  findmnt -T /usr/local -o TARGET,SOURCE,FSTYPE 2>/dev/null
+  echo "== 5. 当前 venv 里之前 r10 的安装痕迹 =="
+  dex "ls -la /opt/corex311-cpython-vllm/lib/python3.11/site-packages 2>/dev/null | head -30"
+  dex "ls -d /opt/corex311-cpython-vllm/lib/python3.11/site-packages/*.dist-info 2>/dev/null | head -40"
+
+  echo "== 6. 之前的安装记录（如果有）=="
+  dex "ls -lat /home/qch/transfer/*.zip /home/qch/transfer/*.whl 2>/dev/null | head -20"
+  dex "ls -lat /opt/corex311-cpython-vllm/*.bak* /opt/corex311-cpython-vllm/../*bak* 2>/dev/null | head"
 
   # ---- 命令结束 ----
 
