@@ -1,0 +1,734 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T08:15:30Z
+
++ echo '== 本机环境基准 =='
+== 本机环境基准 ==
++ echo '-- NUMA --'
+-- NUMA --
++ numactl -H
++ grep -E 'node [0-9] cpus|node [0-9] size'
++ sed 's/node \([0-9]\) cpus:/node \1 CPUs:/'
+node 0 CPUs: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79
+node 0 size: 257910 MB
+node 1 CPUs: 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159
+node 1 size: 257360 MB
+node 2 CPUs: 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239
+node 2 size: 256992 MB
+node 3 CPUs: 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268 269 270 271 272 273 274 275 276 277 278 279 280 281 282 283 284 285 286 287 288 289 290 291 292 293 294 295 296 297 298 299 300 301 302 303 304 305 306 307 308 309 310 311 312 313 314 315 316 317 318 319
+node 3 size: 258036 MB
++ echo '-- GPU NUMA --'
+-- GPU NUMA --
++ for b in 0000:45:00.0 0000:48:00.0 0000:af:00.0 0000:b2:00.0
+++ cat /sys/bus/pci/devices/0000:45:00.0/numa_node
++ printf '  %s node=%s\n' 0000:45:00.0 1
+  0000:45:00.0 node=1
++ for b in 0000:45:00.0 0000:48:00.0 0000:af:00.0 0000:b2:00.0
+++ cat /sys/bus/pci/devices/0000:48:00.0/numa_node
++ printf '  %s node=%s\n' 0000:48:00.0 1
+  0000:48:00.0 node=1
++ for b in 0000:45:00.0 0000:48:00.0 0000:af:00.0 0000:b2:00.0
+++ cat /sys/bus/pci/devices/0000:af:00.0/numa_node
++ printf '  %s node=%s\n' 0000:af:00.0 3
+  0000:af:00.0 node=3
++ for b in 0000:45:00.0 0000:48:00.0 0000:af:00.0 0000:b2:00.0
+++ cat /sys/bus/pci/devices/0000:b2:00.0/numa_node
++ printf '  %s node=%s\n' 0000:b2:00.0 3
+  0000:b2:00.0 node=3
++ echo '-- 路径存在性 --'
+-- 路径存在性 --
++ for p in /home/model/Qwen3-32B-W8A8 /opt/corex311-cpython-vllm /opt/corex311 /home/lw/gperftools/.libs/libtcmalloc.so /home/huawei_ts_program/litehost_perf_opt/liblitehost.so
++ '[' -e /home/model/Qwen3-32B-W8A8 ']'
++ echo '  OK   /home/model/Qwen3-32B-W8A8'
+  OK   /home/model/Qwen3-32B-W8A8
++ for p in /home/model/Qwen3-32B-W8A8 /opt/corex311-cpython-vllm /opt/corex311 /home/lw/gperftools/.libs/libtcmalloc.so /home/huawei_ts_program/litehost_perf_opt/liblitehost.so
++ '[' -e /opt/corex311-cpython-vllm ']'
++ echo '  MISS /opt/corex311-cpython-vllm'
+  MISS /opt/corex311-cpython-vllm
++ for p in /home/model/Qwen3-32B-W8A8 /opt/corex311-cpython-vllm /opt/corex311 /home/lw/gperftools/.libs/libtcmalloc.so /home/huawei_ts_program/litehost_perf_opt/liblitehost.so
++ '[' -e /opt/corex311 ']'
++ echo '  MISS /opt/corex311'
+  MISS /opt/corex311
++ for p in /home/model/Qwen3-32B-W8A8 /opt/corex311-cpython-vllm /opt/corex311 /home/lw/gperftools/.libs/libtcmalloc.so /home/huawei_ts_program/litehost_perf_opt/liblitehost.so
++ '[' -e /home/lw/gperftools/.libs/libtcmalloc.so ']'
++ echo '  OK   /home/lw/gperftools/.libs/libtcmalloc.so'
+  OK   /home/lw/gperftools/.libs/libtcmalloc.so
++ for p in /home/model/Qwen3-32B-W8A8 /opt/corex311-cpython-vllm /opt/corex311 /home/lw/gperftools/.libs/libtcmalloc.so /home/huawei_ts_program/litehost_perf_opt/liblitehost.so
++ '[' -e /home/huawei_ts_program/litehost_perf_opt/liblitehost.so ']'
++ echo '  OK   /home/huawei_ts_program/litehost_perf_opt/liblitehost.so'
+  OK   /home/huawei_ts_program/litehost_perf_opt/liblitehost.so
++ echo ''
+
++ echo '== vllmBench_lite 脚本清单 =='
+== vllmBench_lite 脚本清单 ==
++ find /home -maxdepth 5 -name 'vllmBench_lite*.sh'
++ read -r f
++ sort -r
++ head -12
+++ stat -c %y /home/qch/scripts/vllmBench_lite.sh
+++ cut -d. -f1
+++ stat -c %s /home/qch/scripts/vllmBench_lite.sh
++ echo '  2026-10-13 16:44:09  11381  /home/qch/scripts/vllmBench_lite.sh'
++ read -r f
+++ stat -c %y /home/qch/scripts/vllmBench_lite_on.sh
+++ cut -d. -f1
+++ stat -c %s /home/qch/scripts/vllmBench_lite_on.sh
++ echo '  2026-10-14 08:38:25  16301  /home/qch/scripts/vllmBench_lite_on.sh'
++ read -r f
+++ stat -c %y /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
+++ cut -d. -f1
+++ stat -c %s /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
++ echo '  2026-10-28 21:11:47  15844  /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh'
++ read -r f
+++ stat -c %y /home/qch/scripts/litehost_perf/vllmBench_lite_opt.sh
+++ cut -d. -f1
+++ stat -c %s /home/qch/scripts/litehost_perf/vllmBench_lite_opt.sh
++ echo '  2026-10-29 20:22:55  12965  /home/qch/scripts/litehost_perf/vllmBench_lite_opt.sh'
++ read -r f
+++ stat -c %y /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
+++ cut -d. -f1
+++ stat -c %s /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
++ echo '  2026-10-28 20:44:53  12826  /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh'
++ read -r f
+++ stat -c %y /home/qch/pmu_litehost_toolkit/vllmBench_lite_pmu.sh
+++ cut -d. -f1
+++ stat -c %s /home/qch/pmu_litehost_toolkit/vllmBench_lite_pmu.sh
++ echo '  2026-11-10 19:17:16  15170  /home/qch/pmu_litehost_toolkit/vllmBench_lite_pmu.sh'
++ read -r f
+++ stat -c %y /home/qch/transfer/litehost_perf_bak/vllmBench_lite.sh
+++ cut -d. -f1
+++ stat -c %s /home/qch/transfer/litehost_perf_bak/vllmBench_lite.sh
++ echo '  2026-10-28 21:01:54  12844  /home/qch/transfer/litehost_perf_bak/vllmBench_lite.sh'
++ read -r f
+++ stat -c %y /home/qch/tools/vllm_topdown_qch/scripts/vllmBench_lite.sh
+++ cut -d. -f1
+++ stat -c %s /home/qch/tools/vllm_topdown_qch/scripts/vllmBench_lite.sh
++ echo '  2026-10-22 10:15:32  16300  /home/qch/tools/vllm_topdown_qch/scripts/vllmBench_lite.sh'
++ read -r f
+++ stat -c %y /home/c00986490/litehost_perf/vllmBench_lite.sh
+++ cut -d. -f1
+++ stat -c %s /home/c00986490/litehost_perf/vllmBench_lite.sh
++ echo '  2026-10-27 16:44:49  12910  /home/c00986490/litehost_perf/vllmBench_lite.sh'
++ read -r f
+++ stat -c %y /home/z30059427/litehost_perf_py312/vllmBench_lite.sh
+++ cut -d. -f1
+++ stat -c %s /home/z30059427/litehost_perf_py312/vllmBench_lite.sh
++ echo '  2026-10-16 10:45:03  12844  /home/z30059427/litehost_perf_py312/vllmBench_lite.sh'
++ read -r f
+++ stat -c %y /home/z30059427/litehost_perf/vllmBench_lite.sh
+++ cut -d. -f1
+++ stat -c %s /home/z30059427/litehost_perf/vllmBench_lite.sh
++ echo '  2026-10-29 15:03:21  13138  /home/z30059427/litehost_perf/vllmBench_lite.sh'
++ read -r f
+++ stat -c %y /home/g30061491/litehost_perf/vllmBench_lite.sh
+++ cut -d. -f1
+++ stat -c %s /home/g30061491/litehost_perf/vllmBench_lite.sh
++ echo '  2026-10-13 18:25:45  12844  /home/g30061491/litehost_perf/vllmBench_lite.sh'
++ read -r f
+++ stat -c %y /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+++ cut -d. -f1
+++ stat -c %s /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ echo '  2026-11-12 16:06:33  14041  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh'
++ read -r f
+++ stat -c %y /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh
+++ cut -d. -f1
+++ stat -c %s /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh
++ echo '  2026-11-11 14:52:19  14042  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh'
++ read -r f
+++ stat -c %y /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
+++ cut -d. -f1
+++ stat -c %s /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
++ echo '  2026-11-12 16:06:41  13538  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh'
++ read -r f
+++ stat -c %y /home/huawei_ts_program/test_metrics/litehost_perf/vllmBench_lite.sh
+++ cut -d. -f1
+++ stat -c %s /home/huawei_ts_program/test_metrics/litehost_perf/vllmBench_lite.sh
++ echo '  2026-10-13 18:25:45  12844  /home/huawei_ts_program/test_metrics/litehost_perf/vllmBench_lite.sh'
++ read -r f
+++ stat -c %y /home/s00806700/litehost_perf_base/vllmBench_lite.sh
+++ cut -d. -f1
+++ stat -c %s /home/s00806700/litehost_perf_base/vllmBench_lite.sh
++ echo '  2026-11-06 12:11:38  12867  /home/s00806700/litehost_perf_base/vllmBench_lite.sh'
++ read -r f
+++ stat -c %y /home/s00806700/old_script/litehost_perf/vllmBench_lite.sh
+++ cut -d. -f1
+++ stat -c %s /home/s00806700/old_script/litehost_perf/vllmBench_lite.sh
++ echo '  2026-10-31 16:13:50  12868  /home/s00806700/old_script/litehost_perf/vllmBench_lite.sh'
++ read -r f
+++ stat -c %y /home/s00806700/litehost_perf_gen/vllmBench_lite.sh
+++ cut -d. -f1
+++ stat -c %s /home/s00806700/litehost_perf_gen/vllmBench_lite.sh
++ echo '  2026-10-13 18:25:45  12844  /home/s00806700/litehost_perf_gen/vllmBench_lite.sh'
++ read -r f
+++ stat -c %y /home/s00806700/litehost_perf_gen/vllmBench_lite_pgo.sh
+++ cut -d. -f1
+++ stat -c %s /home/s00806700/litehost_perf_gen/vllmBench_lite_pgo.sh
++ echo '  2026-10-30 20:08:38  16859  /home/s00806700/litehost_perf_gen/vllmBench_lite_pgo.sh'
++ read -r f
+++ stat -c %y /home/s00806700/litehost_perf_llvmopt/vllmBench_lite.sh
+++ cut -d. -f1
+++ stat -c %s /home/s00806700/litehost_perf_llvmopt/vllmBench_lite.sh
++ echo '  2026-10-26 09:46:02  12890  /home/s00806700/litehost_perf_llvmopt/vllmBench_lite.sh'
++ read -r f
+++ stat -c %y /home/s00806700/python311-ir-pgo-corex-integrated-v3/litehost_perf_gen/vllmBench_lite_pgo.sh
+++ cut -d. -f1
+++ stat -c %s /home/s00806700/python311-ir-pgo-corex-integrated-v3/litehost_perf_gen/vllmBench_lite_pgo.sh
++ echo '  2026-10-30 17:54:02  16852  /home/s00806700/python311-ir-pgo-corex-integrated-v3/litehost_perf_gen/vllmBench_lite_pgo.sh'
++ read -r f
+++ stat -c %y /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh
+++ cut -d. -f1
+++ stat -c %s /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh
++ echo '  2026-11-12 14:56:41  14036  /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh'
++ read -r f
+++ stat -c %y /home/s00806700/litehost_perf_opt/vllmBench_lite_base.sh
+++ cut -d. -f1
+++ stat -c %s /home/s00806700/litehost_perf_opt/vllmBench_lite_base.sh
++ echo '  2026-11-10 19:02:04  13531  /home/s00806700/litehost_perf_opt/vllmBench_lite_base.sh'
++ read -r f
+++ stat -c %y /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh
+++ cut -d. -f1
+++ stat -c %s /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh
++ echo '  2026-11-12 13:47:50  14054  /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh'
++ read -r f
+++ stat -c %y /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh
+++ cut -d. -f1
+++ stat -c %s /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh
++ echo '  2026-11-12 13:20:37  14159  /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh'
++ read -r f
+++ stat -c %y /home/s00806700/litehost_perf_optbak/vllmBench_lite_opt.sh
+++ cut -d. -f1
+++ stat -c %s /home/s00806700/litehost_perf_optbak/vllmBench_lite_opt.sh
++ echo '  2026-11-10 09:26:14  14093  /home/s00806700/litehost_perf_optbak/vllmBench_lite_opt.sh'
++ read -r f
+++ stat -c %y /home/s00806700/litehost_perf_optbak/vllmBench_lite_base.sh
+++ cut -d. -f1
+++ stat -c %s /home/s00806700/litehost_perf_optbak/vllmBench_lite_base.sh
++ echo '  2026-11-04 23:10:38  14001  /home/s00806700/litehost_perf_optbak/vllmBench_lite_base.sh'
++ read -r f
+++ stat -c %y /home/s00806700/litehost_perf_genold/vllmBench_lite.sh
+++ cut -d. -f1
+++ stat -c %s /home/s00806700/litehost_perf_genold/vllmBench_lite.sh
++ echo '  2026-10-29 09:58:44  13927  /home/s00806700/litehost_perf_genold/vllmBench_lite.sh'
++ read -r f
+++ stat -c %y /home/s00806700/litehost_perf/vllmBench_lite.sh
+++ cut -d. -f1
+++ stat -c %s /home/s00806700/litehost_perf/vllmBench_lite.sh
++ echo '  2026-11-05 12:28:38  12939  /home/s00806700/litehost_perf/vllmBench_lite.sh'
++ read -r f
+++ stat -c %y /home/s00806700/litehost_perf_gccnopgo/vllmBench_lite.sh
+++ cut -d. -f1
+++ stat -c %s /home/s00806700/litehost_perf_gccnopgo/vllmBench_lite.sh
++ echo '  2026-10-19 19:32:34  12865  /home/s00806700/litehost_perf_gccnopgo/vllmBench_lite.sh'
++ read -r f
+  2026-11-12 16:06:41  13538  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
+  2026-11-12 16:06:33  14041  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+  2026-11-12 14:56:41  14036  /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh
+  2026-11-12 13:47:50  14054  /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh
+  2026-11-12 13:20:37  14159  /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh
+  2026-11-11 14:52:19  14042  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh
+  2026-11-10 19:17:16  15170  /home/qch/pmu_litehost_toolkit/vllmBench_lite_pmu.sh
+  2026-11-10 19:02:04  13531  /home/s00806700/litehost_perf_opt/vllmBench_lite_base.sh
+  2026-11-10 09:26:14  14093  /home/s00806700/litehost_perf_optbak/vllmBench_lite_opt.sh
+  2026-11-06 12:11:38  12867  /home/s00806700/litehost_perf_base/vllmBench_lite.sh
+  2026-11-05 12:28:38  12939  /home/s00806700/litehost_perf/vllmBench_lite.sh
+  2026-11-04 23:10:38  14001  /home/s00806700/litehost_perf_optbak/vllmBench_lite_base.sh
++ echo ''
+
+++ find /home -maxdepth 5 -name 'vllmBench_lite_*.sh'
+++ read -r x
+++ sort -rn
+++ head -6
+++ cut '-d ' -f2-
++++ stat -c %Y /home/qch/scripts/vllmBench_lite_on.sh
+++ echo '1791938305 /home/qch/scripts/vllmBench_lite_on.sh'
+++ read -r x
++++ stat -c %Y /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
+++ echo '1793193107 /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh'
+++ read -r x
++++ stat -c %Y /home/qch/scripts/litehost_perf/vllmBench_lite_opt.sh
+++ echo '1793276575 /home/qch/scripts/litehost_perf/vllmBench_lite_opt.sh'
+++ read -r x
++++ stat -c %Y /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
+++ echo '1793191493 /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh'
+++ read -r x
++++ stat -c %Y /home/qch/pmu_litehost_toolkit/vllmBench_lite_pmu.sh
+++ echo '1794309436 /home/qch/pmu_litehost_toolkit/vllmBench_lite_pmu.sh'
+++ read -r x
++++ stat -c %Y /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+++ echo '1794470793 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh'
+++ read -r x
++++ stat -c %Y /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh
+++ echo '1794379939 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh'
+++ read -r x
++++ stat -c %Y /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
+++ echo '1794470801 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh'
+++ read -r x
++++ stat -c %Y /home/s00806700/litehost_perf_gen/vllmBench_lite_pgo.sh
+++ echo '1793362118 /home/s00806700/litehost_perf_gen/vllmBench_lite_pgo.sh'
+++ read -r x
++++ stat -c %Y /home/s00806700/python311-ir-pgo-corex-integrated-v3/litehost_perf_gen/vllmBench_lite_pgo.sh
+++ echo '1793354042 /home/s00806700/python311-ir-pgo-corex-integrated-v3/litehost_perf_gen/vllmBench_lite_pgo.sh'
+++ read -r x
++++ stat -c %Y /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh
+++ echo '1794466601 /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh'
+++ read -r x
++++ stat -c %Y /home/s00806700/litehost_perf_opt/vllmBench_lite_base.sh
+++ echo '1794308524 /home/s00806700/litehost_perf_opt/vllmBench_lite_base.sh'
+++ read -r x
++++ stat -c %Y /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh
+++ echo '1794462470 /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh'
+++ read -r x
++++ stat -c %Y /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh
+++ echo '1794460837 /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh'
+++ read -r x
++++ stat -c %Y /home/s00806700/litehost_perf_optbak/vllmBench_lite_opt.sh
+++ echo '1794273974 /home/s00806700/litehost_perf_optbak/vllmBench_lite_opt.sh'
+++ read -r x
++++ stat -c %Y /home/s00806700/litehost_perf_optbak/vllmBench_lite_base.sh
+++ echo '1793805038 /home/s00806700/litehost_perf_optbak/vllmBench_lite_base.sh'
+++ read -r x
++ for f in $(find /home -maxdepth 5 -name 'vllmBench_lite_*.sh' 2> /dev/null | while read -r x; do
+    echo "$(stat -c %Y "$x") $x";
+done | sort -rn | head -6 | cut -d' ' -f2-)
++ echo '################ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh ################'
+################ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh ################
++ echo '-- 基础配置 --'
+-- 基础配置 --
++ grep -nE '^(MODEL_PATH|TEST_ID|PREFIX|PYTHON_BIN|GPU_LIST|GPUS_PER_INSTANCE|PORT|NUM_PROMPTS|NUM_WARMUPS|MAX_CONCURRENCY|CASE_INTERVAL|CPU_RANGE|ENABLE_TASKSET|HOST_MEASURE|HOST_TOOLKIT)=' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
++ cut -c1-150
+7:MODEL_PATH="${MODEL_PATH:-/home/model/Qwen3-32B-W8A8}"
+8:TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
+9:PREFIX="${PREFIX:-/opt/corex311}"
+10:PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+11:GPU_LIST="${GPU_LIST:-0,1,2,3}"
+12:GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+13:PORT="${PORT:-8848}"
+14:NUM_PROMPTS="${NUM_PROMPTS:-100}"
+15:NUM_WARMUPS="${NUM_WARMUPS:-16}"
+16:MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+17:CASE_INTERVAL="${CASE_INTERVAL:-60}"
+18:CPU_RANGE="${CPU_RANGE-80-159,240-319}"
+19:HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
+36:HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 解压完整 litehost_compat_slim_v041.zip 或设置 HOST_TOOLKIT' >&2; exit 2; }
++ echo '-- 依赖路径 --'
+-- 依赖路径 --
++ grep -nE 'libtcmalloc|liblitehost|gperftools|LIGHTHOST|PYTHONPATH=' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
++ cut -c1-150
++ head -8
+30:# Do not use an inherited OLD LIGHTHOST_HOME silently.
+143:        env_args+=(PYTHONPATH="$HOST_TOOLKIT"
+144:            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so"
+145:            LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+163:        env_args=(LIGHTHOST_SESSION="$SESSION_FILE" LIGHTHOST_CASE_DIR="$case_dir")
++ echo '-- CLEAN_ENV --'
+-- CLEAN_ENV --
++ grep -nA2 'CLEAN_ENV=(env' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
++ cut -c1-150
++ head -4
+70:CLEAN_ENV=(env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+71-    -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+72-SERVER_PREFIX=()
++ echo '-- r10 / 开关 --'
+-- r10 / 开关 --
++ grep -nE 'VLLM_HOST_OPT|VLLM_COMPACT_GREEDY|TORCH_MODULE_ATTR|UMD_MAX|worker-cls|compilation-config|sample_logits' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
++ cut -c1-170
++ head -14
+25:    UMD_MAXCOMMANDBUFFERNUMBER=256
+26:    UMD_MAXCOMMANDBUFFERSIZE=16384
+80:    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}'
+83:[[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
++ echo '-- 启用的用例 --'
+-- 启用的用例 --
++ awk '/CASES=\(/,/^ *\)/' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
++ grep -E '^[[:space:]]*"[0-9]+ [0-9]+"'
++ cut -c1-100
+    "128 128"
++ echo '-- 可疑项 --'
+-- 可疑项 --
++ grep -nE '192-255|2403|oe2403|/home/z30059427|/home/s00806700|timeline' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
++ cut -c1-150
++ head -6
+3:# Defaults retained: warmups=16, cache OFF, CPUs 192-255 (NUMA node 3), backend=vllm.
++ echo ''
+
++ for f in $(find /home -maxdepth 5 -name 'vllmBench_lite_*.sh' 2> /dev/null | while read -r x; do
+    echo "$(stat -c %Y "$x") $x";
+done | sort -rn | head -6 | cut -d' ' -f2-)
++ echo '################ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh ################'
+################ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh ################
++ echo '-- 基础配置 --'
+-- 基础配置 --
++ grep -nE '^(MODEL_PATH|TEST_ID|PREFIX|PYTHON_BIN|GPU_LIST|GPUS_PER_INSTANCE|PORT|NUM_PROMPTS|NUM_WARMUPS|MAX_CONCURRENCY|CASE_INTERVAL|CPU_RANGE|ENABLE_TASKSET|HOST_MEASURE|HOST_TOOLKIT)=' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ cut -c1-150
+7:MODEL_PATH="${MODEL_PATH:-/home/model/Qwen3-32B-W8A8}"
+8:TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
+9:PREFIX="${PREFIX:-/opt/corex311-cpython-vllm}"
+10:PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+11:GPU_LIST="${GPU_LIST:-0,1,2,3}"
+12:GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+13:PORT="${PORT:-8848}"
+14:NUM_PROMPTS="${NUM_PROMPTS:-100}"
+15:NUM_WARMUPS="${NUM_WARMUPS:-16}"
+16:MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+17:CASE_INTERVAL="${CASE_INTERVAL:-60}"
+18:CPU_RANGE="${CPU_RANGE-80-159,240-319}"
+19:HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
+44:HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 解压完整 litehost_compat_slim_v041.zip 或设置 HOST_TOOLKIT' >&2; exit 2; }
++ echo '-- 依赖路径 --'
+-- 依赖路径 --
++ grep -nE 'libtcmalloc|liblitehost|gperftools|LIGHTHOST|PYTHONPATH=' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ cut -c1-150
++ head -8
+38:# Do not use an inherited OLD LIGHTHOST_HOME silently.
+151:        env_args+=(PYTHONPATH="$HOST_TOOLKIT"
+152:            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/lw/gperftools/.libs/libtcmalloc.so"
+155:            LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+173:        env_args=(LIGHTHOST_SESSION="$SESSION_FILE" LIGHTHOST_CASE_DIR="$case_dir")
++ echo '-- CLEAN_ENV --'
+-- CLEAN_ENV --
++ grep -nA2 'CLEAN_ENV=(env' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ cut -c1-150
++ head -4
+78:CLEAN_ENV=(env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+79-    -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+80-SERVER_PREFIX=()
++ echo '-- r10 / 开关 --'
+-- r10 / 开关 --
++ grep -nE 'VLLM_HOST_OPT|VLLM_COMPACT_GREEDY|TORCH_MODULE_ATTR|UMD_MAX|worker-cls|compilation-config|sample_logits' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ cut -c1-170
++ head -14
+25:    UMD_MAXCOMMANDBUFFERNUMBER=256
+26:    UMD_MAXCOMMANDBUFFERSIZE=16384
+27:    VLLM_HOST_OPT=on
+28:    VLLM_HOST_OPT_INPUTS=on
+29:    VLLM_HOST_OPT_ARENA=on
+30:    VLLM_HOST_OPT_BOOKKEEPING=on
+31:    VLLM_HOST_OPT_METADATA=on
+32:    VLLM_HOST_OPT_DIAGNOSTICS=0
+33:    VLLM_COMPACT_GREEDY=on
+34:    VLLM_COMPACT_GREEDY_DIAGNOSTICS=0
+35:    TORCH_MODULE_ATTR_FASTPATH=slot_native
+88:    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":
+91:[[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
++ echo '-- 启用的用例 --'
+-- 启用的用例 --
++ awk '/CASES=\(/,/^ *\)/' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ grep -E '^[[:space:]]*"[0-9]+ [0-9]+"'
++ cut -c1-100
+  "128 128"
+  "128 1024"
+  "128 2048"
+  "1024 128"
+  "1024 1024"
+  "1024 2048"
+  "2048 128"
+  "2048 1024"
+  "2048 2048"
++ echo '-- 可疑项 --'
+-- 可疑项 --
++ grep -nE '192-255|2403|oe2403|/home/z30059427|/home/s00806700|timeline' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ cut -c1-150
++ head -6
+3:# Defaults retained: warmups=16, cache OFF, CPUs 192-255 (NUMA node 3), backend=vllm.
++ echo ''
+
++ for f in $(find /home -maxdepth 5 -name 'vllmBench_lite_*.sh' 2> /dev/null | while read -r x; do
+    echo "$(stat -c %Y "$x") $x";
+done | sort -rn | head -6 | cut -d' ' -f2-)
++ echo '################ /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh ################'
+################ /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh ################
++ echo '-- 基础配置 --'
+-- 基础配置 --
++ grep -nE '^(MODEL_PATH|TEST_ID|PREFIX|PYTHON_BIN|GPU_LIST|GPUS_PER_INSTANCE|PORT|NUM_PROMPTS|NUM_WARMUPS|MAX_CONCURRENCY|CASE_INTERVAL|CPU_RANGE|ENABLE_TASKSET|HOST_MEASURE|HOST_TOOLKIT)=' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh
++ cut -c1-150
+7:MODEL_PATH="${MODEL_PATH:-/home/model/Qwen3-32B-W8A8}"
+8:TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
+9:PREFIX="${PREFIX:-/opt/corex311-cpython-vllm}"
+10:PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+11:GPU_LIST="${GPU_LIST:-0,1,2,3}"
+12:GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+13:PORT="${PORT:-8848}"
+14:NUM_PROMPTS="${NUM_PROMPTS:-100}"
+15:NUM_WARMUPS="${NUM_WARMUPS:-16}"
+16:MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+17:CASE_INTERVAL="${CASE_INTERVAL:-60}"
+18:CPU_RANGE="${CPU_RANGE-192-255}"
+19:HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
+44:HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 解压完整 litehost_compat_slim_v041.zip 或设置 HOST_TOOLKIT' >&2; exit 2; }
++ echo '-- 依赖路径 --'
+-- 依赖路径 --
++ grep -nE 'libtcmalloc|liblitehost|gperftools|LIGHTHOST|PYTHONPATH=' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh
++ cut -c1-150
++ head -8
+38:# Do not use an inherited OLD LIGHTHOST_HOME silently.
+151:        env_args+=(PYTHONPATH="$HOST_TOOLKIT"
+152:            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/s00806700/libmimalloc.so.3.6"
+155:            LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+173:        env_args=(LIGHTHOST_SESSION="$SESSION_FILE" LIGHTHOST_CASE_DIR="$case_dir")
++ echo '-- CLEAN_ENV --'
+-- CLEAN_ENV --
++ grep -nA2 'CLEAN_ENV=(env' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh
++ cut -c1-150
++ head -4
+78:CLEAN_ENV=(env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+79-    -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+80-SERVER_PREFIX=()
++ echo '-- r10 / 开关 --'
+-- r10 / 开关 --
++ grep -nE 'VLLM_HOST_OPT|VLLM_COMPACT_GREEDY|TORCH_MODULE_ATTR|UMD_MAX|worker-cls|compilation-config|sample_logits' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh
++ cut -c1-170
++ head -14
+25:    UMD_MAXCOMMANDBUFFERNUMBER=256
+26:    UMD_MAXCOMMANDBUFFERSIZE=16384
+27:    VLLM_HOST_OPT=on
+28:    VLLM_HOST_OPT_INPUTS=on
+29:    VLLM_HOST_OPT_ARENA=on
+30:    VLLM_HOST_OPT_BOOKKEEPING=on
+31:    VLLM_HOST_OPT_METADATA=on
+32:    VLLM_HOST_OPT_DIAGNOSTICS=0
+33:    VLLM_COMPACT_GREEDY=on
+34:    VLLM_COMPACT_GREEDY_DIAGNOSTICS=0
+35:    TORCH_MODULE_ATTR_FASTPATH=slot_native
+88:    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":
+91:[[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
++ echo '-- 启用的用例 --'
+-- 启用的用例 --
++ awk '/CASES=\(/,/^ *\)/' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh
++ grep -E '^[[:space:]]*"[0-9]+ [0-9]+"'
++ cut -c1-100
+  "128 128"
++ echo '-- 可疑项 --'
+-- 可疑项 --
++ grep -nE '192-255|2403|oe2403|/home/z30059427|/home/s00806700|timeline' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh
++ cut -c1-150
++ head -6
+3:# Defaults retained: warmups=16, cache OFF, CPUs 192-255 (NUMA node 3), backend=vllm.
+18:CPU_RANGE="${CPU_RANGE-192-255}"
+152:            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/s00806700/libmimalloc.so.3.6"
++ echo ''
+
++ for f in $(find /home -maxdepth 5 -name 'vllmBench_lite_*.sh' 2> /dev/null | while read -r x; do
+    echo "$(stat -c %Y "$x") $x";
+done | sort -rn | head -6 | cut -d' ' -f2-)
++ echo '################ /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh ################'
+################ /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh ################
++ echo '-- 基础配置 --'
+-- 基础配置 --
++ grep -nE '^(MODEL_PATH|TEST_ID|PREFIX|PYTHON_BIN|GPU_LIST|GPUS_PER_INSTANCE|PORT|NUM_PROMPTS|NUM_WARMUPS|MAX_CONCURRENCY|CASE_INTERVAL|CPU_RANGE|ENABLE_TASKSET|HOST_MEASURE|HOST_TOOLKIT)=' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh
++ cut -c1-150
+7:MODEL_PATH="${MODEL_PATH:-/home/model/Qwen3-32B-W8A8}"
+8:TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
+9:PREFIX="${PREFIX:-/opt/corex311-cpython-vllm}"
+10:PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+11:GPU_LIST="${GPU_LIST:-0,1,2,3}"
+12:GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+13:PORT="${PORT:-8848}"
+14:NUM_PROMPTS="${NUM_PROMPTS:-100}"
+15:NUM_WARMUPS="${NUM_WARMUPS:-16}"
+16:MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+17:CASE_INTERVAL="${CASE_INTERVAL:-60}"
+18:CPU_RANGE="${CPU_RANGE-192-255}"
+19:HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
+44:HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 解压完整 litehost_compat_slim_v041.zip 或设置 HOST_TOOLKIT' >&2; exit 2; }
++ echo '-- 依赖路径 --'
+-- 依赖路径 --
++ grep -nE 'libtcmalloc|liblitehost|gperftools|LIGHTHOST|PYTHONPATH=' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh
++ cut -c1-150
++ head -8
+38:# Do not use an inherited OLD LIGHTHOST_HOME silently.
+142:        env_args+=(PYTHONPATH="$HOST_TOOLKIT"
+143:            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/lw/gperftools/.libs/libtcmalloc.so"
+146:            LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+165:        env_args=(LIGHTHOST_SESSION="$SESSION_FILE" LIGHTHOST_CASE_DIR="$case_dir")
++ echo '-- CLEAN_ENV --'
+-- CLEAN_ENV --
++ grep -nA2 'CLEAN_ENV=(env' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh
++ cut -c1-150
++ head -4
+69:CLEAN_ENV=(env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+70-    -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+71-SERVER_PREFIX=()
++ echo '-- r10 / 开关 --'
+-- r10 / 开关 --
++ grep -nE 'VLLM_HOST_OPT|VLLM_COMPACT_GREEDY|TORCH_MODULE_ATTR|UMD_MAX|worker-cls|compilation-config|sample_logits' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh
++ cut -c1-170
++ head -14
+25:    UMD_MAXCOMMANDBUFFERNUMBER=256
+26:    UMD_MAXCOMMANDBUFFERSIZE=16384
+27:    VLLM_HOST_OPT=on
+28:    VLLM_HOST_OPT_INPUTS=on
+29:    VLLM_HOST_OPT_ARENA=on
+30:    VLLM_HOST_OPT_BOOKKEEPING=on
+31:    VLLM_HOST_OPT_METADATA=on
+32:    VLLM_HOST_OPT_DIAGNOSTICS=0
+33:    VLLM_COMPACT_GREEDY=on
+34:    VLLM_COMPACT_GREEDY_DIAGNOSTICS=0
+35:    TORCH_MODULE_ATTR_FASTPATH=slot_native
+79:    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":
+82:[[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
++ echo '-- 启用的用例 --'
+-- 启用的用例 --
++ awk '/CASES=\(/,/^ *\)/' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh
++ grep -E '^[[:space:]]*"[0-9]+ [0-9]+"'
++ cut -c1-100
++ echo '-- 可疑项 --'
+-- 可疑项 --
++ grep -nE '192-255|2403|oe2403|/home/z30059427|/home/s00806700|timeline' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh
++ cut -c1-150
++ head -6
+3:# Defaults retained: warmups=16, cache OFF, CPUs 192-255 (NUMA node 3), backend=vllm.
+18:CPU_RANGE="${CPU_RANGE-192-255}"
++ echo ''
+
++ for f in $(find /home -maxdepth 5 -name 'vllmBench_lite_*.sh' 2> /dev/null | while read -r x; do
+    echo "$(stat -c %Y "$x") $x";
+done | sort -rn | head -6 | cut -d' ' -f2-)
++ echo '################ /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh ################'
+################ /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh ################
++ echo '-- 基础配置 --'
+-- 基础配置 --
++ grep -nE '^(MODEL_PATH|TEST_ID|PREFIX|PYTHON_BIN|GPU_LIST|GPUS_PER_INSTANCE|PORT|NUM_PROMPTS|NUM_WARMUPS|MAX_CONCURRENCY|CASE_INTERVAL|CPU_RANGE|ENABLE_TASKSET|HOST_MEASURE|HOST_TOOLKIT)=' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh
++ cut -c1-150
+8:MODEL_PATH="${MODEL_PATH:-/home/model/Qwen3-32B-W8A8}"
+9:TEST_ID="${TEST_ID:-"llvm_gap_$(date +%Y%m%d_%H%M%S)"}"
+10:PREFIX="${PREFIX:-/home/s00806700/cpython-llvm23-venv/venv-llvm23}"
+11:PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+12:GPU_LIST="${GPU_LIST:-0,1,2,3}"
+13:GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+14:PORT="${PORT:-8848}"
+15:NUM_PROMPTS="${NUM_PROMPTS:-100}"
+16:NUM_WARMUPS="${NUM_WARMUPS:-16}"
+17:MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+18:CASE_INTERVAL="${CASE_INTERVAL:-60}"
+19:CPU_RANGE="${CPU_RANGE-192-255}"
+20:HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
+45:HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 解压完整 litehost_compat_slim_v041.zip 或设置 HOST_TOOLKIT' >&2; exit 2; }
++ echo '-- 依赖路径 --'
+-- 依赖路径 --
++ grep -nE 'libtcmalloc|liblitehost|gperftools|LIGHTHOST|PYTHONPATH=' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh
++ cut -c1-150
++ head -8
+39:# Do not use an inherited OLD LIGHTHOST_HOME silently.
+152:        env_args+=(PYTHONPATH="$HOST_TOOLKIT"
+153:            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/lw/gperftools/.libs/libtcmalloc.so"
+156:            LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+174:        env_args=(LIGHTHOST_SESSION="$SESSION_FILE" LIGHTHOST_CASE_DIR="$case_dir")
++ echo '-- CLEAN_ENV --'
+-- CLEAN_ENV --
++ grep -nA2 'CLEAN_ENV=(env' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh
++ cut -c1-150
++ head -4
+79:CLEAN_ENV=(env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+80-    -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+81-SERVER_PREFIX=()
++ echo '-- r10 / 开关 --'
+-- r10 / 开关 --
++ grep -nE 'VLLM_HOST_OPT|VLLM_COMPACT_GREEDY|TORCH_MODULE_ATTR|UMD_MAX|worker-cls|compilation-config|sample_logits' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh
++ cut -c1-170
++ head -14
+26:    UMD_MAXCOMMANDBUFFERNUMBER=256
+27:    UMD_MAXCOMMANDBUFFERSIZE=16384
+28:    VLLM_HOST_OPT=on
+29:    VLLM_HOST_OPT_INPUTS=on
+30:    VLLM_HOST_OPT_ARENA=on
+31:    VLLM_HOST_OPT_BOOKKEEPING=on
+32:    VLLM_HOST_OPT_METADATA=on
+33:    VLLM_HOST_OPT_DIAGNOSTICS=0
+34:    VLLM_COMPACT_GREEDY=on
+35:    VLLM_COMPACT_GREEDY_DIAGNOSTICS=0
+36:    TORCH_MODULE_ATTR_FASTPATH=slot_native
+89:    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":
+92:[[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
++ echo '-- 启用的用例 --'
+-- 启用的用例 --
++ awk '/CASES=\(/,/^ *\)/' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh
++ grep -E '^[[:space:]]*"[0-9]+ [0-9]+"'
++ cut -c1-100
+  "128 128"
++ echo '-- 可疑项 --'
+-- 可疑项 --
++ grep -nE '192-255|2403|oe2403|/home/z30059427|/home/s00806700|timeline' /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh
++ cut -c1-150
++ head -6
+4:# Defaults retained: warmups=16, cache OFF, CPUs 192-255 (NUMA node 3), backend=vllm.
+10:PREFIX="${PREFIX:-/home/s00806700/cpython-llvm23-venv/venv-llvm23}"
+19:CPU_RANGE="${CPU_RANGE-192-255}"
++ echo ''
+
++ for f in $(find /home -maxdepth 5 -name 'vllmBench_lite_*.sh' 2> /dev/null | while read -r x; do
+    echo "$(stat -c %Y "$x") $x";
+done | sort -rn | head -6 | cut -d' ' -f2-)
++ echo '################ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh ################'
+################ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh ################
++ echo '-- 基础配置 --'
+-- 基础配置 --
++ grep -nE '^(MODEL_PATH|TEST_ID|PREFIX|PYTHON_BIN|GPU_LIST|GPUS_PER_INSTANCE|PORT|NUM_PROMPTS|NUM_WARMUPS|MAX_CONCURRENCY|CASE_INTERVAL|CPU_RANGE|ENABLE_TASKSET|HOST_MEASURE|HOST_TOOLKIT)=' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh
++ cut -c1-150
+7:MODEL_PATH="${MODEL_PATH:-/home/model/Qwen3-32B-W8A8}"
+8:TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
+9:PREFIX="${PREFIX:-/opt/corex311-cpython-vllm}"
+10:PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+11:GPU_LIST="${GPU_LIST:-0,1,2,3}"
+12:GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+13:PORT="${PORT:-8848}"
+14:NUM_PROMPTS="${NUM_PROMPTS:-100}"
+15:NUM_WARMUPS="${NUM_WARMUPS:-16}"
+16:MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+17:CASE_INTERVAL="${CASE_INTERVAL:-60}"
+18:CPU_RANGE="${CPU_RANGE-192-255}"
+19:HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
+44:HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 解压完整 litehost_compat_slim_v041.zip 或设置 HOST_TOOLKIT' >&2; exit 2; }
++ echo '-- 依赖路径 --'
+-- 依赖路径 --
++ grep -nE 'libtcmalloc|liblitehost|gperftools|LIGHTHOST|PYTHONPATH=' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh
++ cut -c1-150
++ head -8
+38:# Do not use an inherited OLD LIGHTHOST_HOME silently.
+151:        env_args+=(PYTHONPATH="$HOST_TOOLKIT"
+152:            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/lw/gperftools/.libs/libtcmalloc.so"
+155:            LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+173:        env_args=(LIGHTHOST_SESSION="$SESSION_FILE" LIGHTHOST_CASE_DIR="$case_dir")
++ echo '-- CLEAN_ENV --'
+-- CLEAN_ENV --
++ grep -nA2 'CLEAN_ENV=(env' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh
++ cut -c1-150
++ head -4
+78:CLEAN_ENV=(env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+79-    -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+80-SERVER_PREFIX=()
++ echo '-- r10 / 开关 --'
+-- r10 / 开关 --
++ grep -nE 'VLLM_HOST_OPT|VLLM_COMPACT_GREEDY|TORCH_MODULE_ATTR|UMD_MAX|worker-cls|compilation-config|sample_logits' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh
++ cut -c1-170
++ head -14
+25:    UMD_MAXCOMMANDBUFFERNUMBER=256
+26:    UMD_MAXCOMMANDBUFFERSIZE=16384
+27:    VLLM_HOST_OPT=on
+28:    VLLM_HOST_OPT_INPUTS=on
+29:    VLLM_HOST_OPT_ARENA=on
+30:    VLLM_HOST_OPT_BOOKKEEPING=on
+31:    VLLM_HOST_OPT_METADATA=on
+32:    VLLM_HOST_OPT_DIAGNOSTICS=0
+33:    VLLM_COMPACT_GREEDY=on
+34:    VLLM_COMPACT_GREEDY_DIAGNOSTICS=0
+35:    TORCH_MODULE_ATTR_FASTPATH=slot_native
+88:    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":
+91:[[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
++ echo '-- 启用的用例 --'
+-- 启用的用例 --
++ awk '/CASES=\(/,/^ *\)/' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh
++ grep -E '^[[:space:]]*"[0-9]+ [0-9]+"'
++ cut -c1-100
+  "128 1024"
++ echo '-- 可疑项 --'
+-- 可疑项 --
++ grep -nE '192-255|2403|oe2403|/home/z30059427|/home/s00806700|timeline' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh
++ cut -c1-150
++ head -6
+3:# Defaults retained: warmups=16, cache OFF, CPUs 192-255 (NUMA node 3), backend=vllm.
+18:CPU_RANGE="${CPU_RANGE-192-255}"
++ echo ''
+
++ set +x
+
+### exit: 0
