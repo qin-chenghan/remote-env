@@ -1,0 +1,28 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T06:26:04Z
+
++ T=/home/qch/scripts/timeline
+++ head -1
+++ ls /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
++ A=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
+++ ls /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
+++ head -1
++ B=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
++ python3 /home/qch/tools/remote-env/184/trace_phase_delta.py /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
+A steps=1692 B steps=1692
+
+== A-prefill / B-decode ==
+  step#  651 dur=  14.15ms ar_calls=  96 (other: dur=   3.56ms ar_calls=   0)
+  step#  911 dur=  14.28ms ar_calls=  91 (other: dur=   3.18ms ar_calls=   0)
+  step# 1041 dur=  16.96ms ar_calls= 120 (other: dur=   3.35ms ar_calls=   0)
+  step# 1301 dur=  12.89ms ar_calls=  85 (other: dur=   3.27ms ar_calls=   0)
+  step# 1431 dur=   3.52ms ar_calls=  14 (other: dur=   3.24ms ar_calls=   0)
+  共 5 步
+  这些步的时长: min=3.52 max=16.96 均值=12.36ms
+
+== A-decode / B-prefill ==
+  共 0 步
++ set +x
+
+### exit: 0
