@@ -1,56 +1,88 @@
 #!/usr/bin/env python3
 """扫描 /home 下所有 vllmBench_lite*.sh，逐文件检查 184 相关配置。
 
-检查项：
-  CPU_RANGE   期望 80-159,240-319（GPU0/1 在 node1，GPU2/3 在 node3）
-  tcmalloc    期望 /home/lw/gperftools/.libs/libtcmalloc.so（32 的路径不可用）
-  MODEL_PATH  期望 /home/model/Qwen3-32B-W8A8（/home/model/ts 在 184 不存在）
-  PYTHONPATH  期望 ="$HOST_TOOLKIT"（不得再拼继承值）
-  CLEAN_ENV   需含 -u PYTHONPATH -u PYTHONHOME
+检查项（n/a = 该文件没有这一项，不算错）：
+  CPU_RANGE   期望 80-159,240-319（GPU0/1 node1，GPU2/3 node3）
+  tcmalloc    若出现 libtcmalloc，期望 /home/lw/gperftools/.libs/libtcmalloc.so
+  MODEL_PATH  若设置，期望 /home/model/Qwen3-32B-W8A8
+  PYTHONPATH  若出现，期望 ="$HOST_TOOLKIT"（不得拼 ${PYTHONPATH:+...}）
+  CLEAN_ENV   若存在，需包含 PYTHONPATH 的 unset
 """
 import os
 import re
-import sys
 
 EXPECT_CPU = "80-159,240-319"
 EXPECT_TCM = "/home/lw/gperftools/.libs/libtcmalloc.so"
 EXPECT_MODEL = "/home/model/Qwen3-32B-W8A8"
 
-ROOTS = ["/home"]
+VAR_RE = r'^{key}="\${{{key}:?-?([^}}]*)\}}"'
 SKIP_DIRS = ("/.git", "/docker/")
 
 
 def find_files():
     hits = []
-    for root in ROOTS:
-        for dirpath, dirnames, filenames in os.walk(root):
-            if any(s in dirpath for s in SKIP_DIRS):
-                dirnames[:] = []
-                continue
-            if dirpath.count(os.sep) > 6:
-                dirnames[:] = []
-                continue
-            for name in filenames:
-                if name.startswith("vllmBench_lite") and name.endswith(".sh"):
-                    p = os.path.join(dirpath, name)
-                    try:
-                        hits.append((os.path.getmtime(p), p))
-                    except OSError:
-                        pass
+    for dirpath, dirnames, filenames in os.walk("/home"):
+        if any(s in dirpath for s in SKIP_DIRS) or dirpath.count(os.sep) > 6:
+            dirnames[:] = []
+            continue
+        for name in filenames:
+            if name.startswith("vllmBench_lite") and name.endswith(".sh"):
+                p = os.path.join(dirpath, name)
+                try:
+                    hits.append((os.path.getmtime(p), p))
+                except OSError:
+                    pass
     return [p for _, p in sorted(hits, reverse=True)]
 
 
 def value_of(text, key):
-    m = re.search(rf'^{key}="\$\{{{key}[:\-]([^}}]*)\}}"', text, re.M)
-    return m.group(1) if m else None
+    m = re.search(VAR_RE.format(key=key), text, re.M)
+    return m.group(1).strip() if m else None
+
+
+def check_cpu(t):
+    v = value_of(t, "CPU_RANGE")
+    if v is None:
+        return "n/a"
+    return "OK" if v == EXPECT_CPU else "'" + v + "'"
+
+
+def check_tcm(t):
+    if "libtcmalloc" not in t:
+        return "none"
+    if EXPECT_TCM in t:
+        return "OK"
+    m = re.search(r"libtcmalloc[^\s\"';]*", t)
+    return "WRONG:" + (m.group(0) if m else "?")
+
+
+def check_model(t):
+    v = value_of(t, "MODEL_PATH")
+    if v is None:
+        return "n/a"
+    return "OK" if v == EXPECT_MODEL else "WRONG:'" + v + "'"
+
+
+def check_py(t):
+    if re.search(r'PYTHONPATH="\$\{HOST_TOOLKIT\}\$\{PYTHONPATH', t):
+        return "POLLUTED"
+    if 'PYTHONPATH="$HOST_TOOLKIT"' in t:
+        return "OK"
+    return "n/a"
+
+
+def check_clean(t):
+    m = re.search(r"CLEAN_ENV=\(env(.+?)\)", t, re.S)
+    if not m:
+        return "none"
+    return "OK" if "PYTHONPATH" in m.group(1) else "MISSING"
 
 
 def main():
     files = find_files()
     print(f"共 {len(files)} 个文件\n")
-    hdr = f"{'status':6s} {'CPU_RANGE':16s} {'tcmalloc':10s} {'model':9s} {'PYTHONPATH':10s} {'CLEAN_ENV':9s}  file"
-    print(hdr)
-    print("-" * len(hdr))
+    print(f"{'status':6s} {'CPU_RANGE':22s} {'tcmalloc':16s} {'model':10s} {'PYTHONPATH':10s} {'CLEAN_ENV':8s}  file")
+    print("-" * 130)
     bad = []
     for p in files:
         try:
@@ -58,21 +90,18 @@ def main():
         except OSError as e:
             print(f"READERR {p}: {e}")
             continue
-        cpu = value_of(t, "CPU_RANGE")
-        tc = "OK" if EXPECT_TCM in t else ("MISS" if "libtcmalloc" in t else "-")
-        if "libtcmalloc" in t and EXPECT_TCM not in t:
-            m = re.search(r"libtcmalloc[^\s\"':]*", t)
-            tc = "WRONG" if m else tc
-        model = value_of(t, "MODEL_PATH")
-        model_ok = "OK" if model == EXPECT_MODEL else ("UNSET" if model is None else "WRONG")
-        py = "OK" if 'PYTHONPATH="$HOST_TOOLKIT"' in t else "WRONG"
-        ce = "OK" if re.search(r"CLEAN_ENV=\(env[^\n]*\n[^\n]*PYTHONPATH", t) else "WRONG"
-        cpu_ok = "OK" if cpu == EXPECT_CPU else ("UNSET" if cpu is None else "WRONG")
-        bad_flag = any(x in ("WRONG", "UNSET") for x in (cpu_ok, model_ok, py, ce)) or tc == "WRONG"
-        status = "BAD" if bad_flag else "ok"
-        if bad_flag:
+        cpu, tc, model, py, ce = check_cpu(t), check_tcm(t), check_model(t), check_py(t), check_clean(t)
+        is_bad = (
+            cpu not in ("OK", "n/a")
+            or tc.startswith("WRONG")
+            or model.startswith("WRONG")
+            or py == "POLLUTED"
+            or ce == "MISSING"
+        )
+        status = "BAD" if is_bad else "ok"
+        if is_bad:
             bad.append(p)
-        print(f"{status:6s} {str(cpu)[:16]:16s} {tc:10s} {model_ok:9s} {py:10s} {ce:9s}  {p}")
+        print(f"{status:6s} {cpu:22s} {tc:16s} {model:10s} {py:10s} {ce:8s}  {p}")
     print(f"\n需要修正: {len(bad)}")
     for p in bad:
         print("  ❌", p)
