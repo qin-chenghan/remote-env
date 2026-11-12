@@ -1,0 +1,168 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T11:35:06Z
+
++ C=corex5-py311
++ W=/home/qch/transfer/r14
++ D=/home/qch/transfer/r14/host-opt-pr-validation-20261106-r14
++ V=/opt/corex311-cpython-vllm
++ SP=/opt/corex311-cpython-vllm/lib/python3.11/site-packages
++ PY=/opt/corex311-cpython-vllm/bin/python
++ echo '== 1. 服务占用检查 =='
+== 1. 服务占用检查 ==
+++ timeout 60 docker exec corex5-py311 bash -c 'ps -eo args | grep -E '\''vllm|benchmark|lhctl|api_server'\'' | grep -v grep | head -5'
++ BUSY=
++ '[' -n '' ']'
++ echo '无 vllm/bench 进程'
+无 vllm/bench 进程
++ echo '== 2. 当前安装状态（应仍是原厂：无备份、无 host_opt.py）=='
+== 2. 当前安装状态（应仍是原厂：无备份、无 host_opt.py）==
++ dex 'ls -ld /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup 2>&1'
++ timeout 180 docker exec corex5-py311 bash -c 'ls -ld /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup 2>&1'
+ls: cannot access '/opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup': No such file or directory
++ dex 'ls -l /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy_backport.py 2>&1'
++ timeout 180 docker exec corex5-py311 bash -c 'ls -l /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy_backport.py 2>&1'
+ls: cannot access '/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py': No such file or directory
+ls: cannot access '/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy_backport.py': No such file or directory
++ dex 'grep -c VLLM_HOST_OPT_POSITIONS /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py 2>/dev/null'
++ timeout 180 docker exec corex5-py311 bash -c 'grep -c VLLM_HOST_OPT_POSITIONS /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py 2>/dev/null'
+0
++ echo '== 3. torch 导入诊断 =='
+== 3. torch 导入诊断 ==
++ dex 'env | grep -E '\''PYTHONPATH|PYTHONHOME|LD_PRELOAD'\'' || echo '\''无 PYTHON* / LD_PRELOAD'\'''
++ timeout 180 docker exec corex5-py311 bash -c 'env | grep -E '\''PYTHONPATH|PYTHONHOME|LD_PRELOAD'\'' || echo '\''无 PYTHON* / LD_PRELOAD'\'''
+PYTHONPATH=/usr/local/lib/python3.12/site-packages
++ dex '/opt/corex311-cpython-vllm/bin/python -c '\''import sys;print(sys.version);print(sys.executable);print(sys.path)'\'''
++ timeout 180 docker exec corex5-py311 bash -c '/opt/corex311-cpython-vllm/bin/python -c '\''import sys;print(sys.version);print(sys.executable);print(sys.path)'\'''
+3.11.6 (main, Oct 23 2026, 16:26:10) [GCC 13.3.0]
+/opt/corex311-cpython-vllm/bin/python
+['', '/usr/local/lib/python3.12/site-packages', '/opt/cpython-vllm/v1/lib/python311.zip', '/opt/cpython-vllm/v1/lib/python3.11', '/opt/cpython-vllm/v1/lib/python3.11/lib-dynload', '/opt/corex311-cpython-vllm/lib/python3.11/site-packages']
++ dex 'env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python -c '\''import torch;print(torch.__version__, torch.__file__)'\'''
++ timeout 180 docker exec corex5-py311 bash -c 'env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python -c '\''import torch;print(torch.__version__, torch.__file__)'\'''
+2.10.0 /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/__init__.py
++ echo '--- 带原环境导入（预期报错，复现故障）---'
+--- 带原环境导入（预期报错，复现故障）---
++ dex '/opt/corex311-cpython-vllm/bin/python -c '\''import torch;print(torch.__version__, torch.__file__)'\'' 2>&1 | tail -5'
++ timeout 180 docker exec corex5-py311 bash -c '/opt/corex311-cpython-vllm/bin/python -c '\''import torch;print(torch.__version__, torch.__file__)'\'' 2>&1 | tail -5'
+        $ python -m pip install --no-build-isolation -v . && python -c "import torch"
+
+    This error can generally be solved using the `develop` workflow
+        $ python -m pip install --no-build-isolation -v -e . && python -c "import torch"  # This should succeed
+    or by running Python from a different directory.
++ echo '--- venv 内 torch 落地位置 ---'
+--- venv 内 torch 落地位置 ---
++ dex 'ls -d /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/_C* 2>&1 | head -3; ls -l /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/_C/*.so 2>/dev/null | head -3'
++ timeout 180 docker exec corex5-py311 bash -c 'ls -d /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/_C* 2>&1 | head -3; ls -l /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/_C/*.so 2>/dev/null | head -3'
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/_C
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/_C.cpython-311-aarch64-linux-gnu.so
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/_C_flatbuffer
++ dex 'ls -d /usr/local/lib/python3.12/site-packages/torch 2>&1'
++ timeout 180 docker exec corex5-py311 bash -c 'ls -d /usr/local/lib/python3.12/site-packages/torch 2>&1'
+/usr/local/lib/python3.12/site-packages/torch
++ echo '== 4. 干净 env 下 dry-run =='
+== 4. 干净 env 下 dry-run ==
++ dex 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages --dry-run 2>&1 | tail -20'
++ timeout 180 docker exec corex5-py311 bash -c 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages --dry-run 2>&1 | tail -20'
++ /opt/corex311-cpython-vllm/bin/python /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/scripts/apply_patch.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages --check /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/container/patches/0001-host-paths.patch /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/container/patches/0002-ilu-metadata.patch /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/container/patches/0003-compact-greedy.patch
+would apply 0001-host-paths.patch
+would apply 0002-ilu-metadata.patch
+would apply 0003-compact-greedy.patch
+dry run: baseline and patches PASS; nothing changed
++ echo '== 5. 干净 env 下正式安装 =='
+== 5. 干净 env 下正式安装 ==
++ dexl 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages 2>&1 | tee /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/install-r14-clean.log | tail -30'
++ timeout 1800 docker exec corex5-py311 bash -c 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages 2>&1 | tee /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/install-r14-clean.log | tail -30'
+-- Configuring done (6.5s)
+-- Generating done (0.0s)
+-- Build files have been written to: /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-build/pr1
++ cmake --build /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-build/pr1 --target _host_opt_native -j2
+[ 50%] Building CXX object CMakeFiles/_host_opt_native.dir/csrc/host_opt_native.cpp.o
+[100%] Linking CXX shared module _host_opt_native.abi3.so
+[100%] Built target _host_opt_native
++ cmake --install /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-build/pr1 --component _host_opt_native
+-- Install configuration: "Release"
+-- Installing: /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_native.abi3.so
++ cmake -S /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14/source/pr2/CoreX-5.0.0/native -B /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-build/pr2 -DCMAKE_BUILD_TYPE=Release -DPython_EXECUTABLE=/opt/corex311-cpython-vllm/bin/python -DVLLM_PACKAGE_DIR=/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm
+-- The C compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Found Python: /opt/corex311-cpython-vllm/bin/python (found suitable version "3.11.6", minimum required is "3.11") found components: Interpreter Development.Module
+-- vLLM package directory: /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
+-- Build files have been written to: /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-build/pr2
++ cmake --build /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-build/pr2 -j2
+[ 50%] Building C object CMakeFiles/_host_opt_meta_native.dir/native.c.o
+[100%] Linking C shared module _host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+[100%] Built target _host_opt_meta_native
++ cmake --install /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-build/pr2
+-- Install configuration: "Release"
+-- Installing: /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so
+installed: defaults remain off; run scripts/verify.py separately
++ RC=0
++ echo 'install rc=0'
+install rc=0
++ echo '== 6. check =='
+== 6. check ==
++ dex 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages --check 2>&1 | tail -20'
++ timeout 180 docker exec corex5-py311 bash -c 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python scripts/install.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages --check 2>&1 | tail -20'
+installed source digests and both built modules: PASS
++ echo '== 7. verify =='
+== 7. verify ==
++ dexl 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python scripts/verify.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages 2>&1 | tail -25'
++ timeout 1800 docker exec corex5-py311 bash -c 'cd /home/qch/transfer/r14/host-opt-pr-validation-20261106-r14 && env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python scripts/verify.py --root /opt/corex311-cpython-vllm/lib/python3.11/site-packages 2>&1 | tail -25'
+      "path": "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/_host_opt_meta_native.cpython-311-aarch64-linux-gnu.so",
+      "sha256": "7c8686a72759d2e4f75e8157b819039fcdcf69c1b5eba5948e0d956859af1715"
+    },
+    "vllm.v1.worker.host_opt": {
+      "path": "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py",
+      "sha256": "18d24b7604121765a8375129310cecd8be1b3c40071789a0d4cc11fc282bd421"
+    },
+    "vllm.v1.attention.backends.ilu_flash_attn": {
+      "path": "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py",
+      "sha256": "04049f511f8b2f3d0986d3494f70f5d596a409edc0ad3329aa48acd6e1b6a945"
+    }
+  },
+  "default_features": {
+    "inputs": false,
+    "arena": false,
+    "bookkeeping": false,
+    "positions": false
+  },
+  "default_compact_greedy": false,
+  "default_sample_logits_graph": false,
+  "default_graph_scope": "decode",
+  "unchanged_backbone_compile_hash": true,
+  "pytest_exit_code": 0
+}
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ echo '== 8. 安装后状态 =='
+== 8. 安装后状态 ==
++ dex 'ls -ld /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup; ls /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup | head -3'
++ timeout 180 docker exec corex5-py311 bash -c 'ls -ld /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup; ls /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup | head -3'
+drwxr-xr-x. 3 root root 4096 Nov 12 19:35 /opt/corex311-cpython-vllm/lib/python3.11/site-packages/.host-opt-pr-backup
+STATE.json
+vllm
++ dex 'ls -l /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy_backport.py 2>&1'
++ timeout 180 docker exec corex5-py311 bash -c 'ls -l /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy_backport.py 2>&1'
+-rw-r--r--. 1 root root 20660 Nov 12 19:35 /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/compact_greedy_backport.py
+-rw-r--r--. 1 root root 45133 Nov 12 19:35 /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py
++ echo -n 'envs.py POSITIONS: '
+envs.py POSITIONS: + dex 'grep -c VLLM_HOST_OPT_POSITIONS /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py'
++ timeout 180 docker exec corex5-py311 bash -c 'grep -c VLLM_HOST_OPT_POSITIONS /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py'
+3
++ echo -n 'compilation.py compact_greedy: '
+compilation.py compact_greedy: + dex 'grep -c compact_greedy /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/compilation.py'
++ timeout 180 docker exec corex5-py311 bash -c 'grep -c compact_greedy /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/compilation.py'
+2
++ echo '--- 开关默认值（应全关）---'
+--- 开关默认值（应全关）---
++ dex 'env | grep VLLM_HOST_OPT || echo '\''未设置 VLLM_HOST_OPT*（默认关闭）'\'''
++ timeout 180 docker exec corex5-py311 bash -c 'env | grep VLLM_HOST_OPT || echo '\''未设置 VLLM_HOST_OPT*（默认关闭）'\'''
+未设置 VLLM_HOST_OPT*（默认关闭）
++ set +x
+
+### exit: 0
