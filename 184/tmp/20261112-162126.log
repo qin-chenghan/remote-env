@@ -1,0 +1,76 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T08:21:26Z
+
++ python3 /home/qch/tools/remote-env/184/scan_lite_configs.py
+共 31 个文件
+
+status CPU_RANGE        tcmalloc   model     PYTHONPATH CLEAN_ENV  file
+-----------------------------------------------------------------------
+BAD    80-159,240-319   -          WRONG     OK         WRONG      /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
+BAD    80-159,240-319   OK         WRONG     OK         WRONG      /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+BAD    192-255          -          WRONG     OK         WRONG      /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh
+BAD    192-255          OK         WRONG     OK         WRONG      /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh
+BAD    192-255          OK         WRONG     OK         WRONG      /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh
+BAD    192-255          OK         WRONG     OK         WRONG      /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh
+BAD    192-255          OK         WRONG     OK         WRONG      /home/qch/pmu_litehost_toolkit/vllmBench_lite_pmu.sh
+BAD    192-255          -          WRONG     OK         WRONG      /home/s00806700/litehost_perf_opt/vllmBench_lite_base.sh
+BAD    192-255          WRONG      WRONG     WRONG      WRONG      /home/s00806700/litehost_perf_optbak/vllmBench_lite_opt.sh
+BAD    80-159,240-319   -          UNSET     WRONG      WRONG      /home/s00806700/litehost_perf_base/vllmBench_lite.sh
+BAD    80-159,240-319   -          UNSET     WRONG      WRONG      /home/s00806700/litehost_perf/vllmBench_lite.sh
+BAD    192-255          -          WRONG     WRONG      WRONG      /home/s00806700/litehost_perf_optbak/vllmBench_lite_base.sh
+BAD    80-159,240-319   -          UNSET     WRONG      WRONG      /home/s00806700/old_script/litehost_perf/vllmBench_lite.sh
+BAD    80-159,240-319   -          UNSET     WRONG      WRONG      /home/s00806700/litehost_perf_gen/vllmBench_lite_pgo.sh
+BAD    80-159,240-319   -          UNSET     WRONG      WRONG      /home/s00806700/python311-ir-pgo-corex-integrated-v3/litehost_perf_gen/vllmBench_lite_pgo.sh
+BAD    80-159,240-319   OK         UNSET     WRONG      WRONG      /home/qch/scripts/litehost_perf/vllmBench_lite_opt.sh
+BAD    240-319          -          UNSET     WRONG      WRONG      /home/z30059427/litehost_perf/vllmBench_lite.sh
+BAD    80-159,240-319   -          UNSET     WRONG      WRONG      /home/s00806700/litehost_perf_genold/vllmBench_lite.sh
+BAD    -80-159,240-319  -          UNSET     WRONG      WRONG      /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
+BAD    80-159,240-319   -          UNSET     WRONG      WRONG      /home/qch/transfer/litehost_perf_bak/vllmBench_lite.sh
+BAD    80-159,240-319   -          UNSET     WRONG      WRONG      /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
+BAD    80-159,240-319   -          UNSET     WRONG      WRONG      /home/c00986490/litehost_perf/vllmBench_lite.sh
+BAD    80-159,240-319   -          UNSET     WRONG      WRONG      /home/s00806700/litehost_perf_llvmopt/vllmBench_lite.sh
+BAD    80-159,240-319   -          UNSET     WRONG      WRONG      /home/qch/tools/vllm_topdown_qch/scripts/vllmBench_lite.sh
+BAD    80-159,240-319   -          UNSET     WRONG      WRONG      /home/s00806700/litehost_perf_gccnopgo/vllmBench_lite.sh
+BAD    80-159,240-319   -          UNSET     WRONG      WRONG      /home/z30059427/litehost_perf_py312/vllmBench_lite.sh
+BAD    80-159,240-319   -          UNSET     WRONG      WRONG      /home/qch/scripts/vllmBench_lite_on.sh
+BAD    80-159,240-319   -          UNSET     WRONG      WRONG      /home/g30061491/litehost_perf/vllmBench_lite.sh
+BAD    80-159,240-319   -          UNSET     WRONG      WRONG      /home/s00806700/litehost_perf_gen/vllmBench_lite.sh
+BAD    80-159,240-319   -          UNSET     WRONG      WRONG      /home/huawei_ts_program/test_metrics/litehost_perf/vllmBench_lite.sh
+BAD    80-159,240-319   -          UNSET     WRONG      WRONG      /home/qch/scripts/vllmBench_lite.sh
+
+需要修正: 31
+  ❌ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
+  ❌ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+  ❌ /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh
+  ❌ /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh
+  ❌ /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh
+  ❌ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh
+  ❌ /home/qch/pmu_litehost_toolkit/vllmBench_lite_pmu.sh
+  ❌ /home/s00806700/litehost_perf_opt/vllmBench_lite_base.sh
+  ❌ /home/s00806700/litehost_perf_optbak/vllmBench_lite_opt.sh
+  ❌ /home/s00806700/litehost_perf_base/vllmBench_lite.sh
+  ❌ /home/s00806700/litehost_perf/vllmBench_lite.sh
+  ❌ /home/s00806700/litehost_perf_optbak/vllmBench_lite_base.sh
+  ❌ /home/s00806700/old_script/litehost_perf/vllmBench_lite.sh
+  ❌ /home/s00806700/litehost_perf_gen/vllmBench_lite_pgo.sh
+  ❌ /home/s00806700/python311-ir-pgo-corex-integrated-v3/litehost_perf_gen/vllmBench_lite_pgo.sh
+  ❌ /home/qch/scripts/litehost_perf/vllmBench_lite_opt.sh
+  ❌ /home/z30059427/litehost_perf/vllmBench_lite.sh
+  ❌ /home/s00806700/litehost_perf_genold/vllmBench_lite.sh
+  ❌ /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
+  ❌ /home/qch/transfer/litehost_perf_bak/vllmBench_lite.sh
+  ❌ /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
+  ❌ /home/c00986490/litehost_perf/vllmBench_lite.sh
+  ❌ /home/s00806700/litehost_perf_llvmopt/vllmBench_lite.sh
+  ❌ /home/qch/tools/vllm_topdown_qch/scripts/vllmBench_lite.sh
+  ❌ /home/s00806700/litehost_perf_gccnopgo/vllmBench_lite.sh
+  ❌ /home/z30059427/litehost_perf_py312/vllmBench_lite.sh
+  ❌ /home/qch/scripts/vllmBench_lite_on.sh
+  ❌ /home/g30061491/litehost_perf/vllmBench_lite.sh
+  ❌ /home/s00806700/litehost_perf_gen/vllmBench_lite.sh
+  ❌ /home/huawei_ts_program/test_metrics/litehost_perf/vllmBench_lite.sh
+  ❌ /home/qch/scripts/vllmBench_lite.sh
++ set +x
+
+### exit: 0
