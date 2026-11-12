@@ -87,7 +87,12 @@ def analyze(path, label):
         j = bisect.bisect_left(ar_sorted, s)
         is_prefill = j < len(ar_sorted) and ar_sorted[j] < e
         step_phase[i] = "prefill" if is_prefill else "decode"
-        step_data[i] = {"T": e - s, "cpu": collections.defaultdict(float), "gpu": 0.0}
+        step_data[i] = {"T": e - s, "cpu": collections.defaultdict(float), "gpu": 0.0, "G": 0.0}
+    # G：相邻步之间的间隙，归属到前一步的所在阶段
+    for i in range(len(steps) - 1):
+        gap = steps[i + 1][0] - steps[i][1]
+        if gap > 0:
+            step_data[i]["G"] = gap
 
     items = self_time(ev)
     nsteps = len(steps)
@@ -132,6 +137,8 @@ def analyze(path, label):
             "cpu_op_tot": sum(p["cpu"]["cpu_op"] for p in lst) / 1000,
             "py_tot": sum(p["cpu"]["python_function"] for p in lst) / 1000,
             "rt_tot": sum(p["cpu"]["cuda_runtime"] for p in lst) / 1000,
+            "G_tot": sum(p["G"] for p in lst) / 1000,
+            "HG_tot": (sum(p["T"] - p["gpu"] for p in lst) + sum(p["G"] for p in lst)) / 1000,
         }
     print(f"[{label}] steps={len(steps)} prefill={res.get('prefill', {}).get('n', 0)} decode={res.get('decode', {}).get('n', 0)}")
     for ph in ("prefill", "decode"):
@@ -139,6 +146,7 @@ def analyze(path, label):
             continue
         r = res[ph]
         print(f"  {ph:7s} n={r['n']:5d} T_tot={r['T_tot']:8.2f}ms S_tot={r['S_tot']:8.2f}ms H_tot={r['H_tot']:8.2f}ms "
+              f"G_tot={r['G_tot']:7.2f}ms HG_tot={r['HG_tot']:8.2f}ms "
               f"cpu_op={r['cpu_op_tot']:7.2f}ms py={r['py_tot']:7.2f}ms rt={r['rt_tot']:6.2f}ms")
         print(f"          per-step: T={r['T_mean']:7.2f}ms S={r['gpu_mean']:7.3f}ms H={r['H_mean']:7.2f}ms")
     return res
@@ -160,6 +168,8 @@ def cmp(ra, rb):
         print(f"          CPU TOTAL: cpu_op {a['cpu_op_tot']:.2f}->{b['cpu_op_tot']:.2f}ms ({pct(a['cpu_op_tot'], b['cpu_op_tot']):+.1f}%)  "
               f"py {a['py_tot']:.2f}->{b['py_tot']:.2f}ms ({pct(a['py_tot'], b['py_tot']):+.1f}%)  "
               f"rt {a['rt_tot']:.2f}->{b['rt_tot']:.2f}ms ({pct(a['rt_tot'], b['rt_tot']):+.1f}%)")
+        print(f"          G {a['G_tot']:.2f}->{b['G_tot']:.2f}ms ({pct(a['G_tot'], b['G_tot']):+.2f}%)  "
+              f"H+G {a['HG_tot']:.2f}->{b['HG_tot']:.2f}ms ({pct(a['HG_tot'], b['HG_tot']):+.2f}%)")
 
 
 def main():
