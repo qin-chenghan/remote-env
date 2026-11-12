@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：按 TSHG 口径（S=sync 调用）切分 prefill/decode，对比 4k2 vs 64k2。
+# 只读：用 32 上的 analyze_timeline_hg.py 口径拆 4k2 / 64k2 的 H+G。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -22,7 +22,12 @@ mkdir -p "$DIR/tmp"
   B=$(ls "$T"/64k2/profile/*/rank0*.pt.trace.json.gz 2>/dev/null | head -1)
   echo "A=$A"; echo "B=$B"
   [ -n "$A" ] && [ -n "$B" ] || { echo "ABORT"; exit 6; }
-  python3 "$DIR/trace_tshg_split.py" "$A" "$B" 4k2 64k2 2>&1
+
+  for X in "$A" "$B"; do
+    echo ""
+    echo "################ $(basename "$(dirname "$(dirname "$X")")") ################"
+    python3 "$DIR/trace_hg.py" "$X" --all-intervals --top 15 2>&1
+  done
 
   # ---- 命令结束 ----
 
