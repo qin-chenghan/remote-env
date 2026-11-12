@@ -1,0 +1,125 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-12T12:03:54Z
+
++ T=/usr/local/corex-4.4.0
++ echo '== 1. 删前状态 =='
+== 1. 删前状态 ==
++ df -h /
+Filesystem                  Size  Used Avail Use% Mounted on
+/dev/mapper/openeuler-root   69G   65G  583M 100% /
++ du -sh /usr/local/corex-4.4.0
+9.3G	/usr/local/corex-4.4.0
++ ls -ld /usr/local/corex
+lrwxrwxrwx. 1 root root 23 Sep 24 15:59 /usr/local/corex -> /usr/local/corex-5.0.0/
++ readlink -f /usr/local/corex
+/usr/local/corex-5.0.0
++ echo '== 2. 是否有进程在用（文件被打开或路径在环境里）=='
+== 2. 是否有进程在用（文件被打开或路径在环境里）==
++ lsof +D /usr/local/corex-4.4.0
++ head -20
++ true
++ echo '--- 进程命令行里带 corex-4.4.0 的 ---'
+--- 进程命令行里带 corex-4.4.0 的 ---
++ ps -eo pid,args
++ grep corex-4.4.0
++ grep -v grep
++ head -10
++ echo 无
+无
++ echo '--- 容器挂载/环境里带 corex-4.4.0 的 ---'
+--- 容器挂载/环境里带 corex-4.4.0 的 ---
+++ docker ps -q
++ for c in $(docker ps -q 2> /dev/null)
++ docker inspect -f '{{.Name}} {{range .Mounts}}{{.Source}} {{end}}' 6ecd50315dc3
++ grep -l corex-4.4.0
++ docker exec 6ecd50315dc3 bash -c 'env | grep -i '\''corex-4.4.0'\'' || true'
++ head -2
+OCI runtime exec failed: exec failed: unable to start container process: exec: "bash": executable file not found in $PATH: unknown
++ for c in $(docker ps -q 2> /dev/null)
++ docker inspect -f '{{.Name}} {{range .Mounts}}{{.Source}} {{end}}' 8463ad937b36
++ grep -l corex-4.4.0
++ docker exec 8463ad937b36 bash -c 'env | grep -i '\''corex-4.4.0'\'' || true'
++ head -2
++ for c in $(docker ps -q 2> /dev/null)
++ docker inspect -f '{{.Name}} {{range .Mounts}}{{.Source}} {{end}}' 5836c31d14d2
++ grep -l corex-4.4.0
++ docker exec 5836c31d14d2 bash -c 'env | grep -i '\''corex-4.4.0'\'' || true'
++ head -2
++ for c in $(docker ps -q 2> /dev/null)
++ docker inspect -f '{{.Name}} {{range .Mounts}}{{.Source}} {{end}}' a70742a79230
++ grep -l corex-4.4.0
++ docker exec a70742a79230 bash -c 'env | grep -i '\''corex-4.4.0'\'' || true'
++ head -2
+OCI runtime exec failed: exec failed: unable to start container process: exec: "bash": executable file not found in $PATH: unknown
++ for c in $(docker ps -q 2> /dev/null)
++ docker inspect -f '{{.Name}} {{range .Mounts}}{{.Source}} {{end}}' 4367e0e68be3
++ grep -l corex-4.4.0
++ docker exec 4367e0e68be3 bash -c 'env | grep -i '\''corex-4.4.0'\'' || true'
++ head -2
++ for c in $(docker ps -q 2> /dev/null)
++ docker inspect -f '{{.Name}} {{range .Mounts}}{{.Source}} {{end}}' 0863c32889b2
++ grep -l corex-4.4.0
++ docker exec 0863c32889b2 bash -c 'env | grep -i '\''corex-4.4.0'\'' || true'
++ head -2
+OCI runtime exec failed: exec failed: unable to start container process: exec: "bash": executable file not found in $PATH: unknown
++ for c in $(docker ps -q 2> /dev/null)
++ docker inspect -f '{{.Name}} {{range .Mounts}}{{.Source}} {{end}}' ff15d2242dd4
++ grep -l corex-4.4.0
++ docker exec ff15d2242dd4 bash -c 'env | grep -i '\''corex-4.4.0'\'' || true'
++ head -2
++ echo '--- ld.so 缓存里是否仍登记该目录 ---'
+--- ld.so 缓存里是否仍登记该目录 ---
++ ldconfig -p
++ grep corex-4.4.0
++ head -5
++ echo 无
+无
++ ls -l /etc/ld.so.conf.d/
++ grep -i corex
+-rw-r--r--. 1 root root  29 Sep 24 16:01 corex-4.4.0.conf.bak_500
+-rw-r--r--. 1 root root  29 Sep 24 16:01 corex-5.0.0.conf
++ echo '== 3. 执行删除 =='
+== 3. 执行删除 ==
++ '[' -d /usr/local/corex-4.4.0 ']'
++ rm -rf /usr/local/corex-4.4.0
++ echo 'removed /usr/local/corex-4.4.0'
+removed /usr/local/corex-4.4.0
++ rm -f /etc/ld.so.conf.d/corex-4.4.0.conf.bak_500
++ echo '== 4. 删后核对 =='
+== 4. 删后核对 ==
++ du -sh /usr/local/corex-4.4.0
++ echo '/usr/local/corex-4.4.0 已不存在'
+/usr/local/corex-4.4.0 已不存在
++ ls -ld /usr/local/corex
+lrwxrwxrwx. 1 root root 23 Sep 24 15:59 /usr/local/corex -> /usr/local/corex-5.0.0/
++ readlink -f /usr/local/corex
+/usr/local/corex-5.0.0
++ ls /usr/local/corex/bin
++ head -5
+corex-driver-uninstaller
+iluvatar-bug-report.sh
+iluvatarcorex.sh
+ixsmi
+logtools
++ echo '--- 重建 ld 缓存（去掉已删路径）---'
+--- 重建 ld 缓存（去掉已删路径）---
++ ldconfig
++ head -5
++ echo 'ldconfig rc=0'
+ldconfig rc=0
++ ldconfig -p
++ grep -c corex-4.4.0
+0
++ true
++ echo '== 5. 空间 =='
+== 5. 空间 ==
++ df -h /
+Filesystem                  Size  Used Avail Use% Mounted on
+/dev/mapper/openeuler-root   69G   56G  9.9G  85% /
++ df -B1 /
++ tail -1
+/dev/mapper/openeuler-root 73391005696 59081756672 10534375424  85% /
++ set +x
+
+### exit: 0
