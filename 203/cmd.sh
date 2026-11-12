@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
+# 203 内存状况诊断：总量/可用、top 进程、容器占用、tmpfs 与 hugepage、OOM 历史。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,45 +17,43 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== 1. GPU 的 NUMA 归属 =="
-  for b in 0000:10:00.0 0000:13:00.0 0000:19:00.0 0000:1c:00.0; do
-    printf '%s numa_node=%s\n' "$b" "$(cat "/sys/bus/pci/devices/$b/numa_node" 2>/dev/null || echo n/a)"
-  done
+  echo "== 1. 总体内存 =="
+  free -h
+  grep -E 'MemTotal|MemFree|MemAvailable|Buffers|Cached|SwapTotal|SwapFree|Dirty|Writeback|SReclaimable|Shmem|HugePages_Total|HugePages_Free|HugePages_Rsvd|Hugepagesize|AnonPages|Committed_AS|CommitLimit' /proc/meminfo
 
-  echo "== 2. 容器内依赖 =="
-  docker exec corex5-py311 bash -lc 'command -v curl || echo NO_CURL; command -v taskset || echo NO_TASKSET' 2>&1
+  echo "== 2. 占用最高的进程（RSS 前 25，含子进程合并前）=="
+  ps -eo pid,ppid,user,rss,vsz,etime,args --sort=-rss 2>/dev/null | head -26
 
-  CURL_OK=$(docker exec corex5-py311 bash -lc 'command -v curl >/dev/null && echo yes || echo no' 2>/dev/null)
-  echo "curl_ok=$CURL_OK"
-  if [ "$CURL_OK" != "yes" ]; then
-    echo "!! 容器内没有 curl，脚本的 wait_for_server 会等满 600s 超时，先不跑。"
-  else
-    echo "== 3. 基线运行：HOST_MEASURE=off，单 case 128/2048 =="
-    TID="baseline_$(date +%H%M%S)"
-    timeout 1500 docker exec \
-      -e HOST_MEASURE=off \
-      -e NUM_PROMPTS=32 \
-      -e NUM_WARMUPS=4 \
-      -e CASE_INTERVAL=0 \
-      -e TEST_ID="$TID" \
-      -e CASES_FILE=/tmp/cases_one.txt \
-      corex5-py311 bash -lc '
-        printf "128 2048\n" > /tmp/cases_one.txt
-        cd /home/qch/scripts/litehost_perf && bash vllmBench_lite_base.sh
-      ' 2>&1 | tail -50
-    echo "run rc=$?"
+  echo "== 3. 按进程名合并 RSS（前 15）=="
+  ps -eo rss,comm --no-headers 2>/dev/null | awk '{a[$2]+=$1} END{for(k in a) printf "%10.1f MB  %s\n", a[k]/1024, k}' | sort -rn | head -15
 
-    R=/home/qch/scripts/litehost_perf/vllmBench/$TID
-    echo "== 4. 结果 =="
-    ls -la "$R" 2>&1 | head -10
-    head -5 "$R/summary.csv" 2>&1
-    echo "== 服务日志尾部 =="
-    tail -20 "$R/logs/server.log" 2>&1 | head -25
-  fi
+  echo "== 4. 容器内存占用 =="
+  docker ps --format '{{.ID}}  {{.Names}}  {{.Status}}' 2>&1 | head -15
+  timeout 90 docker stats --no-stream --format '{{.Name}}  mem={{.MemUsage}}  pids={{.PIDs}}' 2>&1 | head -15
 
-  echo "== 5. 收尾确认 =="
-  docker exec corex5-py311 bash -c 'pgrep -af vllm | head -5 || echo "no vllm left"' 2>&1
-  timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | grep 'MiB /' | head -5
+  echo "== 5. tmpfs / shm（内存记账）=="
+  df -h /dev/shm /tmp /run 2>&1 | head -6
+  du -sh /dev/shm 2>/dev/null | head -3
+  du -sh /dev/shm/* 2>/dev/null | sort -rh | head -10
+
+  echo "== 6. hugepage =="
+  cat /proc/sys/vm/nr_hugepages 2>/dev/null
+  grep -i huge /proc/meminfo
+
+  echo "== 7. overcommit =="
+  cat /proc/sys/vm/overcommit_memory /proc/sys/vm/overcommit_ratio 2>/dev/null
+  cat /proc/sys/vm/swappiness 2>/dev/null
+
+  echo "== 8. OOM / 内存告警历史（近 20 条）=="
+  (dmesg -T 2>/dev/null || dmesg 2>/dev/null) | grep -iE 'out of memory|oom-kill|oom_reaper|killed process|memory cgroup' | tail -20 || echo "无 OOM 记录或无 dmesg 权限"
+  echo "--- 本次启动以来 OOM 计数 ---"
+  grep -c . /dev/null 2>/dev/null; journalctl -k --since "-24h" 2>/dev/null | grep -icE 'out of memory|oom-kill|killed process' || echo "journal 不可读"
+
+  echo "== 9. 谁在申请/持有大块内存（活跃 vllm 进程）=="
+  ps -eo pid,rss,etime,args 2>/dev/null | grep -E 'vllm|bench_driver|ixsys|python' | grep -v grep | head -10
+  docker exec corex5-py311 bash -c 'ps -eo pid,rss,etime,args | grep -E "vllm|bench_driver" | grep -v grep | head -10' 2>&1
+
+  echo "== 10. 磁盘（与内存无关，顺带）=="
   df -h / /home | tail -2
 
   # ---- 命令结束 ----
