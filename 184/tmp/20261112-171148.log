@@ -1,0 +1,210 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T09:11:48Z
+
++ C=corex5-py311
++ P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
++ PB=/usr/local/corex-5.0.0/vllmBench
++ echo '== 1. 容器状态 =='
+== 1. 容器状态 ==
++ docker ps -a --filter name=corex5-py311 --format '{{.ID}}  {{.Names}}  {{.Image}}  {{.Status}}'
+47e23aac5ae6  corex5-py311-s00965207  corex5-py311-s00965207:latest  Exited (137) 7 days ago
+516cb816eafc  corex5-py311-csz  corex5-py311-csz:latest  Exited (255) 10 days ago
+ecc70ed38d0b  corex5-py311-lzy  corex5-py311-lzy:latest  Exited (137) 2 weeks ago
+5faf198366ba  corex5-py311-ssh_tst1  corex5-py311-ssh_tst1:latest  Exited (137) 6 days ago
+f294cdfbc47b  corex5-py311-ssh_tst_new  corex5-py311-ssh_tst_new:latest  Exited (137) 3 weeks ago
+35f15dfddfce  corex5-py311-ssh_tst  corex5-py311-ssh_tst:latest  Exited (137) 3 weeks ago
+4507dee541b6  corex5-py311-g30061491  corex5-py311-1014-commit:v1  Exited (137) 2 weeks ago
+6da2873bf3f5  corex5-py311  corex5-py311:with-python311  Up 3 hours
+e97fd1fb8f02  corex5-py311-backup  corex:5.0.0  Exited (137) 4 weeks ago
++ docker exec corex5-py311 echo alive
+alive
++ echo '== 2. vllmBench 下所有 run 目录 =='
+== 2. vllmBench 下所有 run 目录 ==
++ docker exec corex5-py311 bash -c 'ls -lat /usr/local/corex-5.0.0/vllmBench | head -20'
+total 72
+drwxr-xr-x.  5 root root 4096 Nov 12 16:52 litehost_gap_20261112_150257
+drwxr-xr-x. 17 root root 4096 Nov 12 15:02 .
+drwxr-xr-x.  5 root root 4096 Nov 12 14:52 litehost_gap_20261112_145014
+drwxr-xr-x.  3 root root 4096 Nov 12 14:47 litehost_gap_20261112_144702
+drwxr-xr-x.  3 root root 4096 Nov 12 14:46 litehost_gap_20261112_144653
+drwxr-xr-x.  6 root root 4096 Nov 12 14:41 litehost_gap_20261112_143002
+drwxr-xr-x.  6 root root 4096 Nov 12 14:25 litehost_gap_20261112_141359
+drwxr-xr-x.  6 root root 4096 Nov 12 13:58 litehost_gap_20261112_134745
+drwxrwxr-x+  1 root root 4096 Nov 11 20:05 ..
+drwxr-xr-x.  6 root root 4096 Nov 11 17:07 litehost_gap_20261111_165738
+drwxr-xr-x.  6 root root 4096 Nov 11 16:44 litehost_gap_20261111_150237
+drwxr-xr-x.  6 root root 4096 Nov 11 10:59 litehost_gap_20261111_091630
+drwxr-xr-x.  4 root root 4096 Nov 11 09:04 litehost_gap_20261111_090351
+drwxr-xr-x.  6 root root 4096 Nov 10 18:29 litehost_gap_20261110_164715
+drwxr-xr-x.  4 root root 4096 Nov 10 15:46 litehost_gap_20261110_154541
+drwxr-xr-x.  4 root root 4096 Nov 10 15:38 litehost_gap_20261110_153807
+drwxr-xr-x.  3 root root 4096 Nov 10 09:40 litehost_gap_20261110_093956
++ echo '== 3. 目标目录 =='
+== 3. 目标目录 ==
++ docker exec corex5-py311 bash -c 'ls -ld /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257; du -sh /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257 2>/dev/null'
+drwxr-xr-x. 5 root root 4096 Nov 12 16:52 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
+122M	/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
++ echo '== 4. 文件清单 =='
+== 4. 文件清单 ==
++ docker exec corex5-py311 bash -c 'cd /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257 && find . -type f -printf '\''%10s  %TY-%Tm-%Td %TH:%TM  %p\n'\'' | sort -k4 | head -60'
+        84  2026-11-12 16:31  ./bench.process.json
+      1037  2026-11-12 15:53  ./bs8_in1024_out1024.json
+      1032  2026-11-12 15:41  ./bs8_in1024_out128.json
+      1029  2026-11-12 16:15  ./bs8_in1024_out2048.json
+      1034  2026-11-12 15:16  ./bs8_in128_out1024.json
+      1029  2026-11-12 15:05  ./bs8_in128_out128.json
+      1034  2026-11-12 15:38  ./bs8_in128_out2048.json
+      1030  2026-11-12 16:30  ./bs8_in2048_out1024.json
+      1030  2026-11-12 16:18  ./bs8_in2048_out128.json
+      1035  2026-11-12 16:52  ./bs8_in2048_out2048.json
+       249  2026-11-12 15:02  ./config.txt
+       199  2026-11-12 15:03  ./control/rank0.ready.json
+       199  2026-11-12 15:03  ./control/rank1.ready.json
+       199  2026-11-12 15:03  ./control/rank2.ready.json
+       199  2026-11-12 15:03  ./control/rank3.ready.json
+     18835  2026-11-12 15:42  ./litehost/bs8_in1024_out1024/benchmark_hooked.py.txt
+      1591  2026-11-12 15:53  ./litehost/bs8_in1024_out1024/case.json
+       687  2026-11-12 15:53  ./litehost/bs8_in1024_out1024/host_report/four_rank_totals.csv
+      2364  2026-11-12 15:53  ./litehost/bs8_in1024_out1024/host_report/per_rank.csv
+      1281  2026-11-12 15:53  ./litehost/bs8_in1024_out1024/host_report/report.txt
+      9921  2026-11-12 15:53  ./litehost/bs8_in1024_out1024/host_report/summary.json
+   3365588  2026-11-12 15:53  ./litehost/bs8_in1024_out1024/rank0_pid900029.csv
+       977  2026-11-12 15:53  ./litehost/bs8_in1024_out1024/rank0_pid900029.meta.json
+   3365577  2026-11-12 15:53  ./litehost/bs8_in1024_out1024/rank1_pid900030.csv
+       977  2026-11-12 15:53  ./litehost/bs8_in1024_out1024/rank1_pid900030.meta.json
+   3365587  2026-11-12 15:53  ./litehost/bs8_in1024_out1024/rank2_pid900031.csv
+       977  2026-11-12 15:53  ./litehost/bs8_in1024_out1024/rank2_pid900031.meta.json
+   3365588  2026-11-12 15:53  ./litehost/bs8_in1024_out1024/rank3_pid900032.csv
+       977  2026-11-12 15:53  ./litehost/bs8_in1024_out1024/rank3_pid900032.meta.json
+      6350  2026-11-12 15:53  ./litehost/bs8_in1024_out1024/window.json
+     18835  2026-11-12 15:39  ./litehost/bs8_in1024_out128/benchmark_hooked.py.txt
+      1589  2026-11-12 15:41  ./litehost/bs8_in1024_out128/case.json
+       677  2026-11-12 15:41  ./litehost/bs8_in1024_out128/host_report/four_rank_totals.csv
+      2273  2026-11-12 15:41  ./litehost/bs8_in1024_out128/host_report/per_rank.csv
+      1250  2026-11-12 15:41  ./litehost/bs8_in1024_out128/host_report/report.txt
+      9819  2026-11-12 15:41  ./litehost/bs8_in1024_out128/host_report/summary.json
+    425254  2026-11-12 15:41  ./litehost/bs8_in1024_out128/rank0_pid900029.csv
+       973  2026-11-12 15:41  ./litehost/bs8_in1024_out128/rank0_pid900029.meta.json
+    425255  2026-11-12 15:41  ./litehost/bs8_in1024_out128/rank1_pid900030.csv
+       973  2026-11-12 15:41  ./litehost/bs8_in1024_out128/rank1_pid900030.meta.json
+    425254  2026-11-12 15:41  ./litehost/bs8_in1024_out128/rank2_pid900031.csv
+       973  2026-11-12 15:41  ./litehost/bs8_in1024_out128/rank2_pid900031.meta.json
+    425255  2026-11-12 15:41  ./litehost/bs8_in1024_out128/rank3_pid900032.csv
+       973  2026-11-12 15:41  ./litehost/bs8_in1024_out128/rank3_pid900032.meta.json
+      6329  2026-11-12 15:41  ./litehost/bs8_in1024_out128/window.json
+     18835  2026-11-12 15:54  ./litehost/bs8_in1024_out2048/benchmark_hooked.py.txt
+      1591  2026-11-12 16:15  ./litehost/bs8_in1024_out2048/case.json
+       700  2026-11-12 16:15  ./litehost/bs8_in1024_out2048/host_report/four_rank_totals.csv
+      2379  2026-11-12 16:15  ./litehost/bs8_in1024_out2048/host_report/per_rank.csv
+      1293  2026-11-12 16:15  ./litehost/bs8_in1024_out2048/host_report/report.txt
+      9949  2026-11-12 16:15  ./litehost/bs8_in1024_out2048/host_report/summary.json
+   6733536  2026-11-12 16:15  ./litehost/bs8_in1024_out2048/rank0_pid900029.csv
+       977  2026-11-12 16:15  ./litehost/bs8_in1024_out2048/rank0_pid900029.meta.json
+   6733498  2026-11-12 16:15  ./litehost/bs8_in1024_out2048/rank1_pid900030.csv
+       977  2026-11-12 16:15  ./litehost/bs8_in1024_out2048/rank1_pid900030.meta.json
+   6733523  2026-11-12 16:15  ./litehost/bs8_in1024_out2048/rank2_pid900031.csv
+       977  2026-11-12 16:15  ./litehost/bs8_in1024_out2048/rank2_pid900031.meta.json
+   6733526  2026-11-12 16:15  ./litehost/bs8_in1024_out2048/rank3_pid900032.csv
+       977  2026-11-12 16:15  ./litehost/bs8_in1024_out2048/rank3_pid900032.meta.json
+      6345  2026-11-12 16:15  ./litehost/bs8_in1024_out2048/window.json
++ docker exec corex5-py311 bash -c 'echo 文件数: $(find /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257 -type f | wc -l)'
+文件数: 163
++ echo '== 5. config.txt =='
+== 5. config.txt ==
++ docker exec corex5-py311 bash -c 'head -40 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/config.txt 2>&1'
+test_id=litehost_gap_20261112_150257
+started=2026-11-12T15:02:57+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=192-255
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
++ echo '== 6. summary.csv =='
+== 6. summary.csv ==
++ docker exec corex5-py311 bash -c 'head -20 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/summary.csv 2>&1'
+head: cannot open '/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/summary.csv' for reading: No such file or directory
++ echo '== 7. host_summary =='
+== 7. host_summary ==
++ docker exec corex5-py311 bash -c 'ls -la /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary 2>&1'
+ls: cannot access '/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary': No such file or directory
++ docker exec corex5-py311 bash -c 'head -40 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary/report.txt 2>&1'
+head: cannot open '/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary/report.txt' for reading: No such file or directory
++ echo '-- four_rank_totals.csv --'
+-- four_rank_totals.csv --
++ docker exec corex5-py311 bash -c 'head -10 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary/four_rank_totals.csv 2>&1'
+head: cannot open '/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/host_summary/four_rank_totals.csv' for reading: No such file or directory
++ echo '== 8. 日志尾部 =='
+== 8. 日志尾部 ==
++ docker exec corex5-py311 bash -c 'ls -la /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs 2>&1'
+total 392
+drwxr-xr-x. 2 root root   4096 Nov 12 17:04 .
+drwxr-xr-x. 5 root root   4096 Nov 12 16:52 ..
+-rw-r--r--. 1 root root  10028 Nov 12 15:53 bench_bs8_in1024_out1024.log
+-rw-r--r--. 1 root root   9846 Nov 12 15:41 bench_bs8_in1024_out128.log
+-rw-r--r--. 1 root root   9961 Nov 12 16:15 bench_bs8_in1024_out2048.log
+-rw-r--r--. 1 root root   6582 Nov 12 15:16 bench_bs8_in128_out1024.log
+-rw-r--r--. 1 root root   6574 Nov 12 15:05 bench_bs8_in128_out128.log
+-rw-r--r--. 1 root root   6582 Nov 12 15:38 bench_bs8_in128_out2048.log
+-rw-r--r--. 1 root root  10631 Nov 12 16:30 bench_bs8_in2048_out1024.log
+-rw-r--r--. 1 root root  10729 Nov 12 16:18 bench_bs8_in2048_out128.log
+-rw-r--r--. 1 root root  10562 Nov 12 16:52 bench_bs8_in2048_out2048.log
+-rw-r--r--. 1 root root     42 Nov 12 15:02 preflight.log
+-rw-r--r--. 1 root root 286568 Nov 12 16:52 server.log
++ docker exec corex5-py311 bash -c 'tail -20 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/logs/bench_*.log 2>&1'
+tail: option used in invalid context -- 2
++ echo '== 9. 与 145924 对比 =='
+== 9. 与 145924 对比 ==
++ R=/home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924
++ docker exec corex5-py311 bash -c 'test -d /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924 && echo '\''145924 可见'\'' || echo '\''145924 容器内不可见'\'''
+145924 可见
++ docker exec corex5-py311 bash -c 'test -d /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924 && find /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924 -type f | wc -l'
+33
++ echo '-- 两边顶层差异 --'
+-- 两边顶层差异 --
++ docker exec corex5-py311 bash -c 'diff <(cd /home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924 && find . -maxdepth 2 | sort) <(cd /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257 && find . -maxdepth 2 | sort) 2>&1 | head -40'
+2a3,6
+> ./bs8_in1024_out1024.json
+> ./bs8_in1024_out128.json
+> ./bs8_in1024_out2048.json
+> ./bs8_in128_out1024.json
+3a8,11
+> ./bs8_in128_out2048.json
+> ./bs8_in2048_out1024.json
+> ./bs8_in2048_out128.json
+> ./bs8_in2048_out2048.json
+10,14d17
+< ./host_summary
+< ./host_summary/four_rank_totals.csv
+< ./host_summary/per_rank.csv
+< ./host_summary/report.txt
+< ./host_summary/summary.json
+15a19,22
+> ./litehost/bs8_in1024_out1024
+> ./litehost/bs8_in1024_out128
+> ./litehost/bs8_in1024_out2048
+> ./litehost/bs8_in128_out1024
+16a24,27
+> ./litehost/bs8_in128_out2048
+> ./litehost/bs8_in2048_out1024
+> ./litehost/bs8_in2048_out128
+> ./litehost/bs8_in2048_out2048
+17a29,32
+> ./logs/bench_bs8_in1024_out1024.log
+> ./logs/bench_bs8_in1024_out128.log
+> ./logs/bench_bs8_in1024_out2048.log
+> ./logs/bench_bs8_in128_out1024.log
+18a34,37
+> ./logs/bench_bs8_in128_out2048.log
+> ./logs/bench_bs8_in2048_out1024.log
+> ./logs/bench_bs8_in2048_out128.log
+> ./logs/bench_bs8_in2048_out2048.log
+21d39
+< ./logs/summary_build.log
+24d41
+< ./summary.csv
++ set +x
+
+### exit: 0
