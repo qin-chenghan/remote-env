@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 检查 r14 安装包内容与当前已安装版本，确定安装方式（先只读）。
+# 解压 r14 包、校验、看安装器用法，并确认当前 r10 装在哪个 venv。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,36 +19,46 @@ mkdir -p "$DIR/tmp"
   # ---- 命令开始 ----
   C=corex5-py311
   Z=/home/qch/transfer/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip
-  dex() { timeout 120 docker exec "$C" bash -c "$1"; }
+  W=/home/qch/transfer/r14
+  D=$W/host-opt-pr-validation-20261106-r14
+  dex() { timeout 180 docker exec "$C" bash -c "$1"; }
 
-  echo "== 1. 包文件本身 =="
-  ls -l --time-style=full-iso "$Z" 2>&1
-  sha256sum "$Z" 2>&1
-  command -v unzip || echo "host 无 unzip"
+  echo "== 1. 解压 =="
+  rm -rf "$W"
+  mkdir -p "$W"
+  unzip -q "$Z" -d "$W"
+  ls -la "$D"
 
-  echo "== 2. 包内清单 =="
-  unzip -l "$Z" 2>&1 | head -60
-  echo "条目总数: $(unzip -l "$Z" 2>/dev/null | tail -1)"
+  echo "== 2. 校验 SHA256SUMS =="
+  ( cd "$D" && sha256sum -c SHA256SUMS 2>&1 | tail -8 )
 
-  echo "== 3. 包内说明文档 =="
-  for f in $(unzip -Z1 "$Z" 2>/dev/null | grep -Ei '\.(md|txt|rst|sh|json|yaml|yml)$' | head -10); do
-    echo "--- $f ---"
-    unzip -p "$Z" "$f" 2>&1 | head -80
-    echo
+  echo "== 3. 安装器用法 =="
+  dex "/opt/corex311-cpython-vllm/bin/python $D/scripts/install.py --help"
+  echo "--- verify.py ---"
+  dex "/opt/corex311-cpython-vllm/bin/python $D/scripts/verify.py --help"
+
+  echo "== 4. 两个 venv 的当前状态 =="
+  for V in /opt/corex311 /opt/corex311-cpython-vllm; do
+    SP=$V/lib/python3.11/site-packages
+    echo "---- $V ----"
+    dex "ls -ld $SP/.host-opt-pr-backup 2>&1"
+    dex "ls $SP/.host-opt-pr-backup 2>/dev/null | head"
+    dex "ls -l $SP/vllm/v1/worker/host_opt.py $SP/vllm/v1/worker/compact_greedy_backport.py $SP/vllm/model_executor/layers/output_head.py 2>&1"
+    echo -n "envs.py 里 POSITIONS 出现次数: "
+    dex "grep -c VLLM_HOST_OPT_POSITIONS $SP/vllm/envs.py 2>/dev/null || echo 0"
+    echo -n "compilation.py 里 compact_greedy 出现次数: "
+    dex "grep -c compact_greedy $SP/vllm/config/compilation.py 2>/dev/null || echo 0"
+    echo "ROOT 解析:"
+    dex "$V/bin/python -I -c 'import importlib.util,pathlib; print(pathlib.Path(next(iter(importlib.util.find_spec(\"vllm\").submodule_search_locations))).parent)'"
   done
 
-  echo "== 4. 当前已安装的相关包 =="
-  dex "/opt/corex311-cpython-vllm/bin/pip list 2>/dev/null | grep -iE 'vllm|corex|iluvatar|torch' "
-  echo "-- 两个 venv 的版本 --"
-  dex "/opt/corex311/bin/pip list 2>/dev/null | grep -iE 'vllm|corex|iluvatar'"
+  echo "== 5. 是否有 vllm 服务在跑 =="
+  dex "ps -eo pid,etime,args | grep -E 'vllm|api_server' | grep -v grep | head -10"
+  dex "ss -ltnp 2>/dev/null | grep -E ':88|:80' | head -10"
 
-  echo "== 5. 当前 venv 里之前 r10 的安装痕迹 =="
-  dex "ls -la /opt/corex311-cpython-vllm/lib/python3.11/site-packages 2>/dev/null | head -30"
-  dex "ls -d /opt/corex311-cpython-vllm/lib/python3.11/site-packages/*.dist-info 2>/dev/null | head -40"
-
-  echo "== 6. 之前的安装记录（如果有）=="
-  dex "ls -lat /home/qch/transfer/*.zip /home/qch/transfer/*.whl 2>/dev/null | head -20"
-  dex "ls -lat /opt/corex311-cpython-vllm/*.bak* /opt/corex311-cpython-vllm/../*bak* 2>/dev/null | head"
+  echo "== 6. 容器里编译环境 =="
+  dex "which cmake gcc g++ ninja 2>&1; cmake --version 2>/dev/null | head -1; gcc --version | head -1"
+  dex "df -h /opt | tail -1"
 
   # ---- 命令结束 ----
 
