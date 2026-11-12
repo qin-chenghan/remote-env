@@ -1,0 +1,134 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-12T12:38:07Z
+
++ C=corex5-py311
++ V=/opt/corex311
++ SP=/opt/corex311/lib/python3.11/site-packages
++ PY=/opt/corex311/bin/python
++ echo '== 1. 容器与 venv 基本状态 =='
+== 1. 容器与 venv 基本状态 ==
++ dex 'cat /etc/os-release 2>/dev/null | head -2; uname -m; ls -d /opt/corex311* 2>/dev/null'
++ timeout 150 docker exec corex5-py311 bash -c 'cat /etc/os-release 2>/dev/null | head -2; uname -m; ls -d /opt/corex311* 2>/dev/null'
+PRETTY_NAME="Ubuntu 24.04.2 LTS"
+NAME="Ubuntu"
+x86_64
+/opt/corex311
+/opt/corex311-manifest
++ dex 'env | grep -E '\''PYTHONPATH|PYTHONHOME|LD_PRELOAD|VLLM_|COREX_|HOTSPOT'\'' || echo '\''无相关环境变量'\'''
++ timeout 150 docker exec corex5-py311 bash -c 'env | grep -E '\''PYTHONPATH|PYTHONHOME|LD_PRELOAD|VLLM_|COREX_|HOTSPOT'\'' || echo '\''无相关环境变量'\'''
+COREX_VERSION=5.0.0
+PYTHONPATH=
+PYTHONHOME=
++ dex '/opt/corex311/bin/python -c '\''import sys,sysconfig;print(sys.version);print(sys.executable);print(sys.base_prefix);print(sysconfig.get_config_var("CONFIG_ARGS"))'\'''
++ timeout 150 docker exec corex5-py311 bash -c '/opt/corex311/bin/python -c '\''import sys,sysconfig;print(sys.version);print(sys.executable);print(sys.base_prefix);print(sysconfig.get_config_var("CONFIG_ARGS"))'\'''
+3.11.6 (main, Nov  5 2026, 19:32:49) [GCC 13.3.0]
+/opt/corex311/bin/python
+/opt/python-3.11.6
+'--prefix=/opt/python-3.11.6' '--enable-shared' '--enable-optimizations' '--with-ensurepip=install' 'LDFLAGS=-Wl,-rpath,/opt/python-3.11.6/lib' 'CC=/usr/bin/gcc'
++ dex '/opt/corex311/bin/python -c '\''import vllm, torch;print("vllm",vllm.__version__);print("torch",torch.__version__, torch.__file__)'\'''
++ timeout 150 docker exec corex5-py311 bash -c '/opt/corex311/bin/python -c '\''import vllm, torch;print("vllm",vllm.__version__);print("torch",torch.__version__, torch.__file__)'\'''
+vllm 0.23.0
+torch 2.10.0 /opt/corex311/lib/python3.11/site-packages/torch/__init__.py
++ echo '== 2. PGO =='
+== 2. PGO ==
++ dex 'ls -d /opt/cpython-vllm* 2>/dev/null; ls /opt/cpython-vllm/v1/bin 2>/dev/null | head -5'
++ timeout 150 docker exec corex5-py311 bash -c 'ls -d /opt/cpython-vllm* 2>/dev/null; ls /opt/cpython-vllm/v1/bin 2>/dev/null | head -5'
++ dex 'command -v cpython-vllm-rebase; ls -l $V/bin/cpython-vllm-rebase 2>/dev/null'
++ timeout 150 docker exec corex5-py311 bash -c 'command -v cpython-vllm-rebase; ls -l $V/bin/cpython-vllm-rebase 2>/dev/null'
++ dex 'find $V -maxdepth 2 -name '\''plan.json'\'' -o -maxdepth 2 -name '\''*.rebase*'\'' 2>/dev/null | head -10'
++ timeout 150 docker exec corex5-py311 bash -c 'find $V -maxdepth 2 -name '\''plan.json'\'' -o -maxdepth 2 -name '\''*.rebase*'\'' 2>/dev/null | head -10'
++ echo '== 3. tcmalloc =='
+== 3. tcmalloc ==
++ dex 'find /usr/lib64 /usr/local/lib /usr/local/lib64 $V/lib $SP -maxdepth 3 -name '\''libtcmalloc*.so*'\'' 2>/dev/null | head -10'
++ timeout 150 docker exec corex5-py311 bash -c 'find /usr/lib64 /usr/local/lib /usr/local/lib64 $V/lib $SP -maxdepth 3 -name '\''libtcmalloc*.so*'\'' 2>/dev/null | head -10'
++ echo '--- 宿主 /home 下的 gperftools ---'
+--- 宿主 /home 下的 gperftools ---
++ head -5
++ ls -l '/home/*/gperftools/.libs/libtcmalloc.so'
++ echo 无
+无
++ find /home -maxdepth 4 -name 'libtcmalloc*.so*'
++ head -5
++ echo '== 4. r14 三补丁 =='
+== 4. r14 三补丁 ==
++ dex 'ls -ld $SP/.host-opt-pr-backup 2>&1'
++ timeout 150 docker exec corex5-py311 bash -c 'ls -ld $SP/.host-opt-pr-backup 2>&1'
+ls: cannot access '/.host-opt-pr-backup': No such file or directory
++ dex 'ls -l $SP/vllm/v1/worker/host_opt.py $SP/vllm/v1/worker/compact_greedy_backport.py 2>&1'
++ timeout 150 docker exec corex5-py311 bash -c 'ls -l $SP/vllm/v1/worker/host_opt.py $SP/vllm/v1/worker/compact_greedy_backport.py 2>&1'
+ls: cannot access '/vllm/v1/worker/host_opt.py': No such file or directory
+ls: cannot access '/vllm/v1/worker/compact_greedy_backport.py': No such file or directory
++ dex 'grep -oE '\''VLLM_HOST_OPT[A-Z_]*'\'' $SP/vllm/envs.py 2>/dev/null | sort -u'
++ timeout 150 docker exec corex5-py311 bash -c 'grep -oE '\''VLLM_HOST_OPT[A-Z_]*'\'' $SP/vllm/envs.py 2>/dev/null | sort -u'
++ dex 'grep -c compact_greedy $SP/vllm/config/compilation.py 2>/dev/null'
++ timeout 150 docker exec corex5-py311 bash -c 'grep -c compact_greedy $SP/vllm/config/compilation.py 2>/dev/null'
++ echo '== 5. 旧版 host fastpath（VLLM_HOST_FASTPATH 四项）=='
+== 5. 旧版 host fastpath（VLLM_HOST_FASTPATH 四项）==
++ dex 'ls -l $SP/vllm/v1/worker/corex_host_opt.py $SP/vllm/v1/worker/host_fastpath 2>&1 | head -8'
++ timeout 150 docker exec corex5-py311 bash -c 'ls -l $SP/vllm/v1/worker/corex_host_opt.py $SP/vllm/v1/worker/host_fastpath 2>&1 | head -8'
+ls: cannot access '/vllm/v1/worker/corex_host_opt.py': No such file or directory
+ls: cannot access '/vllm/v1/worker/host_fastpath': No such file or directory
++ dex 'grep -rIl '\''VLLM_HOST_FASTPATH'\'' $SP/vllm/envs.py $SP/vllm/v1/worker/*.py 2>/dev/null | head -5'
++ timeout 150 docker exec corex5-py311 bash -c 'grep -rIl '\''VLLM_HOST_FASTPATH'\'' $SP/vllm/envs.py $SP/vllm/v1/worker/*.py 2>/dev/null | head -5'
++ dex 'grep -oE '\''COREX_HOST_[A-Z_]*'\'' $SP/vllm/envs.py 2>/dev/null | sort -u | head -10'
++ timeout 150 docker exec corex5-py311 bash -c 'grep -oE '\''COREX_HOST_[A-Z_]*'\'' $SP/vllm/envs.py 2>/dev/null | sort -u | head -10'
++ echo '== 6. torch module attrs fastpath =='
+== 6. torch module attrs fastpath ==
++ dex 'grep -rIl '\''TORCH_MODULE_ATTR_FASTPATH'\'' $SP 2>/dev/null | head -5'
++ timeout 150 docker exec corex5-py311 bash -c 'grep -rIl '\''TORCH_MODULE_ATTR_FASTPATH'\'' $SP 2>/dev/null | head -5'
++ dex 'ls -l $SP/*fastpath* $SP/torch/_module_fastpath* 2>/dev/null | head -5'
++ timeout 150 docker exec corex5-py311 bash -c 'ls -l $SP/*fastpath* $SP/torch/_module_fastpath* 2>/dev/null | head -5'
++ echo '== 7. 构建环境（r14 原生模块要 cmake+gcc）=='
+== 7. 构建环境（r14 原生模块要 cmake+gcc）==
++ dex 'which gcc g++ cc cmake ninja make 2>&1 | head -8; gcc --version 2>/dev/null | head -1; cmake --version 2>/dev/null | head -1'
++ timeout 150 docker exec corex5-py311 bash -c 'which gcc g++ cc cmake ninja make 2>&1 | head -8; gcc --version 2>/dev/null | head -1; cmake --version 2>/dev/null | head -1'
+/usr/bin/gcc
+/usr/bin/g++
+/usr/bin/cc
+/usr/local/bin/cmake
+/opt/corex311/bin/ninja
+/usr/bin/make
+gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0
+cmake version 3.31.8+corex.5.0.0
++ dex 'ls $V/include/python3.11/Python.h 2>/dev/null || echo '\''venv 无 Python.h'\'''
++ timeout 150 docker exec corex5-py311 bash -c 'ls $V/include/python3.11/Python.h 2>/dev/null || echo '\''venv 无 Python.h'\'''
+venv 无 Python.h
++ dex 'df -h / /opt /home 2>/dev/null | tail -4'
++ timeout 150 docker exec corex5-py311 bash -c 'df -h / /opt /home 2>/dev/null | tail -4'
+Filesystem                  Size  Used Avail Use% Mounted on
+overlay                     804G  723G   41G  95% /
+overlay                     804G  723G   41G  95% /
+/dev/mapper/openeuler-home  804G  723G   41G  95% /home
++ echo '== 8. 多流参数与 GPU =='
+== 8. 多流参数与 GPU ==
++ cat /sys/module/iluvatar/parameters/itr_multi_compute_engine
+1
++ timeout 30 /usr/local/corex-5.0.0/bin/ixsmi
++ grep -E 'MiB /'
++ head -5
+| N/A  36C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  36C   P0       53W / 350W   | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  32C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  33C   P0       54W / 350W   | 66MiB / 32768MiB     | 0%        Default    |
++ echo '== 9. 迁移包是否已在 203 =='
+== 9. 迁移包是否已在 203 ==
++ ls -l /home/qch/transfer/
++ head -15
+total 46112
+-rw-r--r--. 1 root root 19255993 Oct 31 16:14 203opt.zip1
+-rwxr-xr-x. 1 root root  8943206 Sep 24 13:47 corex-driver-linux64-5.0.0_x86_64.run
+-rw-r--r--. 1 root root     3835 Sep 26 15:55 gpu_worker_184_to_203.patch
+-rw-r--r--. 1 root root      877 Sep 26 16:44 hygon_fix.patch
+drwxr-xr-x. 3 root root     4096 Oct 23 16:34 litehost_perf
+-rw-r--r--. 1 root root        0 Oct 23 16:35 litehost_perf - 副本.md.zip
+-rw-r--r--. 1 root root 18947816 Oct 31 17:07 opt.zip1
+-rw-r--r--. 1 root root    50492 Sep 26 15:29 scripts_184_to_203.patch
++ find /home -maxdepth 4 -iname '*host-opt*' -o -maxdepth 4 -iname '*r14*'
++ head -10
+/home/z30059427/host-opt-pr-validation-20261106-r14
+/home/z30059427/host-opt-pr-validation-20261106-r14/evidence/r14-performance-20261112.md
+/home/z30059427/host-opt-three-pr-validation-r14-arm64-py311-20261112.zip
++ set +x
+
+### exit: 0
