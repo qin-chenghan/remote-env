@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 150257 目录在 host 上不存在，去容器内定位并检查。
+# 直接进 corex5-py311 容器检查 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,61 +17,46 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
+  C=corex5-py311
   P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
   PB=/usr/local/corex-5.0.0/vllmBench
 
-  echo "== 1. host 上到底有没有 =="
-  ls -ld /usr/local/corex-5.0.0 2>&1
-  ls -ld "$PB" 2>&1
-  ls -ld "$P" 2>&1
+  echo "== 1. 容器状态 =="
+  docker ps -a --filter "name=$C" --format '{{.ID}}  {{.Names}}  {{.Image}}  {{.Status}}'
+  docker exec "$C" echo alive || { echo "容器不可 exec，结束"; exit 3; }
 
-  echo "== 2. 所有容器（含已停止）=="
-  docker ps -a --format '{{.ID}}  {{.Names}}  {{.Image}}  {{.Status}}'
+  echo "== 2. vllmBench 下所有 run 目录 =="
+  docker exec "$C" bash -c "ls -lat $PB | head -20"
 
-  echo "== 3. 在运行中的容器里找这个目录 =="
-  FOUND=""
-  for c in $(docker ps -q); do
-    n=$(docker inspect -f '{{.Name}}' "$c" 2>/dev/null)
-    if docker exec "$c" bash -c "test -d '$P'" 2>/dev/null; then
-      echo "命中: $n ($c)"
-      FOUND="$c"
-    else
-      echo "未命中: $n ; vllmBench 目录:"
-      docker exec "$c" bash -c "ls -ld '$PB'/* 2>&1 | tail -8" 2>&1
-    fi
-  done
+  echo "== 3. 目标目录 =="
+  docker exec "$C" bash -c "ls -ld $P; du -sh $P 2>/dev/null"
 
-  echo "== 4. 命中容器的详细内容 =="
-  if [ -n "$FOUND" ]; then
-    docker inspect -f '{{.Name}} {{.Id}} img={{.Config.Image}}' "$FOUND"
-    echo "-- mounts --"
-    docker inspect -f '{{range .Mounts}}{{.Type}} {{.Source}} -> {{.Destination}}{{"\n"}}{{end}}' "$FOUND"
-    echo "-- 顶层 --"
-    docker exec "$FOUND" ls -la "$P"
-    echo "-- 文件清单 --"
-    docker exec "$FOUND" bash -c "cd '$P' && find . -type f -printf '%10s  %TY-%Tm-%Td %TH:%TM  %p\n' | sort -k4 | head -60"
-    echo "文件数: $(docker exec "$FOUND" bash -c "find '$P' -type f | wc -l")"
-    echo "大小:   $(docker exec "$FOUND" du -sh "$P" | cut -f1)"
-    echo "-- config.txt --"
-    docker exec "$FOUND" bash -c "head -40 '$P/config.txt' 2>&1"
-    echo "-- summary.csv --"
-    docker exec "$FOUND" bash -c "head -20 '$P/summary.csv' 2>&1"
-    echo "-- host_summary/report.txt --"
-    docker exec "$FOUND" bash -c "head -40 '$P/host_summary/report.txt' 2>&1"
-    echo "-- host_summary/four_rank_totals.csv --"
-    docker exec "$FOUND" bash -c "head -10 '$P/host_summary/four_rank_totals.csv' 2>&1"
-  else
-    echo "所有运行中容器都没有 $P"
-    echo "== 4b. 全盘按名字搜（容器内）=="
-    for c in $(docker ps -q); do
-      n=$(docker inspect -f '{{.Name}}' "$c" 2>/dev/null)
-      echo "--- $n ---"
-      docker exec "$c" bash -c "find / -maxdepth 6 -name 'litehost_gap_20261112_15*' -print 2>/dev/null | head -10"
-    done
-  fi
+  echo "== 4. 文件清单 =="
+  docker exec "$C" bash -c "cd $P && find . -type f -printf '%10s  %TY-%Tm-%Td %TH:%TM  %p\n' | sort -k4 | head -60"
+  docker exec "$C" bash -c "echo 文件数: \$(find $P -type f | wc -l)"
 
-  echo "== 5. host 上按名字搜（含 overlay 挂载点之外）=="
-  find /home /usr/local /data /opt -maxdepth 6 -name 'litehost_gap_20261112_15*' -print 2>/dev/null | head -20
+  echo "== 5. config.txt =="
+  docker exec "$C" bash -c "head -40 $P/config.txt 2>&1"
+
+  echo "== 6. summary.csv =="
+  docker exec "$C" bash -c "head -20 $P/summary.csv 2>&1"
+
+  echo "== 7. host_summary =="
+  docker exec "$C" bash -c "ls -la $P/host_summary 2>&1"
+  docker exec "$C" bash -c "head -40 $P/host_summary/report.txt 2>&1"
+  echo "-- four_rank_totals.csv --"
+  docker exec "$C" bash -c "head -10 $P/host_summary/four_rank_totals.csv 2>&1"
+
+  echo "== 8. 日志尾部 =="
+  docker exec "$C" bash -c "ls -la $P/logs 2>&1"
+  docker exec "$C" bash -c "tail -20 $P/logs/bench_*.log 2>&1"
+
+  echo "== 9. 与 145924 对比 =="
+  R=/home/s00806700/litehost_perf_opt/vllmBench/litehost_gap_20261112_145924
+  docker exec "$C" bash -c "test -d $R && echo '145924 可见' || echo '145924 容器内不可见'"
+  docker exec "$C" bash -c "test -d $R && find $R -type f | wc -l"
+  echo "-- 两边顶层差异 --"
+  docker exec "$C" bash -c "diff <(cd $R && find . -maxdepth 2 | sort) <(cd $P && find . -maxdepth 2 | sort) 2>&1 | head -40"
 
   # ---- 命令结束 ----
 
