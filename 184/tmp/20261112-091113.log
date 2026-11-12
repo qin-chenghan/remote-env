@@ -1,0 +1,52 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T01:11:13Z
+
++ for T in 4k 64k
++ R=/home/qch/scripts/timeline/4k
++ echo ''
+
++ echo '================ 4k ================'
+================ 4k ================
++ '[' '!' -d /home/qch/scripts/timeline/4k ']'
++ echo '-- 目录时间 --'
+-- 目录时间 --
++ ls -ld /home/qch/scripts/timeline/4k /home/qch/scripts/timeline/4k/profile /home/qch/scripts/timeline/4k/logs
+drwxr-xr-x. 4 root root 4096 Nov 12 08:34 /home/qch/scripts/timeline/4k
+drwxr-xr-x. 2 root root 4096 Nov 12 08:29 /home/qch/scripts/timeline/4k/logs
+drwxr-xr-x. 3 root root 4096 Nov 12 08:29 /home/qch/scripts/timeline/4k/profile
++ echo '-- 体量 --'
+-- 体量 --
++ du -sh /home/qch/scripts/timeline/4k /home/qch/scripts/timeline/4k/profile /home/qch/scripts/timeline/4k/logs
+325M	/home/qch/scripts/timeline/4k
++ echo '-- profile 文件 --'
+-- profile 文件 --
++ find /home/qch/scripts/timeline/4k/profile -type f -printf '%10s  %TH:%TM  %p\n'
++ sort -k3
++ head -25
+     20652  08:34  /home/qch/scripts/timeline/4k/profile/case0_in128_out128/profiler_out_0.txt
+     20652  08:33  /home/qch/scripts/timeline/4k/profile/case0_in128_out128/profiler_out_1.txt
+     20652  08:34  /home/qch/scripts/timeline/4k/profile/case0_in128_out128/profiler_out_2.txt
+     20652  08:33  /home/qch/scripts/timeline/4k/profile/case0_in128_out128/profiler_out_3.txt
+  90611470  08:33  /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
+  83125663  08:33  /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank1.1794443503568578280.pt.trace.json.gz
+  83197981  08:33  /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank2.1794443503861682570.pt.trace.json.gz
+  82756722  08:33  /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank3.1794443503310842050.pt.trace.json.gz
++ echo '-- 每个 case 的 rank trace 数 --'
+-- 每个 case 的 rank trace 数 --
++ for d in "$R"/profile/*/
++ '[' -d /home/qch/scripts/timeline/4k/profile/case0_in128_out128/ ']'
+++ wc -l
+++ ls /home/qch/scripts/timeline/4k/profile/case0_in128_out128//rank0.1794443504630143460.pt.trace.json.gz /home/qch/scripts/timeline/4k/profile/case0_in128_out128//rank1.1794443503568578280.pt.trace.json.gz /home/qch/scripts/timeline/4k/profile/case0_in128_out128//rank2.1794443503861682570.pt.trace.json.gz /home/qch/scripts/timeline/4k/profile/case0_in128_out128//rank3.1794443503310842050.pt.trace.json.gz
++ n=4
+++ ls /home/qch/scripts/timeline/4k/profile/case0_in128_out128//profiler_out_0.txt /home/qch/scripts/timeline/4k/profile/case0_in128_out128//profiler_out_1.txt /home/qch/scripts/timeline/4k/profile/case0_in128_out128//profiler_out_2.txt /home/qch/scripts/timeline/4k/profile/case0_in128_out128//profiler_out_3.txt
+++ wc -l
++ out=4
+++ basename /home/qch/scripts/timeline/4k/profile/case0_in128_out128/
++ echo '  case0_in128_out128: traces=4 profiler_out=4'
+  case0_in128_out128: traces=4 profiler_out=4
++ echo '-- gzip 完整性 --'
+-- gzip 完整性 --
++ for f in "$R"/profile/*/rank*.pt.trace.json.gz
++ '[' -f /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz ']'
++ gzip -t /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz

@@ -1,0 +1,347 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T01:11:31Z
+
++ for T in 4k 64k
++ R=/home/qch/scripts/timeline/4k
++ echo ''
+
++ echo '================ 4k ================'
+================ 4k ================
++ '[' '!' -d /home/qch/scripts/timeline/4k ']'
++ echo '-- 目录时间 --'
+-- 目录时间 --
++ ls -ld /home/qch/scripts/timeline/4k /home/qch/scripts/timeline/4k/profile /home/qch/scripts/timeline/4k/logs
+drwxr-xr-x. 4 root root 4096 Nov 12 08:34 /home/qch/scripts/timeline/4k
+drwxr-xr-x. 2 root root 4096 Nov 12 08:29 /home/qch/scripts/timeline/4k/logs
+drwxr-xr-x. 3 root root 4096 Nov 12 08:29 /home/qch/scripts/timeline/4k/profile
++ echo '-- 体量 --'
+-- 体量 --
++ du -sh /home/qch/scripts/timeline/4k /home/qch/scripts/timeline/4k/profile /home/qch/scripts/timeline/4k/logs
+325M	/home/qch/scripts/timeline/4k
++ echo '-- profile 文件 --'
+-- profile 文件 --
++ find /home/qch/scripts/timeline/4k/profile -type f -printf '%10s  %TH:%TM  %p\n'
++ sort -k3
++ head -25
+     20652  08:34  /home/qch/scripts/timeline/4k/profile/case0_in128_out128/profiler_out_0.txt
+     20652  08:33  /home/qch/scripts/timeline/4k/profile/case0_in128_out128/profiler_out_1.txt
+     20652  08:34  /home/qch/scripts/timeline/4k/profile/case0_in128_out128/profiler_out_2.txt
+     20652  08:33  /home/qch/scripts/timeline/4k/profile/case0_in128_out128/profiler_out_3.txt
+  90611470  08:33  /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
+  83125663  08:33  /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank1.1794443503568578280.pt.trace.json.gz
+  83197981  08:33  /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank2.1794443503861682570.pt.trace.json.gz
+  82756722  08:33  /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank3.1794443503310842050.pt.trace.json.gz
++ echo '-- 每个 case 的 rank trace 数 --'
+-- 每个 case 的 rank trace 数 --
++ for d in "$R"/profile/*/
++ '[' -d /home/qch/scripts/timeline/4k/profile/case0_in128_out128/ ']'
+++ ls /home/qch/scripts/timeline/4k/profile/case0_in128_out128//rank0.1794443504630143460.pt.trace.json.gz /home/qch/scripts/timeline/4k/profile/case0_in128_out128//rank1.1794443503568578280.pt.trace.json.gz /home/qch/scripts/timeline/4k/profile/case0_in128_out128//rank2.1794443503861682570.pt.trace.json.gz /home/qch/scripts/timeline/4k/profile/case0_in128_out128//rank3.1794443503310842050.pt.trace.json.gz
+++ wc -l
++ n=4
+++ ls /home/qch/scripts/timeline/4k/profile/case0_in128_out128//profiler_out_0.txt /home/qch/scripts/timeline/4k/profile/case0_in128_out128//profiler_out_1.txt /home/qch/scripts/timeline/4k/profile/case0_in128_out128//profiler_out_2.txt /home/qch/scripts/timeline/4k/profile/case0_in128_out128//profiler_out_3.txt
+++ wc -l
++ out=4
+++ basename /home/qch/scripts/timeline/4k/profile/case0_in128_out128/
++ echo '  case0_in128_out128: traces=4 profiler_out=4'
+  case0_in128_out128: traces=4 profiler_out=4
++ echo '-- gzip 完整性 --'
+-- gzip 完整性 --
++ for f in "$R"/profile/*/rank*.pt.trace.json.gz
++ '[' -f /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz ']'
++ gzip -t /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
++++ dirname /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
+++ basename /home/qch/scripts/timeline/4k/profile/case0_in128_out128
+++ basename /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
++ echo '  OK   case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz'
+  OK   case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
++ for f in "$R"/profile/*/rank*.pt.trace.json.gz
++ '[' -f /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank1.1794443503568578280.pt.trace.json.gz ']'
++ gzip -t /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank1.1794443503568578280.pt.trace.json.gz
++++ dirname /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank1.1794443503568578280.pt.trace.json.gz
+++ basename /home/qch/scripts/timeline/4k/profile/case0_in128_out128
+++ basename /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank1.1794443503568578280.pt.trace.json.gz
++ echo '  OK   case0_in128_out128/rank1.1794443503568578280.pt.trace.json.gz'
+  OK   case0_in128_out128/rank1.1794443503568578280.pt.trace.json.gz
++ for f in "$R"/profile/*/rank*.pt.trace.json.gz
++ '[' -f /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank2.1794443503861682570.pt.trace.json.gz ']'
++ gzip -t /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank2.1794443503861682570.pt.trace.json.gz
++++ dirname /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank2.1794443503861682570.pt.trace.json.gz
+++ basename /home/qch/scripts/timeline/4k/profile/case0_in128_out128
+++ basename /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank2.1794443503861682570.pt.trace.json.gz
++ echo '  OK   case0_in128_out128/rank2.1794443503861682570.pt.trace.json.gz'
+  OK   case0_in128_out128/rank2.1794443503861682570.pt.trace.json.gz
++ for f in "$R"/profile/*/rank*.pt.trace.json.gz
++ '[' -f /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank3.1794443503310842050.pt.trace.json.gz ']'
++ gzip -t /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank3.1794443503310842050.pt.trace.json.gz
++++ dirname /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank3.1794443503310842050.pt.trace.json.gz
+++ basename /home/qch/scripts/timeline/4k/profile/case0_in128_out128
+++ basename /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank3.1794443503310842050.pt.trace.json.gz
++ echo '  OK   case0_in128_out128/rank3.1794443503310842050.pt.trace.json.gz'
+  OK   case0_in128_out128/rank3.1794443503310842050.pt.trace.json.gz
++ echo '-- trace JSON 首尾 --'
+-- trace JSON 首尾 --
+++ ls /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank1.1794443503568578280.pt.trace.json.gz /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank2.1794443503861682570.pt.trace.json.gz /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank3.1794443503310842050.pt.trace.json.gz
+++ head -2
++ for f in $(ls "$R"/profile/*/rank*.pt.trace.json.gz 2> /dev/null | head -2)
+++ basename /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
+++ zcat /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
+++ head -c 60
+++ tr -d '\n'
+++ zcat /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
+++ tail -c 60
+++ tr -d '\n'
++ echo '  rank0.1794443504630143460.pt.trace.json.gz: head=  {    "schemaVersion": 1,    "deviceProperties": [    { ... tail=451349.110  }  ],  "traceName": "/tmp/tmpnsdxe0sc.json"}'
+  rank0.1794443504630143460.pt.trace.json.gz: head=  {    "schemaVersion": 1,    "deviceProperties": [    { ... tail=451349.110  }  ],  "traceName": "/tmp/tmpnsdxe0sc.json"}
++ for f in $(ls "$R"/profile/*/rank*.pt.trace.json.gz 2> /dev/null | head -2)
+++ basename /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank1.1794443503568578280.pt.trace.json.gz
+++ zcat /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank1.1794443503568578280.pt.trace.json.gz
+++ head -c 60
+++ tr -d '\n'
+++ zcat /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank1.1794443503568578280.pt.trace.json.gz
+++ tail -c 60
+++ tr -d '\n'
++ echo '  rank1.1794443503568578280.pt.trace.json.gz: head=  {    "schemaVersion": 1,    "deviceProperties": [    { ... tail=132563.680  }  ],  "traceName": "/tmp/tmpvr0psvbw.json"}'
+  rank1.1794443503568578280.pt.trace.json.gz: head=  {    "schemaVersion": 1,    "deviceProperties": [    { ... tail=132563.680  }  ],  "traceName": "/tmp/tmpvr0psvbw.json"}
++ echo '-- bench 指标 --'
+-- bench 指标 --
++ for b in "$R"/logs/bench*.log
++ '[' -f /home/qch/scripts/timeline/4k/logs/bench_instance0.log ']'
+++ basename /home/qch/scripts/timeline/4k/logs/bench_instance0.log
++ echo '  bench_instance0.log'
+  bench_instance0.log
++ grep -E 'Request throughput|Output token throughput|Total token throughput|Mean TTFT|Mean TPOT|P99 TPOT|Starting profiler|Stopping profiler|num_prompts' /home/qch/scripts/timeline/4k/logs/bench_instance0.log
++ sed 's/^/    /'
+    Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfffcf4aa62a0>, trust_remote_code=True, seed=42, num_prompts=100, dataset_name='random', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=128, random_output_len=128, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=256, prefix_repetition_suffix_len=256, prefix_repetition_num_prefixes=10, prefix_repetition_output_len=128, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='openai', base_url=None, host='127.0.0.1', port=8000, endpoint='/v1/completions', header=None, max_concurrency=8, model='/home/model/Qwen3-32B-W8A8', input_len=None, output_len=None, tokenizer=None, tokenizer_mode='auto', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=16, profile=True, save_result=False, save_detailed=False, append_result=False, metadata=None, result_dir=None, result_filename=None, ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='99', goodput=None, request_id_prefix='bench-69d1c401-', top_p=1.0, top_k=-1, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+    Starting profiler...
+    Request throughput (req/s):              1.32      
+    Output token throughput (tok/s):         168.34    
+    Total token throughput (tok/s):          336.68    
+    Mean TTFT (ms):                          325.08    
+    Mean TPOT (ms):                          43.85     
+    P99 TPOT (ms):                           45.61     
+    Stopping profiler...
++ echo '-- server.log 关键证据 --'
+-- server.log 关键证据 --
++ grep -hiE 'Host opt modes|Compact greedy mode|Sample logits graph|Sample logits cudagraph|host attention metadata off|Using ILU_FLASH_ATTN|Torch profiling enabled|Starting profiler|Stopping profiler' /home/qch/scripts/timeline/4k/logs/server.log
++ sed 's/^/  /'
++ cut -c1-190
++ head -30
+  (APIServer pid=3923895) INFO 11-12 08:29:10 [compilation.py:1162] Sample logits cudagraph on: capture sizes [1, 2, 3, 4, 5, 6, 7, 8], budget 67108864 bytes
+  (Worker pid=3925271) INFO 11-12 08:29:29 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True},
+  (Worker pid=3925270) INFO 11-12 08:29:29 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True},
+  (Worker_TP3 pid=3925271) INFO 11-12 08:29:29 [logging.py:348] Using ILU_FLASH_ATTN attention backend.
+  (Worker pid=3925268) INFO 11-12 08:29:29 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True},
+  (Worker pid=3925269) INFO 11-12 08:29:29 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True},
+  (Worker_TP2 pid=3925270) INFO 11-12 08:29:29 [logging.py:348] Using ILU_FLASH_ATTN attention backend.
+  (Worker_TP0 pid=3925268) INFO 11-12 08:29:30 [logging.py:348] Using ILU_FLASH_ATTN attention backend.
+  (Worker_TP1 pid=3925269) INFO 11-12 08:29:30 [logging.py:348] Using ILU_FLASH_ATTN attention backend.
+  (Worker_TP2 pid=3925270) INFO 11-12 08:29:37 [compact_greedy.py:164] Compact greedy mode=on, active=True, reason=
+  (Worker_TP3 pid=3925271) INFO 11-12 08:29:37 [compact_greedy.py:164] Compact greedy mode=on, active=True, reason=
+  (Worker_TP1 pid=3925269) INFO 11-12 08:29:37 [compact_greedy.py:164] Compact greedy mode=on, active=True, reason=
+  (Worker_TP0 pid=3925268) INFO 11-12 08:29:37 [compact_greedy.py:164] Compact greedy mode=on, active=True, reason=
+  (Worker_TP2 pid=3925270) INFO 11-12 08:29:38 [compact_greedy.py:525] Sample logits graph kind=token_ids, status=ready, keys=[1, 2, 3, 4, 5, 6, 7, 8], retained=50700288 bytes, reason=
+  (Worker_TP0 pid=3925268) INFO 11-12 08:29:38 [compact_greedy.py:525] Sample logits graph kind=token_ids, status=ready, keys=[1, 2, 3, 4, 5, 6, 7, 8], retained=50700288 bytes, reason=
+  (Worker_TP1 pid=3925269) INFO 11-12 08:29:38 [compact_greedy.py:525] Sample logits graph kind=token_ids, status=ready, keys=[1, 2, 3, 4, 5, 6, 7, 8], retained=52797440 bytes, reason=
+  (Worker_TP3 pid=3925271) INFO 11-12 08:29:38 [compact_greedy.py:525] Sample logits graph kind=token_ids, status=ready, keys=[1, 2, 3, 4, 5, 6, 7, 8], retained=52797440 bytes, reason=
+  (EngineCore pid=3924562) INFO 11-12 08:29:50 [compilation.py:1162] Sample logits cudagraph on: capture sizes [1, 2, 3, 4, 5, 6, 7, 8], budget 67108864 bytes
+  (APIServer pid=3923895) INFO 11-12 08:30:10 [api_router.py:23] Starting profiler...
+  (Worker_TP0 pid=3925268) INFO 11-12 08:30:10 [wrapper.py:174] Torch profiling enabled. Traces will be saved to: /home/qch/scripts/timeline/4k/profile/case0_in128_out128
+  (APIServer pid=3923895) INFO 11-12 08:31:26 [api_router.py:31] Stopping profiler...
++ echo '-- 计数 --'
+-- 计数 --
+++ grep -c 'host attention metadata off' /home/qch/scripts/timeline/4k/logs/server.log
++ echo '  metadata_off=0'
+  metadata_off=0
+++ grep -c 'Host opt modes=' /home/qch/scripts/timeline/4k/logs/server.log
++ echo '  host_opt_lines=4'
+  host_opt_lines=4
+++ grep -c 'Compact greedy mode=on' /home/qch/scripts/timeline/4k/logs/server.log
++ echo '  compact_greedy_on=4'
+  compact_greedy_on=4
+++ grep -c 'Sample logits graph.*status=ready' /home/qch/scripts/timeline/4k/logs/server.log
++ echo '  sample_graph_ready=4'
+  sample_graph_ready=4
+++ grep -c 'Starting profiler' /home/qch/scripts/timeline/4k/logs/server.log
++ echo '  profiler_start=1'
+  profiler_start=1
+++ grep -c ld.so /home/qch/scripts/timeline/4k/logs/server.log
++ echo '  ldso_err=0'
+  ldso_err=0
++ for T in 4k 64k
++ R=/home/qch/scripts/timeline/64k
++ echo ''
+
++ echo '================ 64k ================'
+================ 64k ================
++ '[' '!' -d /home/qch/scripts/timeline/64k ']'
++ echo '-- 目录时间 --'
+-- 目录时间 --
++ ls -ld /home/qch/scripts/timeline/64k /home/qch/scripts/timeline/64k/profile /home/qch/scripts/timeline/64k/logs
+drwxr-xr-x. 4 root root 4096 Nov 12 09:04 /home/qch/scripts/timeline/64k
+drwxr-xr-x. 2 root root 4096 Nov 12 09:00 /home/qch/scripts/timeline/64k/logs
+drwxr-xr-x. 3 root root 4096 Nov 12 08:59 /home/qch/scripts/timeline/64k/profile
++ echo '-- 体量 --'
+-- 体量 --
++ du -sh /home/qch/scripts/timeline/64k /home/qch/scripts/timeline/64k/profile /home/qch/scripts/timeline/64k/logs
+322M	/home/qch/scripts/timeline/64k
++ echo '-- profile 文件 --'
+-- profile 文件 --
++ find /home/qch/scripts/timeline/64k/profile -type f -printf '%10s  %TH:%TM  %p\n'
++ sort -k3
++ head -25
+     20652  09:04  /home/qch/scripts/timeline/64k/profile/case0_in128_out128/profiler_out_0.txt
+     20652  09:04  /home/qch/scripts/timeline/64k/profile/case0_in128_out128/profiler_out_1.txt
+     20652  09:03  /home/qch/scripts/timeline/64k/profile/case0_in128_out128/profiler_out_2.txt
+     20652  09:04  /home/qch/scripts/timeline/64k/profile/case0_in128_out128/profiler_out_3.txt
+  90082053  09:03  /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz
+  82395200  09:03  /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank1.1794445313786392510.pt.trace.json.gz
+  81919247  09:03  /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank2.1794445312966371300.pt.trace.json.gz
+  82765613  09:03  /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank3.1794445313763320310.pt.trace.json.gz
++ echo '-- 每个 case 的 rank trace 数 --'
+-- 每个 case 的 rank trace 数 --
++ for d in "$R"/profile/*/
++ '[' -d /home/qch/scripts/timeline/64k/profile/case0_in128_out128/ ']'
+++ ls /home/qch/scripts/timeline/64k/profile/case0_in128_out128//rank0.1794445315012900250.pt.trace.json.gz /home/qch/scripts/timeline/64k/profile/case0_in128_out128//rank1.1794445313786392510.pt.trace.json.gz /home/qch/scripts/timeline/64k/profile/case0_in128_out128//rank2.1794445312966371300.pt.trace.json.gz /home/qch/scripts/timeline/64k/profile/case0_in128_out128//rank3.1794445313763320310.pt.trace.json.gz
+++ wc -l
++ n=4
+++ ls /home/qch/scripts/timeline/64k/profile/case0_in128_out128//profiler_out_0.txt /home/qch/scripts/timeline/64k/profile/case0_in128_out128//profiler_out_1.txt /home/qch/scripts/timeline/64k/profile/case0_in128_out128//profiler_out_2.txt /home/qch/scripts/timeline/64k/profile/case0_in128_out128//profiler_out_3.txt
+++ wc -l
++ out=4
+++ basename /home/qch/scripts/timeline/64k/profile/case0_in128_out128/
++ echo '  case0_in128_out128: traces=4 profiler_out=4'
+  case0_in128_out128: traces=4 profiler_out=4
++ echo '-- gzip 完整性 --'
+-- gzip 完整性 --
++ for f in "$R"/profile/*/rank*.pt.trace.json.gz
++ '[' -f /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz ']'
++ gzip -t /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz
++++ dirname /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz
+++ basename /home/qch/scripts/timeline/64k/profile/case0_in128_out128
+++ basename /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz
++ echo '  OK   case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz'
+  OK   case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz
++ for f in "$R"/profile/*/rank*.pt.trace.json.gz
++ '[' -f /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank1.1794445313786392510.pt.trace.json.gz ']'
++ gzip -t /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank1.1794445313786392510.pt.trace.json.gz
++++ dirname /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank1.1794445313786392510.pt.trace.json.gz
+++ basename /home/qch/scripts/timeline/64k/profile/case0_in128_out128
+++ basename /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank1.1794445313786392510.pt.trace.json.gz
++ echo '  OK   case0_in128_out128/rank1.1794445313786392510.pt.trace.json.gz'
+  OK   case0_in128_out128/rank1.1794445313786392510.pt.trace.json.gz
++ for f in "$R"/profile/*/rank*.pt.trace.json.gz
++ '[' -f /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank2.1794445312966371300.pt.trace.json.gz ']'
++ gzip -t /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank2.1794445312966371300.pt.trace.json.gz
++++ dirname /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank2.1794445312966371300.pt.trace.json.gz
+++ basename /home/qch/scripts/timeline/64k/profile/case0_in128_out128
+++ basename /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank2.1794445312966371300.pt.trace.json.gz
++ echo '  OK   case0_in128_out128/rank2.1794445312966371300.pt.trace.json.gz'
+  OK   case0_in128_out128/rank2.1794445312966371300.pt.trace.json.gz
++ for f in "$R"/profile/*/rank*.pt.trace.json.gz
++ '[' -f /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank3.1794445313763320310.pt.trace.json.gz ']'
++ gzip -t /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank3.1794445313763320310.pt.trace.json.gz
++++ dirname /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank3.1794445313763320310.pt.trace.json.gz
+++ basename /home/qch/scripts/timeline/64k/profile/case0_in128_out128
+++ basename /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank3.1794445313763320310.pt.trace.json.gz
++ echo '  OK   case0_in128_out128/rank3.1794445313763320310.pt.trace.json.gz'
+  OK   case0_in128_out128/rank3.1794445313763320310.pt.trace.json.gz
++ echo '-- trace JSON 首尾 --'
+-- trace JSON 首尾 --
+++ head -2
+++ ls /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank1.1794445313786392510.pt.trace.json.gz /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank2.1794445312966371300.pt.trace.json.gz /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank3.1794445313763320310.pt.trace.json.gz
++ for f in $(ls "$R"/profile/*/rank*.pt.trace.json.gz 2> /dev/null | head -2)
+++ basename /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz
+++ zcat /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz
+++ head -c 60
+++ tr -d '\n'
+++ zcat /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz
+++ tail -c 60
+++ tr -d '\n'
++ echo '  rank0.1794445315012900250.pt.trace.json.gz: head=  {    "schemaVersion": 1,    "deviceProperties": [    { ... tail=668538.170  }  ],  "traceName": "/tmp/tmpu6171qaw.json"}'
+  rank0.1794445315012900250.pt.trace.json.gz: head=  {    "schemaVersion": 1,    "deviceProperties": [    { ... tail=668538.170  }  ],  "traceName": "/tmp/tmpu6171qaw.json"}
++ for f in $(ls "$R"/profile/*/rank*.pt.trace.json.gz 2> /dev/null | head -2)
+++ basename /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank1.1794445313786392510.pt.trace.json.gz
+++ zcat /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank1.1794445313786392510.pt.trace.json.gz
+++ head -c 60
+++ tr -d '\n'
+++ zcat /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank1.1794445313786392510.pt.trace.json.gz
+++ tail -c 60
+++ tr -d '\n'
++ echo '  rank1.1794445313786392510.pt.trace.json.gz: head=  {    "schemaVersion": 1,    "deviceProperties": [    { ... tail=343094.230  }  ],  "traceName": "/tmp/tmp7u7_3uow.json"}'
+  rank1.1794445313786392510.pt.trace.json.gz: head=  {    "schemaVersion": 1,    "deviceProperties": [    { ... tail=343094.230  }  ],  "traceName": "/tmp/tmp7u7_3uow.json"}
++ echo '-- bench 指标 --'
+-- bench 指标 --
++ for b in "$R"/logs/bench*.log
++ '[' -f /home/qch/scripts/timeline/64k/logs/bench_instance0.log ']'
+++ basename /home/qch/scripts/timeline/64k/logs/bench_instance0.log
++ echo '  bench_instance0.log'
+  bench_instance0.log
++ grep -E 'Request throughput|Output token throughput|Total token throughput|Mean TTFT|Mean TPOT|P99 TPOT|Starting profiler|Stopping profiler|num_prompts' /home/qch/scripts/timeline/64k/logs/bench_instance0.log
++ sed 's/^/    /'
+    Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfff99ef9e2a0>, trust_remote_code=True, seed=42, num_prompts=100, dataset_name='random', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=128, random_output_len=128, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=256, prefix_repetition_suffix_len=256, prefix_repetition_num_prefixes=10, prefix_repetition_output_len=128, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='openai', base_url=None, host='127.0.0.1', port=8000, endpoint='/v1/completions', header=None, max_concurrency=8, model='/home/model/Qwen3-32B-W8A8', input_len=None, output_len=None, tokenizer=None, tokenizer_mode='auto', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=16, profile=True, save_result=False, save_detailed=False, append_result=False, metadata=None, result_dir=None, result_filename=None, ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='99', goodput=None, request_id_prefix='bench-5a364224-', top_p=1.0, top_k=-1, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+    Starting profiler...
+    Request throughput (req/s):              1.32      
+    Output token throughput (tok/s):         168.73    
+    Total token throughput (tok/s):          337.46    
+    Mean TTFT (ms):                          335.31    
+    Mean TPOT (ms):                          43.62     
+    P99 TPOT (ms):                           45.24     
+    Stopping profiler...
++ echo '-- server.log 关键证据 --'
+-- server.log 关键证据 --
++ grep -hiE 'Host opt modes|Compact greedy mode|Sample logits graph|Sample logits cudagraph|host attention metadata off|Using ILU_FLASH_ATTN|Torch profiling enabled|Starting profiler|Stopping profiler' /home/qch/scripts/timeline/64k/logs/server.log
++ sed 's/^/  /'
++ cut -c1-190
++ head -30
+  (APIServer pid=32209) INFO 11-12 08:59:13 [compilation.py:1162] Sample logits cudagraph on: capture sizes [1, 2, 3, 4, 5, 6, 7, 8], budget 67108864 bytes
+  (Worker pid=33634) INFO 11-12 08:59:31 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True}, f
+  (Worker pid=33633) INFO 11-12 08:59:31 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True}, f
+  (Worker pid=33631) INFO 11-12 08:59:31 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True}, f
+  (Worker pid=33632) INFO 11-12 08:59:31 [host_opt.py:101] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': True}, f
+  (Worker_TP2 pid=33633) INFO 11-12 08:59:31 [logging.py:348] Using ILU_FLASH_ATTN attention backend.
+  (Worker_TP3 pid=33634) INFO 11-12 08:59:31 [logging.py:348] Using ILU_FLASH_ATTN attention backend.
+  (Worker_TP0 pid=33631) INFO 11-12 08:59:32 [logging.py:348] Using ILU_FLASH_ATTN attention backend.
+  (Worker_TP1 pid=33632) INFO 11-12 08:59:32 [logging.py:348] Using ILU_FLASH_ATTN attention backend.
+  (Worker_TP3 pid=33634) INFO 11-12 08:59:47 [compact_greedy.py:164] Compact greedy mode=on, active=True, reason=
+  (Worker_TP2 pid=33633) INFO 11-12 08:59:47 [compact_greedy.py:164] Compact greedy mode=on, active=True, reason=
+  (Worker_TP0 pid=33631) INFO 11-12 08:59:47 [compact_greedy.py:164] Compact greedy mode=on, active=True, reason=
+  (Worker_TP1 pid=33632) INFO 11-12 08:59:47 [compact_greedy.py:164] Compact greedy mode=on, active=True, reason=
+  (Worker_TP3 pid=33634) INFO 11-12 08:59:50 [compact_greedy.py:525] Sample logits graph kind=token_ids, status=ready, keys=[1, 2, 3, 4, 5, 6, 7, 8], retained=50700288 bytes, reason=
+  (Worker_TP0 pid=33631) INFO 11-12 08:59:50 [compact_greedy.py:525] Sample logits graph kind=token_ids, status=ready, keys=[1, 2, 3, 4, 5, 6, 7, 8], retained=50700288 bytes, reason=
+  (Worker_TP2 pid=33633) INFO 11-12 08:59:50 [compact_greedy.py:525] Sample logits graph kind=token_ids, status=ready, keys=[1, 2, 3, 4, 5, 6, 7, 8], retained=50700288 bytes, reason=
+  (Worker_TP1 pid=33632) INFO 11-12 08:59:50 [compact_greedy.py:525] Sample logits graph kind=token_ids, status=ready, keys=[1, 2, 3, 4, 5, 6, 7, 8], retained=50700288 bytes, reason=
+  (EngineCore pid=33279) INFO 11-12 09:00:01 [compilation.py:1162] Sample logits cudagraph on: capture sizes [1, 2, 3, 4, 5, 6, 7, 8], budget 67108864 bytes
+  (APIServer pid=32209) INFO 11-12 09:00:22 [api_router.py:23] Starting profiler...
+  (Worker_TP0 pid=33631) INFO 11-12 09:00:22 [wrapper.py:174] Torch profiling enabled. Traces will be saved to: /home/qch/scripts/timeline/64k/profile/case0_in128_out128
+  (APIServer pid=32209) INFO 11-12 09:01:38 [api_router.py:31] Stopping profiler...
++ echo '-- 计数 --'
+-- 计数 --
+++ grep -c 'host attention metadata off' /home/qch/scripts/timeline/64k/logs/server.log
++ echo '  metadata_off=0'
+  metadata_off=0
+++ grep -c 'Host opt modes=' /home/qch/scripts/timeline/64k/logs/server.log
++ echo '  host_opt_lines=4'
+  host_opt_lines=4
+++ grep -c 'Compact greedy mode=on' /home/qch/scripts/timeline/64k/logs/server.log
++ echo '  compact_greedy_on=4'
+  compact_greedy_on=4
+++ grep -c 'Sample logits graph.*status=ready' /home/qch/scripts/timeline/64k/logs/server.log
++ echo '  sample_graph_ready=4'
+  sample_graph_ready=4
+++ grep -c 'Starting profiler' /home/qch/scripts/timeline/64k/logs/server.log
++ echo '  profiler_start=1'
+  profiler_start=1
+++ grep -c ld.so /home/qch/scripts/timeline/64k/logs/server.log
++ echo '  ldso_err=0'
+  ldso_err=0
++ echo ''
+
++ echo '================ 内核现状 ================'
+================ 内核现状 ================
++ uname -r
+6.6.0-145.3.37.168.oe2403sp3.aarch64
++ getconf PAGE_SIZE
+4096
++ set +x
+
+### exit: 0
