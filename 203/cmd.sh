@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 203 根盘数字对不上账：df 全表、挂载点、保留块、du -x 对账、近期增长来源。
+# 203 清理 corex-4.4.0（用户确认已用不上）：删前查占用，删后核对软链与空间。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,55 +17,47 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== 1. 全部挂载与 df =="
-  df -h
-  echo "--- 具体设备 ---"
-  findmnt -T / -o TARGET,SOURCE,FSTYPE,OPTIONS
-  findmnt -T /data -o TARGET,SOURCE,FSTYPE 2>/dev/null
-  findmnt -T /usr/local -o TARGET,SOURCE,FSTYPE 2>/dev/null
-  lsblk 2>/dev/null | head -20
+  T=/usr/local/corex-4.4.0
 
-  echo "== 2. 空间去哪了：Used + Avail + Reserved =="
-  df -B1 /
-  echo "--- 文件系统保留块 ---"
-  fs=$(findmnt -no FSTYPE /)
-  dev=$(findmnt -no SOURCE /)
-  echo "fs=$fs dev=$dev"
-  if [ "$fs" = ext4 ] || [ "$fs" = ext3 ]; then
-    tune2fs -l "$dev" 2>/dev/null | grep -iE 'Block count|Free blocks|Reserved block count|Block size|Filesystem features' | head -6
-  elif [ "$fs" = xfs ]; then
-    xfs_info "$dev" 2>/dev/null | head -10
-    xfs_db -r -c 'freesp -s' "$dev" 2>/dev/null | head -10
-  fi
+  echo "== 1. 删前状态 =="
+  df -h /
+  du -sh "$T" 2>/dev/null
+  ls -ld /usr/local/corex
+  readlink -f /usr/local/corex
 
-  echo "== 3. du 对账（-x 不跨挂载点）=="
-  du -xsh / 2>/dev/null
-  echo "--- 不跨挂载点的一层 ---"
-  du -xsh /* 2>/dev/null | sort -rh | head -12
-  echo "--- /data 是否独立设备 ---"
-  du -sh /data 2>/dev/null
-  du -xsh /data 2>/dev/null
-  echo "--- /usr/local 是否独立设备 ---"
-  du -sh /usr/local 2>/dev/null
-  du -xsh /usr/local 2>/dev/null
-
-  echo "== 4. swap =="
-  swapon --show 2>/dev/null || echo "无 swap 设备"
-  find / -xdev -maxdepth 2 -name '*swap*' -size +1G 2>/dev/null | head -5
-
-  echo "== 5. 近两天根盘上新增长的大文件/目录 =="
-  find / -xdev -type f -mtime -2 -size +50M 2>/dev/null | head -20 | while read -r f; do du -h "$f"; done
-  echo "--- /var/log 近两天 ---"
-  find /var/log -type f -mtime -2 -size +10M 2>/dev/null | head -10 | while read -r f; do du -h "$f"; done
-
-  echo "== 6. 可直接回收项汇总（当前实测）=="
-  for p in /opt/maca-3.3.0 /usr/local/corex-4.4.0 /usr/src/linux-6.6.0-72.0.0.76.oe2403sp1.x86_64 /var/cache/dnf /var/log /boot; do
-    [ -e "$p" ] && du -sh "$p"
+  echo "== 2. 是否有进程在用（文件被打开或路径在环境里）=="
+  lsof +D "$T" 2>/dev/null | head -20 || true
+  echo "--- 进程命令行里带 corex-4.4.0 的 ---"
+  ps -eo pid,args 2>/dev/null | grep 'corex-4.4.0' | grep -v grep | head -10 || echo "无"
+  echo "--- 容器挂载/环境里带 corex-4.4.0 的 ---"
+  for c in $(docker ps -q 2>/dev/null); do
+    docker inspect -f '{{.Name}} {{range .Mounts}}{{.Source}} {{end}}' "$c" 2>/dev/null | grep -l 'corex-4.4.0' 2>/dev/null
+    docker exec "$c" bash -c "env | grep -i 'corex-4.4.0' || true" 2>/dev/null | head -2
   done
-  journalctl --disk-usage 2>/dev/null
-  echo "--- 是否有人引用 corex-4.4.0 / maca ---"
-  grep -rIl 'corex-4.4.0' /etc/profile.d /root/.bashrc /etc/ld.so.conf.d /usr/local/bin 2>/dev/null | head -5 || true
-  ls -l /usr/local/corex /usr/local/corex-5.0.0 2>/dev/null | head -5
+  echo "--- ld.so 缓存里是否仍登记该目录 ---"
+  ldconfig -p 2>/dev/null | grep 'corex-4.4.0' | head -5 || echo "无"
+  ls -l /etc/ld.so.conf.d/ 2>/dev/null | grep -i corex || echo "无 corex conf"
+
+  echo "== 3. 执行删除 =="
+  if [ -d "$T" ]; then
+    rm -rf "$T" && echo "removed $T"
+  else
+    echo "$T 不存在，跳过"
+  fi
+  rm -f /etc/ld.so.conf.d/corex-4.4.0.conf.bak_500 2>/dev/null || true
+
+  echo "== 4. 删后核对 =="
+  du -sh "$T" 2>/dev/null || echo "$T 已不存在"
+  ls -ld /usr/local/corex
+  readlink -f /usr/local/corex
+  ls /usr/local/corex/bin 2>/dev/null | head -5
+  echo "--- 重建 ld 缓存（去掉已删路径）---"
+  ldconfig 2>&1 | head -5; echo "ldconfig rc=$?"
+  ldconfig -p 2>/dev/null | grep -c 'corex-4.4.0' || true
+
+  echo "== 5. 空间 =="
+  df -h /
+  df -B1 / | tail -1
 
   # ---- 命令结束 ----
 
