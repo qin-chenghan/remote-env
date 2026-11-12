@@ -1,0 +1,37 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T06:12:50Z
+
++ T=/home/qch/scripts/timeline
+++ head -1
+++ ls /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
++ A=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
+++ ls /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
+++ head -1
++ B=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
++ echo A=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
+A=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
++ echo B=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
+B=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
++ '[' -n /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz ']'
++ '[' -n /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz ']'
++ python3 /home/qch/tools/remote-env/184/trace_phase_split.py /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz 4k2 64k2
+[4k2] steps=1692 prefill=50 decode=1642
+  prefill n=   50 T_tot= 5037.91s S_tot= 3688.05s H_tot= 1349.87s cpu_op= 651.74s py=20622.10s rt=3918.21s
+          per-step: T= 100.76ms S= 73.761ms H=  27.00ms
+  decode  n= 1642 T_tot=68639.99s S_tot=  172.47s H_tot=68467.52s cpu_op=1204.85s py=210636.18s rt=131348.97s
+          per-step: T=  41.80ms S=  0.105ms H=  41.70ms
+[64k2] steps=1692 prefill=45 decode=1647
+  prefill n=   45 T_tot= 4958.26s S_tot= 3439.82s H_tot= 1518.44s cpu_op= 807.30s py=20361.85s rt=3625.27s
+          per-step: T= 110.18ms S= 76.440ms H=  33.74ms
+  decode  n= 1647 T_tot=68590.47s S_tot=  170.87s H_tot=68419.60s cpu_op=1327.65s py=210377.02s rt=131248.44s
+          per-step: T=  41.65ms S=  0.104ms H=  41.54ms
+
+== 跨条件对比（B - A）==
+  prefill TOTAL: T 5037.91->4958.26s (-1.58%)  S 3688.05->3439.82s (-6.73%)  H 1349.87->1518.44s (+12.49%)
+          CPU TOTAL: cpu_op 651.74->807.30s (+23.9%)  py 20622.10->20361.85s (-1.3%)  rt 3918.21->3625.27s (-7.5%)
+  decode  TOTAL: T 68639.99->68590.47s (-0.07%)  S 172.47->170.87s (-0.93%)  H 68467.52->68419.60s (-0.07%)
+          CPU TOTAL: cpu_op 1204.85->1327.65s (+10.2%)  py 210636.18->210377.02s (-0.1%)  rt 131348.97->131248.44s (-0.1%)
++ set +x
+
+### exit: 0
