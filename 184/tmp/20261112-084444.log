@@ -1,0 +1,84 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T00:44:44Z
+
++ PKG=/home/qch/transfer/host-opt-pr-validation-20261106-r10
++ SITE=/opt/corex311/lib/python3.11/site-packages
++ echo '== 实际安装用的 container patch =='
+== 实际安装用的 container patch ==
++ ls -l /home/qch/transfer/host-opt-pr-validation-20261106-r10/container/patches
+total 136
+-rw-rw-rw-. 1 root root 45847 Nov  5 11:35 0001-host-paths.patch
+-rw-rw-rw-. 1 root root 14072 Nov  5 11:35 0002-ilu-metadata.patch
+-rw-rw-rw-. 1 root root 73155 Nov  9 15:21 0003-compact-greedy.patch
++ grep -n 'VLLM_HOST_OPT_METADATA\|environ\|getenv' /home/qch/transfer/host-opt-pr-validation-20261106-r10/container/patches/0002-ilu-metadata.patch
++ head -12
+8:Default off. Selected by VLLM_HOST_OPT_METADATA (falling back to
+26:+# Optional and default off. Selected by VLLM_HOST_OPT_METADATA, which
+44:+    value = os.environ.get("VLLM_HOST_OPT_METADATA")
+46:+        value = os.environ.get("VLLM_HOST_OPT", "off")
+49:+        raise ValueError("VLLM_HOST_OPT_METADATA must be one of "
+59:+    os.environ.get("VLLM_HOST_OPT_DIAGNOSTICS", "0").strip().lower()
++ echo '== 已安装包里是否有该字符串 =='
+== 已安装包里是否有该字符串 ==
++ docker exec corex5-py311 grep -rn VLLM_HOST_OPT_METADATA /opt/corex311/lib/python3.11/site-packages/vllm
++ head -5
+/opt/corex311/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py:66:# Optional and default off. Selected by VLLM_HOST_OPT_METADATA, which
+/opt/corex311/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py:84:    value = os.environ.get("VLLM_HOST_OPT_METADATA")
+/opt/corex311/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py:89:        raise ValueError("VLLM_HOST_OPT_METADATA must be one of "
++ echo '(空=没有)'
+(空=没有)
++ echo '== ilu_flash_attn.py 100-130 行 =='
+== ilu_flash_attn.py 100-130 行 ==
++ docker exec corex5-py311 sed -n 100,130p /opt/corex311/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py
++ cut -c1-170
+    in ("1", "on"))
+
+
+def _corex_fell_back(reason):
+    stats = COREX_METADATA_STATS
+    stats["fallback"] += 1
+    stats["reasons"][reason] = stats["reasons"].get(reason, 0) + 1
+
+
+if _COREX_MODE != "off":
+    try:
+        from vllm import _host_opt_meta_native as _corex_native
+        if not (callable(getattr(_corex_native, "layout", None))
+                and callable(getattr(_corex_native, "ilu_meta_pack", None))):
+            raise RuntimeError("missing native entry point")
+    except Exception as _corex_error:  # noqa: BLE001 - any failure means off
+        logger.info("host attention metadata off: %s: %s",
+                    type(_corex_error).__name__, _corex_error)
+        _corex_native = None
+    if _corex_native is not None:
+        # Handshake with the extension before any step runs: the layout the
+        # builder indexes into must be the layout the extension packs.
+        from array import array as _corex_array
+
+        _corex_packed = _corex_array("i", [0] * 11)
+        if (_corex_native.layout(2, 1) != (11, 0, 3, 5, 7, 9)
+                or _corex_native.ilu_meta_pack(_corex_array("i", [0, 1, 4]),
+                                               _corex_array("i", [5, 9]),
+                                               2, 1, 1, _corex_packed) != (1, 5)
+                or _corex_packed.tolist() != [0, 5, 14, 0, 1, 0, 5, 0, 3, 0, 9]):
+            _corex_native = None
++ echo '== 本次 run 有没有 metadata off 日志 =='
+== 本次 run 有没有 metadata off 日志 ==
++ grep -c 'host attention metadata off' /home/qch/scripts/timeline/4k/logs/server.log
+0
++ grep -n 'host attention metadata' /home/qch/scripts/timeline/4k/logs/server.log
++ head -5
++ echo '== 本次 run 的 attention backend / ilu 日志 =='
+== 本次 run 的 attention backend / ilu 日志 ==
++ grep -iE 'IluFlashAttention|ilu_flash_attn|attention backend|_host_opt_meta_native' /home/qch/scripts/timeline/4k/logs/server.log
++ cut -c1-190
++ head -10
+(Worker_TP3 pid=3925271) INFO 11-12 08:29:29 [logging.py:348] Using ILU_FLASH_ATTN attention backend.
+(Worker_TP2 pid=3925270) INFO 11-12 08:29:29 [logging.py:348] Using ILU_FLASH_ATTN attention backend.
+(Worker_TP0 pid=3925268) INFO 11-12 08:29:30 [logging.py:348] Using ILU_FLASH_ATTN attention backend.
+(Worker_TP1 pid=3925269) INFO 11-12 08:29:30 [logging.py:348] Using ILU_FLASH_ATTN attention backend.
+(Worker_TP0 pid=3925268) INFO 11-12 08:29:30 [ilu_flash_attn.py:894] Using IluFlashAttention (ixformer backend), FA version None
++ set +x
+
+### exit: 0
