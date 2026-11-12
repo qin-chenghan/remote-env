@@ -1,0 +1,58 @@
+### server: 184
+### host:   controller
+### time:   2026-11-12T06:01:13Z
+
++ T=/home/qch/scripts/timeline
++ for R in 4k2 64k2
+++ head -1
+++ ls /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
++ F=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
++ echo '== 4k2: /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz =='
+== 4k2: /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz ==
++ '[' -n /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz ']'
++ python3 /home/qch/tools/remote-env/184/trace_phase.py /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz 4k2
+[4k2] execute_model 步数=0  allreduce kernel 数=22833
+  有 allreduce 的步数=0 (0.0%)
+  全部步均值: calls=0.00 time=0.0us
+  allreduce 总时长=1907.3ms
+  top  5 步占 allreduce 总时长:   0.0%
+  top 10 步占 allreduce 总时长:   0.0%
+  top 20 步占 allreduce 总时长:   0.0%
+  top 50 步占 allreduce 总时长:   0.0%
+  top100 步占 allreduce 总时长:   0.0%
+Traceback (most recent call last):
+  File "/home/qch/tools/remote-env/184/trace_phase.py", line 107, in <module>
+    main()
+    ~~~~^^
+  File "/home/qch/tools/remote-env/184/trace_phase.py", line 87, in main
+    print(f"  step duration: min={durs[0]/1000:.1f}ms p50={durs[len(durs)//2]/1000:.1f}ms "
+                                  ~~~~^^^
+IndexError: list index out of range
++ for R in 4k2 64k2
+++ ls /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
+++ head -1
++ F=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
++ echo '== 64k2: /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz =='
+== 64k2: /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz ==
++ '[' -n /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz ']'
++ python3 /home/qch/tools/remote-env/184/trace_phase.py /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz 64k2
+[64k2] execute_model 步数=0  allreduce kernel 数=22833
+  有 allreduce 的步数=0 (0.0%)
+  全部步均值: calls=0.00 time=0.0us
+  allreduce 总时长=1658.4ms
+  top  5 步占 allreduce 总时长:   0.0%
+  top 10 步占 allreduce 总时长:   0.0%
+  top 20 步占 allreduce 总时长:   0.0%
+  top 50 步占 allreduce 总时长:   0.0%
+  top100 步占 allreduce 总时长:   0.0%
+Traceback (most recent call last):
+  File "/home/qch/tools/remote-env/184/trace_phase.py", line 107, in <module>
+    main()
+    ~~~~^^
+  File "/home/qch/tools/remote-env/184/trace_phase.py", line 87, in main
+    print(f"  step duration: min={durs[0]/1000:.1f}ms p50={durs[len(durs)//2]/1000:.1f}ms "
+                                  ~~~~^^^
+IndexError: list index out of range
++ set +x
+
+### exit: 0
