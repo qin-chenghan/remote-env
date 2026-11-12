@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：检查最新 4k timeline 采集结果与优化使能证据。
+# 只读：查 metadata 快路径的真实开关名与是否已在运行。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,44 +17,33 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== timeline run dirs =="
-  ls -lt /home/qch/scripts/timeline/ 2>&1 | head -8
+  SITE=/opt/corex311/lib/python3.11/site-packages
+  PKG=/home/qch/transfer/host-opt-pr-validation-20261106-r10
 
-  R=$(ls -dt /home/qch/scripts/timeline/*/ 2>/dev/null | head -1)
-  echo "RUN=$R"
-  [ -n "$R" ] && [ -d "$R" ] || exit 0
+  echo "== envs.py 里所有 VLLM_HOST_OPT* 名字 =="
+  docker exec corex5-py311 grep -oE '"VLLM_HOST_OPT[A-Z_]*"' "$SITE/vllm/envs.py" 2>&1 | sort -u
 
-  echo "== run dir =="
-  ls -la "$R" 2>&1 | head -12
-  echo "-- profile tree --"
-  find "$R/profile" -type f -printf '%10s  %TY-%Tm-%Td %TH:%TM  %p\n' 2>/dev/null | sort -k3 | head -30
-  echo "-- profile size --"
-  du -sh "$R/profile" 2>&1
+  echo "== envs.py 里 META 相关 =="
+  docker exec corex5-py311 grep -nE 'META|metadata' "$SITE/vllm/envs.py" 2>&1 | head -10
 
-  echo "== logs =="
-  ls -l "$R/logs" 2>&1
+  echo "== 谁引用 _host_opt_meta_native =="
+  docker exec corex5-py311 grep -rn '_host_opt_meta_native' "$SITE/vllm" 2>&1 | head -10
 
-  echo "== bench log: case 标记与吞吐 =="
-  grep -hE '^(INFO|WARNING).*(Request throughput|Output token throughput|Mean TTFT|Mean TPOT)|profile' "$R"/logs/bench*.log 2>/dev/null | cut -c1-200 | head -20
+  echo "== ilu_flash_attn 里的 metadata =="
+  docker exec corex5-py311 grep -n 'metadata' "$SITE/vllm/v1/attention/backends/ilu_flash_attn.py" 2>&1 | head -15
 
-  echo "== server.log: profiler =="
-  grep -hiE 'profiler|start_profile|stop_profile|trace' "$R/logs/server.log" 2>/dev/null | cut -c1-200 | head -15
+  echo "== host_opt.py 模式解析段 =="
+  docker exec corex5-py311 sed -n '60,120p' "$SITE/vllm/v1/worker/host_opt.py" 2>&1 | cut -c1-160
 
-  echo "== server.log: r10 特性 =="
-  grep -hiE 'Host opt modes|metadata|compact.greedy|sample.logits|host_opt' "$R/logs/server.log" 2>/dev/null | cut -c1-200 | head -20
+  echo "== r10 源码里有没有 VLLM_HOST_OPT_METADATA =="
+  grep -rn 'VLLM_HOST_OPT_METADATA' "$PKG" 2>/dev/null | head -10
+  grep -rln 'metadata' "$PKG/source" 2>/dev/null | head -10
 
-  echo "== server.log: tcmalloc / fastpath / 参数 =="
-  grep -hiE 'tcmalloc|ld.so|slot_native|fastpath|compilation-config|numa-bind|async' "$R/logs/server.log" 2>/dev/null | cut -c1-220 | head -15
+  echo "== r10 文档/清单里的 metadata 开关 =="
+  grep -rn 'METADATA' "$PKG"/MANIFEST* "$PKG"/README* "$PKG"/docs 2>/dev/null | head -10
 
-  echo "== server.log: worker python =="
-  grep -oE '/opt/[^ ]*/bin/python[0-9.]*|site-packages/torch' "$R/logs/server.log" 2>/dev/null | sort -u | head -6
-
-  echo "== script state =="
-  sed -n '212,222p' /home/qch/scripts/timeline_opt.sh 2>&1 | cut -c1-160
-  grep -n 'sample_logits_cudagraph' /home/qch/scripts/timeline_opt.sh 2>&1 | cut -c1-120
-
-  echo "== kernel =="
-  uname -r; getconf PAGE_SIZE
+  echo "== 本次 run 是否出现 metadata 警告 =="
+  grep -n 'Host metadata arena unavailable\|metadata' /home/qch/scripts/timeline/4k/logs/server.log 2>/dev/null | head -10
 
   # ---- 命令结束 ----
 
