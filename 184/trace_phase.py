@@ -22,8 +22,8 @@ def main():
     data = load(path)
     ev = data.get("traceEvents") or data.get("events") or []
 
-    steps = []          # (ts, end)
-    ar = collections.defaultdict(list)   # step index -> [(dur)]
+    # 收集所有含 execute_model 的候选事件，取出现次数最多的那个名字作为步锚点
+    cand = collections.defaultdict(list)
     ar_total = 0.0
     ar_all = []         # (ts, dur)
 
@@ -35,24 +35,32 @@ def main():
         dur = e.get("dur") or 0
         if ts is None:
             continue
-        if ": execute_model" in name and e.get("cat", "").startswith("cpu"):
-            steps.append((ts, ts + dur))
+        if ": execute_model" in name and e.get("cat") != "kernel":
+            cand[name].append((ts, ts + dur))
         if "allreduce" in name and e.get("cat") == "kernel":
             ar_all.append((ts, dur))
 
-    steps.sort()
-    starts = [s[0] for s in steps]
-    print(f"[{label}] execute_model 步数={len(steps)}  allreduce kernel 数={len(ar_all)}")
+    print(f"[{label}] execute_model 候选:")
+    for n, lst in sorted(cand.items(), key=lambda kv: -len(kv[1]))[:5]:
+        print(f"   {len(lst):6d}  {n}")
 
-    # 每个 kernel 归属到包含它的最后一个起始的步
+    steps = []
+    if cand:
+        best = max(cand.values(), key=len)
+        steps = sorted(best)
+    starts = [s[0] for s in steps]
+    print(f"[{label}] 采用步数={len(steps)}；allreduce kernel 数={len(ar_all)}")
+
+    ar = collections.defaultdict(list)
+    if not steps:
+        print("  没有找到步锚点，无法归属")
+        return
+    # 每个 kernel 归属到"启动时最后一个已开始的步"
     for ts, dur in ar_all:
         i = bisect.bisect_right(starts, ts) - 1
-        if i >= 0 and steps[i][1] >= ts:
+        if i >= 0:
             ar[i].append(dur)
-            ar_total += dur
-        else:
-            ar.setdefault(-1, []).append(dur)   # 未归属（步外）
-            ar_total += dur
+        ar_total += dur
 
     per_step = []
     for i in range(len(steps)):
