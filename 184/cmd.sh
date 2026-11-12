@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 导出 150257 这次 9-case 的原始结果，用于在本地补出缺失的汇总。
+# 补跑 150257 缺失的两步聚合：lhctl.py summary + analyze_litehost.py（写回原位置）。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,24 +19,38 @@ mkdir -p "$DIR/tmp"
   # ---- 命令开始 ----
   C=corex5-py311
   P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257
-  dex() { timeout 60 docker exec "$C" bash -c "$1"; }
+  dex() { timeout 300 docker exec "$C" bash -c "$1"; }
 
-  echo "== config =="
-  dex "cat $P/config.txt"
+  echo "== 1. 参考脚本里的工具路径与清理环境 =="
+  dex "grep -nE '^(HOST_TOOLKIT|PYTHON_BIN|HOST_LINK_PERCENT|CLEAN_ENV)=' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh"
+  dex "sed -n '/^CLEAN_ENV=/,/)$/p' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh"
 
-  for case_id in bs8_in128_out128 bs8_in128_out1024 bs8_in128_out2048 \
-                 bs8_in1024_out128 bs8_in1024_out1024 bs8_in1024_out2048 \
-                 bs8_in2048_out128 bs8_in2048_out1024 bs8_in2048_out2048; do
-    echo "########## CASE $case_id"
-    echo "--- json ---"
-    dex "cat $P/$case_id.json"
-    echo
-    echo "--- four_rank_totals ---"
-    dex "cat $P/litehost/$case_id/host_report/four_rank_totals.csv"
-    echo "--- per_rank ---"
-    dex "cat $P/litehost/$case_id/host_report/per_rank.csv"
-    echo
-  done
+  echo "== 2. 定位工具 =="
+  dex "find /home -maxdepth 3 -name 'lhctl.py' -o -maxdepth 3 -name 'analyze_litehost.py' 2>/dev/null | head"
+  HT=$(timeout 60 docker exec "$C" bash -c "dirname \$(find /home -maxdepth 3 -name lhctl.py 2>/dev/null | head -1)")
+  echo "HOST_TOOLKIT=$HT"
+  [ -d "$HT" ] || { echo "找不到工具目录，结束"; exit 3; }
+  dex "ls -l $HT/lhctl.py $HT/analyze_litehost.py"
+
+  echo "== 3. 补跑 summary（生成 summary.csv + logs/summary_build.log）=="
+  dex "cd $P && env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG \
+        -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR \
+        /opt/corex311-cpython-vllm/bin/python $HT/lhctl.py summary $P > $P/logs/summary_build.log 2>&1; \
+        echo rc=\$?; tail -n 30 $P/logs/summary_build.log"
+
+  echo "== 4. 补跑 analyze_litehost（生成 host_summary/）=="
+  dex "env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT \
+        /opt/corex311-cpython-vllm/bin/python $HT/analyze_litehost.py $P/litehost \
+        --link-percent 0 --out $P/host_summary --quiet; echo rc=\$?"
+
+  echo "== 5. 产出检查 =="
+  dex "ls -la --time-style=full-iso $P/summary.csv $P/host_summary 2>&1"
+  echo "--- summary.csv ---"
+  dex "cat $P/summary.csv 2>&1 | head -20"
+  echo "--- host_summary/report.txt ---"
+  dex "head -60 $P/host_summary/report.txt 2>&1"
+  echo "--- host_summary/four_rank_totals.csv ---"
+  dex "cat $P/host_summary/four_rank_totals.csv 2>&1"
 
   # ---- 命令结束 ----
 
