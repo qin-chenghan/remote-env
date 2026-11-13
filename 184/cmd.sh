@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：核对 10:00-11:40 期间系统做了什么（装包/模块/网络/服务），不跑测试。
+# 只读：对比升级前后内核日志里 iluvatar 告警的出现情况，判断是否 SP4 驱动引入。不跑测试。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,38 +17,34 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  C=corex5-py311
-  dex() { timeout 60 docker exec "$C" bash -c "$1"; }
+  echo "== 1. export_refcount 告警按日统计（升级前 11-12 vs 升级后 11-13）=="
+  journalctl -k --since '2026-11-09' --no-pager 2>/dev/null | grep -c 'export_refcount'
+  echo "--- 按日期 ---"
+  journalctl -k --since '2026-11-09' --no-pager 2>/dev/null | grep 'export_refcount' | awk '{print $1" "$2}' | sort | uniq -c
+  echo "--- 首次出现 ---"
+  journalctl -k --since '2026-11-09' --no-pager 2>/dev/null | grep 'export_refcount' | head -3
+  echo "--- 升级前最后出现（11-12 23:59 之前）---"
+  journalctl -k --until '2026-11-13 00:00' --no-pager 2>/dev/null | grep 'export_refcount' | tail -3
 
-  echo "== 1. 升级/装包时间线（按安装时间排序）=="
-  rpm -qa --last 2>/dev/null | head -30
-  echo "--- kernel 相关包的安装时间 ---"
-  rpm -qa --last 'kernel*' 2>/dev/null | head -10
+  echo "== 2. 各次启动以来 iluvatar 相关内核消息（分类计数）=="
+  journalctl -k --since '2026-11-09' --no-pager 2>/dev/null | grep -i iluvatar | sed -E 's/^[A-Za-z]+ [ 0-9]+ [0-9:]+ .*kernel: //' | sed -E 's/[0-9]{6,}/N/g' | sort | uniq -c | sort -rn | head -15
 
-  echo "== 2. 10:00-11:40 的系统告警日志 =="
-  journalctl --since '2026-11-13 10:00' --until '2026-11-13 11:45' -p warning --no-pager 2>/dev/null | tail -60
+  echo "== 3. 11-13 当天所有内核 warning 以上（去重分类）=="
+  journalctl -k --since '2026-11-13 09:30' --no-pager -p warning 2>/dev/null | sed -E 's/^[A-Za-z]+ [ 0-9]+ [0-9:]+ [^ ]+ kernel: //' | sort | uniq -c | sort -rn | head -15
 
-  echo "== 3. 该时段的 dnf/rpm/内核模块/网络事件 =="
-  journalctl --since '2026-11-13 09:30' --until '2026-11-13 11:45' --no-pager 2>/dev/null \
-    | grep -iE 'dnf|rpm|yum|kernel|modprobe|iluvatar|NetworkManager|nic|link|carrier|tcp|oom' | tail -40
+  echo "== 4. 压测期间是否有其他进程占用 GPU（从 journal 里找）=="
+  journalctl --since '2026-11-13 10:15' --until '2026-11-13 11:40' --no-pager 2>/dev/null | grep -iE 'ixsmi|iluvatar|gpu|ixformer|ptrace|segfault|coredump|killed' | tail -30
 
-  echo "== 4. 机器启动与重启记录 =="
-  uptime
-  last -x reboot 2>/dev/null | head -5
+  echo "== 5. 4K 驱动构建来源（谁、何时、基于哪份头文件）=="
+  ls -l --time-style=full-iso /lib/modules/6.6.0-159.4.21.175.oe2403sp4.aarch64/updates/ 2>/dev/null
+  dkms status
+  ls -l --time-style=full-iso /var/lib/dkms/corex/5.0.0/*/*/module/ 2>/dev/null | head -10
 
-  echo "== 5. 内核树与模块目录的时间戳 =="
-  ls -lat --time-style=long-iso /usr/src/kernels | head -6
-  ls -lat --time-style=long-iso /lib/modules | head -6
-
-  echo "== 6. 容器内 venv 是否在 10:47 前后被动过 =="
-  dex "ls -lat --time-style=long-iso /opt/corex311-cpython-vllm | head -8; ls -lat --time-style=full-iso /opt/corex311-cpython-vllm/lib/python3.11/site-packages | head -5"
-
-  echo "== 7. 10:19-11:35 容器内是否有别的活动（文件系统变更）=="
-  dex "find /opt/corex311-cpython-vllm -newermt '2026-11-13 10:00' ! -newermt '2026-11-13 12:00' -type f 2>/dev/null | head -20; echo '--- count ---'; find /opt/corex311-cpython-vllm -newermt '2026-11-13 10:00' ! -newermt '2026-11-13 12:00' -type f 2>/dev/null | wc -l"
-
-  echo "== 8. 关键 sysctl（网络/文件句柄类）=="
-  sysctl net.core.somaxconn net.ipv4.ip_local_port_range net.ipv4.tcp_syncookies fs.file-max 2>/dev/null
-  ulimit -n
+  echo "== 6. 两个内核的驱动哈希对比 =="
+  for k in 6.6.0-159.4.21.175.oe2403sp4.aarch64 6.6.0-159.4.3.154.oe2403sp4+64k.aarch64; do
+    f=/lib/modules/$k/updates/iluvatar.ko.xz
+    [ -f "$f" ] && { echo -n "$k  "; ls -l "$f" | awk '{print $5" "$6" "$7" "$8}'; xzcat "$f" 2>/dev/null | sha256sum; }
+  done
 
   # ---- 命令结束 ----
 
