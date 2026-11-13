@@ -1,0 +1,202 @@
+### server: 184
+### host:   controller
+### time:   2026-11-13T05:58:05Z
+
++ C=corex5-py311
++ echo '== 1. 升级/装包时间线（按安装时间排序）=='
+== 1. 升级/装包时间线（按安装时间排序）==
++ rpm -qa --last
++ head -30
+kernel-64k-devel-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64 Fri 13 Nov 2026 09:42:56 AM CST
+kernel-64k-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64 Fri 13 Nov 2026 09:40:39 AM CST
+kernel-headers-6.6.0-159.4.3.154.oe2403sp4.aarch64 Fri 13 Nov 2026 09:40:05 AM CST
+words-3.0-34.oe2403sp4.noarch                 Fri 13 Nov 2026 09:15:42 AM CST
+texlive-stdclsdv-doc-svn15878.1.1a-3.oe2403sp4.noarch Fri 13 Nov 2026 09:15:42 AM CST
+rootfiles-8.1-25.oe2403sp4.noarch             Fri 13 Nov 2026 09:15:42 AM CST
+qt-settings-39.0-1.oe2403sp4.noarch           Fri 13 Nov 2026 09:15:42 AM CST
+NetworkManager-config-server-1.44.2-9.oe2403sp4.noarch Fri 13 Nov 2026 09:15:42 AM CST
+gcc-toolset-14-libgcc-14.3.1-18.oe2403sp4.aarch64 Fri 13 Nov 2026 09:15:42 AM CST
+edk2-aarch64-202308-53.oe2403sp4.noarch       Fri 13 Nov 2026 09:15:42 AM CST
+tzdata-java-2024a-9.oe2403sp4.noarch          Fri 13 Nov 2026 09:15:41 AM CST
+openstack-release-wallaby-1.0.6-7.oe2403sp4.noarch Fri 13 Nov 2026 09:15:41 AM CST
+edk2-help-202308-53.oe2403sp4.noarch          Fri 13 Nov 2026 09:15:41 AM CST
+glibc-debuginfo-2.38-131.oe2403sp4.aarch64    Fri 13 Nov 2026 09:15:40 AM CST
+edk2-debuginfo-202308-53.oe2403sp4.aarch64    Fri 13 Nov 2026 09:15:40 AM CST
+yajl-2.1.0-21.oe2403sp4.aarch64               Fri 13 Nov 2026 09:15:39 AM CST
+xdelta-3.1.0-7.oe2403sp4.aarch64              Fri 13 Nov 2026 09:15:39 AM CST
+umoci-0.4.7-4.oe2403sp4.aarch64               Fri 13 Nov 2026 09:15:39 AM CST
+tree-2.1.1-2.oe2403sp4.aarch64                Fri 13 Nov 2026 09:15:39 AM CST
+time-1.9-10.oe2403sp4.aarch64                 Fri 13 Nov 2026 09:15:39 AM CST
+setserial-2.17-54.oe2403sp4.aarch64           Fri 13 Nov 2026 09:15:39 AM CST
+libnsl-2.38-131.oe2403sp4.aarch64             Fri 13 Nov 2026 09:15:39 AM CST
+gcc-toolset-14-libubsan-14.3.1-18.oe2403sp4.aarch64 Fri 13 Nov 2026 09:15:39 AM CST
+gcc-toolset-14-libtsan-14.3.1-18.oe2403sp4.aarch64 Fri 13 Nov 2026 09:15:39 AM CST
+gcc-toolset-14-libhwasan-14.3.1-18.oe2403sp4.aarch64 Fri 13 Nov 2026 09:15:39 AM CST
+pcre-8.45-6.oe2403sp4.aarch64                 Fri 13 Nov 2026 09:15:23 AM CST
+oniguruma-6.9.9-1.oe2403sp4.aarch64           Fri 13 Nov 2026 09:15:23 AM CST
+lsscsi-0.32-3.oe2403sp4.aarch64               Fri 13 Nov 2026 09:15:23 AM CST
+lsof-4.99.6-1.oe2403sp4.aarch64               Fri 13 Nov 2026 09:15:23 AM CST
+log4cplus-2.1.0-1.oe2403sp4.aarch64           Fri 13 Nov 2026 09:15:23 AM CST
++ echo '--- kernel 相关包的安装时间 ---'
+--- kernel 相关包的安装时间 ---
++ rpm -qa --last 'kernel*'
++ head -10
+kernel-64k-devel-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64 Fri 13 Nov 2026 09:42:56 AM CST
+kernel-64k-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64 Fri 13 Nov 2026 09:40:39 AM CST
+kernel-headers-6.6.0-159.4.3.154.oe2403sp4.aarch64 Fri 13 Nov 2026 09:40:05 AM CST
+kernel-tools-6.6.0-159.4.21.175.oe2403sp4.aarch64 Fri 13 Nov 2026 09:15:09 AM CST
+kernel-source-6.6.0-159.4.21.175.oe2403sp4.aarch64 Fri 13 Nov 2026 09:14:45 AM CST
+kernel-6.6.0-159.4.21.175.oe2403sp4.aarch64   Fri 13 Nov 2026 09:13:28 AM CST
+kernel-devel-6.6.0-159.4.21.175.oe2403sp4.aarch64 Fri 13 Nov 2026 09:10:52 AM CST
++ echo '== 2. 10:00-11:40 的系统告警日志 =='
+== 2. 10:00-11:40 的系统告警日志 ==
++ journalctl --since '2026-11-13 10:00' --until '2026-11-13 11:45' -p warning --no-pager
++ tail -60
+Nov 13 10:05:44 controller python3[155094]: ldapdb_canonuser_plug_init() failed in sasl_canonuser_add_plugin(): invalid parameter supplied
+Nov 13 11:11:14 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:14:15 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:17:15 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:20:16 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:22:59 controller sudo[334355]: pam_unix(sudo:auth): conversation failed
+Nov 13 11:22:59 controller sudo[334355]: pam_unix(sudo:auth): auth could not identify password for [q30087713]
+Nov 13 11:23:02 controller sudo[335075]: pam_unix(sudo:auth): conversation failed
+Nov 13 11:23:02 controller sudo[335075]: pam_unix(sudo:auth): auth could not identify password for [q30087713]
+Nov 13 11:25:34 controller sudo[340156]: pam_unix(sudo:auth): conversation failed
+Nov 13 11:25:34 controller sudo[340156]: pam_unix(sudo:auth): auth could not identify password for [q30087713]
+Nov 13 11:25:38 controller sudo[340357]: pam_unix(sudo:auth): conversation failed
+Nov 13 11:25:38 controller sudo[340357]: pam_unix(sudo:auth): auth could not identify password for [q30087713]
+Nov 13 11:25:40 controller sudo[340386]: pam_unix(sudo:auth): conversation failed
+Nov 13 11:25:40 controller sudo[340386]: pam_unix(sudo:auth): auth could not identify password for [q30087713]
+Nov 13 11:25:45 controller sudo[340415]: pam_unix(sudo:auth): conversation failed
+Nov 13 11:25:45 controller sudo[340415]: pam_unix(sudo:auth): auth could not identify password for [q30087713]
+Nov 13 11:26:46 controller sudo[342589]: pam_unix(sudo:auth): conversation failed
+Nov 13 11:26:46 controller sudo[342589]: pam_unix(sudo:auth): auth could not identify password for [q30087713]
+Nov 13 11:26:50 controller sudo[342810]: pam_unix(sudo:auth): conversation failed
+Nov 13 11:26:50 controller sudo[342810]: pam_unix(sudo:auth): auth could not identify password for [q30087713]
+Nov 13 11:26:52 controller sudo[342837]: pam_unix(sudo:auth): conversation failed
+Nov 13 11:26:52 controller sudo[342837]: pam_unix(sudo:auth): auth could not identify password for [q30087713]
+Nov 13 11:26:56 controller sudo[342847]: pam_unix(sudo:auth): conversation failed
+Nov 13 11:26:56 controller sudo[342847]: pam_unix(sudo:auth): auth could not identify password for [q30087713]
+Nov 13 11:29:39 controller sudo[349740]: pam_unix(sudo:auth): conversation failed
+Nov 13 11:29:39 controller sudo[349740]: pam_unix(sudo:auth): auth could not identify password for [q30087713]
+Nov 13 11:29:44 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:32:45 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:34:32 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:36:03 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:37:07 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:37:26 controller python3[371836]: ldapdb_canonuser_plug_init() failed in sasl_canonuser_add_plugin(): invalid parameter supplied
+Nov 13 11:37:36 controller systemd[1]: dnf-makecache.service: Failed with result 'exit-code'.
+Nov 13 11:37:36 controller systemd[1]: Failed to start dnf makecache.
+Nov 13 11:38:06 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:39:25 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:40:27 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:41:31 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:42:30 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
++ echo '== 3. 该时段的 dnf/rpm/内核模块/网络事件 =='
+== 3. 该时段的 dnf/rpm/内核模块/网络事件 ==
++ journalctl --since '2026-11-13 09:30' --until '2026-11-13 11:45' --no-pager
++ grep -iE 'dnf|rpm|yum|kernel|modprobe|iluvatar|NetworkManager|nic|link|carrier|tcp|oom'
++ tail -40
+Nov 13 09:42:14 controller dracut[75221]: -rw-r--r--   1 root     root         1111 Dec  7  2023 usr/lib/systemd/system/sys-kernel-config.mount
+Nov 13 09:42:14 controller dracut[75221]: -rw-r--r--   1 root     root          624 Dec  7  2023 usr/lib/systemd/system/systemd-udevd-kernel.socket
+Nov 13 09:42:14 controller dracut[75221]: -rw-r--r--   1 root     root          295 Dec  7  2023 usr/lib/udev/rules.d/80-net-setup-link.rules
+Nov 13 09:42:15 controller dracut[75221]: -rwxr-xr-x   1 root     root       537832 Jun 29 00:36 usr/libexec/rpm_parser
+Nov 13 09:42:15 controller dracut[75221]: lrwxrwxrwx   1 root     root           11 Aug 17 21:28 usr/sbin/modprobe -> ../bin/kmod
+Nov 13 09:42:15 controller [RPM][47197]: install kernel-64k-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64: success
+Nov 13 09:42:16 controller [RPM][47197]: install kernel-64k-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64: success
+Nov 13 09:42:16 controller [RPM][47197]: Transaction ID 6af66a94 finished: 0
+Nov 13 09:42:44 controller [RPM][102541]: Transaction ID 6af66b14 started
+Nov 13 09:42:56 controller [RPM][102541]: install kernel-64k-devel-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64: success
+Nov 13 09:42:56 controller [RPM][102541]: install kernel-64k-devel-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64: success
+Nov 13 09:42:56 controller [RPM][102541]: Transaction ID 6af66b14 finished: 0
+Nov 13 09:47:38 controller kernel: hrtimer: interrupt took 25560 ns
+Nov 13 10:05:44 controller systemd[1]: Starting dnf makecache...
+Nov 13 10:05:44 controller dnf[155094]: Metadata cache refreshed recently.
+Nov 13 10:05:44 controller systemd[1]: dnf-makecache.service: Deactivated successfully.
+Nov 13 10:05:44 controller systemd[1]: Finished dnf makecache.
+Nov 13 11:11:14 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:14:15 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:17:15 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:20:16 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:29:44 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:32:45 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:34:32 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:36:03 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:37:07 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:37:25 controller systemd[1]: Starting dnf makecache...
+Nov 13 11:37:36 controller dnf[371836]: OpenStack_Wallaby                               0.0  B/s |   0  B     00:10
+Nov 13 11:37:36 controller dnf[371836]: Errors during downloading metadata for repository 'OpenStack_Wallaby':
+Nov 13 11:37:36 controller dnf[371836]:   - Curl error (6): Couldn't resolve host name for https://repo.openeuler.org/openEuler-24.03-LTS-SP4/EPOL/multi_version/OpenStack/Wallaby/aarch64/repodata/repomd.xml [Could not resolve host: repo.openeuler.org]
+Nov 13 11:37:36 controller dnf[371836]: Error: Failed to download metadata for repo 'OpenStack_Wallaby': Cannot download repomd.xml: Curl error (6): Couldn't resolve host name for https://repo.openeuler.org/openEuler-24.03-LTS-SP4/EPOL/multi_version/OpenStack/Wallaby/aarch64/repodata/repomd.xml [Could not resolve host: repo.openeuler.org]
+Nov 13 11:37:36 controller systemd[1]: dnf-makecache.service: Main process exited, code=exited, status=1/FAILURE
+Nov 13 11:37:36 controller systemd[1]: dnf-makecache.service: Failed with result 'exit-code'.
+Nov 13 11:37:36 controller systemd[1]: Failed to start dnf makecache.
+Nov 13 11:38:06 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:39:22 controller kernel: perf: interrupt took too long (2504 > 2500), lowering kernel.perf_event_max_sample_rate to 79750
+Nov 13 11:39:25 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:40:27 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:41:31 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:42:30 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
++ echo '== 4. 机器启动与重启记录 =='
+== 4. 机器启动与重启记录 ==
++ uptime
+ 13:58:06 up  4:25,  7 users,  load average: 0.43, 0.45, 0.39
++ last -x reboot
++ head -5
+reboot   system boot  6.6.0-159.4.21.1 Fri Nov 13 09:33   still running
+reboot   system boot  6.6.0-145.3.37.1 Thu Nov 12 10:54 - 09:29  (22:35)
+reboot   system boot  6.6.02403_sp3-64 Thu Nov 12 10:40 - 10:50  (00:09)
+reboot   system boot  6.6.0-145.3.37.1 Thu Nov 12 09:09 - 10:38  (01:28)
+reboot   system boot  6.6.02403_sp3-64 Thu Nov 12 08:54 - 09:04  (00:10)
++ echo '== 5. 内核树与模块目录的时间戳 =='
+== 5. 内核树与模块目录的时间戳 ==
++ ls -lat --time-style=long-iso /usr/src/kernels
++ head -6
+total 16
+drwxr-xr-x. 25 root root 4096 2026-11-13 09:42 6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
+drwxr-xr-x.  4 root root 4096 2026-11-13 09:42 .
+drwxr-xr-x.  9 root root 4096 2026-11-13 09:13 ..
+drwxr-xr-x. 25 root root 4096 2026-11-13 09:10 6.6.0-159.4.21.175.oe2403sp4.aarch64
++ ls -lat --time-style=long-iso /lib/modules
++ head -6
+total 44
+drwxr-xr-x.  6 root root 4096 2026-11-13 10:15 6.6.0-159.4.21.175.oe2403sp4.aarch64
+drwxr-xr-x.  6 root root 4096 2026-11-13 10:15 6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
+drwxr-xr-x. 11 root root 4096 2026-11-13 09:40 .
+drwxr-xr-x.  5 root root 4096 2026-11-13 09:36 6.6.0-145.3.37.168.oe2403sp3.aarch64
+drwxr-xr-x.  3 root root 4096 2026-11-13 08:53 5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
++ echo '== 6. 容器内 venv 是否在 10:47 前后被动过 =='
+== 6. 容器内 venv 是否在 10:47 前后被动过 ==
++ dex 'ls -lat --time-style=long-iso /opt/corex311-cpython-vllm | head -8; ls -lat --time-style=full-iso /opt/corex311-cpython-vllm/lib/python3.11/site-packages | head -5'
++ timeout 60 docker exec corex5-py311 bash -c 'ls -lat --time-style=long-iso /opt/corex311-cpython-vllm | head -8; ls -lat --time-style=full-iso /opt/corex311-cpython-vllm/lib/python3.11/site-packages | head -5'
+total 64
+drwxrwxr-x+ 1 root root  4096 2026-11-12 10:58 ..
+drwxr-xr-x. 3 root root  4096 2026-11-10 10:03 bin
+drwxr-xr-x. 6 root root  4096 2026-11-09 09:09 .
+-rw-r--r--. 1 root root 25143 2026-11-09 09:09 corex311-cpu-verification.json
+drwxr-xr-x. 3 root root  4096 2026-11-09 09:08 share
+drwxr-xr-x. 3 root root  4096 2026-11-09 09:03 include
+drwxr-xr-x. 3 root root  4096 2026-11-09 09:03 lib
+total 3044
+-rw-r--r--.   1 root root   3932 2026-11-12 19:35:42.557240064 +0800 VERIFICATION.json
+drwxr-xr-x. 350 root root  20480 2026-11-12 19:35:18.433240064 +0800 .
+drwxr-xr-x.  38 root root   4096 2026-11-12 19:35:18.429240064 +0800 vllm
+drwxr-xr-x.   3 root root   4096 2026-11-12 19:35:10.993240064 +0800 .host-opt-pr-backup
++ echo '== 7. 10:19-11:35 容器内是否有别的活动（文件系统变更）=='
+== 7. 10:19-11:35 容器内是否有别的活动（文件系统变更）==
++ dex 'find /opt/corex311-cpython-vllm -newermt '\''2026-11-13 10:00'\'' ! -newermt '\''2026-11-13 12:00'\'' -type f 2>/dev/null | head -20; echo '\''--- count ---'\''; find /opt/corex311-cpython-vllm -newermt '\''2026-11-13 10:00'\'' ! -newermt '\''2026-11-13 12:00'\'' -type f 2>/dev/null | wc -l'
++ timeout 60 docker exec corex5-py311 bash -c 'find /opt/corex311-cpython-vllm -newermt '\''2026-11-13 10:00'\'' ! -newermt '\''2026-11-13 12:00'\'' -type f 2>/dev/null | head -20; echo '\''--- count ---'\''; find /opt/corex311-cpython-vllm -newermt '\''2026-11-13 10:00'\'' ! -newermt '\''2026-11-13 12:00'\'' -type f 2>/dev/null | wc -l'
+--- count ---
+0
++ echo '== 8. 关键 sysctl（网络/文件句柄类）=='
+== 8. 关键 sysctl（网络/文件句柄类）==
++ sysctl net.core.somaxconn net.ipv4.ip_local_port_range net.ipv4.tcp_syncookies fs.file-max
+net.core.somaxconn = 4096
+net.ipv4.ip_local_port_range = 32768	60999
+net.ipv4.tcp_syncookies = 1
+fs.file-max = 9223372036854775807
++ ulimit -n
+1024
++ set +x
+
+### exit: 0
