@@ -1,0 +1,129 @@
+### server: 184
+### host:   controller
+### time:   2026-11-13T02:14:36Z
+
++ K64=6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
++ K4K=6.6.0-159.4.21.175.oe2403sp4.aarch64
++ SRC=/usr/src/corex-5.0.0
++ echo '== 1. 前置：运行内核与 64K build 树 =='
+== 1. 前置：运行内核与 64K build 树 ==
++ uname -r
+6.6.0-159.4.21.175.oe2403sp4.aarch64
++ ls -ld /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/build
+lrwxrwxrwx. 1 root root 56 Jun 29 01:53 /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/build -> /usr/src/kernels/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
++ ls -l /usr/src/kernels/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/Makefile /usr/src/kernels/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/include/generated/autoconf.h
+-rw-r--r--. 1 root root 150938 Jun 29 01:53 /usr/src/kernels/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/include/generated/autoconf.h
+-rw-r--r--. 1 root root  68297 Jun 29 01:53 /usr/src/kernels/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/Makefile
++ ls -d /usr/src/kernels/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/scripts
+/usr/src/kernels/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/scripts
++ grep -E '^CONFIG_ARM64_64K_PAGES' /boot/config-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
+CONFIG_ARM64_64K_PAGES=y
++ echo '--- 源码与编译参数 ---'
+--- 源码与编译参数 ---
++ grep -n _BUILDOPT /usr/src/corex-5.0.0/dkms.conf
+5:_BUILDOPT="VGPU_ENABLE=0 "
+30:EXTRA_BUILD="${EXTRA_BUILD} && KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) itr_peer_mem OFA_KERNEL=${OFED_SOURCE_DIR}"
+40:EXTRA_BUILD="${EXTRA_BUILD} && KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) itr_fs"
+48:MAKE[0]="KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) ${EXTRA_BUILD}"
++ df -h /
++ tail -1
+/dev/mapper/openeuler00-root  875G  305G  534G  37% /
++ echo '== 2. 当前安装状态（记录基线）=='
+== 2. 当前安装状态（记录基线）==
++ dkms status
+corex/5.0.0, 6.6.0-159.4.21.175.oe2403sp4.aarch64, aarch64: installed
++ ls -ld /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/updates
+ls: cannot access '/lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/updates': No such file or directory
++ find /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64 -name 'iluvatar.ko*'
++ head -5
++ lsmod
++ grep -i iluvatar
+iluvatar             1675264  0
++ echo '== 3. 编译 64K 模块（耗时几分钟）=='
+== 3. 编译 64K 模块（耗时几分钟）==
++ timeout 1500 dkms build corex/5.0.0 -k 6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
++ tail -40
+Sign command: /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/build/scripts/sign-file
+Signing key: /var/lib/dkms/mok.key
+Public certificate (MOK): /var/lib/dkms/mok.pub
+
+Building module:
+Cleaning build area...
+KERNEL_UNAME=6.6.0-159.4.3.154.oe2403sp4+64k.aarch64 VGPU_ENABLE=0 make -j320 .....
+Signing module /var/lib/dkms/corex/5.0.0/build/iluvatar.ko
+Cleaning build area...
++ BUILD_RC=0
++ echo 'dkms build rc=0'
+dkms build rc=0
++ '[' 0 -eq 0 ']'
++ echo '== 4. 安装 64K 模块 =='
+== 4. 安装 64K 模块 ==
++ timeout 600 dkms install corex/5.0.0 -k 6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
++ tail -20
+
+iluvatar.ko.xz:
+Running module version sanity check.
+ - Original module
+   - No original module exists within this kernel
+ - Installation
+   - Installing to /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/updates/
+Adding any weak-modules
+depmod...
++ INSTALL_RC=0
++ echo 'dkms install rc=0'
+dkms install rc=0
++ echo '== 5. 落盘核对 =='
+== 5. 落盘核对 ==
++ dkms status
+corex/5.0.0, 6.6.0-159.4.21.175.oe2403sp4.aarch64, aarch64: installed
+corex/5.0.0, 6.6.0-159.4.3.154.oe2403sp4+64k.aarch64, aarch64: installed
++ ls -ld /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/updates
+drwxr-xr-x. 2 root root 4096 Nov 13 10:14 /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/updates
++ find /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64 -name 'iluvatar.ko*'
++ head -5
+/lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/updates/iluvatar.ko.xz
+++ find /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64 -name 'iluvatar.ko*'
+++ head -2
++ for f in $(find /lib/modules/$K64 -name 'iluvatar.ko*' 2> /dev/null | head -2)
++ echo '---- /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/updates/iluvatar.ko.xz'
+---- /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/updates/iluvatar.ko.xz
++ ls -l /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/updates/iluvatar.ko.xz
+-rw-r--r--. 1 root root 362060 Nov 13 10:14 /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/updates/iluvatar.ko.xz
++ modinfo -F vermagic /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/updates/iluvatar.ko.xz
+6.6.0-159.4.3.154.oe2403sp4+64k.aarch64 SMP mod_unload modversions aarch64
++ echo '--- depmod（对全部内核刷新依赖）---'
+--- depmod（对全部内核刷新依赖）---
++ depmod -a
++ tail -5
++ echo 'depmod rc=0'
+depmod rc=0
++ echo '== 6. 复核 4K 侧未受影响 =='
+== 6. 复核 4K 侧未受影响 ==
++ ls -l /lib/modules/6.6.0-159.4.21.175.oe2403sp4.aarch64/updates
++ head -5
+total 356
+-rw-r--r--. 2 root root 361700 Nov 13 09:17 iluvatar.ko.xz
++ dkms status
++ grep 6.6.0-159.4.21.175.oe2403sp4.aarch64
+corex/5.0.0, 6.6.0-159.4.21.175.oe2403sp4.aarch64, aarch64: installed
++ lsmod
++ grep -i iluvatar
+iluvatar             1675264  0
++ /usr/local/corex-5.0.0/bin/ixsmi
++ grep -E 'MiB /'
++ head -4
+| N/A  41C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  42C   P0       101W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  40C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  40C   P0       101W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
++ echo '== 7. 启动项现状（不要凭空重启）=='
+== 7. 启动项现状（不要凭空重启）==
++ grubby --default-kernel
+/boot/vmlinuz-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
++ head -3
++ grub2-editenv list
+saved_entry=openEuler (6.6.0-159.4.3.154.oe2403sp4+64k.aarch64) 24.03 (LTS-SP4)
+boot_success=0
++ set +x
+
+### exit: 0
