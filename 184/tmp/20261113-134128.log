@@ -1,0 +1,309 @@
+### server: 184
+### host:   controller
+### time:   2026-11-13T05:41:28Z
+
++ C=corex5-py311
++ P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902
++ echo '== 1. 本次 run 的配置（确认 case 矩阵）=='
+== 1. 本次 run 的配置（确认 case 矩阵）==
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/config.txt'
++ timeout 150 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/config.txt'
+test_id=litehost_gap_20261113_101902
+started=2026-11-13T10:19:02+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
++ echo '== 2. 失败 case 的 bench 日志全文（前 70 行）=='
+== 2. 失败 case 的 bench 日志全文（前 70 行）==
++ dex 'head -n 70 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in2048_out1024.log'
++ timeout 150 docker exec corex5-py311 bash -c 'head -n 70 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in2048_out1024.log'
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+INFO 11-13 11:31:30 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-13 11:31:30 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-13 11:31:30 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-13 11:31:30 [__init__.py:238] Platform plugin iluvatar is activated
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfffcf87bc400>, trust_remote_code=True, seed=42, num_prompts=100, dataset_name='random', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=2048, random_output_len=1024, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=256, prefix_repetition_suffix_len=256, prefix_repetition_num_prefixes=10, prefix_repetition_output_len=128, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='vllm', base_url=None, host='127.0.0.1', port=8848, endpoint='/v1/completions', header=None, max_concurrency=8, model='/home/model/Qwen3-32B-W8A8', input_len=None, output_len=None, tokenizer=None, tokenizer_mode='auto', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=16, profile=False, save_result=True, save_detailed=False, append_result=False, metadata=None, result_dir='/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902', result_filename='bs8_in2048_out1024.json', ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='99', goodput=None, request_id_prefix='bench-04e9278c-', top_p=1.0, top_k=-1, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+INFO 11-13 11:31:34 [utils.py:90] Sampling input_len from [2048, 2048] and output_len from [1024, 1024]
+Starting initial single prompt test run...
+Skipping endpoint ready check.
+Warming up with 16 requests...
+  0%|          | 0/16 [00:00<?, ?it/s]  6%|▋         | 1/16 [00:41<10:22, 41.53s/it] 12%|█▎        | 2/16 [00:42<04:03, 17.39s/it] 31%|███▏      | 5/16 [00:42<00:55,  5.06s/it] 38%|███▊      | 6/16 [00:42<00:38,  3.89s/it] 44%|████▍     | 7/16 [00:43<00:26,  2.96s/it] 50%|█████     | 8/16 [00:43<00:18,  2.27s/it] 56%|█████▋    | 9/16 [01:23<01:29, 12.75s/it] 62%|██████▎   | 10/16 [01:23<00:54,  9.12s/it] 81%|████████▏ | 13/16 [01:23<00:12,  4.10s/it]100%|██████████| 16/16 [01:23<00:00,  5.22s/it]
+Warmup run completed.
+Starting main benchmark run...
+Traffic request rate: inf
+Burstiness factor: 1.0 (Poisson process)
+Maximum request concurrency: 8
+  0%|          | 0/100 [00:00<?, ?it/s][litehost] 4 ranks ARMED; all ready-check/warmup scopes excluded
+  1%|          | 1/100 [00:41<1:08:25, 41.47s/it]  2%|▏         | 2/100 [00:41<28:22, 17.37s/it]    5%|▌         | 5/100 [00:42<08:00,  5.06s/it]  6%|▌         | 6/100 [00:42<06:04,  3.88s/it]  7%|▋         | 7/100 [00:43<04:35,  2.96s/it]  8%|▊         | 8/100 [00:43<03:28,  2.26s/it]  9%|▉         | 9/100 [01:23<19:19, 12.74s/it] 10%|█         | 10/100 [01:23<13:49,  9.22s/it] 13%|█▎        | 13/100 [01:24<06:07,  4.22s/it] 14%|█▍        | 14/100 [01:24<04:55,  3.44s/it] 15%|█▌        | 15/100 [01:24<03:53,  2.75s/it] 16%|█▌        | 16/100 [01:25<03:02,  2.17s/it] 17%|█▋        | 17/100 [01:31<04:26,  3.21s/it] 62%|██████▏   | 62/100 [01:31<00:06,  5.46it/s]100%|██████████| 100/100 [01:31<00:00,  1.09it/s]
+Traceback (most recent call last):
+  File "/home/huawei_ts_program/litehost_perf_opt/bench_driver.py", line 83, in main
+    try:runpy.run_module('vllm.entrypoints.cli.main',run_name='__main__');rc=0
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 229, in run_module
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/entrypoints/cli/main.py", line 101, in <module>
+    main()
+  File "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/entrypoints/cli/main.py", line 95, in main
+    args.dispatch_function(args)
+  File "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/entrypoints/cli/benchmark/serve.py", line 21, in cmd
+    main(args)
+  File "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/benchmarks/serve.py", line 1871, in main
+    return asyncio.run(main_async(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/cpython-vllm/v1/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/opt/cpython-vllm/v1/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/cpython-vllm/v1/lib/python3.11/asyncio/base_events.py", line 653, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/benchmarks/serve.py", line 2081, in main_async
+    benchmark_result = await benchmark(
+                       ^^^^^^^^^^^^^^^^
+  File "/home/huawei_ts_program/litehost_perf_opt/bench_driver.py", line 75, in wrapped
+    return await patched(*bind.args,**bind.kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/benchmarks/serve.py", line 1, in __lh_benchmark
+    # SPDX-License-Identifier: Apache-2.0
+  File "/home/huawei_ts_program/litehost_perf_opt/bench_driver.py", line 47, in end
+    if len(outputs)!=self.case['expected_requests'] or not all(o.success for o in outputs):raise RuntimeError('Formal requests incomplete/failed; no valid H')
+                                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Formal requests incomplete/failed; no valid H
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ echo '== 3. 上一个 case（2048/128）的日志尾部，看是否有前兆 =='
+== 3. 上一个 case（2048/128）的日志尾部，看是否有前兆 ==
++ dex 'tail -n 25 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in2048_out128.log'
++ timeout 150 docker exec corex5-py311 bash -c 'tail -n 25 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in2048_out128.log'
+Successful requests:                     100       
+Failed requests:                         0         
+Maximum request concurrency:             8         
+Benchmark duration (s):                  102.95    
+Total input tokens:                      204800    
+Total generated tokens:                  12800     
+Request throughput (req/s):              0.97      
+Output token throughput (tok/s):         124.33    
+Peak output token throughput (tok/s):    216.00    
+Peak concurrent requests:                12.00     
+Total token throughput (tok/s):          2113.60   
+---------------Time to First Token----------------
+Mean TTFT (ms):                          1439.19   
+Median TTFT (ms):                        1536.04   
+P99 TTFT (ms):                           3442.71   
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          51.97     
+Median TPOT (ms):                        50.05     
+P99 TPOT (ms):                           59.11     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           51.97     
+Median ITL (ms):                         37.00     
+P99 ITL (ms):                            430.70    
+==================================================
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ echo '== 4. 失败 case 的 case.json =='
+== 4. 失败 case 的 case.json ==
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in2048_out1024/case.json 2>&1 | head -c 800; echo'
++ timeout 150 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in2048_out1024/case.json 2>&1 | head -c 800; echo'
+{
+  "version": "0.4.0-compat",
+  "session_id": "0461805457e34bf1ac35344602e08deb",
+  "run_id": "24e40b234ccb412cbde6098a040b9805",
+  "case_id": "bs8_in2048_out1024",
+  "status": "prepared",
+  "expected_requests": 100,
+  "input_len": 2048,
+  "output_len": 1024,
+  "native_hash": "b70d07e38c4e1f2665d6aa407a82e751209fb9af67e0ca70a5a74e0bd1e3048d",
+  "prepare_acks": [
+    {
+      "version": "0.4.0-compat",
+      "session_id": "0461805457e34bf1ac35344602e08deb",
+      "rank": 0,
+      "pid": 191185,
+      "native_hash": "b70d07e38c4e1f2665d6aa407a82e751209fb9af67e0ca70a5a74e0bd1e3048d",
+      "run_id": "24e40b234ccb412cbde6098a040b9805",
+      "state": "warmup"
+    },
+    {
+      "version": "0.4.0-compat",
+      "session_id": "0461805457e34bf1ac35344602e08deb",
+      "rank": 1,
+      "pid": 1911
++ echo '== 5. server.log 11:25-11:35 时段的告警与错误（去掉 ASGI 关闭时的噪声）=='
+== 5. server.log 11:25-11:35 时段的告警与错误（去掉 ASGI 关闭时的噪声）==
++ dex 'grep -nE '\''WARNING|ERROR|CRITICAL|Exception|Traceback'\'' /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log | grep -vE '\''Exception in ASGI application|Traceback \(most recent'\'' | tail -60'
++ timeout 150 docker exec corex5-py311 bash -c 'grep -nE '\''WARNING|ERROR|CRITICAL|Exception|Traceback'\'' /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log | grep -vE '\''Exception in ASGI application|Traceback \(most recent'\'' | tail -60'
+14:(APIServer pid=190425) WARNING 11-13 10:19:11 [envs.py:2041] Unknown vLLM environment variable detected: VLLM_USE_V1
+15:(APIServer pid=190425) WARNING 11-13 10:19:11 [envs.py:2041] Unknown vLLM environment variable detected: VLLM_HOST_OPT_METADATA
+16:(APIServer pid=190425) WARNING 11-13 10:19:11 [envs.py:2041] Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY
+17:(APIServer pid=190425) WARNING 11-13 10:19:11 [envs.py:2041] Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY_DIAGNOSTICS
+24:(APIServer pid=190425) WARNING 11-13 10:19:13 [vllm.py:1120] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+35:(EngineCore pid=190805) WARNING 11-13 10:19:22 [multiproc_executor.py:1053] Reducing Torch parallelism from 320 threads to 1 to avoid unnecessary CPU contention. Set OMP_NUM_THREADS in the external environment to tune this value as needed.
+144:(EngineCore pid=190805) WARNING 11-13 10:19:54 [vllm.py:1120] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+150:(APIServer pid=190425) WARNING 11-13 10:19:55 [model.py:1493] Default vLLM sampling parameters have been overridden by the model's `generation_config.json`: `{'temperature': 0.6, 'top_k': 20, 'top_p': 0.95}`. If this is not intended, please relaunch vLLM instance with `--generation-config vllm`.
+1493:(APIServer pid=190425) WARNING 11-13 11:34:31 [utils.py:607] [shutdown] Process manager: force killing remaining processes count=1
++ echo '== 6. server.log 里 11:28-11:35 的原始行（定位事发时刻）=='
+== 6. server.log 里 11:28-11:35 的原始行（定位事发时刻）==
++ dex 'awk '\''/11:28|11:29|11:3[0-5]/'\'' /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log | grep -vE '\''MALLOC|^$'\'' | tail -80'
++ timeout 150 docker exec corex5-py311 bash -c 'awk '\''/11:28|11:29|11:3[0-5]/'\'' /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log | grep -vE '\''MALLOC|^$'\'' | tail -80'
+(APIServer pid=190425) INFO 11-13 11:28:26 [loggers.py:273] Engine 000: Avg prompt throughput: 1023.9 tokens/s, Avg generation throughput: 1.7 tokens/s, Running: 7 reqs, Waiting: 1 reqs, GPU KV cache usage: 4.7%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:28:36 [loggers.py:273] Engine 000: Avg prompt throughput: 2252.6 tokens/s, Avg generation throughput: 130.9 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 5.5%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:28:46 [loggers.py:273] Engine 000: Avg prompt throughput: 1638.2 tokens/s, Avg generation throughput: 140.8 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 5.6%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:28:56 [loggers.py:273] Engine 000: Avg prompt throughput: 1638.3 tokens/s, Avg generation throughput: 134.1 tokens/s, Running: 7 reqs, Waiting: 0 reqs, GPU KV cache usage: 5.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:29:06 [loggers.py:273] Engine 000: Avg prompt throughput: 2457.4 tokens/s, Avg generation throughput: 105.7 tokens/s, Running: 6 reqs, Waiting: 0 reqs, GPU KV cache usage: 4.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:29:16 [loggers.py:273] Engine 000: Avg prompt throughput: 2457.6 tokens/s, Avg generation throughput: 121.0 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 5.5%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:29:26 [loggers.py:273] Engine 000: Avg prompt throughput: 1638.4 tokens/s, Avg generation throughput: 144.0 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 5.6%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:29:36 [loggers.py:273] Engine 000: Avg prompt throughput: 1638.4 tokens/s, Avg generation throughput: 140.6 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 5.7%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:29:46 [loggers.py:273] Engine 000: Avg prompt throughput: 2252.7 tokens/s, Avg generation throughput: 105.9 tokens/s, Running: 6 reqs, Waiting: 0 reqs, GPU KV cache usage: 4.1%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:29:56 [loggers.py:273] Engine 000: Avg prompt throughput: 2662.2 tokens/s, Avg generation throughput: 115.9 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 5.4%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:30:06 [loggers.py:273] Engine 000: Avg prompt throughput: 1638.3 tokens/s, Avg generation throughput: 144.0 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 5.6%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:30:16 [loggers.py:273] Engine 000: Avg prompt throughput: 1638.4 tokens/s, Avg generation throughput: 144.8 tokens/s, Running: 7 reqs, Waiting: 0 reqs, GPU KV cache usage: 5.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:30:26 [loggers.py:273] Engine 000: Avg prompt throughput: 819.2 tokens/s, Avg generation throughput: 55.4 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:30:36 [loggers.py:273] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:31:46 [loggers.py:273] Engine 000: Avg prompt throughput: 1638.3 tokens/s, Avg generation throughput: 139.0 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 5.8%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:31:56 [loggers.py:273] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 215.2 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 6.5%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:32:06 [loggers.py:273] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 212.8 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 7.3%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:32:16 [loggers.py:273] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 211.2 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 7.9%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:32:26 [loggers.py:273] Engine 000: Avg prompt throughput: 1638.2 tokens/s, Avg generation throughput: 144.0 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 5.7%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:32:36 [loggers.py:273] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 215.2 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 6.4%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:32:46 [loggers.py:273] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 212.8 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 7.1%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:32:56 [loggers.py:273] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 212.8 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 7.8%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:33:06 [loggers.py:273] Engine 000: Avg prompt throughput: 1638.4 tokens/s, Avg generation throughput: 138.4 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 5.6%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:33:16 [loggers.py:273] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 215.2 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 6.3%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:33:26 [loggers.py:273] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 214.4 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 7.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:33:36 [loggers.py:273] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 213.6 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 7.7%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:33:46 [loggers.py:273] Engine 000: Avg prompt throughput: 1638.2 tokens/s, Avg generation throughput: 140.8 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 5.5%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:33:56 [loggers.py:273] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 215.2 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 6.2%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:34:06 [loggers.py:273] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 214.4 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 6.9%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:34:16 [loggers.py:273] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 213.6 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 7.6%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:34:26 [loggers.py:273] Engine 000: Avg prompt throughput: 1024.0 tokens/s, Avg generation throughput: 149.9 tokens/s, Running: 7 reqs, Waiting: 0 reqs, GPU KV cache usage: 4.7%, Prefix cache hit rate: 0.0%
+(APIServer pid=190425) INFO 11-13 11:34:31 [launcher.py:100] [shutdown] API server: shutdown triggered
+(APIServer pid=190425) INFO 11-13 11:34:31 [launcher.py:116] [shutdown] API server: stopping engine client mode=abort timeout=0s
+(APIServer pid=190425) INFO 11-13 11:34:31 [core_client.py:655] [shutdown] MPClient: start timeout=0s
+(APIServer pid=190425) INFO 11-13 11:34:31 [core_client.py:657] [shutdown] MPClient: stopping engine manager
+(APIServer pid=190425) WARNING 11-13 11:34:31 [utils.py:607] [shutdown] Process manager: force killing remaining processes count=1
+(EngineCore pid=190805) INFO 11-13 11:34:31 [core.py:1218] [shutdown] EngineCore: trigger received signal=SIGTERM
+(EngineCore pid=190805) INFO 11-13 11:34:31 [core.py:1337] [shutdown] EngineCore: start mode=abort timeout=0s
+(EngineCore pid=190805) INFO 11-13 11:34:31 [core.py:1346] [shutdown] EngineCore: aborting in-flight requests count=8
+(EngineCore pid=190805) INFO 11-13 11:34:31 [core.py:1368] [shutdown] EngineCore: request processing complete; starting resource teardown
+(EngineCore pid=190805) INFO 11-13 11:34:31 [core.py:1231] [shutdown] EngineCore: exiting busy loop
+(EngineCore pid=190805) INFO 11-13 11:34:31 [multiproc_executor.py:426] [shutdown] Executor: waiting for worker exit count=4
+(Worker_TP0 pid=191185) INFO 11-13 11:34:31 [multiproc_executor.py:790] Parent process exited, terminating worker queues
+(APIServer pid=190425) INFO 11-13 11:34:31 [core_client.py:659] [shutdown] MPClient: engine manager stopped
+(APIServer pid=190425) INFO 11-13 11:34:31 [core_client.py:660] [shutdown] MPClient: cleaning up background resources
+(APIServer pid=190425) INFO 11-13 11:34:31 [core_client.py:662] [shutdown] MPClient: complete
+(APIServer pid=190425) INFO 11-13 11:34:31 [launcher.py:125] [shutdown] API server: engine client stopped
+(APIServer pid=190425) INFO 11-13 11:34:31 [launcher.py:128] [shutdown] API server: signalling HTTP server shutdown
+(APIServer pid=190425) INFO 11-13 11:34:32 [launcher.py:149] [shutdown] API server: shutting down FastAPI HTTP server
++ echo '== 7. 引擎侧是否有 abort/OOM/超时记录 =='
+== 7. 引擎侧是否有 abort/OOM/超时记录 ==
++ dex 'grep -nE '\''abort|Abort|out of memory|OOM|CUDA error|iluvatar|timeout|Timeout|stuck|deadlock'\'' /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log | tail -30'
++ timeout 150 docker exec corex5-py311 bash -c 'grep -nE '\''abort|Abort|out of memory|OOM|CUDA error|iluvatar|timeout|Timeout|stuck|deadlock'\'' /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log | tail -30'
+2:INFO 11-13 10:19:07 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+4:INFO 11-13 10:19:07 [__init__.py:238] Platform plugin iluvatar is activated
+27:INFO 11-13 10:19:18 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+29:INFO 11-13 10:19:18 [__init__.py:238] Platform plugin iluvatar is activated
+38:INFO 11-13 10:19:26 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+40:INFO 11-13 10:19:26 [__init__.py:238] Platform plugin iluvatar is activated
+42:INFO 11-13 10:19:26 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+45:INFO 11-13 10:19:26 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+48:INFO 11-13 10:19:26 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+50:INFO 11-13 10:19:26 [__init__.py:238] Platform plugin iluvatar is activated
+51:INFO 11-13 10:19:26 [__init__.py:238] Platform plugin iluvatar is activated
+52:INFO 11-13 10:19:26 [__init__.py:238] Platform plugin iluvatar is activated
+1490:(APIServer pid=190425) INFO 11-13 11:34:31 [launcher.py:116] [shutdown] API server: stopping engine client mode=abort timeout=0s
+1491:(APIServer pid=190425) INFO 11-13 11:34:31 [core_client.py:655] [shutdown] MPClient: start timeout=0s
+1495:(EngineCore pid=190805) INFO 11-13 11:34:31 [core.py:1337] [shutdown] EngineCore: start mode=abort timeout=0s
+1496:(EngineCore pid=190805) INFO 11-13 11:34:31 [core.py:1346] [shutdown] EngineCore: aborting in-flight requests count=8
++ echo '== 8. 采集侧窗口文件（失败 case 是否有 window）=='
+== 8. 采集侧窗口文件（失败 case 是否有 window）==
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in2048_out1024/window.json 2>&1 | head -c 400; echo'
++ timeout 150 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in2048_out1024/window.json 2>&1 | head -c 400; echo'
+{
+  "status": "failed",
+  "run_id": "24e40b234ccb412cbde6098a040b9805",
+  "case_id": "bs8_in2048_out1024",
+  "session_id": "0461805457e34bf1ac35344602e08deb",
+  "benchmark_source_sha256": "13d77a29c7637006bd483831fbe506e5b668507e8321bcb0712ec6d4fa51434d",
+  "num_warmups": 16,
+  "arm_acks": [
+    {
+      "version": "0.4.0-compat",
+      "session_id": "0461805457e34bf1ac35344602e08deb",
+      "rank"
++ dex 'ls -l /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in2048_out1024/ /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in2048_out128/'
++ timeout 150 docker exec corex5-py311 bash -c 'ls -l /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in2048_out1024/ /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in2048_out128/'
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in2048_out1024/:
+total 28
+-rw-r--r--. 1 root root 18835 Nov 13 11:31 benchmark_hooked.py.txt
+-rw-------. 1 root root  1591 Nov 13 11:31 case.json
+-rw-------. 1 root root  1967 Nov 13 11:34 window.json
+
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in2048_out128/:
+total 1716
+-rw-r--r--. 1 root root  18835 Nov 13 11:28 benchmark_hooked.py.txt
+-rw-------. 1 root root   1589 Nov 13 11:30 case.json
+drwxr-xr-x. 2 root root   4096 Nov 13 11:30 host_report
+-rw-------. 1 root root 425257 Nov 13 11:30 rank0_pid191185.csv
+-rw-------. 1 root root    971 Nov 13 11:30 rank0_pid191185.meta.json
+-rw-------. 1 root root 425257 Nov 13 11:30 rank1_pid191186.csv
+-rw-------. 1 root root    971 Nov 13 11:30 rank1_pid191186.meta.json
+-rw-------. 1 root root 425256 Nov 13 11:30 rank2_pid191187.csv
+-rw-------. 1 root root    971 Nov 13 11:30 rank2_pid191187.meta.json
+-rw-------. 1 root root 425257 Nov 13 11:30 rank3_pid191188.csv
+-rw-------. 1 root root    971 Nov 13 11:30 rank3_pid191188.meta.json
+-rw-------. 1 root root   6316 Nov 13 11:30 window.json
++ echo '== 9. summary.csv 内容 =='
+== 9. summary.csv 内容 ==
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/summary.csv'
++ timeout 150 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/summary.csv'
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261113_101902,bs8_in1024_out1024,100,520.8255995299996,0.19200285103159562,196.6109194563539,393.2218389127078,687.1704119999777,644.389460000184,1702.8075884007285,38.636880245161265,38.745307570870075,39.18774836197425,38.63688037693054,37.707195000166394,43.189473500460736
+litehost_gap_20261113_101902,bs8_in1024_out128,100,81.92356484999982,1.2206500069070203,156.2432008840986,1406.1888079568873,685.540214900011,643.3258800002477,1697.8673329998855,44.732701208661695,44.96511724409081,48.187818245667756,44.73270220078729,37.743705000139016,216.49447419991702
+litehost_gap_20261113_101902,bs8_in1024_out2048,100,1016.97220216,0.09833110461387716,201.38210224922042,302.0731533738306,686.1072751000938,644.6339350004564,1693.5450208004659,37.99738559921834,38.11541919882762,38.301797529066675,37.997385665803606,37.49147999997149,42.758190400309104
+litehost_gap_20261113_101902,bs8_in128_out1024,100,488.77631875999987,0.20459256343207216,209.5027849544419,235.69063307374714,232.4350245999858,250.74436500017327,265.0398275002635,36.58375772678397,36.62153524926677,36.78321254095823,36.58375785992173,36.35744500002147,38.76920999983213
+litehost_gap_20261113_101902,bs8_in128_out128,100,62.758357480000086,1.5934132761818716,203.95689935127956,407.9137987025591,231.5006721999771,250.55797000004532,265.34598310006004,36.256319964566956,36.18063870078727,37.251413186613114,36.25632090472442,36.106630000176665,38.12860140016255
+litehost_gap_20261113_101902,bs8_in128_out2048,100,991.5301753699996,0.10085421753572349,206.5494375131617,219.4587773577343,234.05697999996391,252.02983000008317,269.3830196997942,37.21926243048365,37.32516712017589,37.495252004250446,37.21926252911579,37.178925000034724,41.84591550048037
+litehost_gap_20261113_101902,bs8_in2048_out128,100,102.95224508000047,0.9713241311279187,124.3294887843736,2113.6013093343513,1439.1873412000405,1536.0355350003374,3442.7092574001017,51.97025000944887,50.04624614173191,59.11027254646124,51.97025104645651,36.998919999859936,430.70372139997744
++ echo '== 10. 宿主 dmesg 同时段 GPU/驱动异常 =='
+== 10. 宿主 dmesg 同时段 GPU/驱动异常 ==
++ dmesg -T
++ grep -iE 'iluvatar|corex|xid|reset|hang|timeout|oom'
++ tail -20
+[Fri Nov 13 09:32:51 2026] sbsa-gwdt sbsa-gwdt.0: Initialized with 10s timeout @ 100000000 Hz, action=0.
+[Fri Nov 13 09:32:52 2026] nvme nvme0: Shutdown timeout set to 8 seconds
+[Fri Nov 13 09:32:52 2026] nvme nvme1: Shutdown timeout set to 8 seconds
+[Fri Nov 13 09:33:03 2026] systemd[1]: Created slice Slice /system/iluvatarcorex-init.
+[Fri Nov 13 09:33:03 2026] iluvatar: loading out-of-tree module taints kernel.
+[Fri Nov 13 09:33:03 2026] iluvatar: module verification failed: signature and/or required key missing - tainting kernel
+[Fri Nov 13 09:33:03 2026] iluvatar 0000:45:00.0: enabling device (0140 -> 0142)
+[Fri Nov 13 09:33:04 2026] iluvatar 0000:45:00.0: DEV-0 is okay.
+[Fri Nov 13 09:33:04 2026] iluvatar 0000:48:00.0: enabling device (0140 -> 0142)
+[Fri Nov 13 09:33:05 2026] iluvatar 0000:48:00.0: DEV-1 is okay.
+[Fri Nov 13 09:33:05 2026] iluvatar 0000:af:00.0: enabling device (0140 -> 0142)
+[Fri Nov 13 09:33:05 2026] iluvatar 0000:af:00.0: DEV-2 is okay.
+[Fri Nov 13 09:33:05 2026] iluvatar 0000:b2:00.0: enabling device (0140 -> 0142)
+[Fri Nov 13 09:33:06 2026] iluvatar 0000:b2:00.0: DEV-3 is okay.
++ ls -l /var/log/pcp
++ true
++ echo '== 11. 当前 GPU 与进程状态 =='
+== 11. 当前 GPU 与进程状态 ==
++ /usr/local/corex-5.0.0/bin/ixsmi
++ grep -E 'MiB /'
++ head -6
+| N/A  39C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  40C   P0       103W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  38C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  39C   P0       102W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
++ docker exec corex5-py311 bash -c 'ps -eo pid,etime,args | grep -E "vllm|bench_driver" | grep -v grep | head -5'
++ set +x
+
+### exit: 0
