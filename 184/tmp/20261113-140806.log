@@ -1,0 +1,216 @@
+### server: 184
+### host:   controller
+### time:   2026-11-13T06:08:06Z
+
++ T=/home/huawei_ts_program/litehost_perf_opt/bench_driver.py
++ echo '== 1. 所有 bench_driver.py 副本 =='
+== 1. 所有 bench_driver.py 副本 ==
++ find /home -maxdepth 4 -name bench_driver.py
++ read -r f
++ echo '---- /home/qch/scripts/litehost_perf/bench_driver.py'
+---- /home/qch/scripts/litehost_perf/bench_driver.py
++ ls -l --time-style=long-iso /home/qch/scripts/litehost_perf/bench_driver.py
+-rw-rw-r--+ 1 root root 6332 2026-10-13 08:27 /home/qch/scripts/litehost_perf/bench_driver.py
++ sha256sum /home/qch/scripts/litehost_perf/bench_driver.py
+2e28f423a62bb15fcc5510fb8fa14695605c55d94d4d49ff4cd9ae8d2f544a5d  /home/qch/scripts/litehost_perf/bench_driver.py
++ read -r f
++ echo '---- /home/qch/pmu_litehost_toolkit/bench_driver.py'
+---- /home/qch/pmu_litehost_toolkit/bench_driver.py
++ ls -l --time-style=long-iso /home/qch/pmu_litehost_toolkit/bench_driver.py
+lrwxrwxrwx. 1 root root 49 2026-11-10 19:16 /home/qch/pmu_litehost_toolkit/bench_driver.py -> /home/s00806700/litehost_perf_opt/bench_driver.py
++ sha256sum /home/qch/pmu_litehost_toolkit/bench_driver.py
+2e28f423a62bb15fcc5510fb8fa14695605c55d94d4d49ff4cd9ae8d2f544a5d  /home/qch/pmu_litehost_toolkit/bench_driver.py
++ read -r f
++ echo '---- /home/qch/transfer/litehost_perf_bak/bench_driver.py'
+---- /home/qch/transfer/litehost_perf_bak/bench_driver.py
++ ls -l --time-style=long-iso /home/qch/transfer/litehost_perf_bak/bench_driver.py
+-rw-rw-r--+ 1 root root 6332 2026-10-13 08:27 /home/qch/transfer/litehost_perf_bak/bench_driver.py
++ sha256sum /home/qch/transfer/litehost_perf_bak/bench_driver.py
+2e28f423a62bb15fcc5510fb8fa14695605c55d94d4d49ff4cd9ae8d2f544a5d  /home/qch/transfer/litehost_perf_bak/bench_driver.py
++ read -r f
++ echo '---- /home/c00986490/litehost_perf/bench_driver.py'
+---- /home/c00986490/litehost_perf/bench_driver.py
++ ls -l --time-style=long-iso /home/c00986490/litehost_perf/bench_driver.py
+-rw-rw-r--+ 1 root root 6332 2026-10-13 08:27 /home/c00986490/litehost_perf/bench_driver.py
++ sha256sum /home/c00986490/litehost_perf/bench_driver.py
+2e28f423a62bb15fcc5510fb8fa14695605c55d94d4d49ff4cd9ae8d2f544a5d  /home/c00986490/litehost_perf/bench_driver.py
++ read -r f
++ echo '---- /home/z30059427/litehost_perf_py312/bench_driver.py'
+---- /home/z30059427/litehost_perf_py312/bench_driver.py
++ ls -l --time-style=long-iso /home/z30059427/litehost_perf_py312/bench_driver.py
+-rw-rw-r--+ 1 root root 6332 2026-10-16 10:42 /home/z30059427/litehost_perf_py312/bench_driver.py
++ sha256sum /home/z30059427/litehost_perf_py312/bench_driver.py
+2e28f423a62bb15fcc5510fb8fa14695605c55d94d4d49ff4cd9ae8d2f544a5d  /home/z30059427/litehost_perf_py312/bench_driver.py
++ read -r f
++ echo '---- /home/z30059427/litehost_perf/bench_driver.py'
+---- /home/z30059427/litehost_perf/bench_driver.py
++ ls -l --time-style=long-iso /home/z30059427/litehost_perf/bench_driver.py
+-rw-rw-r--+ 1 root root 6332 2026-10-15 18:07 /home/z30059427/litehost_perf/bench_driver.py
++ sha256sum /home/z30059427/litehost_perf/bench_driver.py
+2e28f423a62bb15fcc5510fb8fa14695605c55d94d4d49ff4cd9ae8d2f544a5d  /home/z30059427/litehost_perf/bench_driver.py
++ read -r f
++ echo '---- /home/g30061491/litehost_perf/bench_driver.py'
+---- /home/g30061491/litehost_perf/bench_driver.py
++ ls -l --time-style=long-iso /home/g30061491/litehost_perf/bench_driver.py
+-rw-rw-r--+ 1 root root 6332 2026-10-13 08:27 /home/g30061491/litehost_perf/bench_driver.py
++ sha256sum /home/g30061491/litehost_perf/bench_driver.py
+2e28f423a62bb15fcc5510fb8fa14695605c55d94d4d49ff4cd9ae8d2f544a5d  /home/g30061491/litehost_perf/bench_driver.py
++ read -r f
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/bench_driver.py'
+---- /home/huawei_ts_program/litehost_perf_opt/bench_driver.py
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/bench_driver.py
+-rw-r--r--. 1 root root 6332 2026-10-13 08:27 /home/huawei_ts_program/litehost_perf_opt/bench_driver.py
++ sha256sum /home/huawei_ts_program/litehost_perf_opt/bench_driver.py
+2e28f423a62bb15fcc5510fb8fa14695605c55d94d4d49ff4cd9ae8d2f544a5d  /home/huawei_ts_program/litehost_perf_opt/bench_driver.py
++ read -r f
++ echo '---- /home/huawei_ts_program/test_metrics/litehost_perf/bench_driver.py'
+---- /home/huawei_ts_program/test_metrics/litehost_perf/bench_driver.py
++ ls -l --time-style=long-iso /home/huawei_ts_program/test_metrics/litehost_perf/bench_driver.py
+-rw-rw-r--+ 1 root root 6332 2026-10-13 08:27 /home/huawei_ts_program/test_metrics/litehost_perf/bench_driver.py
++ sha256sum /home/huawei_ts_program/test_metrics/litehost_perf/bench_driver.py
+2e28f423a62bb15fcc5510fb8fa14695605c55d94d4d49ff4cd9ae8d2f544a5d  /home/huawei_ts_program/test_metrics/litehost_perf/bench_driver.py
++ read -r f
++ echo '---- /home/s00806700/litehost_perf_base/bench_driver.py'
+---- /home/s00806700/litehost_perf_base/bench_driver.py
++ ls -l --time-style=long-iso /home/s00806700/litehost_perf_base/bench_driver.py
+-rw-r--r--. 1 root root 6332 2026-10-13 08:27 /home/s00806700/litehost_perf_base/bench_driver.py
++ sha256sum /home/s00806700/litehost_perf_base/bench_driver.py
+2e28f423a62bb15fcc5510fb8fa14695605c55d94d4d49ff4cd9ae8d2f544a5d  /home/s00806700/litehost_perf_base/bench_driver.py
++ read -r f
++ echo '---- /home/s00806700/old_script/litehost_perf/bench_driver.py'
+---- /home/s00806700/old_script/litehost_perf/bench_driver.py
++ ls -l --time-style=long-iso /home/s00806700/old_script/litehost_perf/bench_driver.py
+-rw-r--r--. 1 root root 6332 2026-10-13 08:27 /home/s00806700/old_script/litehost_perf/bench_driver.py
++ sha256sum /home/s00806700/old_script/litehost_perf/bench_driver.py
+2e28f423a62bb15fcc5510fb8fa14695605c55d94d4d49ff4cd9ae8d2f544a5d  /home/s00806700/old_script/litehost_perf/bench_driver.py
++ read -r f
++ echo '---- /home/s00806700/litehost_perf_gen/bench_driver.py'
+---- /home/s00806700/litehost_perf_gen/bench_driver.py
++ ls -l --time-style=long-iso /home/s00806700/litehost_perf_gen/bench_driver.py
+-rw-r--r--. 1 root root 6462 2026-10-30 18:16 /home/s00806700/litehost_perf_gen/bench_driver.py
++ sha256sum /home/s00806700/litehost_perf_gen/bench_driver.py
+dea1aef633e5059281f191ab2ad603cbfd1f2d0ebd40deda69ad5417d32b9c62  /home/s00806700/litehost_perf_gen/bench_driver.py
++ read -r f
++ echo '---- /home/s00806700/litehost_perf_llvmopt/bench_driver.py'
+---- /home/s00806700/litehost_perf_llvmopt/bench_driver.py
++ ls -l --time-style=long-iso /home/s00806700/litehost_perf_llvmopt/bench_driver.py
+-rw-rw-r--+ 1 root root 6332 2026-10-13 08:27 /home/s00806700/litehost_perf_llvmopt/bench_driver.py
++ sha256sum /home/s00806700/litehost_perf_llvmopt/bench_driver.py
+2e28f423a62bb15fcc5510fb8fa14695605c55d94d4d49ff4cd9ae8d2f544a5d  /home/s00806700/litehost_perf_llvmopt/bench_driver.py
++ read -r f
++ echo '---- /home/s00806700/python311-ir-pgo-corex-integrated-v3/litehost_perf_gen/bench_driver.py'
+---- /home/s00806700/python311-ir-pgo-corex-integrated-v3/litehost_perf_gen/bench_driver.py
++ ls -l --time-style=long-iso /home/s00806700/python311-ir-pgo-corex-integrated-v3/litehost_perf_gen/bench_driver.py
+-rw-rw-rw-. 1 root root 6462 2026-10-30 17:54 /home/s00806700/python311-ir-pgo-corex-integrated-v3/litehost_perf_gen/bench_driver.py
++ sha256sum /home/s00806700/python311-ir-pgo-corex-integrated-v3/litehost_perf_gen/bench_driver.py
+dea1aef633e5059281f191ab2ad603cbfd1f2d0ebd40deda69ad5417d32b9c62  /home/s00806700/python311-ir-pgo-corex-integrated-v3/litehost_perf_gen/bench_driver.py
++ read -r f
++ echo '---- /home/s00806700/litehost_perf_opt/bench_driver.py'
+---- /home/s00806700/litehost_perf_opt/bench_driver.py
++ ls -l --time-style=long-iso /home/s00806700/litehost_perf_opt/bench_driver.py
+-rw-r--r--. 1 root root 6332 2026-11-10 19:02 /home/s00806700/litehost_perf_opt/bench_driver.py
++ sha256sum /home/s00806700/litehost_perf_opt/bench_driver.py
+2e28f423a62bb15fcc5510fb8fa14695605c55d94d4d49ff4cd9ae8d2f544a5d  /home/s00806700/litehost_perf_opt/bench_driver.py
++ read -r f
++ echo '---- /home/s00806700/litehost_perf_optbak/bench_driver.py'
+---- /home/s00806700/litehost_perf_optbak/bench_driver.py
++ ls -l --time-style=long-iso /home/s00806700/litehost_perf_optbak/bench_driver.py
+-rw-r--r--. 1 root root 6332 2026-11-04 23:10 /home/s00806700/litehost_perf_optbak/bench_driver.py
++ sha256sum /home/s00806700/litehost_perf_optbak/bench_driver.py
+2e28f423a62bb15fcc5510fb8fa14695605c55d94d4d49ff4cd9ae8d2f544a5d  /home/s00806700/litehost_perf_optbak/bench_driver.py
++ read -r f
++ echo '---- /home/s00806700/litehost_perf_genold/bench_driver.py'
+---- /home/s00806700/litehost_perf_genold/bench_driver.py
++ ls -l --time-style=long-iso /home/s00806700/litehost_perf_genold/bench_driver.py
+-rw-rw-r--+ 1 root root 6332 2026-10-13 08:27 /home/s00806700/litehost_perf_genold/bench_driver.py
++ sha256sum /home/s00806700/litehost_perf_genold/bench_driver.py
+2e28f423a62bb15fcc5510fb8fa14695605c55d94d4d49ff4cd9ae8d2f544a5d  /home/s00806700/litehost_perf_genold/bench_driver.py
++ read -r f
++ echo '---- /home/s00806700/litehost_perf/bench_driver.py'
+---- /home/s00806700/litehost_perf/bench_driver.py
++ ls -l --time-style=long-iso /home/s00806700/litehost_perf/bench_driver.py
+-rw-r--r--. 1 root root 6332 2026-10-13 08:27 /home/s00806700/litehost_perf/bench_driver.py
++ sha256sum /home/s00806700/litehost_perf/bench_driver.py
+2e28f423a62bb15fcc5510fb8fa14695605c55d94d4d49ff4cd9ae8d2f544a5d  /home/s00806700/litehost_perf/bench_driver.py
++ read -r f
++ echo '---- /home/s00806700/litehost_perf_gccnopgo/bench_driver.py'
+---- /home/s00806700/litehost_perf_gccnopgo/bench_driver.py
++ ls -l --time-style=long-iso /home/s00806700/litehost_perf_gccnopgo/bench_driver.py
+-rw-rw-r--+ 1 root root 6332 2026-10-13 08:27 /home/s00806700/litehost_perf_gccnopgo/bench_driver.py
++ sha256sum /home/s00806700/litehost_perf_gccnopgo/bench_driver.py
+2e28f423a62bb15fcc5510fb8fa14695605c55d94d4d49ff4cd9ae8d2f544a5d  /home/s00806700/litehost_perf_gccnopgo/bench_driver.py
++ read -r f
++ echo '== 2. 各套 toolkit 目录与脚本 =='
+== 2. 各套 toolkit 目录与脚本 ==
++ find /home -maxdepth 3 -name lh_common.py
++ head -10
+/home/qch/pmu_litehost_toolkit/lh_common.py
+/home/c00986490/litehost_perf/lh_common.py
+/home/z30059427/litehost_perf_py312/lh_common.py
+/home/z30059427/litehost_perf/lh_common.py
+/home/g30061491/litehost_perf/lh_common.py
+/home/huawei_ts_program/litehost_perf_opt/lh_common.py
+/home/s00806700/litehost_perf_base/lh_common.py
+/home/s00806700/litehost_perf_gen/lh_common.py
+/home/s00806700/litehost_perf_llvmopt/lh_common.py
+/home/s00806700/litehost_perf_opt/lh_common.py
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh
+-rwxr-xr-x. 1 root root 13538 2026-11-12 16:06 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
+-rwxr-xr-x. 1 root root 14041 2026-11-12 16:06 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+-rwxr-xr-x. 1 root root 14049 2026-11-12 16:28 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh
++ echo '== 3. 这次 run 用的那份：end() 现状 =='
+== 3. 这次 run 用的那份：end() 现状 ==
++ grep -n 'async def end' -A 4 /home/huawei_ts_program/litehost_perf_opt/bench_driver.py
+45:    async def end(self,outputs,duration):
+46-        self.window.update(main_end_ns=time.monotonic_ns(),benchmark_duration_s=duration,successful=sum(bool(o.success) for o in outputs),failed=sum(not bool(o.success) for o in outputs))
+47-        if len(outputs)!=self.case['expected_requests'] or not all(o.success for o in outputs):raise RuntimeError('Formal requests incomplete/failed; no valid H')
+48-        self.window['finalize_acks']=await asyncio.to_thread(all_ranks,self.session,'finalize',run_id=self.case['run_id'])
+49-        self.window['status']='finalized';self.ended=True;self.save()
++ echo '== 4. 服务占用检查（改源码前确认没人正在用这份驱动）=='
+== 4. 服务占用检查（改源码前确认没人正在用这份驱动）==
++ ps -eo pid,args
++ grep -E 'bench_driver|vllm'
++ grep -v grep
++ head -5
+ 712492 vim /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in2048_out1024.log
++ echo '== 5. 备份 + 打补丁 =='
+== 5. 备份 + 打补丁 ==
++ BAK=/home/huawei_ts_program/litehost_perf_opt/bench_driver.py.bak-failed-errors-20261113-140806
++ grep -q failed_errors /home/huawei_ts_program/litehost_perf_opt/bench_driver.py
++ cp -a /home/huawei_ts_program/litehost_perf_opt/bench_driver.py /home/huawei_ts_program/litehost_perf_opt/bench_driver.py.bak-failed-errors-20261113-140806
++ echo backup=/home/huawei_ts_program/litehost_perf_opt/bench_driver.py.bak-failed-errors-20261113-140806
+backup=/home/huawei_ts_program/litehost_perf_opt/bench_driver.py.bak-failed-errors-20261113-140806
++ python3 - /home/huawei_ts_program/litehost_perf_opt/bench_driver.py
+PATCHED
++ echo 'patch rc=0'
+patch rc=0
++ echo '== 6. 语法校验与 diff =='
+== 6. 语法校验与 diff ==
++ python3 -m py_compile /home/huawei_ts_program/litehost_perf_opt/bench_driver.py
++ echo 'py_compile OK'
+py_compile OK
++ diff -u /home/huawei_ts_program/litehost_perf_opt/bench_driver.py.bak-failed-errors-20261113-140806 /home/huawei_ts_program/litehost_perf_opt/bench_driver.py
++ head -30
+--- /home/huawei_ts_program/litehost_perf_opt/bench_driver.py.bak-failed-errors-20261113-140806	2026-10-13 08:27:50.000000000 +0800
++++ /home/huawei_ts_program/litehost_perf_opt/bench_driver.py	2026-11-13 14:08:07.211632090 +0800
+@@ -44,7 +44,10 @@
+         print('[litehost] 4 ranks ARMED; all ready-check/warmup scopes excluded',flush=True)
+     async def end(self,outputs,duration):
+         self.window.update(main_end_ns=time.monotonic_ns(),benchmark_duration_s=duration,successful=sum(bool(o.success) for o in outputs),failed=sum(not bool(o.success) for o in outputs))
+-        if len(outputs)!=self.case['expected_requests'] or not all(o.success for o in outputs):raise RuntimeError('Formal requests incomplete/failed; no valid H')
++        if len(outputs)!=self.case['expected_requests'] or not all(o.success for o in outputs):
++            self.window['failed_errors']=[{'i':i,'error':str(getattr(o,'error',''))[:300]} for i,o in enumerate(outputs) if not o.success][:10]
++            self.save()
++            raise RuntimeError('Formal requests incomplete/failed; no valid H')
+         self.window['finalize_acks']=await asyncio.to_thread(all_ranks,self.session,'finalize',run_id=self.case['run_id'])
+         self.window['status']='finalized';self.ended=True;self.save()
+         print('[litehost] 4 ranks FINALIZED; data saved; same server ready for next case',flush=True)
++ grep -n failed_errors -A 3 /home/huawei_ts_program/litehost_perf_opt/bench_driver.py
++ head -10
+48:            self.window['failed_errors']=[{'i':i,'error':str(getattr(o,'error',''))[:300]} for i,o in enumerate(outputs) if not o.success][:10]
+49-            self.save()
+50-            raise RuntimeError('Formal requests incomplete/failed; no valid H')
+51-        self.window['finalize_acks']=await asyncio.to_thread(all_ranks,self.session,'finalize',run_id=self.case['run_id'])
++ set +x
+
+### exit: 0
