@@ -1,0 +1,171 @@
+### server: 184
+### host:   controller
+### time:   2026-11-13T06:47:28Z
+
++ C=corex5-py311
++ P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902
++ echo '== 1. 落地 host_summary =='
+== 1. 落地 host_summary ==
++ dex 'ls -l /tmp/lh7c_out; cp -a /tmp/lh7c_out /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary && ls -l /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary'
++ timeout 120 docker exec corex5-py311 bash -c 'ls -l /tmp/lh7c_out; cp -a /tmp/lh7c_out /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary && ls -l /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary'
+total 96
+-rw-r--r--. 1 root root  3409 Nov 13 14:46 four_rank_totals.csv
+-rw-r--r--. 1 root root 14993 Nov 13 14:46 per_rank.csv
+-rw-r--r--. 1 root root  6940 Nov 13 14:46 report.txt
+-rw-------. 1 root root 68826 Nov 13 14:46 summary.json
+total 96
+-rw-r--r--. 1 root root  3409 Nov 13 14:46 four_rank_totals.csv
+-rw-r--r--. 1 root root 14993 Nov 13 14:46 per_rank.csv
+-rw-r--r--. 1 root root  6940 Nov 13 14:46 report.txt
+-rw-------. 1 root root 68826 Nov 13 14:46 summary.json
++ echo '== 2. four_rank_totals.csv 全量 =='
+== 2. four_rank_totals.csv 全量 ==
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary/four_rank_totals.csv'
++ timeout 120 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary/four_rank_totals.csv'
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in1024_out1024,da7e2744e8944942a0adacb331410355,all_formal,0.0,4,13342,511.41620184,491.56695539,19.84924645,9.3914711375,29.2407175875,18.97013213,20.22912003
+bs8_in1024_out1024,da7e2744e8944942a0adacb331410355,graph_formal,0.0,4,13249,493.1220293175,477.03885584249997,16.083173475,,,15.30776554,16.55249652
+bs8_in1024_out1024,da7e2744e8944942a0adacb331410355,no_graph_formal,0.0,4,93,18.2941725225,14.5280995475,3.766072975,,,3.66236659,3.86505195
+bs8_in1024_out128,bccdf20c102b455ba7ce938247a4f2e0,all_formal,0.0,4,1694,80.687429935,74.98317176,5.704258175,1.2198232475,6.9240814225000005,5.49961706,5.90923929
+bs8_in1024_out128,bccdf20c102b455ba7ce938247a4f2e0,graph_formal,0.0,4,1601,62.44190937,60.4672137475,1.9746956225,,,1.84760529,2.03886656
+bs8_in1024_out128,bccdf20c102b455ba7ce938247a4f2e0,no_graph_formal,0.0,4,93,18.245520565,14.5159580125,3.7295625525,,,3.53797893,3.87037273
+bs8_in1024_out2048,1a07b55a8a9346f7959e501d0abc0839,all_formal,0.0,4,26654,998.3151247650001,962.15567506,36.159449705,18.645344549999997,54.804794255,34.6839122,36.94757473
+bs8_in1024_out2048,1a07b55a8a9346f7959e501d0abc0839,graph_formal,0.0,4,26561,980.0358642275,947.63353379,32.4023304375,,,30.96819901,33.32223904
+bs8_in1024_out2048,1a07b55a8a9346f7959e501d0abc0839,no_graph_formal,0.0,4,93,18.2792605375,14.52214127,3.7571192675000002,,,3.62533569,3.8544178
+bs8_in128_out1024,a838396985e44a21a8231ba42e88825a,all_formal,0.0,4,13340,479.4575485625,463.370968675,16.0865798875,9.3061615175,25.392741405000002,15.38567038,17.1247067
+bs8_in128_out1024,a838396985e44a21a8231ba42e88825a,graph_formal,0.0,4,13312,477.8456470725,462.70819290500003,15.1374541675,,,14.44002907,16.18287407
+bs8_in128_out1024,a838396985e44a21a8231ba42e88825a,no_graph_formal,0.0,4,28,1.61190149,0.66277577,0.94912572,,,0.94183263,0.96060553
+bs8_in128_out128,426cf971a6e04b8fb4279c99df810dda,all_formal,0.0,4,1692,61.5397471975,58.71187162,2.8278755775,1.20562007,4.0334956475,2.73272849,2.95019219
+bs8_in128_out128,426cf971a6e04b8fb4279c99df810dda,graph_formal,0.0,4,1664,59.94420811,58.0573387725,1.8868693374999999,,,1.80762131,2.00010036
+bs8_in128_out128,426cf971a6e04b8fb4279c99df810dda,no_graph_formal,0.0,4,28,1.5955390875,0.6545328475000001,0.94100624,,,0.92510718,0.958356
+bs8_in128_out2048,20128801e4814c13a44d6dab19db8164,all_formal,0.0,4,26652,972.65163003,939.75911131,32.89251872,18.866634140000002,51.75915286,31.43947901,34.42382928
+bs8_in128_out2048,20128801e4814c13a44d6dab19db8164,graph_formal,0.0,4,26624,970.9615584525,939.0872627675,31.874295685,,,30.43963276,33.42210536
+bs8_in128_out2048,20128801e4814c13a44d6dab19db8164,no_graph_formal,0.0,4,28,1.6900715775,0.6718485425,1.018223035,,,0.99984625,1.05351279
+bs8_in2048_out128,ebb56295b520425fb05476c1a994dd82,all_formal,0.0,4,1707,101.680166395,94.5186596925,7.1615067025000005,1.25395352,8.4154602225,6.93661161,7.41197308
+bs8_in2048_out128,ebb56295b520425fb05476c1a994dd82,graph_formal,0.0,4,1580,57.458310402500004,55.4790445325,1.97926587,,,1.89239781,2.0322169
+bs8_in2048_out128,ebb56295b520425fb05476c1a994dd82,no_graph_formal,0.0,4,127,44.2218559925,39.03961516,5.1822408325,,,4.94266548,5.37975618
++ echo '== 3. report.txt 全量 =='
+== 3. report.txt 全量 ==
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary/report.txt'
++ timeout 120 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary/report.txt'
+H = T - S + S * 0/100. Formal scopes only. Unit = SECONDS.
+G = sum(start_next - end_current) across adjacent formal scopes on EACH rank.
+H+G = H_total + G_total (gap wall time included; sync/idle within G NOT removed).
+Primary H remains unchanged; four-rank means are TOTAL seconds, NOT per iteration or instance latency.
+
+CASE: bs8_in1024_out1024  run_id=da7e2744e8944942a0adacb331410355
+  rank0 pid=191185 formal=13342 warmup_excluded=2058 T_total=512.012513s S_total=491.783393s H_total=20.229120s G_total=8.795247s H+G=29.024367s
+  rank1 pid=191186 formal=13342 warmup_excluded=2058 T_total=511.480164s S_total=492.510032s H_total=18.970132s G_total=9.327470s H+G=28.297602s
+  rank2 pid=191187 formal=13342 warmup_excluded=2058 T_total=510.972058s S_total=490.844923s H_total=20.127135s G_total=9.835602s H+G=29.962737s
+  rank3 pid=191188 formal=13342 warmup_excluded=2058 T_total=511.200073s S_total=491.129474s H_total=20.070599s G_total=9.607566s H+G=29.678165s
+  all_formal       four_rank_mean_total_H_s=19.849246
+  graph_formal     four_rank_mean_total_H_s=16.083173
+  no_graph_formal  four_rank_mean_total_H_s=3.766073
+FINAL [bs8_in1024_out1024]: four_rank_mean_total_H_s = 19.849246 s G_total=9.391471s H+G=29.240718s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in1024_out128  run_id=bccdf20c102b455ba7ce938247a4f2e0
+  rank0 pid=191185 formal=1694 warmup_excluded=266 T_total=80.774973s S_total=75.245691s H_total=5.529282s G_total=1.132335s H+G=6.661617s
+  rank1 pid=191186 formal=1694 warmup_excluded=266 T_total=80.724993s S_total=75.225376s H_total=5.499617s G_total=1.182213s H+G=6.681830s
+  rank2 pid=191187 formal=1694 warmup_excluded=266 T_total=80.617893s S_total=74.738998s H_total=5.878895s G_total=1.289366s H+G=7.168260s
+  rank3 pid=191188 formal=1694 warmup_excluded=266 T_total=80.631861s S_total=74.722622s H_total=5.909239s G_total=1.275379s H+G=7.184618s
+  all_formal       four_rank_mean_total_H_s=5.704258
+  graph_formal     four_rank_mean_total_H_s=1.974696
+  no_graph_formal  four_rank_mean_total_H_s=3.729563
+FINAL [bs8_in1024_out128]: four_rank_mean_total_H_s = 5.704258 s G_total=1.219823s H+G=6.924081s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in1024_out2048  run_id=1a07b55a8a9346f7959e501d0abc0839
+  rank0 pid=191185 formal=26654 warmup_excluded=4106 T_total=999.371596s S_total=962.424021s H_total=36.947575s G_total=17.588944s H+G=54.536519s
+  rank1 pid=191186 formal=26654 warmup_excluded=4106 T_total=998.479602s S_total=963.795690s H_total=34.683912s G_total=18.480829s H+G=53.164741s
+  rank2 pid=191187 formal=26654 warmup_excluded=4106 T_total=997.506620s S_total=961.003827s H_total=36.502793s G_total=19.453824s H+G=55.956617s
+  rank3 pid=191188 formal=26654 warmup_excluded=4106 T_total=997.902681s S_total=961.399162s H_total=36.503519s G_total=19.057781s H+G=55.561300s
+  all_formal       four_rank_mean_total_H_s=36.159450
+  graph_formal     four_rank_mean_total_H_s=32.402330
+  no_graph_formal  four_rank_mean_total_H_s=3.757119
+FINAL [bs8_in1024_out2048]: four_rank_mean_total_H_s = 36.159450 s G_total=18.645345s H+G=54.804794s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in128_out1024  run_id=a838396985e44a21a8231ba42e88825a
+  rank0 pid=191185 formal=13340 warmup_excluded=2054 T_total=478.926791s S_total=461.802085s H_total=17.124707s G_total=9.836905s H+G=26.961611s
+  rank1 pid=191186 formal=13340 warmup_excluded=2054 T_total=480.155680s S_total=464.331535s H_total=15.824145s G_total=8.607960s H+G=24.432106s
+  rank2 pid=191187 formal=13340 warmup_excluded=2054 T_total=479.508024s S_total=464.122354s H_total=15.385670s G_total=9.255704s H+G=24.641374s
+  rank3 pid=191188 formal=13340 warmup_excluded=2054 T_total=479.239698s S_total=463.227901s H_total=16.011797s G_total=9.524077s H+G=25.535874s
+  all_formal       four_rank_mean_total_H_s=16.086580
+  graph_formal     four_rank_mean_total_H_s=15.137454
+  no_graph_formal  four_rank_mean_total_H_s=0.949126
+FINAL [bs8_in128_out1024]: four_rank_mean_total_H_s = 16.086580 s G_total=9.306162s H+G=25.392741s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in128_out128  run_id=426cf971a6e04b8fb4279c99df810dda
+  rank0 pid=191185 formal=1692 warmup_excluded=262 T_total=61.485387s S_total=58.535195s H_total=2.950192s G_total=1.259970s H+G=4.210162s
+  rank1 pid=191186 formal=1692 warmup_excluded=262 T_total=61.635916s S_total=58.807036s H_total=2.828880s G_total=1.109419s H+G=3.938299s
+  rank2 pid=191187 formal=1692 warmup_excluded=262 T_total=61.525037s S_total=58.792308s H_total=2.732728s G_total=1.220349s H+G=3.953077s
+  rank3 pid=191188 formal=1692 warmup_excluded=262 T_total=61.512649s S_total=58.712947s H_total=2.799702s G_total=1.232742s H+G=4.032444s
+  all_formal       four_rank_mean_total_H_s=2.827876
+  graph_formal     four_rank_mean_total_H_s=1.886869
+  no_graph_formal  four_rank_mean_total_H_s=0.941006
+FINAL [bs8_in128_out128]: four_rank_mean_total_H_s = 2.827876 s G_total=1.205620s H+G=4.033496s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in128_out2048  run_id=20128801e4814c13a44d6dab19db8164
+  rank0 pid=191185 formal=26652 warmup_excluded=4102 T_total=972.546547s S_total=938.122718s H_total=34.423829s G_total=18.971712s H+G=53.395541s
+  rank1 pid=191186 formal=26652 warmup_excluded=4102 T_total=973.858819s S_total=942.419340s H_total=31.439479s G_total=17.659471s H+G=49.098950s
+  rank2 pid=191187 formal=26652 warmup_excluded=4102 T_total=972.216907s S_total=940.297796s H_total=31.919112s G_total=19.301352s H+G=51.220463s
+  rank3 pid=191188 formal=26652 warmup_excluded=4102 T_total=971.984246s S_total=938.196591s H_total=33.787655s G_total=19.534002s H+G=53.321657s
+  all_formal       four_rank_mean_total_H_s=32.892519
+  graph_formal     four_rank_mean_total_H_s=31.874296
+  no_graph_formal  four_rank_mean_total_H_s=1.018223
+FINAL [bs8_in128_out2048]: four_rank_mean_total_H_s = 32.892519 s G_total=18.866634s H+G=51.759153s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in2048_out128  run_id=ebb56295b520425fb05476c1a994dd82
+  rank0 pid=191185 formal=1707 warmup_excluded=270 T_total=101.740684s S_total=94.804072s H_total=6.936612s G_total=1.193455s H+G=8.130067s
+  rank1 pid=191186 formal=1707 warmup_excluded=270 T_total=101.708833s S_total=94.736548s H_total=6.972286s G_total=1.225277s H+G=8.197562s
+  rank2 pid=191187 formal=1707 warmup_excluded=270 T_total=101.616062s S_total=94.290905s H_total=7.325156s G_total=1.318022s H+G=8.643178s
+  rank3 pid=191188 formal=1707 warmup_excluded=270 T_total=101.655087s S_total=94.243114s H_total=7.411973s G_total=1.279060s H+G=8.691033s
+  all_formal       four_rank_mean_total_H_s=7.161507
+  graph_formal     four_rank_mean_total_H_s=1.979266
+  no_graph_formal  four_rank_mean_total_H_s=5.182241
+FINAL [bs8_in2048_out128]: four_rank_mean_total_H_s = 7.161507 s G_total=1.253954s H+G=8.415460s (all_formal, no warmup, gap sync NOT subtracted)
+
++ echo '== 4. 7 case 汇总（all_formal）=='
+== 4. 7 case 汇总（all_formal）==
++ dex 'python3 - <<'\''PY'\''
+import csv
+rows=[r for r in csv.DictReader(open('\''/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary/four_rank_totals.csv'\'')) if r['\''group'\'']=='\''all_formal'\'']
+print(f"{'\''case'\'':22s} {'\''T(s)'\'':>9s} {'\''S(s)'\'':>9s} {'\''H(s)'\'':>7s} {'\''G(s)'\'':>7s} {'\''H+G(s)'\'':>8s} {'\''scopes'\'':>7s}")
+tot={k:0.0 for k in ('\''T'\'','\''S'\'','\''H'\'','\''G'\'','\''HG'\'')}
+for r in rows:
+    t=float(r['\''four_rank_mean_T_total_s'\'']); s=float(r['\''four_rank_mean_S_total_s'\''])
+    h=float(r['\''four_rank_mean_total_H_s'\'']); g=float(r['\''four_rank_mean_G_total_s'\''])
+    hg=float(r['\''four_rank_mean_H_plus_G_total_s'\''])
+    tot['\''T'\'']+=t; tot['\''S'\'']+=s; tot['\''H'\'']+=h; tot['\''G'\'']+=g; tot['\''HG'\'']+=hg
+    print(f"{r['\''case_id'\'']:22s} {t:9.3f} {s:9.3f} {h:7.3f} {g:7.3f} {hg:8.3f} {r['\''formal_scopes_per_rank'\'']:>7s}")
+print('\''-'\''*72)
+print(f"{'\''SUM(7 cases)'\'':22s} {tot['\''T'\'']:9.3f} {tot['\''S'\'']:9.3f} {tot['\''H'\'']:7.3f} {tot['\''G'\'']:7.3f} {tot['\''HG'\'']:8.3f}")
+print(f'\''cases={len(rows)}  missing=bs8_in2048_out1024, bs8_in2048_out2048'\'')
+PY'
++ timeout 120 docker exec corex5-py311 bash -c 'python3 - <<'\''PY'\''
+import csv
+rows=[r for r in csv.DictReader(open('\''/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary/four_rank_totals.csv'\'')) if r['\''group'\'']=='\''all_formal'\'']
+print(f"{'\''case'\'':22s} {'\''T(s)'\'':>9s} {'\''S(s)'\'':>9s} {'\''H(s)'\'':>7s} {'\''G(s)'\'':>7s} {'\''H+G(s)'\'':>8s} {'\''scopes'\'':>7s}")
+tot={k:0.0 for k in ('\''T'\'','\''S'\'','\''H'\'','\''G'\'','\''HG'\'')}
+for r in rows:
+    t=float(r['\''four_rank_mean_T_total_s'\'']); s=float(r['\''four_rank_mean_S_total_s'\''])
+    h=float(r['\''four_rank_mean_total_H_s'\'']); g=float(r['\''four_rank_mean_G_total_s'\''])
+    hg=float(r['\''four_rank_mean_H_plus_G_total_s'\''])
+    tot['\''T'\'']+=t; tot['\''S'\'']+=s; tot['\''H'\'']+=h; tot['\''G'\'']+=g; tot['\''HG'\'']+=hg
+    print(f"{r['\''case_id'\'']:22s} {t:9.3f} {s:9.3f} {h:7.3f} {g:7.3f} {hg:8.3f} {r['\''formal_scopes_per_rank'\'']:>7s}")
+print('\''-'\''*72)
+print(f"{'\''SUM(7 cases)'\'':22s} {tot['\''T'\'']:9.3f} {tot['\''S'\'']:9.3f} {tot['\''H'\'']:7.3f} {tot['\''G'\'']:7.3f} {tot['\''HG'\'']:8.3f}")
+print(f'\''cases={len(rows)}  missing=bs8_in2048_out1024, bs8_in2048_out2048'\'')
+PY'
+case                        T(s)      S(s)    H(s)    G(s)   H+G(s)  scopes
+bs8_in1024_out1024       511.416   491.567  19.849   9.391   29.241   13342
+bs8_in1024_out128         80.687    74.983   5.704   1.220    6.924    1694
+bs8_in1024_out2048       998.315   962.156  36.159  18.645   54.805   26654
+bs8_in128_out1024        479.458   463.371  16.087   9.306   25.393   13340
+bs8_in128_out128          61.540    58.712   2.828   1.206    4.033    1692
+bs8_in128_out2048        972.652   939.759  32.893  18.867   51.759   26652
+bs8_in2048_out128        101.680    94.519   7.162   1.254    8.415    1707
+------------------------------------------------------------------------
+SUM(7 cases)            3205.748  3085.066 120.681  59.889  180.570
+cases=7  missing=bs8_in2048_out1024, bs8_in2048_out2048
++ set +x
+
+### exit: 0
