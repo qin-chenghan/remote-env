@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：历次 window.json 的失败分布、本次服务启动参数、shutdown 前原始日志。不跑测试。
+# 只读：核对 10:00-11:40 期间系统做了什么（装包/模块/网络/服务），不跑测试。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,36 +18,37 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
   C=corex5-py311
-  P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902
-  dex() { timeout 40 docker exec "$C" bash -c "$1"; }
+  dex() { timeout 60 docker exec "$C" bash -c "$1"; }
 
-  echo "== 1. 历次 run 里所有 failed 的 case（window.json）=="
-  dex 'python3 - <<"PY"
-import glob, json, os
-rows=[]
-for f in glob.glob("/usr/local/corex-5.0.0/vllmBench/*/litehost/*/window.json") + glob.glob("/home/z30059427/vllmBench/*/litehost/*/window.json"):
-    try: d=json.load(open(f))
-    except Exception: continue
-    if d.get("status")=="failed":
-        rows.append((f.split("/vllmBench/")[1], d.get("benchmark_duration_s"), d.get("successful"), d.get("failed"), str(d.get("error"))[:80]))
-print("failed windows:", len(rows))
-for r in sorted(rows): print(r)
-PY'
+  echo "== 1. 升级/装包时间线（按安装时间排序）=="
+  rpm -qa --last 2>/dev/null | head -30
+  echo "--- kernel 相关包的安装时间 ---"
+  rpm -qa --last 'kernel*' 2>/dev/null | head -10
 
-  echo "== 2. 本次 run 目录列表（确认 101902 是不是 r14 装完后的第一次）=="
-  dex "ls -lat /usr/local/corex-5.0.0/vllmBench/ | head -12"
+  echo "== 2. 10:00-11:40 的系统告警日志 =="
+  journalctl --since '2026-11-13 10:00' --until '2026-11-13 11:45' -p warning --no-pager 2>/dev/null | tail -60
 
-  echo "== 3. 本次服务的启动参数（server.log 开头）=="
-  dex "head -n 40 $P/logs/server.log"
+  echo "== 3. 该时段的 dnf/rpm/内核模块/网络事件 =="
+  journalctl --since '2026-11-13 09:30' --until '2026-11-13 11:45' --no-pager 2>/dev/null \
+    | grep -iE 'dnf|rpm|yum|kernel|modprobe|iluvatar|NetworkManager|nic|link|carrier|tcp|oom' | tail -40
 
-  echo "== 4. r14/fastpath 相关开关在服务进程里是否出现 =="
-  dex "grep -nE 'compact_greedy|host_opt|HOST_OPT|fastpath|positions|CUDAGraph|compilation-config' $P/logs/server.log | head -25"
+  echo "== 4. 机器启动与重启记录 =="
+  uptime
+  last -x reboot 2>/dev/null | head -5
 
-  echo "== 5. shutdown 之前最后 120 行原始日志（不过滤）=="
-  dex "sed -n '1380,1500p' $P/logs/server.log"
+  echo "== 5. 内核树与模块目录的时间戳 =="
+  ls -lat --time-style=long-iso /usr/src/kernels | head -6
+  ls -lat --time-style=long-iso /lib/modules | head -6
 
-  echo "== 6. 当天 dmesg 全量（不筛选，看有无被过滤掉的异常）=="
-  dmesg -T 2>/dev/null | awk '/Nov 13 1[01]:/' | tail -30
+  echo "== 6. 容器内 venv 是否在 10:47 前后被动过 =="
+  dex "ls -lat --time-style=long-iso /opt/corex311-cpython-vllm | head -8; ls -lat --time-style=full-iso /opt/corex311-cpython-vllm/lib/python3.11/site-packages | head -5"
+
+  echo "== 7. 10:19-11:35 容器内是否有别的活动（文件系统变更）=="
+  dex "find /opt/corex311-cpython-vllm -newermt '2026-11-13 10:00' ! -newermt '2026-11-13 12:00' -type f 2>/dev/null | head -20; echo '--- count ---'; find /opt/corex311-cpython-vllm -newermt '2026-11-13 10:00' ! -newermt '2026-11-13 12:00' -type f 2>/dev/null | wc -l"
+
+  echo "== 8. 关键 sysctl（网络/文件句柄类）=="
+  sysctl net.core.somaxconn net.ipv4.ip_local_port_range net.ipv4.tcp_syncookies fs.file-max 2>/dev/null
+  ulimit -n
 
   # ---- 命令结束 ----
 
