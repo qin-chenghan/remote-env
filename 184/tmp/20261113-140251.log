@@ -1,0 +1,124 @@
+### server: 184
+### host:   controller
+### time:   2026-11-13T06:02:51Z
+
++ echo '== 1. export_refcount 告警按日统计（升级前 11-12 vs 升级后 11-13）=='
+== 1. export_refcount 告警按日统计（升级前 11-12 vs 升级后 11-13）==
++ journalctl -k --since 2026-11-09 --no-pager
++ grep -c export_refcount
+17
++ echo '--- 按日期 ---'
+--- 按日期 ---
++ journalctl -k --since 2026-11-09 --no-pager
++ grep export_refcount
++ awk '{print $1" "$2}'
++ sort
++ uniq -c
+     17 Nov 13
++ echo '--- 首次出现 ---'
+--- 首次出现 ---
++ journalctl -k --since 2026-11-09 --no-pager
++ grep export_refcount
++ head -3
+Nov 13 11:11:14 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:14:15 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+Nov 13 11:17:15 controller kernel: mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
++ echo '--- 升级前最后出现（11-12 23:59 之前）---'
+--- 升级前最后出现（11-12 23:59 之前）---
++ journalctl -k --until '2026-11-13 00:00' --no-pager
++ grep export_refcount
++ tail -3
++ echo '== 2. 各次启动以来 iluvatar 相关内核消息（分类计数）=='
+== 2. 各次启动以来 iluvatar 相关内核消息（分类计数）==
++ grep -i iluvatar
++ journalctl -k --since 2026-11-09 --no-pager
++ sed -E 's/^[A-Za-z]+ [ 0-9]+ [0-9:]+ .*kernel: //'
++ sed -E 's/[0-9]{6,}/N/g'
++ sort
++ uniq -c
++ sort -rn
++ head -15
+      1 Nov 13 09:33:03 controller systemd[1]: Created slice Slice /system/iluvatarcorex-init.
+      1 iluvatar: module verification failed: signature and/or required key missing - tainting kernel
+      1 iluvatar: loading out-of-tree module taints kernel.
+      1 iluvatar 0000:b2:00.0: enabling device (0140 -> 0142)
+      1 iluvatar 0000:b2:00.0: DEV-3 is okay.
+      1 iluvatar 0000:af:00.0: enabling device (0140 -> 0142)
+      1 iluvatar 0000:af:00.0: DEV-2 is okay.
+      1 iluvatar 0000:48:00.0: enabling device (0140 -> 0142)
+      1 iluvatar 0000:48:00.0: DEV-1 is okay.
+      1 iluvatar 0000:45:00.0: enabling device (0140 -> 0142)
+      1 iluvatar 0000:45:00.0: DEV-0 is okay.
++ echo '== 3. 11-13 当天所有内核 warning 以上（去重分类）=='
+== 3. 11-13 当天所有内核 warning 以上（去重分类）==
++ journalctl -k --since '2026-11-13 09:30' --no-pager -p warning
++ sed -E 's/^[A-Za-z]+ [ 0-9]+ [0-9:]+ [^ ]+ kernel: //'
++ sort
++ uniq -c
++ sort -rn
++ head -15
+     17 mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+     10 hisi_sec2 0000:39:00.0: flag[3], icv[2]
+      1 Nov 13 09:32:50 controller systemd[1]: systemd-journald.service: unit configures an IP firewall, but the local system does not support BPF/cgroup firewalling.
+      1 Nov 13 09:32:50 controller systemd[1]: systemd-journald.service: (This warning is only shown for the first unit using IP firewalling.)
+      1 ITS@0x000020c660000000: Virtual CPUs too large, reduce ITS pages 512->256
+      1 ITS@0x0000204660000000: Virtual CPUs too large, reduce ITS pages 512->256
+      1 ITS@0x000000c660000000: Virtual CPUs too large, reduce ITS pages 512->256
+      1 ITS@0x0000004660000000: Virtual CPUs too large, reduce ITS pages 512->256
+      1 ipmi_si IPI0001:01: using default values
+      1 ipmi_si IPI0001:01: bt cap response too short: 3
+      1 ipmi:dmi: Invalid IPMI type: 0
+      1 integrity: Unable to open file: /etc/keys/x509_ima.der (-2)
+      1 integrity: Unable to open file: /etc/keys/x509_evm.der (-2)
+      1 integrity: Problem loading X.509 certificate -65
+      1 iluvatar: loading out-of-tree module taints kernel.
++ echo '== 4. 压测期间是否有其他进程占用 GPU（从 journal 里找）=='
+== 4. 压测期间是否有其他进程占用 GPU（从 journal 里找）==
++ journalctl --since '2026-11-13 10:15' --until '2026-11-13 11:40' --no-pager
++ grep -iE 'ixsmi|iluvatar|gpu|ixformer|ptrace|segfault|coredump|killed'
++ tail -30
++ echo '== 5. 4K 驱动构建来源（谁、何时、基于哪份头文件）=='
+== 5. 4K 驱动构建来源（谁、何时、基于哪份头文件）==
++ ls -l --time-style=full-iso /lib/modules/6.6.0-159.4.21.175.oe2403sp4.aarch64/updates/
+total 356
+-rw-r--r--. 2 root root 361700 2026-11-13 09:17:56.029763864 +0800 iluvatar.ko.xz
++ dkms status
+corex/5.0.0, 6.6.0-159.4.21.175.oe2403sp4.aarch64, aarch64: installed
+corex/5.0.0, 6.6.0-159.4.3.154.oe2403sp4+64k.aarch64, aarch64: installed
++ head -10
++ ls -l --time-style=full-iso /var/lib/dkms/corex/5.0.0/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb/aarch64/module/ /var/lib/dkms/corex/5.0.0/5.10.0-326.0.0.227.oe2203sp4.aarch64/aarch64/module/ /var/lib/dkms/corex/5.0.0/6.6.0-145.3.37.168.oe2403sp3.aarch64/aarch64/module/ /var/lib/dkms/corex/5.0.0/6.6.0-159.4.21.175.oe2403sp4.aarch64/aarch64/module/ /var/lib/dkms/corex/5.0.0/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/aarch64/module/
+/var/lib/dkms/corex/5.0.0/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb/aarch64/module/:
+total 360
+-rw-r--r--. 1 root root 368620 2026-11-02 15:26:17.979439320 +0800 iluvatar.ko.xz
+
+/var/lib/dkms/corex/5.0.0/5.10.0-326.0.0.227.oe2203sp4.aarch64/aarch64/module/:
+total 364
+-rw-r--r--. 1 root root 369168 2026-09-22 16:48:05.126003260 +0800 iluvatar.ko.xz
+
+/var/lib/dkms/corex/5.0.0/6.6.0-145.3.37.168.oe2403sp3.aarch64/aarch64/module/:
+total 356
++ echo '== 6. 两个内核的驱动哈希对比 =='
+== 6. 两个内核的驱动哈希对比 ==
++ for k in 6.6.0-159.4.21.175.oe2403sp4.aarch64 6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
++ f=/lib/modules/6.6.0-159.4.21.175.oe2403sp4.aarch64/updates/iluvatar.ko.xz
++ '[' -f /lib/modules/6.6.0-159.4.21.175.oe2403sp4.aarch64/updates/iluvatar.ko.xz ']'
++ echo -n '6.6.0-159.4.21.175.oe2403sp4.aarch64  '
+6.6.0-159.4.21.175.oe2403sp4.aarch64  + ls -l /lib/modules/6.6.0-159.4.21.175.oe2403sp4.aarch64/updates/iluvatar.ko.xz
++ awk '{print $5" "$6" "$7" "$8}'
+361700 Nov 13 09:17
++ xzcat /lib/modules/6.6.0-159.4.21.175.oe2403sp4.aarch64/updates/iluvatar.ko.xz
++ sha256sum
+cd576a6a5069482d052c90b25891cc3276f36a5b5ca30cac6707f16ff1656955  -
++ for k in 6.6.0-159.4.21.175.oe2403sp4.aarch64 6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
++ f=/lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/updates/iluvatar.ko.xz
++ '[' -f /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/updates/iluvatar.ko.xz ']'
++ echo -n '6.6.0-159.4.3.154.oe2403sp4+64k.aarch64  '
+6.6.0-159.4.3.154.oe2403sp4+64k.aarch64  + ls -l /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/updates/iluvatar.ko.xz
++ awk '{print $5" "$6" "$7" "$8}'
+362060 Nov 13 10:14
++ xzcat /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/updates/iluvatar.ko.xz
++ sha256sum
+ce33ca1356eeb361535dfbdd7795569d3de6a394a731dbda1ea7bc1ec0f44d93  -
++ set +x
+
+### exit: 0
