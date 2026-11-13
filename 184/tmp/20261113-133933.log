@@ -1,0 +1,298 @@
+### server: 184
+### host:   controller
+### time:   2026-11-13T05:39:33Z
+
++ C=corex5-py311
++ P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902
++ V=/opt/corex311-cpython-vllm
++ echo '== 1. 目录结构与体量 =='
+== 1. 目录结构与体量 ==
++ dex 'ls -lat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902; echo; ls -la /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs 2>/dev/null | head -20; echo; du -sh /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902 2>/dev/null; find /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902 -type f | wc -l'
++ timeout 120 docker exec corex5-py311 bash -c 'ls -lat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902; echo; ls -la /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs 2>/dev/null | head -20; echo; du -sh /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902 2>/dev/null; find /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902 -type f | wc -l'
+total 68
+drwxr-xr-x.  2 root root 4096 Nov 13 13:35 logs
+drwxr-xr-x.  5 root root 4096 Nov 13 11:34 .
+-rw-r--r--.  1 root root 2301 Nov 13 11:34 summary.csv
+-rw-------.  1 root root   80 Nov 13 11:31 bench.process.json
+drwxr-xr-x. 10 root root 4096 Nov 13 11:31 litehost
+-rw-r--r--.  1 root root 1032 Nov 13 11:30 bs8_in2048_out128.json
+-rw-r--r--.  1 root root 1030 Nov 13 11:27 bs8_in1024_out2048.json
+-rw-r--r--.  1 root root 1035 Nov 13 11:06 bs8_in1024_out1024.json
+-rw-r--r--.  1 root root 1032 Nov 13 10:55 bs8_in1024_out128.json
+-rw-r--r--.  1 root root 1033 Nov 13 10:52 bs8_in128_out2048.json
+-rw-r--r--.  1 root root 1031 Nov 13 10:31 bs8_in128_out1024.json
+-rw-r--r--.  1 root root 1035 Nov 13 10:21 bs8_in128_out128.json
+drwxr-xr-x.  2 root root 4096 Nov 13 10:19 control
+-rw-------.  1 root root   80 Nov 13 10:19 server.process.json
+-rw-------.  1 root root  873 Nov 13 10:19 session.json
+-rw-r--r--.  1 root root  256 Nov 13 10:19 config.txt
+drwxr-xr-x. 18 root root 4096 Nov 13 10:19 ..
+
+total 396
+drwxr-xr-x. 2 root root   4096 Nov 13 13:35 .
+drwxr-xr-x. 5 root root   4096 Nov 13 11:34 ..
+-rw-r--r--. 1 root root   9961 Nov 13 11:06 bench_bs8_in1024_out1024.log
+-rw-r--r--. 1 root root   9845 Nov 13 10:55 bench_bs8_in1024_out128.log
+-rw-r--r--. 1 root root  10014 Nov 13 11:27 bench_bs8_in1024_out2048.log
+-rw-r--r--. 1 root root   6582 Nov 13 10:31 bench_bs8_in128_out1024.log
+-rw-r--r--. 1 root root   6574 Nov 13 10:21 bench_bs8_in128_out128.log
+-rw-r--r--. 1 root root   6582 Nov 13 10:52 bench_bs8_in128_out2048.log
+-rw-r--r--. 1 root root   7968 Nov 13 11:34 bench_bs8_in2048_out1024.log
+-rw-r--r--. 1 root root  10899 Nov 13 11:30 bench_bs8_in2048_out128.log
+-rw-r--r--. 1 root root     42 Nov 13 10:19 preflight.log
+-rw-r--r--. 1 root root 300067 Nov 13 11:34 server.log
+-rw-r--r--. 1 root root     80 Nov 13 11:34 summary_build.log
+
+83M	/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902
+135
++ echo '== 2. 关键文件是否齐全 =='
+== 2. 关键文件是否齐全 ==
++ dex 'for f in summary.csv session.json config.txt preflight.log; do ls -l /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/$f 2>&1; done'
++ timeout 120 docker exec corex5-py311 bash -c 'for f in summary.csv session.json config.txt preflight.log; do ls -l /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/$f 2>&1; done'
+-rw-r--r--. 1 root root 2301 Nov 13 11:34 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/summary.csv
+-rw-------. 1 root root 873 Nov 13 10:19 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/session.json
+-rw-r--r--. 1 root root 256 Nov 13 10:19 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/config.txt
+ls: cannot access '/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/preflight.log': No such file or directory
++ dex 'ls -d /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary 2>&1; ls /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary 2>&1 | head -6'
++ timeout 120 docker exec corex5-py311 bash -c 'ls -d /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary 2>&1; ls /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary 2>&1 | head -6'
+ls: cannot access '/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary': No such file or directory
+ls: cannot access '/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary': No such file or directory
++ dex 'ls /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost 2>/dev/null | head -20; echo '\''--- litehost case 数 ---'\''; ls -d /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/*/ 2>/dev/null | wc -l'
++ timeout 120 docker exec corex5-py311 bash -c 'ls /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost 2>/dev/null | head -20; echo '\''--- litehost case 数 ---'\''; ls -d /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/*/ 2>/dev/null | wc -l'
+bs8_in1024_out1024
+bs8_in1024_out128
+bs8_in1024_out2048
+bs8_in128_out1024
+bs8_in128_out128
+bs8_in128_out2048
+bs8_in2048_out1024
+bs8_in2048_out128
+--- litehost case 数 ---
+8
++ echo '== 3. 是否还在跑 =='
+== 3. 是否还在跑 ==
++ dex 'date; ps -eo pid,etime,args | grep -E '\''vllm|bench_driver|lhctl|vllmBench'\'' | grep -v grep | head -10'
++ timeout 120 docker exec corex5-py311 bash -c 'date; ps -eo pid,etime,args | grep -E '\''vllm|bench_driver|lhctl|vllmBench'\'' | grep -v grep | head -10'
+Fri Nov 13 01:39:34 PM CST 2026
++ echo '== 4. 日志尾部 =='
+== 4. 日志尾部 ==
++ dex 'echo '\''--- server.log ---'\''; tail -n 40 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log 2>&1'
++ timeout 120 docker exec corex5-py311 bash -c 'echo '\''--- server.log ---'\''; tail -n 40 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log 2>&1'
+--- server.log ---
+MALLOC: +    244711424 (  233.4 MiB) Bytes in page heap freelist
+MALLOC: +     34705312 (   33.1 MiB) Bytes in central cache freelist
+MALLOC: +      5826304 (    5.6 MiB) Bytes in transfer cache freelist
+MALLOC: +      6530280 (    6.2 MiB) Bytes in thread cache freelists
+MALLOC: +      4980800 (    4.8 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =    558030912 (  532.2 MiB) Actual memory used (physical + swap)
+MALLOC: +      1196032 (    1.1 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =    559226944 (  533.3 MiB) Virtual address space used
+MALLOC:
+MALLOC:          21652              Spans in use
+MALLOC:            164              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+/opt/cpython-vllm/v1/lib/python3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 4 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+/opt/cpython-vllm/v1/lib/python3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 6 leaked shared_memory objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+------------------------------------------------
+MALLOC:         536064 (    0.5 MiB) Bytes in use by application
+MALLOC: +      1015808 (    1.0 MiB) Bytes in page heap freelist
+MALLOC: +       547240 (    0.5 MiB) Bytes in central cache freelist
+MALLOC: +       269312 (    0.3 MiB) Bytes in transfer cache freelist
+MALLOC: +       777304 (    0.7 MiB) Bytes in thread cache freelists
+MALLOC: +      2621504 (    2.5 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =      5767232 (    5.5 MiB) Actual memory used (physical + swap)
+MALLOC: +            0 (    0.0 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =      5767232 (    5.5 MiB) Virtual address space used
+MALLOC:
+MALLOC:            148              Spans in use
+MALLOC:              1              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
++ dex 'echo '\''--- summary_build.log ---'\''; tail -n 20 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/summary_build.log 2>&1'
++ timeout 120 docker exec corex5-py311 bash -c 'echo '\''--- summary_build.log ---'\''; tail -n 20 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/summary_build.log 2>&1'
+--- summary_build.log ---
+Wrote /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/summary.csv
++ dex 'echo '\''--- preflight.log ---'\''; cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/preflight.log 2>&1 | head -20'
++ timeout 120 docker exec corex5-py311 bash -c 'echo '\''--- preflight.log ---'\''; cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/preflight.log 2>&1 | head -20'
+--- preflight.log ---
+SESSION: 0461805457e34bf1ac35344602e08deb
++ echo '== 5. bench 日志与 case 结果 =='
+== 5. bench 日志与 case 结果 ==
++ dex 'ls -l /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_*.log 2>/dev/null | head -15; echo; ls -l /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/*.json 2>/dev/null | head -15'
++ timeout 120 docker exec corex5-py311 bash -c 'ls -l /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_*.log 2>/dev/null | head -15; echo; ls -l /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/*.json 2>/dev/null | head -15'
+-rw-r--r--. 1 root root  9961 Nov 13 11:06 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in1024_out1024.log
+-rw-r--r--. 1 root root  9845 Nov 13 10:55 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in1024_out128.log
+-rw-r--r--. 1 root root 10014 Nov 13 11:27 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in1024_out2048.log
+-rw-r--r--. 1 root root  6582 Nov 13 10:31 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in128_out1024.log
+-rw-r--r--. 1 root root  6574 Nov 13 10:21 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in128_out128.log
+-rw-r--r--. 1 root root  6582 Nov 13 10:52 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in128_out2048.log
+-rw-r--r--. 1 root root  7968 Nov 13 11:34 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in2048_out1024.log
+-rw-r--r--. 1 root root 10899 Nov 13 11:30 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in2048_out128.log
+
+-rw-------. 1 root root   80 Nov 13 11:31 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/bench.process.json
+-rw-r--r--. 1 root root 1035 Nov 13 11:06 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/bs8_in1024_out1024.json
+-rw-r--r--. 1 root root 1032 Nov 13 10:55 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/bs8_in1024_out128.json
+-rw-r--r--. 1 root root 1030 Nov 13 11:27 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/bs8_in1024_out2048.json
+-rw-r--r--. 1 root root 1031 Nov 13 10:31 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/bs8_in128_out1024.json
+-rw-r--r--. 1 root root 1035 Nov 13 10:21 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/bs8_in128_out128.json
+-rw-r--r--. 1 root root 1033 Nov 13 10:52 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/bs8_in128_out2048.json
+-rw-r--r--. 1 root root 1032 Nov 13 11:30 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/bs8_in2048_out128.json
+-rw-------. 1 root root   80 Nov 13 10:19 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/server.process.json
+-rw-------. 1 root root  873 Nov 13 10:19 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/session.json
++ dex 'for f in /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_*.log; do [ -f "$f" ] && { echo "---- $f"; tail -n 8 "$f"; }; done 2>&1 | tail -60'
++ timeout 120 docker exec corex5-py311 bash -c 'for f in /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_*.log; do [ -f "$f" ] && { echo "---- $f"; tail -n 8 "$f"; }; done 2>&1 | tail -60'
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           44.73     
+Median ITL (ms):                         37.74     
+P99 ITL (ms):                            216.49    
+==================================================
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+---- /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in1024_out2048.log
+Median TPOT (ms):                        38.12     
+P99 TPOT (ms):                           38.30     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           38.00     
+Median ITL (ms):                         37.49     
+P99 ITL (ms):                            42.76     
+==================================================
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+---- /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in128_out1024.log
+Median TPOT (ms):                        36.62     
+P99 TPOT (ms):                           36.78     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           36.58     
+Median ITL (ms):                         36.36     
+P99 ITL (ms):                            38.77     
+==================================================
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+---- /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in128_out128.log
+Median TPOT (ms):                        36.18     
+P99 TPOT (ms):                           37.25     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           36.26     
+Median ITL (ms):                         36.11     
+P99 ITL (ms):                            38.13     
+==================================================
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+---- /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in128_out2048.log
+Median TPOT (ms):                        37.33     
+P99 TPOT (ms):                           37.50     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           37.22     
+Median ITL (ms):                         37.18     
+P99 ITL (ms):                            41.85     
+==================================================
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+---- /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in2048_out1024.log
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/benchmarks/serve.py", line 1, in __lh_benchmark
+    # SPDX-License-Identifier: Apache-2.0
+  File "/home/huawei_ts_program/litehost_perf_opt/bench_driver.py", line 47, in end
+    if len(outputs)!=self.case['expected_requests'] or not all(o.success for o in outputs):raise RuntimeError('Formal requests incomplete/failed; no valid H')
+                                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Formal requests incomplete/failed; no valid H
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+---- /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in2048_out128.log
+Median TPOT (ms):                        50.05     
+P99 TPOT (ms):                           59.11     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           51.97     
+Median ITL (ms):                         37.00     
+P99 ITL (ms):                            430.70    
+==================================================
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ echo '== 6. 错误关键字扫描 =='
+== 6. 错误关键字扫描 ==
++ dex 'grep -nE '\''ERROR|Traceback|Exception|failed|Failed|Killed|OOM|out of memory|timeout|Timeout|FATAL|abort'\'' /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/*.log 2>/dev/null | tail -40'
++ timeout 120 docker exec corex5-py311 bash -c 'grep -nE '\''ERROR|Traceback|Exception|failed|Failed|Killed|OOM|out of memory|timeout|Timeout|FATAL|abort'\'' /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/*.log 2>/dev/null | tail -40'
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in1024_out1024.log:9:Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfffcff47c400>, trust_remote_code=True, seed=42, num_prompts=100, dataset_name='random', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=1024, random_output_len=1024, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=256, prefix_repetition_suffix_len=256, prefix_repetition_num_prefixes=10, prefix_repetition_output_len=128, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='vllm', base_url=None, host='127.0.0.1', port=8848, endpoint='/v1/completions', header=None, max_concurrency=8, model='/home/model/Qwen3-32B-W8A8', input_len=None, output_len=None, tokenizer=None, tokenizer_mode='auto', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=16, profile=False, save_result=True, save_detailed=False, append_result=False, metadata=None, result_dir='/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902', result_filename='bs8_in1024_out1024.json', ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='99', goodput=None, request_id_prefix='bench-e86b78a4-', top_p=1.0, top_k=-1, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in1024_out1024.log:26:Failed requests:                         0         
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in1024_out128.log:9:Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfffd0083c400>, trust_remote_code=True, seed=42, num_prompts=100, dataset_name='random', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=1024, random_output_len=128, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=256, prefix_repetition_suffix_len=256, prefix_repetition_num_prefixes=10, prefix_repetition_output_len=128, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='vllm', base_url=None, host='127.0.0.1', port=8848, endpoint='/v1/completions', header=None, max_concurrency=8, model='/home/model/Qwen3-32B-W8A8', input_len=None, output_len=None, tokenizer=None, tokenizer_mode='auto', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=16, profile=False, save_result=True, save_detailed=False, append_result=False, metadata=None, result_dir='/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902', result_filename='bs8_in1024_out128.json', ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='99', goodput=None, request_id_prefix='bench-ce0e1a10-', top_p=1.0, top_k=-1, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in1024_out128.log:26:Failed requests:                         0         
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in1024_out2048.log:9:Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfffcfd78c400>, trust_remote_code=True, seed=42, num_prompts=100, dataset_name='random', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=1024, random_output_len=2048, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=256, prefix_repetition_suffix_len=256, prefix_repetition_num_prefixes=10, prefix_repetition_output_len=128, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='vllm', base_url=None, host='127.0.0.1', port=8848, endpoint='/v1/completions', header=None, max_concurrency=8, model='/home/model/Qwen3-32B-W8A8', input_len=None, output_len=None, tokenizer=None, tokenizer_mode='auto', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=16, profile=False, save_result=True, save_detailed=False, append_result=False, metadata=None, result_dir='/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902', result_filename='bs8_in1024_out2048.json', ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='99', goodput=None, request_id_prefix='bench-aab0b797-', top_p=1.0, top_k=-1, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in1024_out2048.log:26:Failed requests:                         0         
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in128_out1024.log:9:Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfffd0f47c400>, trust_remote_code=True, seed=42, num_prompts=100, dataset_name='random', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=128, random_output_len=1024, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=256, prefix_repetition_suffix_len=256, prefix_repetition_num_prefixes=10, prefix_repetition_output_len=128, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='vllm', base_url=None, host='127.0.0.1', port=8848, endpoint='/v1/completions', header=None, max_concurrency=8, model='/home/model/Qwen3-32B-W8A8', input_len=None, output_len=None, tokenizer=None, tokenizer_mode='auto', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=16, profile=False, save_result=True, save_detailed=False, append_result=False, metadata=None, result_dir='/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902', result_filename='bs8_in128_out1024.json', ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='99', goodput=None, request_id_prefix='bench-6f70b45e-', top_p=1.0, top_k=-1, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in128_out1024.log:26:Failed requests:                         0         
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in128_out128.log:9:Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfffcf177c400>, trust_remote_code=True, seed=42, num_prompts=100, dataset_name='random', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=128, random_output_len=128, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=256, prefix_repetition_suffix_len=256, prefix_repetition_num_prefixes=10, prefix_repetition_output_len=128, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='vllm', base_url=None, host='127.0.0.1', port=8848, endpoint='/v1/completions', header=None, max_concurrency=8, model='/home/model/Qwen3-32B-W8A8', input_len=None, output_len=None, tokenizer=None, tokenizer_mode='auto', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=16, profile=False, save_result=True, save_detailed=False, append_result=False, metadata=None, result_dir='/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902', result_filename='bs8_in128_out128.json', ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='99', goodput=None, request_id_prefix='bench-fb314be9-', top_p=1.0, top_k=-1, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in128_out128.log:26:Failed requests:                         0         
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in128_out2048.log:9:Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfffcf309c400>, trust_remote_code=True, seed=42, num_prompts=100, dataset_name='random', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=128, random_output_len=2048, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=256, prefix_repetition_suffix_len=256, prefix_repetition_num_prefixes=10, prefix_repetition_output_len=128, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='vllm', base_url=None, host='127.0.0.1', port=8848, endpoint='/v1/completions', header=None, max_concurrency=8, model='/home/model/Qwen3-32B-W8A8', input_len=None, output_len=None, tokenizer=None, tokenizer_mode='auto', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=16, profile=False, save_result=True, save_detailed=False, append_result=False, metadata=None, result_dir='/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902', result_filename='bs8_in128_out2048.json', ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='99', goodput=None, request_id_prefix='bench-7b93ee64-', top_p=1.0, top_k=-1, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in128_out2048.log:26:Failed requests:                         0         
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in2048_out1024.log:9:Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfffcf87bc400>, trust_remote_code=True, seed=42, num_prompts=100, dataset_name='random', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=2048, random_output_len=1024, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=256, prefix_repetition_suffix_len=256, prefix_repetition_num_prefixes=10, prefix_repetition_output_len=128, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='vllm', base_url=None, host='127.0.0.1', port=8848, endpoint='/v1/completions', header=None, max_concurrency=8, model='/home/model/Qwen3-32B-W8A8', input_len=None, output_len=None, tokenizer=None, tokenizer_mode='auto', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=16, profile=False, save_result=True, save_detailed=False, append_result=False, metadata=None, result_dir='/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902', result_filename='bs8_in2048_out1024.json', ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='99', goodput=None, request_id_prefix='bench-04e9278c-', top_p=1.0, top_k=-1, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in2048_out1024.log:22:Traceback (most recent call last):
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in2048_out1024.log:55:    if len(outputs)!=self.case['expected_requests'] or not all(o.success for o in outputs):raise RuntimeError('Formal requests incomplete/failed; no valid H')
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in2048_out1024.log:57:RuntimeError: Formal requests incomplete/failed; no valid H
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in2048_out128.log:9:Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfffcef48c400>, trust_remote_code=True, seed=42, num_prompts=100, dataset_name='random', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=2048, random_output_len=128, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=256, prefix_repetition_suffix_len=256, prefix_repetition_num_prefixes=10, prefix_repetition_output_len=128, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='vllm', base_url=None, host='127.0.0.1', port=8848, endpoint='/v1/completions', header=None, max_concurrency=8, model='/home/model/Qwen3-32B-W8A8', input_len=None, output_len=None, tokenizer=None, tokenizer_mode='auto', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=16, profile=False, save_result=True, save_detailed=False, append_result=False, metadata=None, result_dir='/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902', result_filename='bs8_in2048_out128.json', ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='99', goodput=None, request_id_prefix='bench-9609f614-', top_p=1.0, top_k=-1, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/bench_bs8_in2048_out128.log:26:Failed requests:                         0         
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:1490:(APIServer pid=190425) INFO 11-13 11:34:31 [launcher.py:116] [shutdown] API server: stopping engine client mode=abort timeout=0s
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:1491:(APIServer pid=190425) INFO 11-13 11:34:31 [core_client.py:655] [shutdown] MPClient: start timeout=0s
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:1495:(EngineCore pid=190805) INFO 11-13 11:34:31 [core.py:1337] [shutdown] EngineCore: start mode=abort timeout=0s
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:1496:(EngineCore pid=190805) INFO 11-13 11:34:31 [core.py:1346] [shutdown] EngineCore: aborting in-flight requests count=8
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:1498:(APIServer pid=190425) ERROR:    Exception in ASGI application
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:1499:(APIServer pid=190425) Traceback (most recent call last):
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:1602:(APIServer pid=190425) ERROR:    Exception in ASGI application
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:1603:(APIServer pid=190425) Traceback (most recent call last):
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:1706:(APIServer pid=190425) ERROR:    Exception in ASGI application
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:1707:(APIServer pid=190425) Traceback (most recent call last):
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:1810:(APIServer pid=190425) ERROR:    Exception in ASGI application
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:1811:(APIServer pid=190425) Traceback (most recent call last):
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:1914:(APIServer pid=190425) ERROR:    Exception in ASGI application
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:1915:(APIServer pid=190425) Traceback (most recent call last):
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:2018:(APIServer pid=190425) ERROR:    Exception in ASGI application
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:2019:(APIServer pid=190425) Traceback (most recent call last):
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:2126:(APIServer pid=190425) ERROR:    Exception in ASGI application
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:2127:(APIServer pid=190425) Traceback (most recent call last):
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:2230:(APIServer pid=190425) ERROR:    Exception in ASGI application
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/server.log:2231:(APIServer pid=190425) Traceback (most recent call last):
++ echo '== 7. litehost 会话与采集完整性 =='
+== 7. litehost 会话与采集完整性 ==
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/session.json 2>/dev/null | head -c 500; echo'
++ timeout 120 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/session.json 2>/dev/null | head -c 500; echo'
+{
+  "version": "0.4.0-compat",
+  "session_id": "0461805457e34bf1ac35344602e08deb",
+  "token": "8a8077b8c94d407fa8f33a14d7ccfba1c32aeb4d2482476fa2bbacddecd06cb5",
+  "run_dir": "/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902",
+  "control_dir": "/tmp/lhc-noe86sqr",
+  "timeout": 120.0,
+  "max_scopes": 200000,
+  "native_hash": "b70d07e38c4e1f2665d6aa407a82e751209fb9af67e0ca70a5a74e0bd1e3048d",
+  "source_check": {
+    "status": "pass",
+    "source_root": "/opt/corex311-cpython-vllm/lib/
++ dex 'for d in /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/*/; do echo -n "$d "; ls "$d" 2>/dev/null | tr '\''\n'\'' '\'' '\''; echo; done 2>&1 | head -20'
++ timeout 120 docker exec corex5-py311 bash -c 'for d in /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/*/; do echo -n "$d "; ls "$d" 2>/dev/null | tr '\''\n'\'' '\'' '\''; echo; done 2>&1 | head -20'
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in1024_out1024/ benchmark_hooked.py.txt case.json host_report rank0_pid191185.csv rank0_pid191185.meta.json rank1_pid191186.csv rank1_pid191186.meta.json rank2_pid191187.csv rank2_pid191187.meta.json rank3_pid191188.csv rank3_pid191188.meta.json window.json 
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in1024_out128/ benchmark_hooked.py.txt case.json host_report rank0_pid191185.csv rank0_pid191185.meta.json rank1_pid191186.csv rank1_pid191186.meta.json rank2_pid191187.csv rank2_pid191187.meta.json rank3_pid191188.csv rank3_pid191188.meta.json window.json 
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in1024_out2048/ benchmark_hooked.py.txt case.json host_report rank0_pid191185.csv rank0_pid191185.meta.json rank1_pid191186.csv rank1_pid191186.meta.json rank2_pid191187.csv rank2_pid191187.meta.json rank3_pid191188.csv rank3_pid191188.meta.json window.json 
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in128_out1024/ benchmark_hooked.py.txt case.json host_report rank0_pid191185.csv rank0_pid191185.meta.json rank1_pid191186.csv rank1_pid191186.meta.json rank2_pid191187.csv rank2_pid191187.meta.json rank3_pid191188.csv rank3_pid191188.meta.json window.json 
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in128_out128/ benchmark_hooked.py.txt case.json host_report rank0_pid191185.csv rank0_pid191185.meta.json rank1_pid191186.csv rank1_pid191186.meta.json rank2_pid191187.csv rank2_pid191187.meta.json rank3_pid191188.csv rank3_pid191188.meta.json window.json 
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in128_out2048/ benchmark_hooked.py.txt case.json host_report rank0_pid191185.csv rank0_pid191185.meta.json rank1_pid191186.csv rank1_pid191186.meta.json rank2_pid191187.csv rank2_pid191187.meta.json rank3_pid191188.csv rank3_pid191188.meta.json window.json 
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in2048_out1024/ benchmark_hooked.py.txt case.json window.json 
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in2048_out128/ benchmark_hooked.py.txt case.json host_report rank0_pid191185.csv rank0_pid191185.meta.json rank1_pid191186.csv rank1_pid191186.meta.json rank2_pid191187.csv rank2_pid191187.meta.json rank3_pid191188.csv rank3_pid191188.meta.json window.json 
++ echo '== 8. 容器内空间与 venv =='
+== 8. 容器内空间与 venv ==
++ dex 'df -h /opt /usr/local 2>/dev/null | tail -3; du -sh /usr/local/corex-5.0.0/vllmBench 2>/dev/null'
++ timeout 120 docker exec corex5-py311 bash -c 'df -h /opt /usr/local 2>/dev/null | tail -3; du -sh /usr/local/corex-5.0.0/vllmBench 2>/dev/null'
+Filesystem      Size  Used Avail Use% Mounted on
+overlay         6.9T  4.2T  2.5T  63% /
+overlay         6.9T  4.2T  2.5T  63% /
+619M	/usr/local/corex-5.0.0/vllmBench
++ dex 'ls -ld /opt/corex311-cpython-vllm 2>&1; /opt/corex311-cpython-vllm/bin/python -c '\''import vllm;print(vllm.__version__)'\'' 2>&1 | tail -2'
++ timeout 120 docker exec corex5-py311 bash -c 'ls -ld /opt/corex311-cpython-vllm 2>&1; /opt/corex311-cpython-vllm/bin/python -c '\''import vllm;print(vllm.__version__)'\'' 2>&1 | tail -2'
+drwxr-xr-x. 6 root root 4096 Nov  9 09:09 /opt/corex311-cpython-vllm
+        $ python -m pip install --no-build-isolation -v -e . && python -c "import torch"  # This should succeed
+    or by running Python from a different directory.
++ set +x
+
+### exit: 0
