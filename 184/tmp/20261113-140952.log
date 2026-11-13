@@ -1,0 +1,125 @@
+### server: 184
+### host:   controller
+### time:   2026-11-13T06:09:52Z
+
++ C=corex5-py311
++ D=/home/huawei_ts_program/litehost_perf_opt
+++ date +%H%M%S
++ TID=probe_140952
+++ dmesg
+++ grep -c export_refcount
++ BASE_N=17
++ echo '== 1. 前置检查 =='
+== 1. 前置检查 ==
++ uname -r
+6.6.0-159.4.21.175.oe2403sp4.aarch64
+++ docker exec corex5-py311 bash -c 'ps -eo args | grep -E "vllm|bench_driver" | grep -v grep | head -3'
++ BUSY=
++ '[' -n '' ']'
++ echo '无 vllm/bench 进程'
+无 vllm/bench 进程
++ /usr/local/corex-5.0.0/bin/ixsmi
++ grep -E 'MiB /'
++ head -4
+| N/A  39C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  40C   P0       103W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  38C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  39C   P0       103W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
++ echo 'dmesg 中 export_refcount 基线计数: 17'
+dmesg 中 export_refcount 基线计数: 17
++ echo '== 2. 启动 dmesg 采集 =='
+== 2. 启动 dmesg 采集 ==
++ DPID=719681
++ trap 'kill "$DPID" 2>/dev/null' EXIT
++ sleep 1
++ dmesg -T -w
++ echo 'dmesg watcher pid=719681'
+dmesg watcher pid=719681
++ echo '== 3. 单 case 运行（不等同于全量，仅用于对照告警）=='
+== 3. 单 case 运行（不等同于全量，仅用于对照告警）==
++ tail -40
++ timeout 900 docker exec -e NUM_PROMPTS=16 -e NUM_WARMUPS=4 -e CASE_INTERVAL=0 -e HOST_MEASURE=off -e TEST_ID=probe_140952 -e CASES_FILE=/tmp/cases_probe.txt corex5-py311 bash -lc 'printf '\''2048 1024\n'\'' > /tmp/cases_probe.txt && cd /home/huawei_ts_program/litehost_perf_opt && bash vllmBench_lite_opt.sh'
+[2026-11-13 14:09:53] PREFIX=/opt/corex311-cpython-vllm
+[2026-11-13 14:09:53] TEST_ID=probe_140952 | MODE=off | WARMUP=4 | CPU_RANGE=80-159,240-319
+[2026-11-13 14:09:53] prefix cache=OFF | backend=vllm | 同一服务运行 1 个 case | RUN_DIR=/home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952
+[2026-11-13 14:09:53] GPU 0: free=32702 MiB（原预检阈值 20480 MiB）
+[2026-11-13 14:09:53] GPU 1: free=32702 MiB（原预检阈值 20480 MiB）
+[2026-11-13 14:09:53] GPU 2: free=32702 MiB（原预检阈值 20480 MiB）
+[2026-11-13 14:09:53] GPU 3: free=32702 MiB（原预检阈值 20480 MiB）
+[2026-11-13 14:09:53] 服务 PID=719769；所有 case 复用；日志=/home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/logs/server.log
+[2026-11-13 14:10:48] 服务就绪 (55s)
+[2026-11-13 14:10:48] ==== bs8_in2048_out1024 | mode=off | warmup=4 | 同一服务 ====
+[2026-11-13 14:13:00] 完成 bs8_in2048_out1024 → /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/bs8_in2048_out1024.json
+[2026-11-13 14:13:00] 停止本次服务 PID=719769（不使用全局 pkill）
+[2026-11-13 14:13:04] ========== 所有 case 最终结果（仅此处打印一次） ==========
+===== Benchmark：吞吐与延迟（全部 case）=====
+bs8_in2048_out1024: output_tok/s=199.029 TTFT_mean=1820.636ms TPOT_mean=38.396ms ITL_mean=38.396ms
+[2026-11-13 14:13:04] 全部完成 | benchmark=/home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/summary.csv | host=OFF/未采集
++ echo 'run rc=0'
+run rc=0
++ echo '== 4. 结果 =='
+== 4. 结果 ==
++ R=/usr/local/corex-5.0.0/vllmBench/probe_140952
++ docker exec corex5-py311 bash -c 'ls -l /usr/local/corex-5.0.0/vllmBench/probe_140952 2>/dev/null | head -8; echo '\''--- summary ---'\''; head -3 /usr/local/corex-5.0.0/vllmBench/probe_140952/summary.csv 2>/dev/null'
+--- summary ---
++ docker exec corex5-py311 bash -c 'echo '\''--- window ---'\''; cat /usr/local/corex-5.0.0/vllmBench/probe_140952/litehost/*/window.json 2>/dev/null | head -c 900'
+--- window ---
++ echo '== 5. 告警对照 =='
+== 5. 告警对照 ==
++ sleep 1
++ kill 719681
++ trap - EXIT
++ echo '--- 本次窗口内的 export_refcount ---'
+--- 本次窗口内的 export_refcount ---
++ grep -c export_refcount /tmp/dmesg-20261113-140952.log
+18
++ grep export_refcount /tmp/dmesg-20261113-140952.log
++ head -10
+[Fri Nov 13 11:11:14 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:14:15 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:17:15 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:20:16 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:29:44 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:32:45 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:34:32 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:36:03 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:37:07 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:38:06 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
++ echo '--- 其他 iluvatar 消息 ---'
+--- 其他 iluvatar 消息 ---
++ grep -iE 'iluvatar|gpu|export|refcount' /tmp/dmesg-20261113-140952.log
++ tail -15
+[Fri Nov 13 11:20:16 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:29:44 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:32:45 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:34:32 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:36:03 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:37:07 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:38:06 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:39:25 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:40:27 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:41:31 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 11:42:30 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 12:26:06 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 12:26:43 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 12:27:20 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
+[Fri Nov 13 14:13:00 2026] mem export_refcount is not zero which means umd forget unexport it, kmd will free it force.
++ echo '--- 运行前后计数对比 ---'
+--- 运行前后计数对比 ---
+++ dmesg
+++ grep -c export_refcount
++ echo 'before=17 after=18'
+before=17 after=18
++ echo '== 6. 收尾 =='
+== 6. 收尾 ==
++ docker exec corex5-py311 bash -c 'ps -eo pid,args | grep -E "vllm|bench_driver" | grep -v grep | head -3 || echo none'
++ /usr/local/corex-5.0.0/bin/ixsmi
++ grep -E 'MiB /'
++ head -4
+| N/A  47C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  47C   P0       106W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  45C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
+| N/A  45C   P0       105W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
++ set +x
+
+### exit: 0
