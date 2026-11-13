@@ -1,0 +1,109 @@
+### server: 184
+### host:   controller
+### time:   2026-11-13T06:44:52Z
+
++ C=corex5-py311
++ P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902
++ V=/opt/corex311-cpython-vllm
++ HT=/home/huawei_ts_program/litehost_perf_opt
++ PY=/opt/corex311-cpython-vllm/bin/python
++ ENV='env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u VLLM_TORCH_PROFILER_DIR'
++ echo '== 1. 前置 =='
+== 1. 前置 ==
++ dex 'ls -l /home/huawei_ts_program/litehost_perf_opt/lhctl.py /home/huawei_ts_program/litehost_perf_opt/analyze_litehost.py; /opt/corex311-cpython-vllm/bin/python -c '\''import sys;print(sys.base_prefix)'\'''
++ timeout 300 docker exec corex5-py311 bash -c 'ls -l /home/huawei_ts_program/litehost_perf_opt/lhctl.py /home/huawei_ts_program/litehost_perf_opt/analyze_litehost.py; /opt/corex311-cpython-vllm/bin/python -c '\''import sys;print(sys.base_prefix)'\'''
+-rw-r--r--. 1 root root 10954 Oct 13 08:33 /home/huawei_ts_program/litehost_perf_opt/analyze_litehost.py
+-rw-r--r--. 1 root root  7600 Oct 13 08:30 /home/huawei_ts_program/litehost_perf_opt/lhctl.py
+/opt/cpython-vllm/v1
++ dex 'ls -d /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/*/ | wc -l; for d in /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/*/; do printf '\''%s  '\'' $(basename $d); ls $d | grep -c '\''rank[0-9]_pid'\'' ; done'
++ timeout 300 docker exec corex5-py311 bash -c 'ls -d /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/*/ | wc -l; for d in /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/*/; do printf '\''%s  '\'' $(basename $d); ls $d | grep -c '\''rank[0-9]_pid'\'' ; done'
+8
+bs8_in1024_out1024  8
+bs8_in1024_out128  8
+bs8_in1024_out2048  8
+bs8_in128_out1024  8
+bs8_in128_out128  8
+bs8_in128_out2048  8
+bs8_in2048_out1024  0
+bs8_in2048_out128  8
++ echo '== 2. 备份现有 summary.csv =='
+== 2. 备份现有 summary.csv ==
++ dex 'cp -a /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/summary.csv /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/summary.csv.bak-agg-20261113-144452 && ls -l /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/summary.csv*'
++ timeout 300 docker exec corex5-py311 bash -c 'cp -a /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/summary.csv /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/summary.csv.bak-agg-20261113-144452 && ls -l /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/summary.csv*'
+-rw-r--r--. 1 root root 2301 Nov 13 11:34 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/summary.csv
+-rw-r--r--. 1 root root 2301 Nov 13 11:34 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/summary.csv.bak-agg-20261113-144452
++ echo '== 3. 重新生成 summary.csv =='
+== 3. 重新生成 summary.csv ==
++ dex 'cd /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902 && env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u VLLM_TORCH_PROFILER_DIR /opt/corex311-cpython-vllm/bin/python /home/huawei_ts_program/litehost_perf_opt/lhctl.py summary /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902 > /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/summary_build_7case.log 2>&1; echo rc=$?; tail -5 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/summary_build_7case.log'
++ timeout 300 docker exec corex5-py311 bash -c 'cd /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902 && env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u VLLM_TORCH_PROFILER_DIR /opt/corex311-cpython-vllm/bin/python /home/huawei_ts_program/litehost_perf_opt/lhctl.py summary /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902 > /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/summary_build_7case.log 2>&1; echo rc=$?; tail -5 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/summary_build_7case.log'
+rc=0
+Wrote /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/summary.csv
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/summary.csv'
++ timeout 300 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/summary.csv'
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261113_101902,bs8_in1024_out1024,100,520.8255995299996,0.19200285103159562,196.6109194563539,393.2218389127078,687.1704119999777,644.389460000184,1702.8075884007285,38.636880245161265,38.745307570870075,39.18774836197425,38.63688037693054,37.707195000166394,43.189473500460736
+litehost_gap_20261113_101902,bs8_in1024_out128,100,81.92356484999982,1.2206500069070203,156.2432008840986,1406.1888079568873,685.540214900011,643.3258800002477,1697.8673329998855,44.732701208661695,44.96511724409081,48.187818245667756,44.73270220078729,37.743705000139016,216.49447419991702
+litehost_gap_20261113_101902,bs8_in1024_out2048,100,1016.97220216,0.09833110461387716,201.38210224922042,302.0731533738306,686.1072751000938,644.6339350004564,1693.5450208004659,37.99738559921834,38.11541919882762,38.301797529066675,37.997385665803606,37.49147999997149,42.758190400309104
+litehost_gap_20261113_101902,bs8_in128_out1024,100,488.77631875999987,0.20459256343207216,209.5027849544419,235.69063307374714,232.4350245999858,250.74436500017327,265.0398275002635,36.58375772678397,36.62153524926677,36.78321254095823,36.58375785992173,36.35744500002147,38.76920999983213
+litehost_gap_20261113_101902,bs8_in128_out128,100,62.758357480000086,1.5934132761818716,203.95689935127956,407.9137987025591,231.5006721999771,250.55797000004532,265.34598310006004,36.256319964566956,36.18063870078727,37.251413186613114,36.25632090472442,36.106630000176665,38.12860140016255
+litehost_gap_20261113_101902,bs8_in128_out2048,100,991.5301753699996,0.10085421753572349,206.5494375131617,219.4587773577343,234.05697999996391,252.02983000008317,269.3830196997942,37.21926243048365,37.32516712017589,37.495252004250446,37.21926252911579,37.178925000034724,41.84591550048037
+litehost_gap_20261113_101902,bs8_in2048_out128,100,102.95224508000047,0.9713241311279187,124.3294887843736,2113.6013093343513,1439.1873412000405,1536.0355350003374,3442.7092574001017,51.97025000944887,50.04624614173191,59.11027254646124,51.97025104645651,36.998919999859936,430.70372139997744
++ echo '== 4. 先按全目录聚合（失败的 case 缺 rank 数据，可能报错）=='
+== 4. 先按全目录聚合（失败的 case 缺 rank 数据，可能报错）==
++ dex 'cd /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902 && env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u VLLM_TORCH_PROFILER_DIR /opt/corex311-cpython-vllm/bin/python /home/huawei_ts_program/litehost_perf_opt/analyze_litehost.py /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost --link-percent 0 --out /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary --quiet > /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/analyze_7case.log 2>&1; echo rc=$?; tail -15 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/analyze_7case.log'
++ timeout 300 docker exec corex5-py311 bash -c 'cd /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902 && env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u VLLM_TORCH_PROFILER_DIR /opt/corex311-cpython-vllm/bin/python /home/huawei_ts_program/litehost_perf_opt/analyze_litehost.py /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost --link-percent 0 --out /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary --quiet > /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/analyze_7case.log 2>&1; echo rc=$?; tail -15 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/analyze_7case.log'
+rc=2
+ERROR: /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in2048_out1024: incomplete case/client
++ echo '== 5. 若失败，用只含有效 case 的临时目录再聚合 =='
+== 5. 若失败，用只含有效 case 的临时目录再聚合 ==
++ dex 'if [ ! -f /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary/four_rank_totals.csv ]; then
+      rm -rf /tmp/lh7 && mkdir -p /tmp/lh7
+      for d in /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/*/; do
+        n=$(basename $d)
+        if ls $d | grep -q '\''rank0_pid'\''; then ln -s $d /tmp/lh7/$n; fi
+      done
+      ls /tmp/lh7
+      cd /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902 && env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u VLLM_TORCH_PROFILER_DIR /opt/corex311-cpython-vllm/bin/python /home/huawei_ts_program/litehost_perf_opt/analyze_litehost.py /tmp/lh7 --link-percent 0 --out /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary --quiet > /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/analyze_7case.log 2>&1
+      echo rc=$?
+      tail -15 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/analyze_7case.log
+    else echo '\''全目录聚合已成功，无需临时目录'\''; fi'
++ timeout 300 docker exec corex5-py311 bash -c 'if [ ! -f /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary/four_rank_totals.csv ]; then
+      rm -rf /tmp/lh7 && mkdir -p /tmp/lh7
+      for d in /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/*/; do
+        n=$(basename $d)
+        if ls $d | grep -q '\''rank0_pid'\''; then ln -s $d /tmp/lh7/$n; fi
+      done
+      ls /tmp/lh7
+      cd /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902 && env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u VLLM_TORCH_PROFILER_DIR /opt/corex311-cpython-vllm/bin/python /home/huawei_ts_program/litehost_perf_opt/analyze_litehost.py /tmp/lh7 --link-percent 0 --out /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary --quiet > /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/analyze_7case.log 2>&1
+      echo rc=$?
+      tail -15 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/logs/analyze_7case.log
+    else echo '\''全目录聚合已成功，无需临时目录'\''; fi'
+bs8_in1024_out1024
+bs8_in1024_out128
+bs8_in1024_out2048
+bs8_in128_out1024
+bs8_in128_out128
+bs8_in128_out2048
+bs8_in2048_out128
+rc=2
+ERROR: No new-format case.json; legacy CSV does not identify warmup boundaries
++ echo '== 6. 产物 =='
+== 6. 产物 ==
++ dex 'ls -l /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary 2>&1'
++ timeout 300 docker exec corex5-py311 bash -c 'ls -l /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary 2>&1'
+ls: cannot access '/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary': No such file or directory
++ dex 'echo '\''--- four_rank_totals.csv ---'\''; cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary/four_rank_totals.csv 2>&1 | head -5'
++ timeout 300 docker exec corex5-py311 bash -c 'echo '\''--- four_rank_totals.csv ---'\''; cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary/four_rank_totals.csv 2>&1 | head -5'
+--- four_rank_totals.csv ---
+cat: /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary/four_rank_totals.csv: No such file or directory
++ dex 'echo '\''--- report.txt 前 40 行 ---'\''; head -40 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary/report.txt 2>&1'
++ timeout 300 docker exec corex5-py311 bash -c 'echo '\''--- report.txt 前 40 行 ---'\''; head -40 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary/report.txt 2>&1'
+--- report.txt 前 40 行 ---
+head: cannot open '/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary/report.txt' for reading: No such file or directory
++ dex 'echo '\''--- per_rank.csv 前 3 行 ---'\''; head -3 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary/per_rank.csv 2>&1'
++ timeout 300 docker exec corex5-py311 bash -c 'echo '\''--- per_rank.csv 前 3 行 ---'\''; head -3 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary/per_rank.csv 2>&1'
+--- per_rank.csv 前 3 行 ---
+head: cannot open '/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/host_summary/per_rank.csv' for reading: No such file or directory
++ set +x
+
+### exit: 0
