@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 小验证：单 case 2048/1024、16 prompts、HOST_MEASURE=off，同时抓 dmesg，看 export_refcount 是否由 vLLM 触发。
+# 用 101902 run 已有的 7 个有效 case 重新聚合 TSHG（summary.csv + host_summary）。不跑 GPU。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,52 +18,45 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
   C=corex5-py311
-  D=/home/huawei_ts_program/litehost_perf_opt
-  TID=probe_$(date +%H%M%S)
-  BASE_N=$(dmesg 2>/dev/null | grep -c 'export_refcount')
+  P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902
+  V=/opt/corex311-cpython-vllm
+  HT=/home/huawei_ts_program/litehost_perf_opt
+  PY=$V/bin/python
+  dex() { timeout 300 docker exec "$C" bash -c "$1"; }
+  ENV="env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u VLLM_TORCH_PROFILER_DIR"
 
-  echo "== 1. 前置检查 =="
-  uname -r
-  BUSY=$(docker exec $C bash -c 'ps -eo args | grep -E "vllm|bench_driver" | grep -v grep | head -3')
-  if [ -n "$BUSY" ]; then echo "BUSY:"; echo "$BUSY"; echo "有服务在跑，终止"; exit 4; fi
-  echo "无 vllm/bench 进程"
-  /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | grep -E 'MiB /' | head -4
-  echo "dmesg 中 export_refcount 基线计数: $BASE_N"
+  echo "== 1. 前置 =="
+  dex "ls -l $HT/lhctl.py $HT/analyze_litehost.py; $PY -c 'import sys;print(sys.base_prefix)'"
+  dex "ls -d $P/litehost/*/ | wc -l; for d in $P/litehost/*/; do printf '%s  ' \$(basename \$d); ls \$d | grep -c 'rank[0-9]_pid' ; done"
 
-  echo "== 2. 启动 dmesg 采集 =="
-  dmesg -T -w > "/tmp/dmesg-$TS.log" 2>&1 &
-  DPID=$!
-  trap 'kill "$DPID" 2>/dev/null' EXIT
-  sleep 1
-  echo "dmesg watcher pid=$DPID"
+  echo "== 2. 备份现有 summary.csv =="
+  dex "cp -a $P/summary.csv $P/summary.csv.bak-agg-$TS && ls -l $P/summary.csv*"
 
-  echo "== 3. 单 case 运行（不等同于全量，仅用于对照告警）=="
-  timeout 900 docker exec \
-    -e NUM_PROMPTS=16 -e NUM_WARMUPS=4 -e CASE_INTERVAL=0 -e HOST_MEASURE=off \
-    -e TEST_ID="$TID" -e CASES_FILE=/tmp/cases_probe.txt \
-    "$C" bash -lc "printf '2048 1024\n' > /tmp/cases_probe.txt && cd $D && bash vllmBench_lite_opt.sh" 2>&1 | tail -40
-  echo "run rc=$?"
+  echo "== 3. 重新生成 summary.csv =="
+  dex "cd $P && $ENV $PY $HT/lhctl.py summary $P > $P/logs/summary_build_7case.log 2>&1; echo rc=\$?; tail -5 $P/logs/summary_build_7case.log"
+  dex "cat $P/summary.csv"
 
-  echo "== 4. 结果 =="
-  R=/usr/local/corex-5.0.0/vllmBench/$TID
-  docker exec "$C" bash -c "ls -l $R 2>/dev/null | head -8; echo '--- summary ---'; head -3 $R/summary.csv 2>/dev/null" 2>&1
-  docker exec "$C" bash -c "echo '--- window ---'; cat $R/litehost/*/window.json 2>/dev/null | head -c 900" 2>&1
+  echo "== 4. 先按全目录聚合（失败的 case 缺 rank 数据，可能报错）=="
+  dex "cd $P && $ENV $PY $HT/analyze_litehost.py $P/litehost --link-percent 0 --out $P/host_summary --quiet > $P/logs/analyze_7case.log 2>&1; echo rc=\$?; tail -15 $P/logs/analyze_7case.log"
 
-  echo "== 5. 告警对照 =="
-  sleep 1
-  kill "$DPID" 2>/dev/null
-  trap - EXIT
-  echo "--- 本次窗口内的 export_refcount ---"
-  grep -c 'export_refcount' "/tmp/dmesg-$TS.log" 2>/dev/null
-  grep 'export_refcount' "/tmp/dmesg-$TS.log" 2>/dev/null | head -10
-  echo "--- 其他 iluvatar 消息 ---"
-  grep -iE 'iluvatar|gpu|export|refcount' "/tmp/dmesg-$TS.log" 2>/dev/null | tail -15
-  echo "--- 运行前后计数对比 ---"
-  echo "before=$BASE_N after=$(dmesg 2>/dev/null | grep -c 'export_refcount')"
+  echo "== 5. 若失败，用只含有效 case 的临时目录再聚合 =="
+  dex "if [ ! -f $P/host_summary/four_rank_totals.csv ]; then
+      rm -rf /tmp/lh7 && mkdir -p /tmp/lh7
+      for d in $P/litehost/*/; do
+        n=\$(basename \$d)
+        if ls \$d | grep -q 'rank0_pid'; then ln -s \$d /tmp/lh7/\$n; fi
+      done
+      ls /tmp/lh7
+      cd $P && $ENV $PY $HT/analyze_litehost.py /tmp/lh7 --link-percent 0 --out $P/host_summary --quiet > $P/logs/analyze_7case.log 2>&1
+      echo rc=\$?
+      tail -15 $P/logs/analyze_7case.log
+    else echo '全目录聚合已成功，无需临时目录'; fi"
 
-  echo "== 6. 收尾 =="
-  docker exec "$C" bash -c 'ps -eo pid,args | grep -E "vllm|bench_driver" | grep -v grep | head -3 || echo none' 2>&1
-  /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | grep -E 'MiB /' | head -4
+  echo "== 6. 产物 =="
+  dex "ls -l $P/host_summary 2>&1"
+  dex "echo '--- four_rank_totals.csv ---'; cat $P/host_summary/four_rank_totals.csv 2>&1 | head -5"
+  dex "echo '--- report.txt 前 40 行 ---'; head -40 $P/host_summary/report.txt 2>&1"
+  dex "echo '--- per_rank.csv 前 3 行 ---'; head -3 $P/host_summary/per_rank.csv 2>&1"
 
   # ---- 命令结束 ----
 
