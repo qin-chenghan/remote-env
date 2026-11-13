@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 定位 bench_driver 的所有副本，只给这次 run 用的那份加失败原因落盘（先备份、再语法校验、打印 diff）。
+# 小验证：单 case 2048/1024、16 prompts、HOST_MEASURE=off，同时抓 dmesg，看 export_refcount 是否由 vLLM 触发。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,54 +17,53 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  T=/home/huawei_ts_program/litehost_perf_opt/bench_driver.py
+  C=corex5-py311
+  D=/home/huawei_ts_program/litehost_perf_opt
+  TID=probe_$(date +%H%M%S)
+  BASE_N=$(dmesg 2>/dev/null | grep -c 'export_refcount')
 
-  echo "== 1. 所有 bench_driver.py 副本 =="
-  find /home -maxdepth 4 -name 'bench_driver.py' 2>/dev/null | while read -r f; do
-    echo "---- $f"
-    ls -l --time-style=long-iso "$f"
-    sha256sum "$f"
-  done
+  echo "== 1. 前置检查 =="
+  uname -r
+  BUSY=$(docker exec $C bash -c 'ps -eo args | grep -E "vllm|bench_driver" | grep -v grep | head -3')
+  if [ -n "$BUSY" ]; then echo "BUSY:"; echo "$BUSY"; echo "有服务在跑，终止"; exit 4; fi
+  echo "无 vllm/bench 进程"
+  /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | grep -E 'MiB /' | head -4
+  echo "dmesg 中 export_refcount 基线计数: $BASE_N"
 
-  echo "== 2. 各套 toolkit 目录与脚本 =="
-  find /home -maxdepth 3 -name 'lh_common.py' 2>/dev/null | head -10
-  ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite*.sh 2>/dev/null
+  echo "== 2. 启动 dmesg 采集 =="
+  dmesg -T -w > "/tmp/dmesg-$TS.log" 2>&1 &
+  DPID=$!
+  trap 'kill "$DPID" 2>/dev/null' EXIT
+  sleep 1
+  echo "dmesg watcher pid=$DPID"
 
-  echo "== 3. 这次 run 用的那份：end() 现状 =="
-  grep -n "async def end" -A 4 "$T"
+  echo "== 3. 单 case 运行（不等同于全量，仅用于对照告警）=="
+  timeout 900 docker exec \
+    -e NUM_PROMPTS=16 -e NUM_WARMUPS=4 -e CASE_INTERVAL=0 -e HOST_MEASURE=off \
+    -e TEST_ID="$TID" -e CASES_FILE=/tmp/cases_probe.txt \
+    "$C" bash -lc "printf '2048 1024\n' > /tmp/cases_probe.txt && cd $D && bash vllmBench_lite_opt.sh" 2>&1 | tail -40
+  echo "run rc=$?"
 
-  echo "== 4. 服务占用检查（改源码前确认没人正在用这份驱动）=="
-  ps -eo pid,args 2>/dev/null | grep -E 'bench_driver|vllm' | grep -v grep | head -5 || echo "无相关进程"
+  echo "== 4. 结果 =="
+  R=/usr/local/corex-5.0.0/vllmBench/$TID
+  docker exec "$C" bash -c "ls -l $R 2>/dev/null | head -8; echo '--- summary ---'; head -3 $R/summary.csv 2>/dev/null" 2>&1
+  docker exec "$C" bash -c "echo '--- window ---'; cat $R/litehost/*/window.json 2>/dev/null | head -c 900" 2>&1
 
-  echo "== 5. 备份 + 打补丁 =="
-  BAK="$T.bak-failed-errors-$TS"
-  if grep -q 'failed_errors' "$T" 2>/dev/null; then
-    echo "已含 failed_errors，跳过"
-  else
-    cp -a "$T" "$BAK" && echo "backup=$BAK"
-    python3 - "$T" <<'PY'
-import sys
-p = sys.argv[1]
-src = open(p).read()
-old = "        if len(outputs)!=self.case['expected_requests'] or not all(o.success for o in outputs):raise RuntimeError('Formal requests incomplete/failed; no valid H')"
-new = (
-"        if len(outputs)!=self.case['expected_requests'] or not all(o.success for o in outputs):\n"
-"            self.window['failed_errors']=[{'i':i,'error':str(getattr(o,'error',''))[:300]} for i,o in enumerate(outputs) if not o.success][:10]\n"
-"            self.save()\n"
-"            raise RuntimeError('Formal requests incomplete/failed; no valid H')"
-)
-if old not in src:
-    print('PATTERN_NOT_FOUND: 未找到原始判定行，未修改'); sys.exit(3)
-open(p,'w').write(src.replace(old, new, 1))
-print('PATCHED')
-PY
-    echo "patch rc=$?"
-  fi
+  echo "== 5. 告警对照 =="
+  sleep 1
+  kill "$DPID" 2>/dev/null
+  trap - EXIT
+  echo "--- 本次窗口内的 export_refcount ---"
+  grep -c 'export_refcount' "/tmp/dmesg-$TS.log" 2>/dev/null
+  grep 'export_refcount' "/tmp/dmesg-$TS.log" 2>/dev/null | head -10
+  echo "--- 其他 iluvatar 消息 ---"
+  grep -iE 'iluvatar|gpu|export|refcount' "/tmp/dmesg-$TS.log" 2>/dev/null | tail -15
+  echo "--- 运行前后计数对比 ---"
+  echo "before=$BASE_N after=$(dmesg 2>/dev/null | grep -c 'export_refcount')"
 
-  echo "== 6. 语法校验与 diff =="
-  python3 -m py_compile "$T" && echo "py_compile OK"
-  diff -u "$BAK" "$T" 2>/dev/null | head -30
-  grep -n "failed_errors" -A 3 "$T" | head -10
+  echo "== 6. 收尾 =="
+  docker exec "$C" bash -c 'ps -eo pid,args | grep -E "vllm|bench_driver" | grep -v grep | head -3 || echo none' 2>&1
+  /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | grep -E 'MiB /' | head -4
 
   # ---- 命令结束 ----
 
