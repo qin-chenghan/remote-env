@@ -1,0 +1,261 @@
+### server: 184
+### host:   controller
+### time:   2026-11-13T05:44:51Z
+
++ C=corex5-py311
++ P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902
++ D=/home/huawei_ts_program/litehost_perf_opt
++ echo '== 1. 失败 case 的 window.json 全文 =='
+== 1. 失败 case 的 window.json 全文 ==
++ dex 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in2048_out1024/window.json'
++ timeout 30 docker exec corex5-py311 bash -c 'cat /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in2048_out1024/window.json'
+{
+  "status": "failed",
+  "run_id": "24e40b234ccb412cbde6098a040b9805",
+  "case_id": "bs8_in2048_out1024",
+  "session_id": "0461805457e34bf1ac35344602e08deb",
+  "benchmark_source_sha256": "13d77a29c7637006bd483831fbe506e5b668507e8321bcb0712ec6d4fa51434d",
+  "num_warmups": 16,
+  "arm_acks": [
+    {
+      "version": "0.4.0-compat",
+      "session_id": "0461805457e34bf1ac35344602e08deb",
+      "rank": 0,
+      "pid": 191185,
+      "native_hash": "b70d07e38c4e1f2665d6aa407a82e751209fb9af67e0ca70a5a74e0bd1e3048d",
+      "run_id": "24e40b234ccb412cbde6098a040b9805",
+      "arm_ns": 7211688662140,
+      "warmup_excluded": 2062,
+      "pending": 0
+    },
+    {
+      "version": "0.4.0-compat",
+      "session_id": "0461805457e34bf1ac35344602e08deb",
+      "rank": 1,
+      "pid": 191186,
+      "native_hash": "b70d07e38c4e1f2665d6aa407a82e751209fb9af67e0ca70a5a74e0bd1e3048d",
+      "run_id": "24e40b234ccb412cbde6098a040b9805",
+      "arm_ns": 7211689735700,
+      "warmup_excluded": 2062,
+      "pending": 0
+    },
+    {
+      "version": "0.4.0-compat",
+      "session_id": "0461805457e34bf1ac35344602e08deb",
+      "rank": 2,
+      "pid": 191187,
+      "native_hash": "b70d07e38c4e1f2665d6aa407a82e751209fb9af67e0ca70a5a74e0bd1e3048d",
+      "run_id": "24e40b234ccb412cbde6098a040b9805",
+      "arm_ns": 7211689672680,
+      "warmup_excluded": 2062,
+      "pending": 0
+    },
+    {
+      "version": "0.4.0-compat",
+      "session_id": "0461805457e34bf1ac35344602e08deb",
+      "rank": 3,
+      "pid": 191188,
+      "native_hash": "b70d07e38c4e1f2665d6aa407a82e751209fb9af67e0ca70a5a74e0bd1e3048d",
+      "run_id": "24e40b234ccb412cbde6098a040b9805",
+      "arm_ns": 7211689996950,
+      "warmup_excluded": 2062,
+      "pending": 0
+    }
+  ],
+  "main_start_ns": 7211691568710,
+  "main_end_ns": 7303433829430,
+  "benchmark_duration_s": 91.74037536000014,
+  "successful": 24,
+  "failed": 76,
+  "error": "RuntimeError: Formal requests incomplete/failed; no valid H"
+}
++ echo '== 2. case.json 尾段 =='
+== 2. case.json 尾段 ==
++ dex 'tail -c 900 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in2048_out1024/case.json; echo'
++ timeout 30 docker exec corex5-py311 bash -c 'tail -c 900 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in2048_out1024/case.json; echo'
+": "0.4.0-compat",
+      "session_id": "0461805457e34bf1ac35344602e08deb",
+      "rank": 1,
+      "pid": 191186,
+      "native_hash": "b70d07e38c4e1f2665d6aa407a82e751209fb9af67e0ca70a5a74e0bd1e3048d",
+      "run_id": "24e40b234ccb412cbde6098a040b9805",
+      "state": "warmup"
+    },
+    {
+      "version": "0.4.0-compat",
+      "session_id": "0461805457e34bf1ac35344602e08deb",
+      "rank": 2,
+      "pid": 191187,
+      "native_hash": "b70d07e38c4e1f2665d6aa407a82e751209fb9af67e0ca70a5a74e0bd1e3048d",
+      "run_id": "24e40b234ccb412cbde6098a040b9805",
+      "state": "warmup"
+    },
+    {
+      "version": "0.4.0-compat",
+      "session_id": "0461805457e34bf1ac35344602e08deb",
+      "rank": 3,
+      "pid": 191188,
+      "native_hash": "b70d07e38c4e1f2665d6aa407a82e751209fb9af67e0ca70a5a74e0bd1e3048d",
+      "run_id": "24e40b234ccb412cbde6098a040b9805",
+      "state": "warmup"
+    }
+  ]
+}
+
++ echo '== 3. bench_driver.py：判定与采集逻辑 =='
+== 3. bench_driver.py：判定与采集逻辑 ==
++ dex 'sed -n '\''1,100p'\'' /home/huawei_ts_program/litehost_perf_opt/bench_driver.py'
++ timeout 30 docker exec corex5-py311 bash -c 'sed -n '\''1,100p'\'' /home/huawei_ts_program/litehost_perf_opt/bench_driver.py'
+#!/usr/bin/env python3
+"""Same installed vLLM client/CLI/parameters; only instrument formal boundaries.
+Official warmups remain unchanged. Does not modify installed source files.
+"""
+from __future__ import annotations
+import ast,asyncio,inspect,os,runpy,sys,textwrap,time,hashlib
+from dataclasses import replace,is_dataclass
+from pathlib import Path
+from functools import wraps
+from lh_common import atomic_json,read_json,all_ranks
+
+def patch_tree(source):
+    tree=ast.parse(textwrap.dedent(source));fn=tree.body[0]
+    if len(tree.body)!=1 or not isinstance(fn,ast.AsyncFunctionDef) or fn.name!='benchmark' or fn.decorator_list:raise ValueError('Unsupported benchmark function')
+    def assigned(s,n):return isinstance(s,ast.Assign) and len(s.targets)==1 and isinstance(s.targets[0],ast.Name) and s.targets[0].id==n
+    starts=[i for i,s in enumerate(fn.body) if assigned(s,'benchmark_start_time')]
+    ends=[i for i,s in enumerate(fn.body) if assigned(s,'benchmark_duration')]
+    if len(starts)!=1 or len(ends)!=1 or starts[0]>=ends[0]:raise ValueError('Unknown benchmark timer layout')
+    a,b=starts[0],ends[0]
+    if ast.unparse(fn.body[a].value)!='time.perf_counter()' or ast.unparse(fn.body[b].value)!='time.perf_counter() - benchmark_start_time':raise ValueError('Timer expressions changed')
+    warm=[i for i,s in enumerate(fn.body) if isinstance(s,ast.If) and 'num_warmups' in ast.unparse(s.test)]
+    if len(warm)!=1 or warm[0]>=a or 'asyncio.gather' not in ast.unparse(fn.body[warm[0]]):raise ValueError('Warmup ordering changed')
+    test=[s for s in ast.walk(fn) if assigned(s,'test_input')]
+    if len(test)!=1 or not isinstance(test[0].value,ast.Call) or any(k.arg=='request_id' for k in test[0].value.keywords):raise ValueError('Warmup request ID forwarding changed')
+    mid='\n'.join(ast.unparse(s) for s in fn.body[a:b])
+    if 'request.request_id' not in mid or 'request_id=request_id' not in mid or 'await asyncio.gather(*tasks)' not in mid:raise ValueError('Formal request loop changed')
+    body=[]
+    for i,s in enumerate(fn.body):
+        if i==a:body.extend(ast.parse('await __lh_start()').body)
+        body.append(s)
+        if i==b:body.extend(ast.parse('await __lh_end(outputs, benchmark_duration)').body)
+    fn.body=body;fn.name='__lh_benchmark';return ast.fix_missing_locations(tree)
+
+class Boundaries:
+    def __init__(self,session_file,case_dir):
+        self.session=read_json(session_file);self.root=Path(case_dir);self.case=read_json(self.root/'case.json')
+        if self.case['session_id']!=self.session['session_id']:raise ValueError('Case/session mismatch')
+        self.window={'status':'preparing','run_id':self.case['run_id'],'case_id':self.case['case_id'],'session_id':self.case['session_id']}
+        self.calls=0;self.ended=False
+    def save(self):atomic_json(self.root/'window.json',self.window)
+    async def start(self):
+        self.window['arm_acks']=await asyncio.to_thread(all_ranks,self.session,'arm',run_id=self.case['run_id'])
+        self.window.update(status='armed',main_start_ns=time.monotonic_ns());self.save()
+        print('[litehost] 4 ranks ARMED; all ready-check/warmup scopes excluded',flush=True)
+    async def end(self,outputs,duration):
+        self.window.update(main_end_ns=time.monotonic_ns(),benchmark_duration_s=duration,successful=sum(bool(o.success) for o in outputs),failed=sum(not bool(o.success) for o in outputs))
+        if len(outputs)!=self.case['expected_requests'] or not all(o.success for o in outputs):raise RuntimeError('Formal requests incomplete/failed; no valid H')
+        self.window['finalize_acks']=await asyncio.to_thread(all_ranks,self.session,'finalize',run_id=self.case['run_id'])
+        self.window['status']='finalized';self.ended=True;self.save()
+        print('[litehost] 4 ranks FINALIZED; data saved; same server ready for next case',flush=True)
+
+def install(module,b):
+    original=module.benchmark;src=inspect.getsource(original);tree=patch_tree(src)
+    ns=module.__dict__;ns['__lh_start']=b.start;ns['__lh_end']=b.end
+    exec(compile(tree,inspect.getsourcefile(original) or '<bench>','exec'),ns)
+    patched=ns['__lh_benchmark'];sig=inspect.signature(original)
+    b.window['benchmark_source_sha256']=hashlib.sha256(src.encode()).hexdigest()
+    (b.root/'benchmark_hooked.py.txt').write_text(ast.unparse(tree)+'\n')
+    @wraps(original)
+    async def wrapped(*args,**kwargs):
+        b.calls+=1
+        if b.calls!=1:raise ValueError('One benchmark call per client process required')
+        bind=sig.bind(*args,**kwargs);bind.apply_defaults()
+        if bind.arguments.get('profile'):raise ValueError('Torch profiler must be disabled')
+        if bind.arguments.get('endpoint_type') not in ('vllm','openai'):raise ValueError('Only original text completions backend supported')
+        requests=list(bind.arguments['input_requests'])
+        if len(requests)!=b.case['expected_requests']:raise ValueError('Request count mismatch')
+        new=[]
+        for i,r in enumerate(requests):
+            if not is_dataclass(r) or not isinstance(r.prompt,str):raise ValueError('Expected text SampleRequest dataclass')
+            if any(getattr(r,k,None) for k in ('multi_modal_data','chat_messages','request_overrides')):raise ValueError('Multimodal/chat/overrides unsupported')
+            new.append(replace(r,request_id='lh'+b.case['run_id']+'-'+str(i)))
+        bind.arguments['input_requests']=new
+        b.window['num_warmups']=bind.arguments.get('num_warmups');b.save()
+        return await patched(*bind.args,**bind.kwargs)
+    module.benchmark=wrapped
+
+def main():
+    b=Boundaries(os.environ['LIGHTHOST_SESSION'],os.environ['LIGHTHOST_CASE_DIR'])
+    try:
+        import vllm.benchmarks.serve as module
+        install(module,b);sys.argv=['vllm','bench','serve',*sys.argv[1:]]
+        try:runpy.run_module('vllm.entrypoints.cli.main',run_name='__main__');rc=0
+        except SystemExit as e:rc=int(e.code or 0)
+        if rc or b.calls!=1 or not b.ended:raise RuntimeError(f'Client incomplete: rc={rc},calls={b.calls},ended={b.ended}')
+        b.window['status']='complete';b.save();return 0
+    except BaseException as e:
+        b.window.update(status='failed',error=f'{type(e).__name__}: {e}');b.save()
+        __import__('traceback').print_exc();return 2
+if __name__=='__main__':raise SystemExit(main())
++ echo '== 4. 历史 run 里 bs8_in2048_out1024 的耗时 =='
+== 4. 历史 run 里 bs8_in2048_out1024 的耗时 ==
++ dex 'for f in /usr/local/corex-5.0.0/vllmBench/*/summary.csv /home/z30059427/vllmBench/*/summary.csv; do [ -f "$f" ] && grep -H '\''bs8_in2048_out1024'\'' "$f"; done | tail -20'
++ timeout 30 docker exec corex5-py311 bash -c 'for f in /usr/local/corex-5.0.0/vllmBench/*/summary.csv /home/z30059427/vllmBench/*/summary.csv; do [ -f "$f" ] && grep -H '\''bs8_in2048_out1024'\'' "$f"; done | tail -20'
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715/summary.csv:litehost_gap_20261110_164715,bs8_in2048_out1024,100,527.2529562,0.18966228415430172,194.21417897400497,582.6425369220149,1436.7833960999815,1541.235874999984,3435.9716389005007,38.41873029100688,38.2934605913974,39.400234419942144,38.418730412316705,36.53758500013282,42.551170500473745
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261111_091630/summary.csv:litehost_gap_20261111_091630,bs8_in2048_out1024,100,528.9445365499996,0.1890557385321387,193.59307625691002,580.77922877073,1438.7510261999887,1536.8139450001763,3435.9776826003513,38.532918600977524,38.58955199413502,39.69148071045955,38.53291873216033,36.490800000137824,48.644501600592776
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261111_150237/summary.csv:litehost_gap_20261111_150237,bs8_in2048_out1024,100,525.2529566699995,0.19038445901186418,194.95368602814892,584.8610580844468,1437.1956178001346,1536.720174999573,3439.115731999446,38.25178896060597,38.11127442815298,39.20946688611716,38.251789086119125,36.302159998740535,43.50495019745722
+/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/summary.csv:litehost_gap_20261112_150257,bs8_in2048_out1024,100,557.732775970002,0.17929733433019288,183.6004703541175,550.8014110623525,1494.5446360001006,1592.3283399988577,3568.698922000149,40.73083733567943,40.68933937439093,41.87100220977211,40.73083746529835,39.08130499985418,44.72883010199439
+/home/z30059427/vllmBench/litehost_gap_20261109_195202/summary.csv:litehost_gap_20261109_195202,bs8_in2048_out1024,100,528.8857697800013,0.18907674532743932,193.61458721529786,580.8437616458936,1436.6833414000575,1538.006584998584,3439.6820231008683,38.53610460439869,38.38878788367624,39.509130728447104,38.536104728934625,36.61746999932802,42.06831500192493
++ echo '== 5. 启动脚本里的 env 与 case 顺序 =='
+== 5. 启动脚本里的 env 与 case 顺序 ==
++ dex 'ls -l /home/huawei_ts_program/litehost_perf_opt/*.sh 2>/dev/null | head -10'
++ timeout 30 docker exec corex5-py311 bash -c 'ls -l /home/huawei_ts_program/litehost_perf_opt/*.sh 2>/dev/null | head -10'
+-rwxr-xr-x. 1 root root 14001 Nov  4 18:59 /home/huawei_ts_program/litehost_perf_opt/lqqvllmBench_lite_base.sh
+-rw-r--r--. 1 root root     0 Nov  4 22:53 /home/huawei_ts_program/litehost_perf_opt/timeline.sh
+-rwxr-xr-x. 1 root root 13538 Nov 12 16:06 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh
+-rwxr-xr-x. 1 root root 14041 Nov 12 16:06 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+-rwxr-xr-x. 1 root root 14049 Nov 12 16:28 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh
++ dex 'grep -nE '\''CASES|VLLM_|COMPACT|HOST_OPT|timeout'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite*.sh 2>/dev/null | head -40'
++ timeout 30 docker exec corex5-py311 bash -c 'grep -nE '\''CASES|VLLM_|COMPACT|HOST_OPT|timeout'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite*.sh 2>/dev/null | head -40'
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:27:    VLLM_DISABLE_DECODE_FASTPATH=1
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:52:CASES=(
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:64:if [[ -n "${CASES_FILE:-}" ]]; then
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:65:    [[ -f "$CASES_FILE" ]] || { echo "ERROR: 找不到 CASES_FILE=$CASES_FILE" >&2; exit 2; }
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:66:    mapfile -t CASES < <(grep -Ev '^[[:space:]]*(#|$)' "$CASES_FILE")
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:71:    -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:140:    local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:189:"${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$GPU_LIST" "$NUM_PROMPTS" "$NUM_WARMUPS" "$MAX_CONCURRENCY" "$HOST_LINK_PERCENT" "$CASE_INTERVAL" "${CASES[@]}" <<'PY' || exit 2
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:201:log "prefix cache=OFF | backend=vllm | 同一服务运行 ${#CASES[@]} 个 case | RUN_DIR=$RUN_DIR"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:204:    printf 'CASES: '; printf '%s; ' "${CASES[@]}"; printf '\n'
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:223:        --timeout "$HOST_TIMEOUT" --max-scopes "$HOST_MAX_SCOPES" > "$LOG_DIR/preflight.log" 2>&1 || { cat "$LOG_DIR/preflight.log"; exit 2; }
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:228:for idx in "${!CASES[@]}"; do
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:229:    read -r input_len output_len <<< "${CASES[$idx]}"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:233:    if (( idx < ${#CASES[@]}-1 )); then log "等待 ${CASE_INTERVAL}s"; sleep "$CASE_INTERVAL"; fi
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh:250:"${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$SUMMARY_CSV" "$MAX_CONCURRENCY" "${CASES[@]}" <<'PY' || exit 2
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:27:    VLLM_HOST_OPT=on
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:28:    VLLM_HOST_OPT_INPUTS=on
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:29:    VLLM_HOST_OPT_ARENA=on
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:30:    VLLM_HOST_OPT_BOOKKEEPING=on
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:31:    VLLM_HOST_OPT_METADATA=on
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:32:    VLLM_HOST_OPT_DIAGNOSTICS=0
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:33:    VLLM_COMPACT_GREEDY=on
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:34:    VLLM_COMPACT_GREEDY_DIAGNOSTICS=0
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:60:CASES=(
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:72:if [[ -n "${CASES_FILE:-}" ]]; then
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:73:    [[ -f "$CASES_FILE" ]] || { echo "ERROR: 找不到 CASES_FILE=$CASES_FILE" >&2; exit 2; }
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:74:    mapfile -t CASES < <(grep -Ev '^[[:space:]]*(#|$)' "$CASES_FILE")
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:79:    -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:148:    local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:199:"${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$GPU_LIST" "$NUM_PROMPTS" "$NUM_WARMUPS" "$MAX_CONCURRENCY" "$HOST_LINK_PERCENT" "$CASE_INTERVAL" "${CASES[@]}" <<'PY' || exit 2
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:211:log "prefix cache=OFF | backend=vllm | 同一服务运行 ${#CASES[@]} 个 case | RUN_DIR=$RUN_DIR"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:214:    printf 'CASES: '; printf '%s; ' "${CASES[@]}"; printf '\n'
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:233:        --timeout "$HOST_TIMEOUT" --max-scopes "$HOST_MAX_SCOPES" > "$LOG_DIR/preflight.log" 2>&1 || { cat "$LOG_DIR/preflight.log"; exit 2; }
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:238:for idx in "${!CASES[@]}"; do
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:239:    read -r input_len output_len <<< "${CASES[$idx]}"
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:243:    if (( idx < ${#CASES[@]}-1 )); then log "等待 ${CASE_INTERVAL}s"; sleep "$CASE_INTERVAL"; fi
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh:260:"${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$SUMMARY_CSV" "$MAX_CONCURRENCY" "${CASES[@]}" <<'PY' || exit 2
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh:27:    VLLM_HOST_OPT=on
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh:28:    VLLM_HOST_OPT_INPUTS=on
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh:29:    VLLM_HOST_OPT_ARENA=on
++ set +x
+
+### exit: 0
