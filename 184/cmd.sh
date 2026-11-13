@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：对比升级前后内核日志里 iluvatar 告警的出现情况，判断是否 SP4 驱动引入。不跑测试。
+# 定位 bench_driver 的所有副本，只给这次 run 用的那份加失败原因落盘（先备份、再语法校验、打印 diff）。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,34 +17,54 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== 1. export_refcount 告警按日统计（升级前 11-12 vs 升级后 11-13）=="
-  journalctl -k --since '2026-11-09' --no-pager 2>/dev/null | grep -c 'export_refcount'
-  echo "--- 按日期 ---"
-  journalctl -k --since '2026-11-09' --no-pager 2>/dev/null | grep 'export_refcount' | awk '{print $1" "$2}' | sort | uniq -c
-  echo "--- 首次出现 ---"
-  journalctl -k --since '2026-11-09' --no-pager 2>/dev/null | grep 'export_refcount' | head -3
-  echo "--- 升级前最后出现（11-12 23:59 之前）---"
-  journalctl -k --until '2026-11-13 00:00' --no-pager 2>/dev/null | grep 'export_refcount' | tail -3
+  T=/home/huawei_ts_program/litehost_perf_opt/bench_driver.py
 
-  echo "== 2. 各次启动以来 iluvatar 相关内核消息（分类计数）=="
-  journalctl -k --since '2026-11-09' --no-pager 2>/dev/null | grep -i iluvatar | sed -E 's/^[A-Za-z]+ [ 0-9]+ [0-9:]+ .*kernel: //' | sed -E 's/[0-9]{6,}/N/g' | sort | uniq -c | sort -rn | head -15
-
-  echo "== 3. 11-13 当天所有内核 warning 以上（去重分类）=="
-  journalctl -k --since '2026-11-13 09:30' --no-pager -p warning 2>/dev/null | sed -E 's/^[A-Za-z]+ [ 0-9]+ [0-9:]+ [^ ]+ kernel: //' | sort | uniq -c | sort -rn | head -15
-
-  echo "== 4. 压测期间是否有其他进程占用 GPU（从 journal 里找）=="
-  journalctl --since '2026-11-13 10:15' --until '2026-11-13 11:40' --no-pager 2>/dev/null | grep -iE 'ixsmi|iluvatar|gpu|ixformer|ptrace|segfault|coredump|killed' | tail -30
-
-  echo "== 5. 4K 驱动构建来源（谁、何时、基于哪份头文件）=="
-  ls -l --time-style=full-iso /lib/modules/6.6.0-159.4.21.175.oe2403sp4.aarch64/updates/ 2>/dev/null
-  dkms status
-  ls -l --time-style=full-iso /var/lib/dkms/corex/5.0.0/*/*/module/ 2>/dev/null | head -10
-
-  echo "== 6. 两个内核的驱动哈希对比 =="
-  for k in 6.6.0-159.4.21.175.oe2403sp4.aarch64 6.6.0-159.4.3.154.oe2403sp4+64k.aarch64; do
-    f=/lib/modules/$k/updates/iluvatar.ko.xz
-    [ -f "$f" ] && { echo -n "$k  "; ls -l "$f" | awk '{print $5" "$6" "$7" "$8}'; xzcat "$f" 2>/dev/null | sha256sum; }
+  echo "== 1. 所有 bench_driver.py 副本 =="
+  find /home -maxdepth 4 -name 'bench_driver.py' 2>/dev/null | while read -r f; do
+    echo "---- $f"
+    ls -l --time-style=long-iso "$f"
+    sha256sum "$f"
   done
+
+  echo "== 2. 各套 toolkit 目录与脚本 =="
+  find /home -maxdepth 3 -name 'lh_common.py' 2>/dev/null | head -10
+  ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite*.sh 2>/dev/null
+
+  echo "== 3. 这次 run 用的那份：end() 现状 =="
+  grep -n "async def end" -A 4 "$T"
+
+  echo "== 4. 服务占用检查（改源码前确认没人正在用这份驱动）=="
+  ps -eo pid,args 2>/dev/null | grep -E 'bench_driver|vllm' | grep -v grep | head -5 || echo "无相关进程"
+
+  echo "== 5. 备份 + 打补丁 =="
+  BAK="$T.bak-failed-errors-$TS"
+  if grep -q 'failed_errors' "$T" 2>/dev/null; then
+    echo "已含 failed_errors，跳过"
+  else
+    cp -a "$T" "$BAK" && echo "backup=$BAK"
+    python3 - "$T" <<'PY'
+import sys
+p = sys.argv[1]
+src = open(p).read()
+old = "        if len(outputs)!=self.case['expected_requests'] or not all(o.success for o in outputs):raise RuntimeError('Formal requests incomplete/failed; no valid H')"
+new = (
+"        if len(outputs)!=self.case['expected_requests'] or not all(o.success for o in outputs):\n"
+"            self.window['failed_errors']=[{'i':i,'error':str(getattr(o,'error',''))[:300]} for i,o in enumerate(outputs) if not o.success][:10]\n"
+"            self.save()\n"
+"            raise RuntimeError('Formal requests incomplete/failed; no valid H')"
+)
+if old not in src:
+    print('PATTERN_NOT_FOUND: 未找到原始判定行，未修改'); sys.exit(3)
+open(p,'w').write(src.replace(old, new, 1))
+print('PATCHED')
+PY
+    echo "patch rc=$?"
+  fi
+
+  echo "== 6. 语法校验与 diff =="
+  python3 -m py_compile "$T" && echo "py_compile OK"
+  diff -u "$BAK" "$T" 2>/dev/null | head -30
+  grep -n "failed_errors" -A 3 "$T" | head -10
 
   # ---- 命令结束 ----
 
