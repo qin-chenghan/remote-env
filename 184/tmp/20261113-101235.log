@@ -1,0 +1,404 @@
+### server: 184
+### host:   controller
+### time:   2026-11-13T02:12:35Z
+
++ echo '== 1. 当前运行内核 =='
+== 1. 当前运行内核 ==
++ uname -a
+Linux controller 6.6.0-159.4.21.175.oe2403sp4.aarch64 #1 SMP Mon Nov  9 19:33:01 CST 2026 aarch64 aarch64 aarch64 GNU/Linux
++ uname -r
+6.6.0-159.4.21.175.oe2403sp4.aarch64
++ getconf PAGE_SIZE
+4096
++ echo '--- 最近重启 ---'
+--- 最近重启 ---
++ last -x reboot
++ head -5
+reboot   system boot  6.6.0-159.4.21.1 Fri Nov 13 09:33   still running
+reboot   system boot  6.6.0-145.3.37.1 Thu Nov 12 10:54 - 09:29  (22:35)
+reboot   system boot  6.6.02403_sp3-64 Thu Nov 12 10:40 - 10:50  (00:09)
+reboot   system boot  6.6.0-145.3.37.1 Thu Nov 12 09:09 - 10:38  (01:28)
+reboot   system boot  6.6.02403_sp3-64 Thu Nov 12 08:54 - 09:04  (00:10)
++ echo '== 2. /lib/modules 与各内核 build 目录 =='
+== 2. /lib/modules 与各内核 build 目录 ==
++ ls -l /lib/modules
+total 36
+drwxr-xr-x. 3 root root 4096 Nov 13 08:53 5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
+drwxr-xr-x. 3 root root 4096 Nov  2 12:15 5.10.0-282.0.0.185.oe2203sp4.aarch64
+drwxr-xr-x. 3 root root 4096 Nov  9 14:42 5.10.0-288.0.0.191.oe2203sp4.aarch64
+drwxr-xr-x. 4 root root 4096 Nov  9 14:42 5.10.0-326.0.0.227.oe2203sp4.aarch64
+drwxr-xr-x. 4 root root 4096 Nov 13 08:51 6.6.0-132.0.0.111.oe2403sp3.aarch64
+drwxr-xr-x. 4 root root 4096 Nov 13 08:51 6.6.0-145.1.28.165.oe2403sp1.aarch64
+drwxr-xr-x. 5 root root 4096 Nov 13 09:36 6.6.0-145.3.37.168.oe2403sp3.aarch64
+drwxr-xr-x. 6 root root 4096 Nov 13 09:19 6.6.0-159.4.21.175.oe2403sp4.aarch64
+drwxr-xr-x. 5 root root 4096 Nov 13 09:42 6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
+++ ls /lib/modules
++ for k in $(ls /lib/modules)
++ echo '---- 5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb'
+---- 5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
++ ls -ld /lib/modules/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb/build
+ls: cannot access '/lib/modules/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb/build': No such file or directory
++ readlink -f /lib/modules/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb/build
+/usr/lib/modules/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb/build
++ ls -ld /lib/modules/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb/updates
+drwxr-xr-x. 2 root root 4096 Nov  2 15:26 /lib/modules/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb/updates
++ find /lib/modules/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb -name 'iluvatar*.ko'
++ head -5
++ for k in $(ls /lib/modules)
++ echo '---- 5.10.0-282.0.0.185.oe2203sp4.aarch64'
+---- 5.10.0-282.0.0.185.oe2203sp4.aarch64
++ ls -ld /lib/modules/5.10.0-282.0.0.185.oe2203sp4.aarch64/build
+ls: cannot access '/lib/modules/5.10.0-282.0.0.185.oe2203sp4.aarch64/build': No such file or directory
++ readlink -f /lib/modules/5.10.0-282.0.0.185.oe2203sp4.aarch64/build
+/usr/lib/modules/5.10.0-282.0.0.185.oe2203sp4.aarch64/build
++ ls -ld /lib/modules/5.10.0-282.0.0.185.oe2203sp4.aarch64/updates
+ls: cannot access '/lib/modules/5.10.0-282.0.0.185.oe2203sp4.aarch64/updates': No such file or directory
++ find /lib/modules/5.10.0-282.0.0.185.oe2203sp4.aarch64 -name 'iluvatar*.ko'
++ head -5
++ for k in $(ls /lib/modules)
++ echo '---- 5.10.0-288.0.0.191.oe2203sp4.aarch64'
+---- 5.10.0-288.0.0.191.oe2203sp4.aarch64
++ ls -ld /lib/modules/5.10.0-288.0.0.191.oe2203sp4.aarch64/build
+ls: cannot access '/lib/modules/5.10.0-288.0.0.191.oe2203sp4.aarch64/build': No such file or directory
++ readlink -f /lib/modules/5.10.0-288.0.0.191.oe2203sp4.aarch64/build
+/usr/lib/modules/5.10.0-288.0.0.191.oe2203sp4.aarch64/build
++ ls -ld /lib/modules/5.10.0-288.0.0.191.oe2203sp4.aarch64/updates
+ls: cannot access '/lib/modules/5.10.0-288.0.0.191.oe2203sp4.aarch64/updates': No such file or directory
++ find /lib/modules/5.10.0-288.0.0.191.oe2203sp4.aarch64 -name 'iluvatar*.ko'
++ head -5
++ for k in $(ls /lib/modules)
++ echo '---- 5.10.0-326.0.0.227.oe2203sp4.aarch64'
+---- 5.10.0-326.0.0.227.oe2203sp4.aarch64
++ ls -ld /lib/modules/5.10.0-326.0.0.227.oe2203sp4.aarch64/build
+ls: cannot access '/lib/modules/5.10.0-326.0.0.227.oe2203sp4.aarch64/build': No such file or directory
++ readlink -f /lib/modules/5.10.0-326.0.0.227.oe2203sp4.aarch64/build
+/usr/lib/modules/5.10.0-326.0.0.227.oe2203sp4.aarch64/build
++ ls -ld /lib/modules/5.10.0-326.0.0.227.oe2203sp4.aarch64/updates
+drwxr-xr-x. 2 root root 4096 Sep 22 16:48 /lib/modules/5.10.0-326.0.0.227.oe2203sp4.aarch64/updates
++ find /lib/modules/5.10.0-326.0.0.227.oe2203sp4.aarch64 -name 'iluvatar*.ko'
++ head -5
++ for k in $(ls /lib/modules)
++ echo '---- 6.6.0-132.0.0.111.oe2403sp3.aarch64'
+---- 6.6.0-132.0.0.111.oe2403sp3.aarch64
++ ls -ld /lib/modules/6.6.0-132.0.0.111.oe2403sp3.aarch64/build
+ls: cannot access '/lib/modules/6.6.0-132.0.0.111.oe2403sp3.aarch64/build': No such file or directory
++ readlink -f /lib/modules/6.6.0-132.0.0.111.oe2403sp3.aarch64/build
+/usr/lib/modules/6.6.0-132.0.0.111.oe2403sp3.aarch64/build
++ ls -ld /lib/modules/6.6.0-132.0.0.111.oe2403sp3.aarch64/updates
+ls: cannot access '/lib/modules/6.6.0-132.0.0.111.oe2403sp3.aarch64/updates': No such file or directory
++ find /lib/modules/6.6.0-132.0.0.111.oe2403sp3.aarch64 -name 'iluvatar*.ko'
++ head -5
++ for k in $(ls /lib/modules)
++ echo '---- 6.6.0-145.1.28.165.oe2403sp1.aarch64'
+---- 6.6.0-145.1.28.165.oe2403sp1.aarch64
++ ls -ld /lib/modules/6.6.0-145.1.28.165.oe2403sp1.aarch64/build
+ls: cannot access '/lib/modules/6.6.0-145.1.28.165.oe2403sp1.aarch64/build': No such file or directory
++ readlink -f /lib/modules/6.6.0-145.1.28.165.oe2403sp1.aarch64/build
+/usr/lib/modules/6.6.0-145.1.28.165.oe2403sp1.aarch64/build
++ ls -ld /lib/modules/6.6.0-145.1.28.165.oe2403sp1.aarch64/updates
+ls: cannot access '/lib/modules/6.6.0-145.1.28.165.oe2403sp1.aarch64/updates': No such file or directory
++ find /lib/modules/6.6.0-145.1.28.165.oe2403sp1.aarch64 -name 'iluvatar*.ko'
++ head -5
++ for k in $(ls /lib/modules)
++ echo '---- 6.6.0-145.3.37.168.oe2403sp3.aarch64'
+---- 6.6.0-145.3.37.168.oe2403sp3.aarch64
++ ls -ld /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/build
+ls: cannot access '/lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/build': No such file or directory
++ readlink -f /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/build
+/usr/lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/build
++ ls -ld /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/updates
+drwxr-xr-x. 2 root root 4096 Nov  9 19:15 /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/updates
++ find /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64 -name 'iluvatar*.ko'
++ head -5
++ for k in $(ls /lib/modules)
++ echo '---- 6.6.0-159.4.21.175.oe2403sp4.aarch64'
+---- 6.6.0-159.4.21.175.oe2403sp4.aarch64
++ ls -ld /lib/modules/6.6.0-159.4.21.175.oe2403sp4.aarch64/build
+lrwxrwxrwx. 1 root root 53 Nov  9 19:40 /lib/modules/6.6.0-159.4.21.175.oe2403sp4.aarch64/build -> /usr/src/kernels/6.6.0-159.4.21.175.oe2403sp4.aarch64
++ readlink -f /lib/modules/6.6.0-159.4.21.175.oe2403sp4.aarch64/build
+/usr/src/kernels/6.6.0-159.4.21.175.oe2403sp4.aarch64
++ ls -ld /lib/modules/6.6.0-159.4.21.175.oe2403sp4.aarch64/updates
+drwxr-xr-x. 2 root root 4096 Nov 13 09:17 /lib/modules/6.6.0-159.4.21.175.oe2403sp4.aarch64/updates
++ head -5
++ find /lib/modules/6.6.0-159.4.21.175.oe2403sp4.aarch64 -name 'iluvatar*.ko'
++ for k in $(ls /lib/modules)
++ echo '---- 6.6.0-159.4.3.154.oe2403sp4+64k.aarch64'
+---- 6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
++ ls -ld /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/build
+lrwxrwxrwx. 1 root root 56 Jun 29 01:53 /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/build -> /usr/src/kernels/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
++ readlink -f /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/build
+/usr/src/kernels/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
++ ls -ld /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/updates
+ls: cannot access '/lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64/updates': No such file or directory
++ find /lib/modules/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64 -name 'iluvatar*.ko'
++ head -5
++ echo '== 3. 内核配置（64K 与 VFIO_MDEV）=='
+== 3. 内核配置（64K 与 VFIO_MDEV）==
+++ ls /lib/modules
++ for k in $(ls /lib/modules)
++ cfg=/boot/config-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
++ '[' -f /boot/config-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb ']'
++ cfg=/lib/modules/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb/config
++ echo '---- 5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb'
+---- 5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb
++ grep -E 'CONFIG_ARM64_(4K|16K|64K)_PAGES|CONFIG_VFIO_MDEV|CONFIG_MODULES' /lib/modules/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb/config
++ head -5
++ for k in $(ls /lib/modules)
++ cfg=/boot/config-5.10.0-282.0.0.185.oe2203sp4.aarch64
++ '[' -f /boot/config-5.10.0-282.0.0.185.oe2203sp4.aarch64 ']'
++ cfg=/lib/modules/5.10.0-282.0.0.185.oe2203sp4.aarch64/config
++ echo '---- 5.10.0-282.0.0.185.oe2203sp4.aarch64'
+---- 5.10.0-282.0.0.185.oe2203sp4.aarch64
++ grep -E 'CONFIG_ARM64_(4K|16K|64K)_PAGES|CONFIG_VFIO_MDEV|CONFIG_MODULES' /lib/modules/5.10.0-282.0.0.185.oe2203sp4.aarch64/config
++ head -5
++ for k in $(ls /lib/modules)
++ cfg=/boot/config-5.10.0-288.0.0.191.oe2203sp4.aarch64
++ '[' -f /boot/config-5.10.0-288.0.0.191.oe2203sp4.aarch64 ']'
++ cfg=/lib/modules/5.10.0-288.0.0.191.oe2203sp4.aarch64/config
++ echo '---- 5.10.0-288.0.0.191.oe2203sp4.aarch64'
+---- 5.10.0-288.0.0.191.oe2203sp4.aarch64
++ grep -E 'CONFIG_ARM64_(4K|16K|64K)_PAGES|CONFIG_VFIO_MDEV|CONFIG_MODULES' /lib/modules/5.10.0-288.0.0.191.oe2203sp4.aarch64/config
++ head -5
++ for k in $(ls /lib/modules)
++ cfg=/boot/config-5.10.0-326.0.0.227.oe2203sp4.aarch64
++ '[' -f /boot/config-5.10.0-326.0.0.227.oe2203sp4.aarch64 ']'
++ cfg=/lib/modules/5.10.0-326.0.0.227.oe2203sp4.aarch64/config
++ echo '---- 5.10.0-326.0.0.227.oe2203sp4.aarch64'
+---- 5.10.0-326.0.0.227.oe2203sp4.aarch64
++ grep -E 'CONFIG_ARM64_(4K|16K|64K)_PAGES|CONFIG_VFIO_MDEV|CONFIG_MODULES' /lib/modules/5.10.0-326.0.0.227.oe2203sp4.aarch64/config
++ head -5
++ for k in $(ls /lib/modules)
++ cfg=/boot/config-6.6.0-132.0.0.111.oe2403sp3.aarch64
++ '[' -f /boot/config-6.6.0-132.0.0.111.oe2403sp3.aarch64 ']'
++ cfg=/lib/modules/6.6.0-132.0.0.111.oe2403sp3.aarch64/config
++ echo '---- 6.6.0-132.0.0.111.oe2403sp3.aarch64'
+---- 6.6.0-132.0.0.111.oe2403sp3.aarch64
++ grep -E 'CONFIG_ARM64_(4K|16K|64K)_PAGES|CONFIG_VFIO_MDEV|CONFIG_MODULES' /lib/modules/6.6.0-132.0.0.111.oe2403sp3.aarch64/config
++ head -5
++ for k in $(ls /lib/modules)
++ cfg=/boot/config-6.6.0-145.1.28.165.oe2403sp1.aarch64
++ '[' -f /boot/config-6.6.0-145.1.28.165.oe2403sp1.aarch64 ']'
++ cfg=/lib/modules/6.6.0-145.1.28.165.oe2403sp1.aarch64/config
++ echo '---- 6.6.0-145.1.28.165.oe2403sp1.aarch64'
+---- 6.6.0-145.1.28.165.oe2403sp1.aarch64
++ grep -E 'CONFIG_ARM64_(4K|16K|64K)_PAGES|CONFIG_VFIO_MDEV|CONFIG_MODULES' /lib/modules/6.6.0-145.1.28.165.oe2403sp1.aarch64/config
++ head -5
++ for k in $(ls /lib/modules)
++ cfg=/boot/config-6.6.0-145.3.37.168.oe2403sp3.aarch64
++ '[' -f /boot/config-6.6.0-145.3.37.168.oe2403sp3.aarch64 ']'
++ cfg=/lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/config
++ echo '---- 6.6.0-145.3.37.168.oe2403sp3.aarch64'
+---- 6.6.0-145.3.37.168.oe2403sp3.aarch64
++ grep -E 'CONFIG_ARM64_(4K|16K|64K)_PAGES|CONFIG_VFIO_MDEV|CONFIG_MODULES' /lib/modules/6.6.0-145.3.37.168.oe2403sp3.aarch64/config
++ head -5
++ for k in $(ls /lib/modules)
++ cfg=/boot/config-6.6.0-159.4.21.175.oe2403sp4.aarch64
++ '[' -f /boot/config-6.6.0-159.4.21.175.oe2403sp4.aarch64 ']'
++ echo '---- 6.6.0-159.4.21.175.oe2403sp4.aarch64'
+---- 6.6.0-159.4.21.175.oe2403sp4.aarch64
++ grep -E 'CONFIG_ARM64_(4K|16K|64K)_PAGES|CONFIG_VFIO_MDEV|CONFIG_MODULES' /boot/config-6.6.0-159.4.21.175.oe2403sp4.aarch64
++ head -5
+CONFIG_ARM64_4K_PAGES=y
+# CONFIG_ARM64_16K_PAGES is not set
+# CONFIG_ARM64_64K_PAGES is not set
+CONFIG_MODULES_USE_ELF_RELA=y
+CONFIG_MODULES=y
++ for k in $(ls /lib/modules)
++ cfg=/boot/config-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
++ '[' -f /boot/config-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64 ']'
++ echo '---- 6.6.0-159.4.3.154.oe2403sp4+64k.aarch64'
+---- 6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
++ grep -E 'CONFIG_ARM64_(4K|16K|64K)_PAGES|CONFIG_VFIO_MDEV|CONFIG_MODULES' /boot/config-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
++ head -5
+# CONFIG_ARM64_4K_PAGES is not set
+# CONFIG_ARM64_16K_PAGES is not set
+CONFIG_ARM64_64K_PAGES=y
+CONFIG_MODULES_USE_ELF_RELA=y
+CONFIG_MODULES=y
++ echo '== 4. grub 启动项 =='
+== 4. grub 启动项 ==
++ grubby --default-kernel
+/boot/vmlinuz-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
++ grubby --info=ALL
++ grep -E '^index|^kernel=|^title'
++ head -30
+index=0
+kernel=/boot/vmlinuz-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
+title=openEuler (6.6.0-159.4.3.154.oe2403sp4+64k.aarch64) 24.03 (LTS-SP4)
+index=1
+kernel=/boot/vmlinuz-6.6.0-159.4.21.175.oe2403sp4.aarch64
+title=openEuler (6.6.0-159.4.21.175.oe2403sp4.aarch64) 24.03 (LTS-SP4)
+index=2
+kernel=/boot/vmlinuz-0-rescue-1167791de91a49c9a9b06b663b3d7e59
+title=openEuler (0-rescue-1167791de91a49c9a9b06b663b3d7e59) 22.03 (LTS-SP4)
+index=3
+index=4
+index=5
++ grub2-editenv list
++ head -5
+saved_entry=openEuler (6.6.0-159.4.3.154.oe2403sp4+64k.aarch64) 24.03 (LTS-SP4)
+boot_success=0
++ echo '== 5. DKMS 与驱动源码 =='
+== 5. DKMS 与驱动源码 ==
++ command -v dkms
+/usr/sbin/dkms
++ dkms --version
+dkms-3.0.12
++ dkms status
++ head -20
+corex/5.0.0, 6.6.0-159.4.21.175.oe2403sp4.aarch64, aarch64: installed
++ ls -la /usr/src/
++ head -10
+total 36
+drwxr-xr-x.  9 root root 4096 Nov 13 09:13 .
+drwxr-xr-x. 15 root root 4096 Nov 13 09:06 ..
+drwxr-xr-x.  5 root root 4096 Nov  9 19:15 corex-5.0.0
+drwxr-xr-x. 10 root root 4096 Nov 13 09:16 debug
+drwxr-xr-x.  4 root root 4096 Nov 13 09:42 kernels
+drwxr-xr-x.  3 root root 4096 Nov  2 12:18 linux-5.10.0-216.0.0.115.oe2203sp4.aarch64
+drwxr-xr-x. 22 root root 4096 Nov  9 14:41 linux-6.6.0-145.1.28.165.oe2403sp1.aarch64
+drwxr-xr-x.  2 root root 4096 Nov 13 09:15 linux-6.6.0-145.3.37.168.oe2403sp3.aarch64
+drwxr-xr-x. 26 root root 4096 Nov 13 09:14 linux-6.6.0-159.4.21.175.oe2403sp4.aarch64
++ ls -la /usr/src/corex-5.0.0
++ head -15
+total 36
+drwxr-xr-x. 5 root root 4096 Nov  9 19:15 .
+drwxr-xr-x. 9 root root 4096 Nov 13 09:13 ..
+-rw-r--r--. 1 root root 1478 Nov  9 19:15 dkms.conf
+-rw-r--r--. 1 root root 1478 Sep 22 16:47 dkms.conf.bak-20261109-191542
+drwxr-xr-x. 4 root root 4096 Sep 22 16:47 itr
+drwxr-xr-x. 2 root root 4096 Sep 22 16:47 itr_fs
+drwxr-xr-x. 2 root root 4096 Sep 22 16:47 itr_peer_mem
+-rw-r--r--. 1 root root  785 Sep 22 16:47 Makefile
+-rw-r--r--. 1 root root  140 Sep 22 16:47 version.h
++ echo '--- dkms.conf 关键项 ---'
+--- dkms.conf 关键项 ---
++ grep -nE '_BUILDOPT|PACKAGE_NAME|PACKAGE_VERSION|MAKE' /usr/src/corex-5.0.0/dkms.conf
++ head -10
+2:PACKAGE_NAME="corex"
+3:PACKAGE_VERSION="5.0.0"
+5:_BUILDOPT="VGPU_ENABLE=0 "
+29:if [ -d "${OFED_SOURCE_DIR}" ] && [ -d /usr/src/corex-${PACKAGE_VERSION}/itr_peer_mem ]; then
+30:EXTRA_BUILD="${EXTRA_BUILD} && KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) itr_peer_mem OFA_KERNEL=${OFED_SOURCE_DIR}"
+39:if [ $? -eq 0 ] && [ -d /usr/src/corex-${PACKAGE_VERSION}/itr_fs ]; then
+40:EXTRA_BUILD="${EXTRA_BUILD} && KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) itr_fs"
+48:MAKE[0]="KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) ${EXTRA_BUILD}"
++ echo '--- cfg.mk 的 VGPU_ENABLE ---'
+--- cfg.mk 的 VGPU_ENABLE ---
++ grep -rn VGPU_ENABLE /usr/src/corex-5.0.0/itr/cfg.mk
++ head -5
+7:# VGPU_ENABLE support 1(enable) 0(disable)
+8:VGPU_ENABLE 		?= 0
+45:export PG_MODE VGPU_ENABLE MEM_CHECK SKIP_LICENSE VGPU_LOG_DEFAULT CC RM DISABLE_UVA FW_CHECK ENABLE_32_CARD TOOL_VDEV_CNT_DBG UMVA_ENABLE USER_MODE_RING_ENABLE SPECTRE_V2_RETPOLINE CODEC_ENABLE JPU_ENABLE P2P_ENABLE SMB_ENABLE
++ echo '--- /var/lib/dkms ---'
+--- /var/lib/dkms ---
++ ls -la /var/lib/dkms/corex
++ head -15
+total 12
+drwxr-xr-x. 3 root root 4096 Nov 13 09:17 .
+drwxr-xr-x. 3 root root 4096 Jul 10 20:56 ..
+drwxr-xr-x. 6 root root 4096 Nov 13 09:17 5.0.0
+lrwxrwxrwx. 1 root root   55 Nov  2 15:26 kernel-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb-aarch64 -> 5.0.0/5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb/aarch64
+lrwxrwxrwx. 1 root root   50 Sep 22 16:48 kernel-5.10.0-326.0.0.227.oe2203sp4.aarch64-aarch64 -> 5.0.0/5.10.0-326.0.0.227.oe2203sp4.aarch64/aarch64
+lrwxrwxrwx. 1 root root   50 Nov  9 19:15 kernel-6.6.0-145.3.37.168.oe2403sp3.aarch64-aarch64 -> 5.0.0/6.6.0-145.3.37.168.oe2403sp3.aarch64/aarch64
+lrwxrwxrwx. 1 root root   50 Nov 13 09:17 kernel-6.6.0-159.4.21.175.oe2403sp4.aarch64-aarch64 -> 5.0.0/6.6.0-159.4.21.175.oe2403sp4.aarch64/aarch64
++ find /var/lib/dkms/corex -maxdepth 3 -name '*.ko'
++ head -10
++ echo '== 6. 已装模块与 vermagic =='
+== 6. 已装模块与 vermagic ==
+++ find /lib/modules -name iluvatar.ko
++ echo '== 7. 运行时状态 =='
+== 7. 运行时状态 ==
++ lsmod
++ grep -i iluvatar
+iluvatar             1675264  0
++ head -10
++ ls -l /dev/iluvatar0 /dev/iluvatar1 /dev/iluvatar2 /dev/iluvatar3
+crw-rw-rw-. 1 root root 237, 0 Nov 13 09:33 /dev/iluvatar0
+crw-rw-rw-. 1 root root 237, 1 Nov 13 09:33 /dev/iluvatar1
+crw-rw-rw-. 1 root root 237, 2 Nov 13 09:33 /dev/iluvatar2
+crw-rw-rw-. 1 root root 237, 3 Nov 13 09:33 /dev/iluvatar3
++ ls -l /etc/modules-load.d/
++ head -5
+total 4
+-rw-r--r--. 1 root root 9 Sep 22 16:48 iluvatar.conf
++ /usr/local/corex-5.0.0/bin/ixsmi
++ head -12
+Timestamp    Fri Nov 13 10:12:36 2026
++--------------------------------------------------------------------------------+
+|  IX-ML: 5.0.0            Driver Version: 5.0.0          CUDA Version: 10.2     |
+|----------------------------------+----------------------+----------------------|
+| GPU  Name                        | Bus-Id               | Clock-SM  Clock-Mem  |
+| Fan  Temp  Perf    Pwr:Usage/Cap |      Memory-Usage    | GPU-Util  Compute M. |
+|==================================+======================+======================|
+| 0    Iluvatar BI-V150            | 00000000:45:00.0     | 1500MHz   1600MHz    |
+| N/A  40C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 1    Iluvatar BI-V150            | 00000000:48:00.0     | 1500MHz   1600MHz    |
+| N/A  41C   P0       101W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
++ grep -iE 'iluvatar|corex|vermagic'
++ dmesg -T
++ tail -15
+[Fri Nov 13 09:33:03 2026] systemd[1]: Created slice Slice /system/iluvatarcorex-init.
+[Fri Nov 13 09:33:03 2026] iluvatar: loading out-of-tree module taints kernel.
+[Fri Nov 13 09:33:03 2026] iluvatar: module verification failed: signature and/or required key missing - tainting kernel
+[Fri Nov 13 09:33:03 2026] iluvatar 0000:45:00.0: enabling device (0140 -> 0142)
+[Fri Nov 13 09:33:04 2026] iluvatar 0000:45:00.0: DEV-0 is okay.
+[Fri Nov 13 09:33:04 2026] iluvatar 0000:48:00.0: enabling device (0140 -> 0142)
+[Fri Nov 13 09:33:05 2026] iluvatar 0000:48:00.0: DEV-1 is okay.
+[Fri Nov 13 09:33:05 2026] iluvatar 0000:af:00.0: enabling device (0140 -> 0142)
+[Fri Nov 13 09:33:05 2026] iluvatar 0000:af:00.0: DEV-2 is okay.
+[Fri Nov 13 09:33:05 2026] iluvatar 0000:b2:00.0: enabling device (0140 -> 0142)
+[Fri Nov 13 09:33:06 2026] iluvatar 0000:b2:00.0: DEV-3 is okay.
++ echo '== 8. 驱动安装包与工具链 =='
+== 8. 驱动安装包与工具链 ==
++ head -5
++ ls -l '/home/qch/transfer/corex-driver-*aarch64*.run' '/home/qch/transfer/corex-driver*.run'
++ find /home /tmp -maxdepth 3 -name iluvatar.ko -newermt '-30 days'
++ head -5
++ gcc --version
++ head -1
+gcc (GCC) 12.3.1 (openEuler 12.3.1-111.oe2403sp3)
++ make --version
++ head -1
+GNU Make 4.4.1
++ echo '== 9. rpm 库与内核包 =='
+== 9. rpm 库与内核包 ==
++ rpm -qa 'kernel*'
++ sort
+error: rpmdbNextIterator: skipping h#    1259 tag[0]: BAD, tag 100 type 6 offset 0 count 1 len 0
+error: rpmdbNextIterator: skipping h#    1280 tag[0]: BAD, tag 100 type 6 offset 0 count 1 len 0
+kernel-64k-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
+kernel-64k-devel-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
+kernel-6.6.0-159.4.21.175.oe2403sp4.aarch64
+kernel-devel-6.6.0-159.4.21.175.oe2403sp4.aarch64
+kernel-headers-6.6.0-159.4.3.154.oe2403sp4.aarch64
+kernel-source-6.6.0-159.4.21.175.oe2403sp4.aarch64
+kernel-tools-6.6.0-159.4.21.175.oe2403sp4.aarch64
++ echo '--- rpmdb 健康状况 ---'
+--- rpmdb 健康状况 ---
++ rpm -qa
++ grep -c 'skipping h#' /tmp/rpmdb-err.txt
+2
++ head -5 /tmp/rpmdb-err.txt
+error: rpmdbNextIterator: skipping h#    1259 tag[0]: BAD, tag 100 type 6 offset 0 count 1 len 0
+error: rpmdbNextIterator: skipping h#    1280 tag[0]: BAD, tag 100 type 6 offset 0 count 1 len 0
++ ls -la /var/lib/rpm/
++ head -8
+total 138456
+drwxr-xr-x.  2 root root     4096 Nov  9 19:53 .
+drwxr-xr-x. 58 root root     4096 Jun 13 18:11 ..
+-rw-r--r--.  1 root root 51175424 Nov 13 09:42 Index.db
+-rw-r--r--.  1 root root 90585536 Nov 13 09:42 Packages.db
+-rw-r--r--.  1 root root        0 Mar  6  2025 .rpm.lock
++ echo '== 10. 空间 =='
+== 10. 空间 ==
++ df -h / /home /tmp
++ tail -4
+Filesystem                    Size  Used Avail Use% Mounted on
+/dev/mapper/openeuler00-root  875G  305G  534G  37% /
+/dev/nvme0n1p6                6.9T  4.2T  2.5T  63% /home
+tmpfs                         504G  484K  504G   1% /tmp
++ set +x
+
+### exit: 0
