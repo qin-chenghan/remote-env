@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 用 101902 run 已有的 7 个有效 case 重新聚合 TSHG（summary.csv + host_summary）。不跑 GPU。
+# 排查聚合失败：看 analyze_litehost 判定逻辑与 case.json 字段，并用实体拷贝重试。不跑 GPU。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -22,41 +22,42 @@ mkdir -p "$DIR/tmp"
   V=/opt/corex311-cpython-vllm
   HT=/home/huawei_ts_program/litehost_perf_opt
   PY=$V/bin/python
-  dex() { timeout 300 docker exec "$C" bash -c "$1"; }
   ENV="env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u VLLM_TORCH_PROFILER_DIR"
+  dex() { timeout 300 docker exec "$C" bash -c "$1"; }
 
-  echo "== 1. 前置 =="
-  dex "ls -l $HT/lhctl.py $HT/analyze_litehost.py; $PY -c 'import sys;print(sys.base_prefix)'"
-  dex "ls -d $P/litehost/*/ | wc -l; for d in $P/litehost/*/; do printf '%s  ' \$(basename \$d); ls \$d | grep -c 'rank[0-9]_pid' ; done"
+  echo "== 1. 工具里这条报错的判定逻辑 =="
+  dex "grep -n 'No new-format case.json' -B 20 -A 10 $HT/analyze_litehost.py"
 
-  echo "== 2. 备份现有 summary.csv =="
-  dex "cp -a $P/summary.csv $P/summary.csv.bak-agg-$TS && ls -l $P/summary.csv*"
+  echo "== 2. 有效 case 的 case.json / window.json 字段 =="
+  dex "python3 - <<'PY'
+import json,glob
+for d in sorted(glob.glob('$P/litehost/*/')):
+    try:
+        c=json.load(open(d+'case.json'))
+        w=json.load(open(d+'window.json'))
+    except Exception as e:
+        print(d,'ERR',e); continue
+    print(d.split('/')[-2], '| case keys:', sorted(c)[:8], '| status:', c.get('status'), '| window status:', w.get('status'), '| keys:', sorted(w)[:8])
+PY"
 
-  echo "== 3. 重新生成 summary.csv =="
-  dex "cd $P && $ENV $PY $HT/lhctl.py summary $P > $P/logs/summary_build_7case.log 2>&1; echo rc=\$?; tail -5 $P/logs/summary_build_7case.log"
-  dex "cat $P/summary.csv"
+  echo "== 3. 用实体拷贝重试（不用软链）=="
+  dex "rm -rf /tmp/lh7c && mkdir -p /tmp/lh7c
+    for d in $P/litehost/*/; do
+      n=\$(basename \$d)
+      ls \$d | grep -q 'rank0_pid' && cp -a \$d /tmp/lh7c/\$n
+    done
+    du -sh /tmp/lh7c; ls /tmp/lh7c"
+  dex "cd /tmp/lh7c && $ENV $PY $HT/analyze_litehost.py /tmp/lh7c --link-percent 0 --out /tmp/lh7c_out --quiet > /tmp/lh7c.log 2>&1; echo rc=\$?; tail -20 /tmp/lh7c.log"
+  dex "ls -l /tmp/lh7c_out 2>&1; head -5 /tmp/lh7c_out/four_rank_totals.csv 2>&1"
 
-  echo "== 4. 先按全目录聚合（失败的 case 缺 rank 数据，可能报错）=="
-  dex "cd $P && $ENV $PY $HT/analyze_litehost.py $P/litehost --link-percent 0 --out $P/host_summary --quiet > $P/logs/analyze_7case.log 2>&1; echo rc=\$?; tail -15 $P/logs/analyze_7case.log"
-
-  echo "== 5. 若失败，用只含有效 case 的临时目录再聚合 =="
-  dex "if [ ! -f $P/host_summary/four_rank_totals.csv ]; then
-      rm -rf /tmp/lh7 && mkdir -p /tmp/lh7
-      for d in $P/litehost/*/; do
-        n=\$(basename \$d)
-        if ls \$d | grep -q 'rank0_pid'; then ln -s \$d /tmp/lh7/\$n; fi
-      done
-      ls /tmp/lh7
-      cd $P && $ENV $PY $HT/analyze_litehost.py /tmp/lh7 --link-percent 0 --out $P/host_summary --quiet > $P/logs/analyze_7case.log 2>&1
+  echo "== 4. 若仍失败，看单 case 直接分析的结果 =="
+  dex "if [ ! -f /tmp/lh7c_out/four_rank_totals.csv ]; then
+      D=$P/litehost/bs8_in128_out128
+      rm -rf /tmp/lh1 && mkdir -p /tmp/lh1 && cp -a \$D /tmp/lh1/
+      $ENV $PY $HT/analyze_litehost.py /tmp/lh1 --link-percent 0 --out /tmp/lh1_out --quiet 2>&1 | tail -20
       echo rc=\$?
-      tail -15 $P/logs/analyze_7case.log
-    else echo '全目录聚合已成功，无需临时目录'; fi"
-
-  echo "== 6. 产物 =="
-  dex "ls -l $P/host_summary 2>&1"
-  dex "echo '--- four_rank_totals.csv ---'; cat $P/host_summary/four_rank_totals.csv 2>&1 | head -5"
-  dex "echo '--- report.txt 前 40 行 ---'; head -40 $P/host_summary/report.txt 2>&1"
-  dex "echo '--- per_rank.csv 前 3 行 ---'; head -3 $P/host_summary/per_rank.csv 2>&1"
+      ls -l /tmp/lh1_out 2>&1
+    else echo '拷贝目录聚合成功'; fi"
 
   # ---- 命令结束 ----
 
