@@ -1,0 +1,132 @@
+### server: 184
+### host:   controller
+### time:   2026-11-13T06:46:11Z
+
++ C=corex5-py311
++ P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902
++ V=/opt/corex311-cpython-vllm
++ HT=/home/huawei_ts_program/litehost_perf_opt
++ PY=/opt/corex311-cpython-vllm/bin/python
++ ENV='env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u VLLM_TORCH_PROFILER_DIR'
++ echo '== 1. 工具里这条报错的判定逻辑 =='
+== 1. 工具里这条报错的判定逻辑 ==
++ dex 'grep -n '\''No new-format case.json'\'' -B 20 -A 10 /home/huawei_ts_program/litehost_perf_opt/analyze_litehost.py'
++ timeout 300 docker exec corex5-py311 bash -c 'grep -n '\''No new-format case.json'\'' -B 20 -A 10 /home/huawei_ts_program/litehost_perf_opt/analyze_litehost.py'
+83-            # into graph_formal and no_graph_formal without a new attribution rule.
+84-            result['G_total_s']=gap_ns/1e9 if group=='all_formal' else None
+85-            result['H_plus_G_total_s']=(result['H_total_s']+gap_ns/1e9) if group=='all_formal' else None
+86-            ranks.append({'case_id':case['case_id'],'run_id':case['run_id'],'rank':m['rank'],'pid':m['pid'],'group':group,'link_percent':p,'warmup_excluded':m['warmup_excluded'],**result})
+87-    # Same TP execution sequence is expected; reject rather than hide incompleteness.
+88-    if any(x!=signatures[0] for x in signatures[1:]):raise ValueError('TP scope/graph sequences differ; inspect before averaging')
+89-    means=[]
+90-    for group in GROUPS:
+91-        rs=[x for x in ranks if x['group']==group]
+92-        means.append({'case_id':case['case_id'],'run_id':case['run_id'],'group':group,'link_percent':p,'ranks':4,'formal_scopes_per_rank':rs[0]['iterations'],'four_rank_mean_T_total_s':statistics.mean(x['T_total_s'] for x in rs),'four_rank_mean_S_total_s':statistics.mean(x['S_total_s'] for x in rs),'four_rank_mean_total_H_s':statistics.mean(x['H_total_s'] for x in rs),'four_rank_mean_G_total_s':statistics.mean(x['G_total_s'] for x in rs) if group=='all_formal' else None,'four_rank_mean_H_plus_G_total_s':statistics.mean(x['H_plus_G_total_s'] for x in rs) if group=='all_formal' else None,'min_rank_total_H_s':min(x['H_total_s'] for x in rs),'max_rank_total_H_s':max(x['H_total_s'] for x in rs)})
+93-    return {'case_id':case['case_id'],'run_id':case['run_id'],'per_rank':ranks,'four_rank':means}
+94-
+95-def write_csv(path,rows):
+96-    with Path(path).open('w',newline='') as f:
+97-        if rows:w=csv.DictWriter(f,fieldnames=list(rows[0]));w.writeheader();w.writerows(rows)
+98-
+99-def analyze(path,out,p=0,print_report=True):
+100-    if not math.isfinite(p) or not 0<=p<=100:raise ValueError('link-percent must be in [0,100]')
+101-    path=Path(path).resolve();out=Path(out).resolve()
+102-    dirs=[path] if (path/'case.json').is_file() else sorted(x.parent for x in path.rglob('case.json'))
+103:    if not dirs:raise ValueError('No new-format case.json; legacy CSV does not identify warmup boundaries')
+104-    data=[case_report(d,p) for d in dirs]
+105-    if len({d['run_id'] for d in data})!=len(data):raise ValueError('Duplicate run ID')
+106-    out.mkdir(parents=True,exist_ok=True);ranks=[r for d in data for r in d['per_rank']];means=[r for d in data for r in d['four_rank']]
+107-    write_csv(out/'per_rank.csv',ranks);write_csv(out/'four_rank_totals.csv',means)
+108-    lines=[f'H = T - S + S * {p:g}/100. Formal scopes only. Unit = SECONDS.',
+109-           'G = sum(start_next - end_current) across adjacent formal scopes on EACH rank.',
+110-           'H+G = H_total + G_total (gap wall time included; sync/idle within G NOT removed).',
+111-           'Primary H remains unchanged; four-rank means are TOTAL seconds, NOT per iteration or instance latency.','']
+112-    for d in data:
+113-        lines.append('CASE: '+d['case_id']+'  run_id='+d['run_id'])
++ echo '== 2. 有效 case 的 case.json / window.json 字段 =='
+== 2. 有效 case 的 case.json / window.json 字段 ==
++ dex 'python3 - <<'\''PY'\''
+import json,glob
+for d in sorted(glob.glob('\''/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/*/'\'')):
+    try:
+        c=json.load(open(d+'\''case.json'\''))
+        w=json.load(open(d+'\''window.json'\''))
+    except Exception as e:
+        print(d,'\''ERR'\'',e); continue
+    print(d.split('\''/'\'')[-2], '\''| case keys:'\'', sorted(c)[:8], '\''| status:'\'', c.get('\''status'\''), '\''| window status:'\'', w.get('\''status'\''), '\''| keys:'\'', sorted(w)[:8])
+PY'
++ timeout 300 docker exec corex5-py311 bash -c 'python3 - <<'\''PY'\''
+import json,glob
+for d in sorted(glob.glob('\''/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/*/'\'')):
+    try:
+        c=json.load(open(d+'\''case.json'\''))
+        w=json.load(open(d+'\''window.json'\''))
+    except Exception as e:
+        print(d,'\''ERR'\'',e); continue
+    print(d.split('\''/'\'')[-2], '\''| case keys:'\'', sorted(c)[:8], '\''| status:'\'', c.get('\''status'\''), '\''| window status:'\'', w.get('\''status'\''), '\''| keys:'\'', sorted(w)[:8])
+PY'
+bs8_in1024_out1024 | case keys: ['case_id', 'expected_requests', 'input_len', 'native_hash', 'output_len', 'prepare_acks', 'run_id', 'session_id'] | status: complete | window status: complete | keys: ['arm_acks', 'benchmark_duration_s', 'benchmark_source_sha256', 'case_id', 'failed', 'finalize_acks', 'main_end_ns', 'main_start_ns']
+bs8_in1024_out128 | case keys: ['case_id', 'expected_requests', 'input_len', 'native_hash', 'output_len', 'prepare_acks', 'run_id', 'session_id'] | status: complete | window status: complete | keys: ['arm_acks', 'benchmark_duration_s', 'benchmark_source_sha256', 'case_id', 'failed', 'finalize_acks', 'main_end_ns', 'main_start_ns']
+bs8_in1024_out2048 | case keys: ['case_id', 'expected_requests', 'input_len', 'native_hash', 'output_len', 'prepare_acks', 'run_id', 'session_id'] | status: complete | window status: complete | keys: ['arm_acks', 'benchmark_duration_s', 'benchmark_source_sha256', 'case_id', 'failed', 'finalize_acks', 'main_end_ns', 'main_start_ns']
+bs8_in128_out1024 | case keys: ['case_id', 'expected_requests', 'input_len', 'native_hash', 'output_len', 'prepare_acks', 'run_id', 'session_id'] | status: complete | window status: complete | keys: ['arm_acks', 'benchmark_duration_s', 'benchmark_source_sha256', 'case_id', 'failed', 'finalize_acks', 'main_end_ns', 'main_start_ns']
+bs8_in128_out128 | case keys: ['case_id', 'expected_requests', 'input_len', 'native_hash', 'output_len', 'prepare_acks', 'run_id', 'session_id'] | status: complete | window status: complete | keys: ['arm_acks', 'benchmark_duration_s', 'benchmark_source_sha256', 'case_id', 'failed', 'finalize_acks', 'main_end_ns', 'main_start_ns']
+bs8_in128_out2048 | case keys: ['case_id', 'expected_requests', 'input_len', 'native_hash', 'output_len', 'prepare_acks', 'run_id', 'session_id'] | status: complete | window status: complete | keys: ['arm_acks', 'benchmark_duration_s', 'benchmark_source_sha256', 'case_id', 'failed', 'finalize_acks', 'main_end_ns', 'main_start_ns']
+bs8_in2048_out1024 | case keys: ['case_id', 'expected_requests', 'input_len', 'native_hash', 'output_len', 'prepare_acks', 'run_id', 'session_id'] | status: prepared | window status: failed | keys: ['arm_acks', 'benchmark_duration_s', 'benchmark_source_sha256', 'case_id', 'error', 'failed', 'main_end_ns', 'main_start_ns']
+bs8_in2048_out128 | case keys: ['case_id', 'expected_requests', 'input_len', 'native_hash', 'output_len', 'prepare_acks', 'run_id', 'session_id'] | status: complete | window status: complete | keys: ['arm_acks', 'benchmark_duration_s', 'benchmark_source_sha256', 'case_id', 'failed', 'finalize_acks', 'main_end_ns', 'main_start_ns']
++ echo '== 3. 用实体拷贝重试（不用软链）=='
+== 3. 用实体拷贝重试（不用软链）==
++ dex 'rm -rf /tmp/lh7c && mkdir -p /tmp/lh7c
+    for d in /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/*/; do
+      n=$(basename $d)
+      ls $d | grep -q '\''rank0_pid'\'' && cp -a $d /tmp/lh7c/$n
+    done
+    du -sh /tmp/lh7c; ls /tmp/lh7c'
++ timeout 300 docker exec corex5-py311 bash -c 'rm -rf /tmp/lh7c && mkdir -p /tmp/lh7c
+    for d in /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/*/; do
+      n=$(basename $d)
+      ls $d | grep -q '\''rank0_pid'\'' && cp -a $d /tmp/lh7c/$n
+    done
+    du -sh /tmp/lh7c; ls /tmp/lh7c'
+82M	/tmp/lh7c
+bs8_in1024_out1024
+bs8_in1024_out128
+bs8_in1024_out2048
+bs8_in128_out1024
+bs8_in128_out128
+bs8_in128_out2048
+bs8_in2048_out128
++ dex 'cd /tmp/lh7c && env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u VLLM_TORCH_PROFILER_DIR /opt/corex311-cpython-vllm/bin/python /home/huawei_ts_program/litehost_perf_opt/analyze_litehost.py /tmp/lh7c --link-percent 0 --out /tmp/lh7c_out --quiet > /tmp/lh7c.log 2>&1; echo rc=$?; tail -20 /tmp/lh7c.log'
++ timeout 300 docker exec corex5-py311 bash -c 'cd /tmp/lh7c && env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u VLLM_TORCH_PROFILER_DIR /opt/corex311-cpython-vllm/bin/python /home/huawei_ts_program/litehost_perf_opt/analyze_litehost.py /tmp/lh7c --link-percent 0 --out /tmp/lh7c_out --quiet > /tmp/lh7c.log 2>&1; echo rc=$?; tail -20 /tmp/lh7c.log'
+rc=0
++ dex 'ls -l /tmp/lh7c_out 2>&1; head -5 /tmp/lh7c_out/four_rank_totals.csv 2>&1'
++ timeout 300 docker exec corex5-py311 bash -c 'ls -l /tmp/lh7c_out 2>&1; head -5 /tmp/lh7c_out/four_rank_totals.csv 2>&1'
+total 96
+-rw-r--r--. 1 root root  3409 Nov 13 14:46 four_rank_totals.csv
+-rw-r--r--. 1 root root 14993 Nov 13 14:46 per_rank.csv
+-rw-r--r--. 1 root root  6940 Nov 13 14:46 report.txt
+-rw-------. 1 root root 68826 Nov 13 14:46 summary.json
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in1024_out1024,da7e2744e8944942a0adacb331410355,all_formal,0.0,4,13342,511.41620184,491.56695539,19.84924645,9.3914711375,29.2407175875,18.97013213,20.22912003
+bs8_in1024_out1024,da7e2744e8944942a0adacb331410355,graph_formal,0.0,4,13249,493.1220293175,477.03885584249997,16.083173475,,,15.30776554,16.55249652
+bs8_in1024_out1024,da7e2744e8944942a0adacb331410355,no_graph_formal,0.0,4,93,18.2941725225,14.5280995475,3.766072975,,,3.66236659,3.86505195
+bs8_in1024_out128,bccdf20c102b455ba7ce938247a4f2e0,all_formal,0.0,4,1694,80.687429935,74.98317176,5.704258175,1.2198232475,6.9240814225000005,5.49961706,5.90923929
++ echo '== 4. 若仍失败，看单 case 直接分析的结果 =='
+== 4. 若仍失败，看单 case 直接分析的结果 ==
++ dex 'if [ ! -f /tmp/lh7c_out/four_rank_totals.csv ]; then
+      D=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in128_out128
+      rm -rf /tmp/lh1 && mkdir -p /tmp/lh1 && cp -a $D /tmp/lh1/
+      env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u VLLM_TORCH_PROFILER_DIR /opt/corex311-cpython-vllm/bin/python /home/huawei_ts_program/litehost_perf_opt/analyze_litehost.py /tmp/lh1 --link-percent 0 --out /tmp/lh1_out --quiet 2>&1 | tail -20
+      echo rc=$?
+      ls -l /tmp/lh1_out 2>&1
+    else echo '\''拷贝目录聚合成功'\''; fi'
++ timeout 300 docker exec corex5-py311 bash -c 'if [ ! -f /tmp/lh7c_out/four_rank_totals.csv ]; then
+      D=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/litehost/bs8_in128_out128
+      rm -rf /tmp/lh1 && mkdir -p /tmp/lh1 && cp -a $D /tmp/lh1/
+      env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u VLLM_TORCH_PROFILER_DIR /opt/corex311-cpython-vllm/bin/python /home/huawei_ts_program/litehost_perf_opt/analyze_litehost.py /tmp/lh1 --link-percent 0 --out /tmp/lh1_out --quiet 2>&1 | tail -20
+      echo rc=$?
+      ls -l /tmp/lh1_out 2>&1
+    else echo '\''拷贝目录聚合成功'\''; fi'
+拷贝目录聚合成功
++ set +x
+
+### exit: 0
