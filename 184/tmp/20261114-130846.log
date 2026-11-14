@@ -1,0 +1,62 @@
+### server: 184
+### host:   controller
+### time:   2026-11-14T05:08:46Z
+
++ S=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ BAK=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-compact-20261114-130846
++ echo '== 1. 占用检查 =='
+== 1. 占用检查 ==
++ ps -eo pid,args
++ grep -E 'vllm|bench_driver|vllmBench_lite'
++ grep -v grep
++ head -5
++ echo 无相关进程
+无相关进程
++ echo '== 2. 备份 =='
+== 2. 备份 ==
++ cp -a /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-compact-20261114-130846
++ ls -l /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-compact-20261114-130846
+-rwxr-xr-x. 1 root root 14057 Nov 14 12:59 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-compact-20261114-130846
++ echo '== 3. 修改 =='
+== 3. 修改 ==
++ python3 - /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+['compilation-config 已加入 compact_greedy', '已移除两个无效 env']
++ echo 'patch rc=0'
+patch rc=0
++ echo '== 4. 语法检查与 diff =='
+== 4. 语法检查与 diff ==
++ bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ echo 'bash -n OK'
+bash -n OK
++ diff -u /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-compact-20261114-130846 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ head -40
+--- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh.bak-compact-20261114-130846	2026-11-14 12:59:53.490988440 +0800
++++ /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh	2026-11-14 13:08:47.090988440 +0800
+@@ -30,8 +30,6 @@
+     VLLM_HOST_OPT_BOOKKEEPING=on
+     VLLM_HOST_OPT_METADATA=on
+     VLLM_HOST_OPT_DIAGNOSTICS=0
+-    VLLM_COMPACT_GREEDY=on
+-    VLLM_COMPACT_GREEDY_DIAGNOSTICS=0
+     TORCH_MODULE_ATTR_FASTPATH=slot_native
+ )
+ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+@@ -85,7 +83,7 @@
+     --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1
+     --tensor_parallel_size "$GPUS_PER_INSTANCE" --data_parallel_size 1
+     --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto
+-    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}'
++    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "compact_greedy":true, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}'
+     --async-scheduling --no-enable-prefix-caching
+ )
+ [[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
++ echo '== 5. 确认关键行 =='
+== 5. 确认关键行 ==
++ grep -n compilation-config /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+86:    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "compact_greedy":true, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}'
++ grep -n 'VLLM_COMPACT_GREEDY\|VLLM_HOST_OPT_METADATA\|VLLM_HOST_OPT=' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+27:    VLLM_HOST_OPT=on
+31:    VLLM_HOST_OPT_METADATA=on
++ set +x
+
+### exit: 0
