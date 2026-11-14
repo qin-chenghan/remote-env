@@ -1,0 +1,305 @@
+### server: 184
+### host:   controller
+### time:   2026-11-14T05:54:07Z
+
++ echo '== 1. 所有 vllmBench 目录 =='
+== 1. 所有 vllmBench 目录 ==
++ find /home /usr/local -maxdepth 6 -type d -name vllmBench
++ head -10
+/home/qch/scripts/vllmBench
+/home/qch/scripts/litehost_perf/vllmBench
+/home/qch/pmu_litehost_runs/vllmBench
+/home/c00986490/vllmBench
+/home/z30059427/cinderx-callinline-ab-20261019/vllmBench
+/home/z30059427/litehost_perf_py312/vllmBench
+/home/z30059427/vllmBench
+/home/z30059427/litehost_perf/vllmBench
+/home/z30059427/cinderx-v1-evaluator-split-20261016/vllmBench
+/home/g30061491/vllmBench
++ echo '== 2. 名字带 4k/64k 的目录 =='
+== 2. 名字带 4k/64k 的目录 ==
++ find /home /usr/local -maxdepth 6 -type d '(' -iname '*4k*' -o -iname '*64k*' ')'
++ head -30
+/home/l30029702/24.03-SP3/64k
+/home/qch/scripts/timeline/4k
+/home/qch/scripts/timeline/64k
+/home/qch/scripts/timeline/4k2
+/home/qch/scripts/timeline/64k2
+/home/lw/20261104-64k
+/home/cht/AgentBench/logs_swe/astropy__astropy-12907-glm45-sccs-t2-1204k
+/home/cht/AgentBench/logs_swe/12907-glm-origin/astropy__astropy-12907-glm45-origin-t2-444k
+/home/cht/AgentBench/logs_swe/12907-glm-sccs/astropy__astropy-12907-glm45-sccs-2000-t4-194k
+/home/cht/AgentBench/logs_swe/12907-glm-sccs/astropy__astropy-12907-glm45-sccs-2000-t1-624k
+/home/docker/volumes/supabase_db_local/_data/pg_replslot/cainophile_u7l94kh5
+/home/docker/overlay2/py4kf0ilk6jabj39dih1809sw
+/home/docker/overlay2/pqukyxo6621i8qrvwktlz3r4k
+/home/docker/overlay2/259b5cbb32bab4690e1ec9d9e6867fd313f2ab5b363d3d107760edc66c504c7d/diff/tmp/tmp144k2nnn
+/home/docker/overlay2/259b5cbb32bab4690e1ec9d9e6867fd313f2ab5b363d3d107760edc66c504c7d/diff/tmp/tmpoawa64ke
+/home/docker/overlay2/1bz84f51tz9ehrm66c6ixj0hh/diff/archive-v0/bR4j08r6h1M4krQ1g_Al0
+/home/docker/overlay2/1bz84f51tz9ehrm66c6ixj0hh/diff/archive-v0/O4KBRlRk5U9jTPIT474Wg
+/home/docker/overlay2/sy14kelxjiynzj8jkoy0o3udl
+/home/docker/overlay2/umxrgsx40m5amu5iy9drgl4kb
+/home/docker/overlay2/nis782nfed950cf118dg44k5i
+/home/docker/overlay2/ek4k567ch9s357dde0p32e7u9
+/home/docker/overlay2/u44k7hr0jkk1zzbwouzkvc3w1
+/home/docker/overlay2/kmg7uw2wdbh4lvlit4ksa9cv5
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/4k
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/64k
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2
+/home/20250904_bak_zxh/zj_microarchitecture_test/disk_test/smmu-on-4kkernel-test
+/home/s00806700/BiShengCompiler-5.3.0-aarch64-linux/bin/jemalloc-64kbpage
+/home/s00806700/BiShengCompiler-5.3.0-aarch64-linux/bin/jemalloc-4kbpage
++ echo '== 3. litehost_perf_opt 下的 vllmBench 列表 =='
+== 3. litehost_perf_opt 下的 vllmBench 列表 ==
++ ls -lat --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ head -15
+total 124
+drwxr-xr-x.  6 root root 4096 2026-11-14 13:44 4k2
+drwxr-xr-x. 31 root root 4096 2026-11-14 13:41 .
+drwxr-xr-x.  6 root root 4096 2026-11-14 13:36 64k2
+drwxr-xr-x.  6 root root 4096 2026-11-14 13:34 64k
+drwxr-xr-x.  6 root root 4096 2026-11-14 13:14 4k
+drwxr-xr-x.  6 root root 4096 2026-11-14 13:11 ..
+drwxr-xr-x.  3 root root 4096 2026-11-13 14:13 probe_140952
+drwxr-xr-x.  6 root root 4096 2026-11-06 19:08 litehost_gap_20261106_172326
+drwxr-xr-x.  6 root root 4096 2026-11-06 16:20 litehost_gap_20261106_142706
+drwxr-xr-x.  6 root root 4096 2026-11-06 10:05 litehost_gap_20261106_100311
+drwxr-xr-x.  6 root root 4096 2026-11-05 22:01 litehost_gap_20261105_201703
+drwxr-xr-x.  6 root root 4096 2026-11-05 19:23 litehost_gap_20261105_190235
+drwxr-xr-x.  6 root root 4096 2026-11-05 16:57 litehost_gap_20261105_163521
+drwxr-xr-x.  6 root root 4096 2026-11-05 16:28 litehost_gap_20261105_160747
++ echo '== 4. 各 vllmBench 下的 run 名字 =='
+== 4. 各 vllmBench 下的 run 名字 ==
+++ find /home /usr/local -maxdepth 6 -type d -name vllmBench
++ for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2> /dev/null)
++ echo '---- /home/qch/scripts/vllmBench'
+---- /home/qch/scripts/vllmBench
++ ls -1 /home/qch/scripts/vllmBench
++ head -12
+litehost_compat_off1
+litehost_compat_off2
+litehost_compat_off2_cpubind_2048_128
+litehost_compat_off3
+litehost_compat_off3_cpubind_2048_128
+litehost_compat_off_cpubind_2048_128
+litehost_compat_on1
+litehost_compat_on2
+litehost_compat_on2_cpubind_2048_128
+litehost_compat_on3
+litehost_compat_on3.5
+litehost_compat_on3_cpubind_2048_128
++ for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2> /dev/null)
++ echo '---- /home/qch/scripts/litehost_perf/vllmBench'
+---- /home/qch/scripts/litehost_perf/vllmBench
++ ls -1 /home/qch/scripts/litehost_perf/vllmBench
++ head -12
+base
+before_reboot
+opt
++ for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2> /dev/null)
++ echo '---- /home/qch/pmu_litehost_runs/vllmBench'
+---- /home/qch/pmu_litehost_runs/vllmBench
++ ls -1 /home/qch/pmu_litehost_runs/vllmBench
++ head -12
+pmu_litehost_20261110_topdown_graph
+pmu_smoke_graph_20261110
++ for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2> /dev/null)
++ echo '---- /home/c00986490/vllmBench'
+---- /home/c00986490/vllmBench
++ ls -1 /home/c00986490/vllmBench
++ head -12
+20261014-001
+litehost_gap_20261014_191711
+litehost_gap_20261014_214455
+litehost_gap_20261014_215801
+litehost_gap_20261014_221002
+litehost_gap_20261014_221338
+litehost_gap_20261014_222044
+litehost_gap_20261014_222344
+litehost_gap_20261015_134907
+litehost_gap_20261015_135241
+litehost_gap_20261017_141634
+litehost_gap_20261017_142055
++ for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2> /dev/null)
++ echo '---- /home/z30059427/cinderx-callinline-ab-20261019/vllmBench'
+---- /home/z30059427/cinderx-callinline-ab-20261019/vllmBench
++ ls -1 /home/z30059427/cinderx-callinline-ab-20261019/vllmBench
++ head -12
+cx_ci_20261020_083824_2253860_callinline_r1
+cx_ci_20261020_083824_2253860_jit_r1
+cx_ci_20261020_083824_2253860_stock_r1
+cx_ci_20261020_084313_2268708_stock_r1
+cx_ci_20261020_084415_2271745_callinline_r1
+cx_ci_20261020_084415_2271745_callinline_r2
+cx_ci_20261020_084415_2271745_callinline_r3
+cx_ci_20261020_084415_2271745_callinline_r4
+cx_ci_20261020_084415_2271745_jit_r1
+cx_ci_20261020_084415_2271745_jit_r2
+cx_ci_20261020_084415_2271745_jit_r3
+cx_ci_20261020_084415_2271745_jit_r4
++ for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2> /dev/null)
++ echo '---- /home/z30059427/litehost_perf_py312/vllmBench'
+---- /home/z30059427/litehost_perf_py312/vllmBench
++ ls -1 /home/z30059427/litehost_perf_py312/vllmBench
++ head -12
+litehost_gap_20261016_104521
++ for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2> /dev/null)
++ echo '---- /home/z30059427/vllmBench'
+---- /home/z30059427/vllmBench
++ ls -1 /home/z30059427/vllmBench
++ head -12
+dev1_stack16_blocking_01
+litehost_deopt_cinder_off_20261015_144024_1184875
+litehost_diag_cinder_off_20261015_103802_714685
+litehost_diag_cinder_on_20261015_103802_714685
+litehost_diag_stock_20261015_103802_714685
+litehost_gap_20261013_185226
+litehost_gap_20261013_185236
+litehost_gap_20261013_192354
+litehost_gap_20261013_192457
+litehost_gap_20261014_110120
+litehost_gap_20261014_110623
+litehost_gap_20261014_110941
++ for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2> /dev/null)
++ echo '---- /home/z30059427/litehost_perf/vllmBench'
+---- /home/z30059427/litehost_perf/vllmBench
++ ls -1 /home/z30059427/litehost_perf/vllmBench
++ head -12
+litehost_gap_20261016_095619
+litehost_gap_20261016_100009
+litehost_gap_20261016_100155
+litehost_gap_20261016_100156
+litehost_gap_20261016_100201
+litehost_gap_20261016_100210
+litehost_gap_20261016_100211
+litehost_gap_20261016_100212
+litehost_gap_20261016_100415
+litehost_gap_20261016_101132
+litehost_gap_20261016_101934
+litehost_gap_20261016_102108
++ for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2> /dev/null)
++ echo '---- /home/z30059427/cinderx-v1-evaluator-split-20261016/vllmBench'
+---- /home/z30059427/cinderx-v1-evaluator-split-20261016/vllmBench
++ ls -1 /home/z30059427/cinderx-v1-evaluator-split-20261016/vllmBench
++ head -12
+cx_v1_20261019_091112_1817742_stock_r1
+cx_v1_20261019_105054_2955122_stock_r1
+cx_v1_20261019_110614_3001920_stock_r1
+cx_v1_20261019_111517_3029812_stock_r1
+cx_v1_20261019_111540_3030651_stock_r1
+cx_v1_20261019_111948_3042150_stock_r1
+cx_v1_20261019_113117_3069009_evaluator_r1
+cx_v1_20261019_113117_3069009_jit_r1
+cx_v1_20261019_113117_3069009_stock_r1
+cx_v1_20261019_133532_3344756_evaluator_r1
+cx_v1_20261019_133532_3344756_stock_r1
++ for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2> /dev/null)
++ echo '---- /home/g30061491/vllmBench'
+---- /home/g30061491/vllmBench
++ ls -1 /home/g30061491/vllmBench
++ head -12
+litehost_gap_20261014_142906
+litehost_gap_20261014_143534
++ for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2> /dev/null)
++ echo '---- /home/wy00937119/vllmBench'
+---- /home/wy00937119/vllmBench
++ ls -1 /home/wy00937119/vllmBench
++ head -12
+op1
++ for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2> /dev/null)
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ ls -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench
++ head -12
+4k
+4k2
+64k
+64k2
+litehost_gap_20261102_155216
+litehost_gap_20261102_160036
+litehost_gap_20261102_202217
+litehost_gap_20261104_093555
+litehost_gap_20261104_143405
+litehost_gap_20261104_150810
+litehost_gap_20261104_183652
+litehost_gap_20261104_185934
++ for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2> /dev/null)
++ echo '---- /home/s00806700/old_script/vllmBench'
+---- /home/s00806700/old_script/vllmBench
++ ls -1 /home/s00806700/old_script/vllmBench
++ head -12
+litehost_gap_20261031_161501
+litehost_gap_20261031_161802
+litehost_gap_20261031_162405
++ for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2> /dev/null)
++ echo '---- /home/s00806700/litehost_perf_gen/vllmBench'
+---- /home/s00806700/litehost_perf_gen/vllmBench
++ ls -1 /home/s00806700/litehost_perf_gen/vllmBench
++ head -12
+base_run1
+base_run2
+base_run3
+clean_run1
+litehost_gap_20261030_183126
+litehost_gap_20261030_184751
+litehost_gap_20261030_200859
+litehost_gap_20261030_201326
+litehost_gap_20261030_202123
+litehost_gap_20261101_185225
+litehost_gap_20261101_192857
+litehost_gap_20261103_153852
++ for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2> /dev/null)
++ echo '---- /home/s00806700/litehost_perf_opt/vllmBench'
+---- /home/s00806700/litehost_perf_opt/vllmBench
++ ls -1 /home/s00806700/litehost_perf_opt/vllmBench
++ head -12
+litehost_gap_20261102_155216
+litehost_gap_20261102_160036
+litehost_gap_20261102_202217
+litehost_gap_20261104_093555
+litehost_gap_20261104_143405
+litehost_gap_20261104_150810
+litehost_gap_20261104_183652
+litehost_gap_20261104_185934
+litehost_gap_20261104_191323
+litehost_gap_20261104_192534
+litehost_gap_20261104_200710
+litehost_gap_20261104_205203
++ for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2> /dev/null)
++ echo '---- /home/s00806700/litehost_perf_optbak/vllmBench'
+---- /home/s00806700/litehost_perf_optbak/vllmBench
++ ls -1 /home/s00806700/litehost_perf_optbak/vllmBench
++ head -12
+base_s0_run1
+base_s0_run2
+base_s0_run3
+litehost_gap_20261102_155216
+litehost_gap_20261102_160036
+litehost_gap_20261102_202217
+litehost_gap_20261104_093555
+litehost_gap_20261104_143405
+litehost_gap_20261104_150810
+litehost_gap_20261104_183652
+litehost_gap_20261104_185934
+litehost_gap_20261104_191323
++ for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2> /dev/null)
++ echo '---- /home/s00806700/vllmBench'
+---- /home/s00806700/vllmBench
++ ls -1 /home/s00806700/vllmBench
++ head -12
+123
+125
+litehost_gap_20261105_090336
+litehost_gap_20261105_090631
+litehost_gap_20261105_095958
+litehost_gap_20261105_100528
+litehost_gap_20261105_100902
+litehost_gap_20261105_101212
+litehost_gap_20261105_101932
+litehost_gap_20261105_102319
+litehost_gap_20261105_102557
+litehost_gap_20261105_102836
++ set +x
+
+### exit: 0
