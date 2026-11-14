@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：排查内核切换为什么没生效（grubenv/EFI grub.cfg/菜单标题/启动记录）。
+# 只读：盘点 vllmBench 下最近的 run，识别 4K/64K 两份数据及产物完整性。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,39 +17,31 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== 1. 当前内核与启动记录 =="
-  uname -r
-  getconf PAGE_SIZE
-  uptime
-  last -x reboot 2>/dev/null | head -6
+  C=corex5-py311
+  R=/usr/local/corex-5.0.0/vllmBench
+  dex() { timeout 120 docker exec "$C" bash -c "$1"; }
 
-  echo "== 2. grubby 视角 =="
-  grubby --default-kernel
-  grubby --info=ALL 2>/dev/null | grep -E '^index|^kernel=|^title' | head -20
+  echo "== 1. vllmBench 下的 run 列表（按时间）=="
+  dex "ls -lat --time-style=long-iso $R | head -15"
 
-  echo "== 3. grubenv 全部内容（重点 recordfail / boot_success / saved_entry）=="
-  grub2-editenv list 2>/dev/null
-  ls -l /boot/grub2/grubenv 2>/dev/null
+  echo "== 2. 每个最近 run 的 config 与产物 =="
+  dex "for d in \$(ls -dt $R/*/ | head -8); do
+      echo \"===== \$d\"
+      cat \$d/config.txt 2>/dev/null
+      echo '--- summary ---'; head -5 \$d/summary.csv 2>/dev/null
+      echo '--- host_summary ---'; ls \$d/host_summary 2>/dev/null || echo 无
+      echo '--- case 目录 ---'; ls -d \$d/litehost/*/ 2>/dev/null | wc -l
+    done"
 
-  echo "== 4. 是否记录过失败启动 =="
-  grub2-editenv - list 2>/dev/null | grep -E 'recordfail|boot_success' || echo "无相关字段"
+  echo "== 3. run 里有没有记录内核/页大小的线索 =="
+  dex "for d in \$(ls -dt $R/*/ | head -6); do
+      echo \"===== \$d\"
+      grep -riE 'uname|kernel|64k|page.?size|PAGE_SIZE|6\.6\.0-' \$d/config.txt \$d/logs/preflight.log \$d/session.json 2>/dev/null | head -5
+      head -3 \$d/logs/server.log 2>/dev/null | cut -c1-160
+    done"
 
-  echo "== 5. /etc/default/grub =="
-  cat /etc/default/grub 2>/dev/null
-
-  echo "== 6. 实际被读取的 grub.cfg（BIOS 路径与 EFI 路径都要看）=="
-  ls -l /boot/grub2/grub.cfg 2>/dev/null
-  ls -l /boot/efi/EFI/*/grub.cfg 2>/dev/null
-  echo "--- EFI 目录 ---"
-  ls -R /boot/efi/EFI 2>/dev/null | head -20
-
-  echo "== 7. grub.cfg 里的 default/saved 逻辑与菜单项 =="
-  grep -nE '^\s*(set default|set saved_entry|if \[|menuentry)' /boot/grub2/grub.cfg 2>/dev/null | head -25
-  echo "--- EFI grub.cfg 同样字段 ---"
-  for f in /boot/efi/EFI/*/grub.cfg; do [ -f "$f" ] && { echo "## $f"; grep -nE '^\s*(set default|set saved_entry|if \[|menuentry)' "$f" | head -15; }; done
-
-  echo "== 8. 当前内核项在菜单里的标题 =="
-  grubby --info="$(grubby --default-kernel)" 2>/dev/null | head -6
+  echo "== 4. 当前内核（仅作对照，不切）=="
+  uname -r; getconf PAGE_SIZE
 
   # ---- 命令结束 ----
 
