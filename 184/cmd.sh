@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：核对 vllmBench_lite_opt.sh 实际设的优化开关 vs venv 实际认的开关。
+# 只读：确认 r14 四个特性的门控、metadata 归属、torch module fastpath 是否装了、compact_greedy 配置项。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,33 +18,28 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
   C=corex5-py311
-  D=/home/huawei_ts_program/litehost_perf_opt
   V=/opt/corex311-cpython-vllm
-  SP=$V/lib/python3.11/site-packages/vllm
+  SP=$V/lib/python3.11/site-packages
   dex() { timeout 60 docker exec "$C" bash -c "$1"; }
 
-  echo "== 1. 脚本全文 =="
-  cat "$D/vllmBench_lite_opt.sh"
+  echo "== 1. r14 的 feature 名单与门控 =="
+  dex "sed -n '35,60p' $SP/vllm/v1/worker/host_opt.py"
+  echo "--- 四特性在 envs.py 的位置 ---"
+  dex "sed -n '575,605p' $SP/vllm/envs.py"
 
-  echo "== 2. 脚本里引用的库文件是否存在 =="
-  for f in "$D/liblitehost.so" "$D/lhctl.py" "$D/analyze_litehost.py"; do ls -l "$f" 2>&1; done
-  find /home -maxdepth 4 -name 'libtcmalloc.so*' 2>/dev/null | head -5
+  echo "== 2. metadata（PR2）挂在哪 =="
+  dex "grep -rn 'VLLM_HOST_OPT' $SP/vllm/v1/attention/backends/ilu_flash_attn.py $SP/vllm/v1/worker/gpu_model_runner.py 2>/dev/null | head -20"
+  dex "grep -n 'metadata' $SP/vllm/v1/worker/host_opt.py | head -15"
 
-  echo "== 3. venv 认可的 VLLM_HOST_OPT 开关 =="
-  dex "grep -n 'VLLM_HOST_OPT' $SP/envs.py | head -20"
-  echo "--- host_opt.py 的门控逻辑 ---"
-  dex "grep -nE 'VLLM_HOST_OPT|environ|getenv|enabled|ARENA|INPUTS|BOOKKEEPING|POSITIONS' $SP/v1/worker/host_opt.py | head -40"
+  echo "== 3. compact_greedy 配置项 =="
+  dex "sed -n '645,660p' $SP/vllm/config/compilation.py; sed -n '805,825p' $SP/vllm/config/compilation.py"
 
-  echo "== 4. compact_greedy 在 venv 里的开关方式 =="
-  dex "grep -n 'compact_greedy' $SP/config/compilation.py | head -10"
-  dex "grep -rn 'VLLM_COMPACT_GREEDY' $SP 2>/dev/null | head -5 || echo '无该环境变量'"
+  echo "== 4. torch module attr fastpath 是否真的装了 =="
+  dex "$V/bin/pip list 2>/dev/null | grep -iE 'torch.module.attr|fastpath|metadata'"
+  dex "grep -rl 'TORCH_MODULE_ATTR_FASTPATH' $SP 2>/dev/null | head -5"
 
-  echo "== 5. 当前驱动多流参数 =="
-  cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>/dev/null
-
-  echo "== 6. venv 版本与 r14 落盘 =="
-  dex "ls -ld $SP/.host-opt-pr-backup; grep -oE 'VLLM_HOST_OPT[A-Z_]*' $SP/envs.py | sort -u"
-  dex "$V/bin/python -c 'import vllm;print(vllm.__version__)'"
+  echo "== 5. 参照：32 上 opt 脚本的 compilation-config =="
+  grep -rhn "compilation-config" /home/*/litehost_perf*/*.sh 2>/dev/null | sort -u | head -10
 
   # ---- 命令结束 ----
 
