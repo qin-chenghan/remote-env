@@ -1,0 +1,240 @@
+### server: 184
+### host:   controller
+### time:   2026-11-14T05:44:49Z
+
++ C=corex5-py311
++ R=/usr/local/corex-5.0.0/vllmBench
++ echo '== 1. vllmBench 下的 run 列表（按时间）=='
+== 1. vllmBench 下的 run 列表（按时间）==
++ dex 'ls -lat --time-style=long-iso /usr/local/corex-5.0.0/vllmBench | head -15'
++ timeout 120 docker exec corex5-py311 bash -c 'ls -lat --time-style=long-iso /usr/local/corex-5.0.0/vllmBench | head -15'
+total 84
+drwxr-xr-x.  6 root root 4096 2026-11-14 11:29 litehost_gap_20261114_094606
+drwxr-xr-x. 20 root root 4096 2026-11-14 09:46 .
+drwxr-xr-x.  6 root root 4096 2026-11-13 18:32 litehost_gap_20261113_164759
+drwxr-xr-x.  6 root root 4096 2026-11-13 14:48 litehost_gap_20261113_101902
+drwxr-xr-x.  6 root root 4096 2026-11-12 17:19 litehost_gap_20261112_150257
+drwxr-xr-x.  5 root root 4096 2026-11-12 14:52 litehost_gap_20261112_145014
+drwxr-xr-x.  3 root root 4096 2026-11-12 14:47 litehost_gap_20261112_144702
+drwxr-xr-x.  3 root root 4096 2026-11-12 14:46 litehost_gap_20261112_144653
+drwxr-xr-x.  6 root root 4096 2026-11-12 14:41 litehost_gap_20261112_143002
+drwxr-xr-x.  6 root root 4096 2026-11-12 14:25 litehost_gap_20261112_141359
+drwxr-xr-x.  6 root root 4096 2026-11-12 13:58 litehost_gap_20261112_134745
+drwxrwxr-x+  1 root root 4096 2026-11-11 20:05 ..
+drwxr-xr-x.  6 root root 4096 2026-11-11 17:07 litehost_gap_20261111_165738
+drwxr-xr-x.  6 root root 4096 2026-11-11 16:44 litehost_gap_20261111_150237
++ echo '== 2. 每个最近 run 的 config 与产物 =='
+== 2. 每个最近 run 的 config 与产物 ==
++ dex 'for d in $(ls -dt /usr/local/corex-5.0.0/vllmBench/*/ | head -8); do
+      echo "===== $d"
+      cat $d/config.txt 2>/dev/null
+      echo '\''--- summary ---'\''; head -5 $d/summary.csv 2>/dev/null
+      echo '\''--- host_summary ---'\''; ls $d/host_summary 2>/dev/null || echo 无
+      echo '\''--- case 目录 ---'\''; ls -d $d/litehost/*/ 2>/dev/null | wc -l
+    done'
++ timeout 120 docker exec corex5-py311 bash -c 'for d in $(ls -dt /usr/local/corex-5.0.0/vllmBench/*/ | head -8); do
+      echo "===== $d"
+      cat $d/config.txt 2>/dev/null
+      echo '\''--- summary ---'\''; head -5 $d/summary.csv 2>/dev/null
+      echo '\''--- host_summary ---'\''; ls $d/host_summary 2>/dev/null || echo 无
+      echo '\''--- case 目录 ---'\''; ls -d $d/litehost/*/ 2>/dev/null | wc -l
+    done'
+===== /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261114_094606/
+test_id=litehost_gap_20261114_094606
+started=2026-11-14T09:46:06+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+--- summary ---
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261114_094606,bs8_in1024_out1024,100,515.7807166600005,0.19388084271075878,198.533982935817,397.067965871634,680.9922666999591,638.4884899998724,1686.8847420004931,38.25238943108507,38.3664318719452,38.782222332649745,38.25238956911046,37.51879999981611,40.46718350025
+litehost_gap_20261114_094606,bs8_in1024_out128,100,81.04590961000031,1.233868562660452,157.93517602053785,1421.4165841848408,679.4431568000618,638.3086950004326,1688.1403167003918,44.23742437716515,44.46644736220502,47.76152100157524,44.23742560866145,37.45771500007322,214.33941050031535
+litehost_gap_20261114_094606,bs8_in1024_out2048,100,1007.6453153499997,0.09924126920122245,203.24611932410357,304.86917898615536,681.0674960999495,639.3123799998648,1688.8690218003285,37.632005014851025,37.71612927699086,37.934892270933055,37.63200508265757,37.23116499986645,39.88781109963384
+litehost_gap_20261114_094606,bs8_in128_out1024,100,487.0630396800002,0.205312232407739,210.23972598552473,236.51969173371532,230.94976210000823,250.16881999977159,264.4007882000733,36.454885846334314,36.501772903225785,36.65354895474086,36.45488596559136,36.25992499974018,38.45783479996953
+--- host_summary ---
+four_rank_totals.csv
+per_rank.csv
+report.txt
+summary.json
+--- case 目录 ---
+9
+===== /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_164759/
+test_id=litehost_gap_20261113_164759
+started=2026-11-13T16:47:59+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+--- summary ---
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261113_164759,bs8_in1024_out1024,100,518.8964934199998,0.1927166617390475,197.34186162078464,394.6837232415693,684.9963663999961,644.7882799998297,1690.2324444000717,38.494212095992204,38.61539519550361,39.003909840762454,38.494212231964816,37.53744999994524,47.60407059958652
+litehost_gap_20261113_164759,bs8_in1024_out128,100,81.26675944999988,1.230515412165855,157.50597275722944,1417.553754815065,683.5228658999768,643.5840449998977,1690.764102800008,44.336522328346284,44.538658188976896,47.93629015275638,44.33652332598425,37.350879999848985,216.3286845999028
+litehost_gap_20261113_164759,bs8_in1024_out2048,100,1011.0728291999999,0.09890484356020514,202.55711961130012,303.8356794169502,684.8704881999765,644.1444000001866,1690.3497223999375,37.77826038246215,37.85261852467032,38.140715191792935,37.778260443624816,37.248354999974254,46.30520080000679
+litehost_gap_20261113_164759,bs8_in128_out1024,100,489.13592954000006,0.20444214779732778,209.34875934446364,235.5173542625216,232.24061410000388,251.02965999997195,272.41771260004214,36.61248601720429,36.65139274193552,36.86224304486807,36.612486130791794,36.275079999995796,44.28065409996236
+--- host_summary ---
+four_rank_totals.csv
+per_rank.csv
+report.txt
+summary.json
+--- case 目录 ---
+9
+===== /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/
+test_id=litehost_gap_20261113_101902
+started=2026-11-13T10:19:02+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+--- summary ---
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261113_101902,bs8_in1024_out1024,100,520.8255995299996,0.19200285103159562,196.6109194563539,393.2218389127078,687.1704119999777,644.389460000184,1702.8075884007285,38.636880245161265,38.745307570870075,39.18774836197425,38.63688037693054,37.707195000166394,43.189473500460736
+litehost_gap_20261113_101902,bs8_in1024_out128,100,81.92356484999982,1.2206500069070203,156.2432008840986,1406.1888079568873,685.540214900011,643.3258800002477,1697.8673329998855,44.732701208661695,44.96511724409081,48.187818245667756,44.73270220078729,37.743705000139016,216.49447419991702
+litehost_gap_20261113_101902,bs8_in1024_out2048,100,1016.97220216,0.09833110461387716,201.38210224922042,302.0731533738306,686.1072751000938,644.6339350004564,1693.5450208004659,37.99738559921834,38.11541919882762,38.301797529066675,37.997385665803606,37.49147999997149,42.758190400309104
+litehost_gap_20261113_101902,bs8_in128_out1024,100,488.77631875999987,0.20459256343207216,209.5027849544419,235.69063307374714,232.4350245999858,250.74436500017327,265.0398275002635,36.58375772678397,36.62153524926677,36.78321254095823,36.58375785992173,36.35744500002147,38.76920999983213
+--- host_summary ---
+four_rank_totals.csv
+per_rank.csv
+report.txt
+summary.json
+--- case 目录 ---
+8
+===== /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/
+test_id=litehost_gap_20261112_150257
+started=2026-11-12T15:02:57+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=192-255
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+--- summary ---
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261112_150257,bs8_in1024_out1024,100,560.7147570199995,0.17834379913855775,182.62405031788313,365.24810063576626,716.0869093002475,674.7565450004913,1757.5405877003868,41.73242898260014,42.009576344085765,42.47510478064289,41.73242910821093,40.526034999857075,47.895240900797944
+litehost_gap_20261112_150257,bs8_in1024_out128,100,84.13555216999885,1.1885581947325488,152.13544892576624,1369.2190403318962,712.8486033002628,674.0922500011948,1758.0002128996784,45.915773376376684,46.149652322844666,49.5614173921247,45.91577438897658,38.62519499853079,226.25702779740095
+litehost_gap_20261112_150257,bs8_in1024_out2048,100,1075.6622054,0.09296598829816988,190.3943440346519,285.59151605197786,714.5238435000647,675.1099399989471,1758.1401500005813,40.27718577811426,40.466114633609855,40.741580038689904,40.27718584386904,39.4525399988197,45.90061039907596
+litehost_gap_20261112_150257,bs8_in128_out1024,100,526.2999685700015,0.19000571151791606,194.56584859434605,218.8865796686393,241.70983109997906,260.79674000084196,281.3609465002628,39.50997837917889,39.68276269305919,39.848184455717366,39.5099784988269,39.142859999628854,44.47232010163134
+--- host_summary ---
+four_rank_totals.csv
+per_rank.csv
+report.txt
+summary.json
+--- case 目录 ---
+9
+===== /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_145014/
+test_id=litehost_gap_20261112_145014
+started=2026-11-12T14:50:14+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=192-255
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+--- summary ---
+--- host_summary ---
+无
+--- case 目录 ---
+1
+===== /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_144702/
+test_id=litehost_gap_20261112_144702
+started=2026-11-12T14:47:02+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=192-255
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+--- summary ---
+--- host_summary ---
+无
+--- case 目录 ---
+0
+===== /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_144653/
+test_id=litehost_gap_20261112_144653
+started=2026-11-12T14:46:53+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=192-255
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+--- summary ---
+--- host_summary ---
+无
+--- case 目录 ---
+0
+===== /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_143002/
+test_id=litehost_gap_20261112_143002
+started=2026-11-12T14:30:02+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=192-255
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+--- summary ---
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261112_143002,bs8_in128_out1024,100,526.8128898499999,0.18982071609613257,194.37641328243976,218.67346494274474,240.7586390000688,260.7755549997819,274.5888672992987,39.556501019941365,39.73606850439876,39.897118899413684,39.55650114467254,39.13630999977613,44.55724100036605
+--- host_summary ---
+four_rank_totals.csv
+per_rank.csv
+report.txt
+summary.json
+--- case 目录 ---
+1
++ echo '== 3. run 里有没有记录内核/页大小的线索 =='
+== 3. run 里有没有记录内核/页大小的线索 ==
++ dex 'for d in $(ls -dt /usr/local/corex-5.0.0/vllmBench/*/ | head -6); do
+      echo "===== $d"
+      grep -riE '\''uname|kernel|64k|page.?size|PAGE_SIZE|6\.6\.0-'\'' $d/config.txt $d/logs/preflight.log $d/session.json 2>/dev/null | head -5
+      head -3 $d/logs/server.log 2>/dev/null | cut -c1-160
+    done'
++ timeout 120 docker exec corex5-py311 bash -c 'for d in $(ls -dt /usr/local/corex-5.0.0/vllmBench/*/ | head -6); do
+      echo "===== $d"
+      grep -riE '\''uname|kernel|64k|page.?size|PAGE_SIZE|6\.6\.0-'\'' $d/config.txt $d/logs/preflight.log $d/session.json 2>/dev/null | head -5
+      head -3 $d/logs/server.log 2>/dev/null | cut -c1-160
+    done'
+===== /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261114_094606/
+INFO 11-14 09:46:10 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-14 09:46:10 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-14 09:46:10 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+===== /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_164759/
+INFO 11-13 16:48:03 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-13 16:48:03 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-13 16:48:03 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+===== /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902/
+INFO 11-13 10:19:07 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-13 10:19:07 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-13 10:19:07 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+===== /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_150257/
+INFO 11-12 15:03:01 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-12 15:03:01 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-12 15:03:01 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+===== /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_145014/
+INFO 11-12 14:50:17 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-12 14:50:17 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-12 14:50:17 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+===== /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261112_144702/
++ echo '== 4. 当前内核（仅作对照，不切）=='
+== 4. 当前内核（仅作对照，不切）==
++ uname -r
+6.6.0-159.4.21.175.oe2403sp4.aarch64
++ getconf PAGE_SIZE
+4096
++ set +x
+
+### exit: 0
