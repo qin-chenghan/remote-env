@@ -122,6 +122,34 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
 }
 
+# 解释器自检:venv 必须解析到自己的 torch/vllm。
+# 容器全局 PYTHONPATH=/usr/local/lib/python3.12/site-packages 里是一棵残缺的 torch,
+# 一旦被继承进来就排在 venv 之前,启动时报 "Failed to load PyTorch C extensions"。
+# 两个 venv 的 bin/activate 末尾有 unset PYTHONPATH PYTHONHOME。
+check_python_env() {
+    "$PYTHON_BIN" - <<'PY'
+import importlib.util, os, sys
+bad = []
+for name in ("torch", "vllm"):
+    spec = importlib.util.find_spec(name)
+    if spec is None or not (spec.origin or "").startswith(sys.prefix):
+        bad.append("{} -> {}".format(name, spec.origin if spec else None))
+if bad:
+    print("解释器    :", sys.executable)
+    print("prefix    :", sys.prefix)
+    print("PYTHONPATH:", os.environ.get("PYTHONPATH"))
+    for b in bad:
+        print("  不在前缀下:", b)
+    sys.exit(1)
+PY
+    if [ $? -ne 0 ]; then
+        log "ERROR: PYTHON_BIN=$PYTHON_BIN 没有指向装好 vllm 的 venv"
+        log "       先 source /opt/corex311-cpython-vllm/bin/activate(它会 unset PYTHONPATH)"
+        return 1
+    fi
+    log "解释器自检通过: $("$PYTHON_BIN" -c 'import sys; print(sys.executable)')"
+}
+
 # 编译配置里的键是否被当前 vllm 的 CompilationConfig 认识。
 # 不认识的话 server 会在加载配置时抛 TypeError,pydantic 报错堆栈很难读,
 # 所以提前一秒判掉,不要浪费一次完整启动。
@@ -365,6 +393,11 @@ done
     echo "COMPILATION_CONFIG=$COMPILATION_CONFIG"
     env | grep -E '^(VLLM_|UMD_|TCMALLOC_|TORCH_MODULE|LD_PRELOAD)' | sort
 } > "${RUN_DIR}/run_env.txt"
+
+if ! check_python_env; then
+    log "中止:解释器不对"
+    exit 1
+fi
 
 if ! check_compilation_config_keys; then
     log "中止:编译配置与当前 vllm 不匹配"
