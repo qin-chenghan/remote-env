@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：确认 r14 四个特性的门控、metadata 归属、torch module fastpath 是否装了、compact_greedy 配置项。
+# 给 vllmBench_lite_opt.sh 打开 r14 的 compact_greedy，并移除两个无效 env（备份 + 语法检查 + diff）。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,29 +17,48 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  C=corex5-py311
-  V=/opt/corex311-cpython-vllm
-  SP=$V/lib/python3.11/site-packages
-  dex() { timeout 60 docker exec "$C" bash -c "$1"; }
+  S=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+  BAK="$S.bak-compact-$TS"
 
-  echo "== 1. r14 的 feature 名单与门控 =="
-  dex "sed -n '35,60p' $SP/vllm/v1/worker/host_opt.py"
-  echo "--- 四特性在 envs.py 的位置 ---"
-  dex "sed -n '575,605p' $SP/vllm/envs.py"
+  echo "== 1. 占用检查 =="
+  ps -eo pid,args 2>/dev/null | grep -E 'vllm|bench_driver|vllmBench_lite' | grep -v grep | head -5 || echo "无相关进程"
 
-  echo "== 2. metadata（PR2）挂在哪 =="
-  dex "grep -rn 'VLLM_HOST_OPT' $SP/vllm/v1/attention/backends/ilu_flash_attn.py $SP/vllm/v1/worker/gpu_model_runner.py 2>/dev/null | head -20"
-  dex "grep -n 'metadata' $SP/vllm/v1/worker/host_opt.py | head -15"
+  echo "== 2. 备份 =="
+  cp -a "$S" "$BAK" && ls -l "$BAK"
 
-  echo "== 3. compact_greedy 配置项 =="
-  dex "sed -n '645,660p' $SP/vllm/config/compilation.py; sed -n '805,825p' $SP/vllm/config/compilation.py"
+  echo "== 3. 修改 =="
+  python3 - "$S" <<'PY'
+import sys
+p=sys.argv[1]
+s=open(p).read()
+old_cfg='--enable_chunked_prefill --compilation-config \'{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}\''
+new_cfg='--enable_chunked_prefill --compilation-config \'{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "compact_greedy":true, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}\''
+old_env='    VLLM_COMPACT_GREEDY=on\n    VLLM_COMPACT_GREEDY_DIAGNOSTICS=0\n'
+changes=[]
+if 'compact_greedy' in s and '"compact_greedy":true' in s:
+    changes.append('compact_greedy 已存在，跳过')
+elif old_cfg in s:
+    s=s.replace(old_cfg,new_cfg,1); changes.append('compilation-config 已加入 compact_greedy')
+else:
+    changes.append('CFG_PATTERN_NOT_FOUND')
+if old_env in s:
+    s=s.replace(old_env,'',1); changes.append('已移除两个无效 env')
+else:
+    changes.append('ENV_PATTERN_NOT_FOUND')
+if 'CFG_PATTERN_NOT_FOUND' in changes or 'ENV_PATTERN_NOT_FOUND' in changes:
+    print(changes, '未写入'); sys.exit(3)
+open(p,'w').write(s)
+print(changes)
+PY
+  echo "patch rc=$?"
 
-  echo "== 4. torch module attr fastpath 是否真的装了 =="
-  dex "$V/bin/pip list 2>/dev/null | grep -iE 'torch.module.attr|fastpath|metadata'"
-  dex "grep -rl 'TORCH_MODULE_ATTR_FASTPATH' $SP 2>/dev/null | head -5"
+  echo "== 4. 语法检查与 diff =="
+  bash -n "$S" && echo "bash -n OK"
+  diff -u "$BAK" "$S" | head -40
 
-  echo "== 5. 参照：32 上 opt 脚本的 compilation-config =="
-  grep -rhn "compilation-config" /home/*/litehost_perf*/*.sh 2>/dev/null | sort -u | head -10
+  echo "== 5. 确认关键行 =="
+  grep -n 'compilation-config' "$S"
+  grep -n 'VLLM_COMPACT_GREEDY\|VLLM_HOST_OPT_METADATA\|VLLM_HOST_OPT=' "$S"
 
   # ---- 命令结束 ----
 
