@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：四份 run 的 128/128 吞吐与 TSHG 并排（变量全部在容器内展开）。
+# 只读：找用户命名的 4k / 4k2 / 64k / 64k2 四份 run 及其产物。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,21 +17,19 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  C=corex5-py311
-  dex() { timeout 120 docker exec "$C" bash -c "$1"; }
+  echo "== 1. 所有 vllmBench 目录 =="
+  find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2>/dev/null | head -10
 
-  echo "== 1+2. 四份 run 的 128/128：吞吐行、TSHG 行、完整性 =="
-  dex 'R=/usr/local/corex-5.0.0/vllmBench
-for r in 150257 101902 164759 094606; do
-  d=$(ls -d $R/litehost_gap_*_${r} 2>/dev/null | head -1)
-  echo "===== ${r}  ${d}"
-  echo "--- summary header ---"; head -1 $d/summary.csv | cut -d, -f1-7
-  echo "--- summary 128/128 ---"; grep -h bs8_in128_out128, $d/summary.csv
-  echo "--- TSHG 128/128 ---"; grep -h bs8_in128_out128, $d/host_summary/four_rank_totals.csv 2>/dev/null
-  n=$(ls -d $d/litehost/*/ 2>/dev/null | wc -l)
-  ok=$(grep -l "status": "complete" $d/litehost/*/window.json 2>/dev/null | wc -l)
-  echo "case_dirs=$n complete_windows=$ok"
-done'
+  echo "== 2. 名字带 4k/64k 的目录 =="
+  find /home /usr/local -maxdepth 6 -type d \( -iname '*4k*' -o -iname '*64k*' \) 2>/dev/null | head -30
+
+  echo "== 3. litehost_perf_opt 下的 vllmBench 列表 =="
+  ls -lat --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench 2>/dev/null | head -15
+
+  echo "== 4. 各 vllmBench 下的 run 名字 =="
+  for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2>/dev/null); do
+    echo "---- $v"; ls -1 "$v" 2>/dev/null | head -12
+  done
 
   # ---- 命令结束 ----
 
