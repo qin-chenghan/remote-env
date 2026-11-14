@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：找用户命名的 4k / 4k2 / 64k / 64k2 四份 run 及其产物。
+# 只读：核对 4k / 4k2 / 64k / 64k2 四份 run 的配置、结果与完整性。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,19 +17,36 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== 1. 所有 vllmBench 目录 =="
-  find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2>/dev/null | head -10
+  C=corex5-py311
+  B=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+  dex() { timeout 120 docker exec "$C" bash -c "$1"; }
 
-  echo "== 2. 名字带 4k/64k 的目录 =="
-  find /home /usr/local -maxdepth 6 -type d \( -iname '*4k*' -o -iname '*64k*' \) 2>/dev/null | head -30
+  echo "== 0. 开机时间与运行内核（用于判断四份是否跨内核）=="
+  uptime -s 2>/dev/null; uname -r; getconf PAGE_SIZE
 
-  echo "== 3. litehost_perf_opt 下的 vllmBench 列表 =="
-  ls -lat --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench 2>/dev/null | head -15
-
-  echo "== 4. 各 vllmBench 下的 run 名字 =="
-  for v in $(find /home /usr/local -maxdepth 6 -type d -name 'vllmBench' 2>/dev/null); do
-    echo "---- $v"; ls -1 "$v" 2>/dev/null | head -12
+  echo "== 1. 四份 run 的目录与 config =="
+  for d in 4k 4k2 64k 64k2; do
+    echo "===== $d"
+    ls -l --time-style=long-iso "$B/$d" 2>&1 | head -8
+    cat "$B/$d/config.txt" 2>/dev/null
   done
+
+  echo "== 2. summary 与 TSHG =="
+  dex 'B=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+for d in 4k 4k2 64k 64k2; do
+  echo "===== $d"
+  cat $B/$d/summary.csv 2>/dev/null | head -3
+  echo "--- four_rank_totals ---"; cat $B/$d/host_summary/four_rank_totals.csv 2>/dev/null
+done'
+
+  echo "== 3. 完整性：case 目录 / window 状态 / 是否有错误 =="
+  dex 'B=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+for d in 4k 4k2 64k 64k2; do
+  echo "===== $d"
+  ls -d $B/$d/litehost/*/ 2>/dev/null | wc -l
+  grep -h "\"status\"" $B/$d/litehost/*/window.json 2>/dev/null | sort | uniq -c
+  ls $B/$d/host_summary 2>/dev/null || echo 无host_summary
+done'
 
   # ---- 命令结束 ----
 
