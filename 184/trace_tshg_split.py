@@ -20,14 +20,23 @@ import os
 import statistics
 import sys
 
-# sync 家族（小写匹配，子串）
-SYNC_PATS = (
-    "synchronize",        # cudaEventSynchronize / cudaStreamSynchronize / torch synchronize
-    "eventquery",         # cudaEventQuery
-    "wait_stream",        # torch streams wait_stream
-    "wait_event",         # wait_event 类
-    "streamsynchronize",
-)
+# litehost 实际拦截的同步 API（见 liblitehost.exports.txt / litehost.c）。
+# 只有这些调用计入 S；cudaStreamWaitEvent / cudaEventQuery 等非阻塞调用不计。
+SYNC_APIS = {
+    "cudastreamsynchronize": "stream",
+    "cudastreamsynchronize_ptsz": "stream",
+    "custreamsynchronize": "stream",
+    "custreamsynchronize_ptsz": "stream",
+    "ixstreamsynchronize": "stream",
+    "cudaeventsynchronize": "event",
+    "cudaeventsynchronize_ptsz": "event",
+    "cueventsynchronize": "event",
+    "ixeventsynchronize": "event",
+    "cudadevicesynchronize": "other",
+    "cudathreadsynchronize": "other",
+    "cuctxsynchronize": "other",
+    "ixdevicesynchronize": "other",
+}
 
 
 def load(path):
@@ -66,9 +75,16 @@ def self_time(ev):
     return out
 
 
-def is_sync(name):
+def sync_kind(name):
     n = name.lower()
-    return any(p in n for p in SYNC_PATS)
+    for api, kind in SYNC_APIS.items():
+        if api in n:
+            return kind
+    return None
+
+
+def is_sync(name):
+    return sync_kind(name) is not None
 
 
 def analyze(path, label, warmup=0):
