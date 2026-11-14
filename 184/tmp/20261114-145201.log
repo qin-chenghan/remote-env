@@ -1,0 +1,348 @@
+### server: 184
+### host:   controller
+### time:   2026-11-14T06:52:01Z
+
++ T=/home/qch/scripts/timeline
++ PY=/home/qch/tools/remote-env/184/trace_tshg_split.py
++ BIND='numactl --cpunodebind=0 --membind=0'
++ command -v numactl
++ echo '== 1. trace 侧：主线程/其它线程 S 拆分 =='
+== 1. trace 侧：主线程/其它线程 S 拆分 ==
++ for pair in "4k 64k" "4k2 64k2"
++ set -- 4k 64k
++ A=4k
++ B=64k
+++ pick 4k
+++ local f
++++ find /home/qch/scripts/timeline/4k -type f '(' -name '*trace*.json' -o -name '*trace*.json.gz' ')' -printf '%s %p\n'
++++ sort -rn
++++ head -1
++++ cut '-d ' -f2-
+++ f=/home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
+++ '[' -n /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz ']'
+++ echo /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
++ FA=/home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
+++ pick 64k
+++ local f
++++ find /home/qch/scripts/timeline/64k -type f '(' -name '*trace*.json' -o -name '*trace*.json.gz' ')' -printf '%s %p\n'
++++ sort -rn
++++ head -1
++++ cut '-d ' -f2-
+++ f=/home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz
+++ '[' -n /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz ']'
+++ echo /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz
++ FB=/home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz
++ echo '===== 4k vs 64k'
+===== 4k vs 64k
++ echo A=/home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
+A=/home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
++ echo B=/home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz
+B=/home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz
++ '[' -z /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz ']'
++ '[' -z /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz ']'
++ TSHG_WARMUP=0
++ timeout 900 numactl --cpunodebind=0 --membind=0 python3 /home/qch/tools/remote-env/184/trace_tshg_split.py /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz /home/qch/scripts/timeline/64k/profile/case0_in128_out128/rank0.1794445315012900250.pt.trace.json.gz 4k 64k
++ tail -70
+=== analyze 4k: /home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
+[4k] 步锚点候选（name: count）:
+      1692  vllm/v1/worker/worker_base.py(340): execute_model
+      1692  vllm/v1/worker/gpu_worker.py(807): execute_model
+      1692  vllm/v1/worker/gpu_model_runner.py(4241): execute_model
+[4k] steps=1692  anchor_tids=[3925268]  (共 10 个 tid)
+[4k] sync 调用次数与 self 时长（全部线程 / 其中主线程）:
+        3382 次    69104.15 ms   cudaEventSynchronize
+        1692 次        4.08 ms     └ 主线程
+        1690 次    66361.38 ms   cudaStreamSynchronize
+        1690 次    66361.38 ms     └ 主线程
+           1 次        0.09 ms   cudaDeviceSynchronize
+           1 次        0.09 ms     └ 主线程
+[64k] 步锚点候选（name: count）:
+      1692  vllm/v1/worker/worker_base.py(340): execute_model
+      1692  vllm/v1/worker/gpu_worker.py(807): execute_model
+      1692  vllm/v1/worker/gpu_model_runner.py(4241): execute_model
+[64k] steps=1692  anchor_tids=[33631]  (共 10 个 tid)
+[64k] sync 调用次数与 self 时长（全部线程 / 其中主线程）:
+        3382 次    68678.37 ms   cudaEventSynchronize
+        1692 次        3.32 ms     └ 主线程
+        1690 次    66143.66 ms   cudaStreamSynchronize
+        1690 次    66143.66 ms     └ 主线程
+           1 次        0.13 ms   cudaDeviceSynchronize
+           1 次        0.13 ms     └ 主线程
+
+===== warmup=0
+[4k] warmup=0  formal scopes=1692  prefill=50 decode=1642
+  prefill n=   50 T=  4896.00ms S=  1580.52ms ( 32.3%) H= 3315.48ms G=  52.55ms H+G= 3368.03ms
+          仅主线程：S=  1477.31ms H= 3418.69ms H+G= 3471.24ms
+  decode  n= 1642 T= 69349.92ms S= 67743.81ms ( 97.7%) H= 1606.11ms G=1727.57ms H+G= 3333.68ms
+          仅主线程：S= 64888.16ms H= 4461.76ms H+G= 6189.33ms
+[64k] warmup=0  formal scopes=1692  prefill=40 decode=1652
+  prefill n=   40 T=  4985.47ms S=  1597.97ms ( 32.1%) H= 3387.50ms G=  41.26ms H+G= 3428.76ms
+          仅主线程：S=  1514.15ms H= 3471.32ms H+G= 3512.58ms
+  decode  n= 1652 T= 69112.72ms S= 67347.21ms ( 97.4%) H= 1765.51ms G=1711.24ms H+G= 3476.75ms
+          仅主线程：S= 64632.84ms H= 4479.88ms H+G= 6191.12ms
+
+== 跨条件对比（B - A, warmup=0）==
+  prefill T 4896.00->4985.47ms (+1.83%)  S 1580.52->1597.97ms (+1.10%)  H 3315.48->3387.50ms (+2.17%)  G 52.55->41.26ms (-21.49%)  H+G 3368.03->3428.76ms (+1.80%)
+  prefill 仅主线程：S 1477.31->1514.15ms (+2.49%)  H 3418.69->3471.32ms (+1.54%)  H+G 3471.24->3512.58ms (+1.19%)
+  decode  T 69349.92->69112.72ms (-0.34%)  S 67743.81->67347.21ms (-0.59%)  H 1606.11->1765.51ms (+9.92%)  G 1727.57->1711.24ms (-0.95%)  H+G 3333.68->3476.75ms (+4.29%)
+  decode  仅主线程：S 64888.16->64632.84ms (-0.39%)  H 4461.76->4479.88ms (+0.41%)  H+G 6189.33->6191.12ms (+0.03%)
++ for pair in "4k 64k" "4k2 64k2"
++ set -- 4k2 64k2
++ A=4k2
++ B=64k2
+++ pick 4k2
+++ local f
++++ find /home/qch/scripts/timeline/4k2 -type f '(' -name '*trace*.json' -o -name '*trace*.json.gz' ')' -printf '%s %p\n'
++++ sort -rn
++++ head -1
++++ cut '-d ' -f2-
+++ f=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
+++ '[' -n /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz ']'
+++ echo /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
++ FA=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
+++ pick 64k2
+++ local f
++++ find /home/qch/scripts/timeline/64k2 -type f '(' -name '*trace*.json' -o -name '*trace*.json.gz' ')' -printf '%s %p\n'
++++ sort -rn
++++ head -1
++++ cut '-d ' -f2-
+++ f=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
+++ '[' -n /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz ']'
+++ echo /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
++ FB=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
++ echo '===== 4k2 vs 64k2'
+===== 4k2 vs 64k2
++ echo A=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
+A=/home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
++ echo B=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
+B=/home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz
++ '[' -z /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz ']'
++ '[' -z /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz ']'
++ TSHG_WARMUP=0
++ timeout 900 numactl --cpunodebind=0 --membind=0 python3 /home/qch/tools/remote-env/184/trace_tshg_split.py /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz /home/qch/scripts/timeline/64k2/profile/case0_in128_out128/rank0.1794451514954574370.pt.trace.json.gz 4k2 64k2
++ tail -70
+=== analyze 4k2: /home/qch/scripts/timeline/4k2/profile/case0_in128_out128/rank0.1794450802372770658.pt.trace.json.gz
+[4k2] 步锚点候选（name: count）:
+      1692  vllm/v1/worker/worker_base.py(340): execute_model
+      1692  vllm/v1/worker/gpu_worker.py(807): execute_model
+      1692  vllm/v1/worker/gpu_model_runner.py(4241): execute_model
+[4k2] steps=1692  anchor_tids=[576451]  (共 10 个 tid)
+[4k2] sync 调用次数与 self 时长（全部线程 / 其中主线程）:
+        3382 次    68496.71 ms   cudaEventSynchronize
+        1692 次        4.11 ms     └ 主线程
+        1690 次    65714.59 ms   cudaStreamSynchronize
+        1690 次    65714.59 ms     └ 主线程
+           1 次        0.09 ms   cudaDeviceSynchronize
+           1 次        0.09 ms     └ 主线程
+[64k2] 步锚点候选（name: count）:
+      1692  vllm/v1/worker/worker_base.py(340): execute_model
+      1692  vllm/v1/worker/gpu_worker.py(807): execute_model
+      1692  vllm/v1/worker/gpu_model_runner.py(4241): execute_model
+[64k2] steps=1692  anchor_tids=[24743]  (共 10 个 tid)
+[64k2] sync 调用次数与 self 时长（全部线程 / 其中主线程）:
+        3382 次    68423.91 ms   cudaEventSynchronize
+        1692 次        3.57 ms     └ 主线程
+        1690 次    65583.24 ms   cudaStreamSynchronize
+        1690 次    65583.24 ms     └ 主线程
+           1 次        0.08 ms   cudaDeviceSynchronize
+           1 次        0.08 ms     └ 主线程
+
+===== warmup=0
+[4k2] warmup=0  formal scopes=1692  prefill=50 decode=1642
+  prefill n=   50 T=  5037.91ms S=  1675.18ms ( 33.3%) H= 3362.73ms G=  51.63ms H+G= 3414.36ms
+          仅主线程：S=  1567.90ms H= 3470.01ms H+G= 3521.65ms
+  decode  n= 1642 T= 68639.99ms S= 67041.02ms ( 97.7%) H= 1598.97ms G=1623.84ms H+G= 3222.80ms
+          仅主线程：S= 64150.81ms H= 4489.18ms H+G= 6113.01ms
+[64k2] warmup=0  formal scopes=1692  prefill=45 decode=1647
+  prefill n=   45 T=  4958.26ms S=  1591.83ms ( 32.1%) H= 3366.43ms G=  41.45ms H+G= 3407.89ms
+          仅主线程：S=  1494.95ms H= 3463.31ms H+G= 3504.76ms
+  decode  n= 1647 T= 68590.47ms S= 67042.28ms ( 97.7%) H= 1548.20ms G=1522.89ms H+G= 3071.09ms
+          仅主线程：S= 64091.86ms H= 4498.61ms H+G= 6021.50ms
+
+== 跨条件对比（B - A, warmup=0）==
+  prefill T 5037.91->4958.26ms (-1.58%)  S 1675.18->1591.83ms (-4.98%)  H 3362.73->3366.43ms (+0.11%)  G 51.63->41.45ms (-19.72%)  H+G 3414.36->3407.89ms (-0.19%)
+  prefill 仅主线程：S 1567.90->1494.95ms (-4.65%)  H 3470.01->3463.31ms (-0.19%)  H+G 3521.65->3504.76ms (-0.48%)
+  decode  T 68639.99->68590.47ms (-0.07%)  S 67041.02->67042.28ms (+0.00%)  H 1598.97->1548.20ms (-3.18%)  G 1623.84->1522.89ms (-6.22%)  H+G 3222.80->3071.09ms (-4.71%)
+  decode  仅主线程：S 64150.81->64091.86ms (-0.09%)  H 4489.18->4498.61ms (+0.21%)  H+G 6113.01->6021.50ms (-1.50%)
++ echo '== 2. litehost 侧：找 bench 报告 =='
+== 2. litehost 侧：找 bench 报告 ==
++ for r in /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k /home/z30059427/vllmBench/litehost_gap_20261109_195202 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k ']'
++ head -5
++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k -maxdepth 4 '(' -name per_rank.csv -o -name four_rank_totals.csv ')'
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/litehost/bs8_in128_out128/host_report/per_rank.csv
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/host_summary/per_rank.csv
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/host_summary/four_rank_totals.csv
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k -maxdepth 4 -name per_rank.csv
+++ head -2
++ for f in $(find "$r" -maxdepth 4 -name 'per_rank.csv' 2> /dev/null | head -2)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/litehost/bs8_in128_out128/host_report/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/litehost/bs8_in128_out128/host_report/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/litehost/bs8_in128_out128/host_report/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m2 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/litehost/bs8_in128_out128/host_report/per_rank.csv
+bs8_in128_out128,5a49fb3a09e84f49adc2578563983e63,0,771094,all_formal,0.0,262,1692,60.80627896,57.52642327,3.27985569,0.0,3.27985569,1.9384489893617023,3382,3302,1.03967825,4.31953394
+bs8_in128_out128,5a49fb3a09e84f49adc2578563983e63,0,771094,graph_formal,0.0,262,1651,58.70203404,56.83125314,1.8707809,0.0,1.8707809,1.1331198667474258,3302,3302,,
++ for f in $(find "$r" -maxdepth 4 -name 'per_rank.csv' 2> /dev/null | head -2)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m2 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/host_summary/per_rank.csv
+bs8_in128_out128,5a49fb3a09e84f49adc2578563983e63,0,771094,all_formal,0.0,262,1692,60.80627896,57.52642327,3.27985569,0.0,3.27985569,1.9384489893617023,3382,3302,1.03967825,4.31953394
+bs8_in128_out128,5a49fb3a09e84f49adc2578563983e63,0,771094,graph_formal,0.0,262,1651,58.70203404,56.83125314,1.8707809,0.0,1.8707809,1.1331198667474258,3302,3302,,
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k -maxdepth 4 -name four_rank_totals.csv
+++ head -2
++ for f in $(find "$r" -maxdepth 4 -name 'four_rank_totals.csv' 2> /dev/null | head -2)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/litehost/bs8_in128_out128/host_report/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m2 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
+bs8_in128_out128,5a49fb3a09e84f49adc2578563983e63,all_formal,0.0,4,1692,60.7810394125,57.592875677500004,3.188163735,1.0648467175,4.2530104525,3.08985807,3.27985569
+bs8_in128_out128,5a49fb3a09e84f49adc2578563983e63,graph_formal,0.0,4,1651,58.6703458825,56.9125498525,1.75779603,,,1.70839793,1.8707809
++ for f in $(find "$r" -maxdepth 4 -name 'four_rank_totals.csv' 2> /dev/null | head -2)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m2 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/host_summary/four_rank_totals.csv
+bs8_in128_out128,5a49fb3a09e84f49adc2578563983e63,all_formal,0.0,4,1692,60.7810394125,57.592875677500004,3.188163735,1.0648467175,4.2530104525,3.08985807,3.27985569
+bs8_in128_out128,5a49fb3a09e84f49adc2578563983e63,graph_formal,0.0,4,1651,58.6703458825,56.9125498525,1.75779603,,,1.70839793,1.8707809
++ for r in /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k /home/z30059427/vllmBench/litehost_gap_20261109_195202 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k ']'
++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k -maxdepth 4 '(' -name per_rank.csv -o -name four_rank_totals.csv ')'
++ head -5
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/litehost/bs8_in128_out128/host_report/per_rank.csv
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/host_summary/per_rank.csv
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/host_summary/four_rank_totals.csv
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k -maxdepth 4 -name per_rank.csv
+++ head -2
++ for f in $(find "$r" -maxdepth 4 -name 'per_rank.csv' 2> /dev/null | head -2)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/litehost/bs8_in128_out128/host_report/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/litehost/bs8_in128_out128/host_report/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/litehost/bs8_in128_out128/host_report/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m2 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/litehost/bs8_in128_out128/host_report/per_rank.csv
+bs8_in128_out128,93912297d10f4e20bf626ed6469127dc,0,36255,all_formal,0.0,262,1692,61.12244159,58.29035632,2.83208527,0.0,2.83208527,1.6738092612293143,3382,3328,0.99648992,3.82857519
+bs8_in128_out128,93912297d10f4e20bf626ed6469127dc,0,36255,graph_formal,0.0,262,1664,59.59214645,57.64452287,1.94762358,0.0,1.94762358,1.1704468629807692,3328,3328,,
++ for f in $(find "$r" -maxdepth 4 -name 'per_rank.csv' 2> /dev/null | head -2)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m2 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/host_summary/per_rank.csv
+bs8_in128_out128,93912297d10f4e20bf626ed6469127dc,0,36255,all_formal,0.0,262,1692,61.12244159,58.29035632,2.83208527,0.0,2.83208527,1.6738092612293143,3382,3328,0.99648992,3.82857519
+bs8_in128_out128,93912297d10f4e20bf626ed6469127dc,0,36255,graph_formal,0.0,262,1664,59.59214645,57.64452287,1.94762358,0.0,1.94762358,1.1704468629807692,3328,3328,,
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k -maxdepth 4 -name four_rank_totals.csv
+++ head -2
++ for f in $(find "$r" -maxdepth 4 -name 'four_rank_totals.csv' 2> /dev/null | head -2)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/litehost/bs8_in128_out128/host_report/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m2 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
+bs8_in128_out128,93912297d10f4e20bf626ed6469127dc,all_formal,0.0,4,1692,61.0789391675,58.4972416425,2.581697525,1.039928295,3.62162582,2.48882631,2.83208527
+bs8_in128_out128,93912297d10f4e20bf626ed6469127dc,graph_formal,0.0,4,1664,59.5484329325,57.8483415825,1.7000913500000001,,,1.60854414,1.94762358
++ for f in $(find "$r" -maxdepth 4 -name 'four_rank_totals.csv' 2> /dev/null | head -2)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m2 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/host_summary/four_rank_totals.csv
+bs8_in128_out128,93912297d10f4e20bf626ed6469127dc,all_formal,0.0,4,1692,61.0789391675,58.4972416425,2.581697525,1.039928295,3.62162582,2.48882631,2.83208527
+bs8_in128_out128,93912297d10f4e20bf626ed6469127dc,graph_formal,0.0,4,1664,59.5484329325,57.8483415825,1.7000913500000001,,,1.60854414,1.94762358
++ for r in /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k /home/z30059427/vllmBench/litehost_gap_20261109_195202 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715
++ echo '---- /home/z30059427/vllmBench/litehost_gap_20261109_195202'
+---- /home/z30059427/vllmBench/litehost_gap_20261109_195202
++ '[' -d /home/z30059427/vllmBench/litehost_gap_20261109_195202 ']'
++ find /home/z30059427/vllmBench/litehost_gap_20261109_195202 -maxdepth 4 '(' -name per_rank.csv -o -name four_rank_totals.csv ')'
++ head -5
+/home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in2048_out2048/host_report/per_rank.csv
+/home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in2048_out2048/host_report/four_rank_totals.csv
+/home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in128_out128/host_report/per_rank.csv
+/home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
+/home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in128_out2048/host_report/per_rank.csv
+++ find /home/z30059427/vllmBench/litehost_gap_20261109_195202 -maxdepth 4 -name per_rank.csv
+++ head -2
++ for f in $(find "$r" -maxdepth 4 -name 'per_rank.csv' 2> /dev/null | head -2)
++ echo '  ## /home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in2048_out2048/host_report/per_rank.csv'
+  ## /home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in2048_out2048/host_report/per_rank.csv
++ head -1 /home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in2048_out2048/host_report/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m2 in128_out128 /home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in2048_out2048/host_report/per_rank.csv
++ for f in $(find "$r" -maxdepth 4 -name 'per_rank.csv' 2> /dev/null | head -2)
++ echo '  ## /home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in128_out128/host_report/per_rank.csv'
+  ## /home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in128_out128/host_report/per_rank.csv
++ head -1 /home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in128_out128/host_report/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m2 in128_out128 /home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in128_out128/host_report/per_rank.csv
+bs8_in128_out128,7bcadd562ea043888479cbac8ea6fdac,0,1142613,all_formal,0.0,262,1692,61.03683096,57.73302533,3.30380563,0.0,3.30380563,1.9526038002364066,3382,3328,1.07658183,4.38038746
+bs8_in128_out128,7bcadd562ea043888479cbac8ea6fdac,0,1142613,graph_formal,0.0,262,1664,59.3549145,57.09037544,2.26453906,0.0,2.26453906,1.3609008774038462,3328,3328,,
+++ find /home/z30059427/vllmBench/litehost_gap_20261109_195202 -maxdepth 4 -name four_rank_totals.csv
+++ head -2
++ for f in $(find "$r" -maxdepth 4 -name 'four_rank_totals.csv' 2> /dev/null | head -2)
++ echo '  ## /home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in2048_out2048/host_report/four_rank_totals.csv'
+  ## /home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in2048_out2048/host_report/four_rank_totals.csv
++ head -1 /home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in2048_out2048/host_report/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m2 in128_out128 /home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in2048_out2048/host_report/four_rank_totals.csv
++ for f in $(find "$r" -maxdepth 4 -name 'four_rank_totals.csv' 2> /dev/null | head -2)
++ echo '  ## /home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in128_out128/host_report/four_rank_totals.csv'
+  ## /home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
++ head -1 /home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m2 in128_out128 /home/z30059427/vllmBench/litehost_gap_20261109_195202/litehost/bs8_in128_out128/host_report/four_rank_totals.csv
+bs8_in128_out128,7bcadd562ea043888479cbac8ea6fdac,all_formal,0.0,4,1692,60.976539875,57.813911235,3.16262864,1.136876005,4.299504645,3.04555126,3.30380563
+bs8_in128_out128,7bcadd562ea043888479cbac8ea6fdac,graph_formal,0.0,4,1664,59.3217112775,57.172419835,2.1492914425,,,2.07667475,2.26453906
++ for r in /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k /home/z30059427/vllmBench/litehost_gap_20261109_195202 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715
++ echo '---- /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715'
+---- /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715
++ '[' -d /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715 ']'
++ echo '(不存在)'
+(不存在)
++ continue
++ echo '== 3. litehost 侧：rank 行（含 sync_calls）=='
+== 3. litehost 侧：rank 行（含 sync_calls）==
++ for r in /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k /home/z30059427/vllmBench/litehost_gap_20261109_195202 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k
++ grep -rh 'rank[0-3] pid=.*formal=' /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k
++ head -4
+  rank0 pid=771094 formal=1692 warmup_excluded=262 T_total=60.806279s S_total=57.526423s H_total=3.279856s G_total=1.039678s H+G=4.319534s
+  rank1 pid=771095 formal=1692 warmup_excluded=262 T_total=60.830872s S_total=57.741014s H_total=3.089858s G_total=1.015024s H+G=4.104882s
+  rank2 pid=771096 formal=1692 warmup_excluded=262 T_total=60.730958s S_total=57.547436s H_total=3.183522s G_total=1.114887s H+G=4.298409s
+  rank3 pid=771097 formal=1692 warmup_excluded=262 T_total=60.756049s S_total=57.556629s H_total=3.199419s G_total=1.089798s H+G=4.289217s
++ for r in /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k /home/z30059427/vllmBench/litehost_gap_20261109_195202 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k
++ grep -rh 'rank[0-3] pid=.*formal=' /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k
++ head -4
+  rank0 pid=36255 formal=1692 warmup_excluded=262 T_total=61.122442s S_total=58.290356s H_total=2.832085s G_total=0.996490s H+G=3.828575s
+  rank1 pid=36256 formal=1692 warmup_excluded=262 T_total=61.052570s S_total=58.560248s H_total=2.492322s G_total=1.066315s H+G=3.558637s
+  rank2 pid=36257 formal=1692 warmup_excluded=262 T_total=61.062455s S_total=58.573629s H_total=2.488826s G_total=1.056375s H+G=3.545201s
+  rank3 pid=36258 formal=1692 warmup_excluded=262 T_total=61.078290s S_total=58.564733s H_total=2.513556s G_total=1.040534s H+G=3.554090s
++ for r in /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k /home/z30059427/vllmBench/litehost_gap_20261109_195202 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715
++ '[' -d /home/z30059427/vllmBench/litehost_gap_20261109_195202 ']'
++ echo '---- /home/z30059427/vllmBench/litehost_gap_20261109_195202'
+---- /home/z30059427/vllmBench/litehost_gap_20261109_195202
++ grep -rh 'rank[0-3] pid=.*formal=' /home/z30059427/vllmBench/litehost_gap_20261109_195202
++ head -4
+  rank0 pid=1142613 formal=26667 warmup_excluded=4110 T_total=1005.379436s S_total=964.804117s H_total=40.575318s G_total=17.076277s H+G=57.651596s
+  rank1 pid=1142614 formal=26667 warmup_excluded=4110 T_total=1005.380029s S_total=966.638536s H_total=38.741493s G_total=17.075630s H+G=55.817123s
+  rank2 pid=1142615 formal=26667 warmup_excluded=4110 T_total=1004.236159s S_total=964.835102s H_total=39.401057s G_total=18.219524s H+G=57.620581s
+  rank3 pid=1142616 formal=26667 warmup_excluded=4110 T_total=1004.837568s S_total=965.392929s H_total=39.444639s G_total=17.618100s H+G=57.062739s
++ for r in /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k /home/z30059427/vllmBench/litehost_gap_20261109_195202 /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715
++ '[' -d /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715 ']'
++ continue
++ set +x
+
+### exit: 0
