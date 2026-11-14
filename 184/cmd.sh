@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 安装"全优化开关"版 timeline_opt.sh:备份原文件 -> 覆盖 -> 语法检查 -> diff -> 校验编译配置键。
-# 纯 CPU,不启动 vllm,不动 GPU。
+# 检查 4k3 / 64k3 两次 timeline 采集:配置是否一致、服务端有没有告警、trace 是否完整、
+# TSHG 对比。纯 CPU,不启动 vllm,不动 GPU。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,58 +18,79 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  SRC="$DIR/timeline_opt.sh"
-  DST=/home/qch/scripts/timeline_opt.sh
-  BAK="$DST.bak-$TS"
-  SUDO=""
+  T=/home/qch/scripts/timeline
+  A_ID=4k3
+  B_ID=64k3
+  A="$T/$A_ID"
+  B="$T/$B_ID"
 
-  echo "== 0. 源文件 =="
-  ls -l --time-style=long-iso "$SRC" || exit 1
-  sha256sum "$SRC" 2>/dev/null || shasum -a 256 "$SRC"
+  pick() {
+    local d="$1" f
+    f=$(find "$d" -type f -name 'rank0*pt.trace.json*' -printf '%s %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
+    [ -n "$f" ] || f=$(find "$d" -type f \( -name '*.json' -o -name '*.json.gz' \) -printf '%s %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
+    echo "$f"
+  }
 
-  echo "== 1. 目标可写性 =="
-  ls -l --time-style=long-iso "$DST"
-  if [ -w "$(dirname "$DST")" ] && { [ ! -e "$DST" ] || [ -w "$DST" ]; }; then
-    echo "可直接写"
-  elif sudo -n true 2>/dev/null; then
-    SUDO="sudo"; echo "需要 sudo(已免密)"
-  else
-    echo "目标不可写且 sudo 需要密码"
-  fi
+  echo "== 0. 机器状态(只能反映当前引导) =="
+  uptime -s
+  getconf PAGE_SIZE
+  cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>/dev/null
 
-  echo "== 2. 备份 =="
-  if $SUDO cp -p "$DST" "$BAK"; then
-    ls -l --time-style=long-iso "$BAK"
-  else
-    echo "备份失败,放弃安装"; exit 2
-  fi
-
-  echo "== 3. 覆盖 =="
-  if $SUDO cp "$SRC" "$DST" && $SUDO chmod +x "$DST"; then
-    ls -l --time-style=long-iso "$DST"
-    sha256sum "$DST" 2>/dev/null || shasum -a 256 "$DST"
-  else
-    echo "覆盖失败,原文件仍在备份 $BAK"; exit 3
-  fi
-
-  echo "== 4. 语法检查 =="
-  bash -n "$DST" && echo "bash -n OK"
-
-  echo "== 5. 与原文件的差异 =="
-  diff -u "$BAK" "$DST" | sed -n '1,200p'
-
-  echo "== 6. venv 里的 CompilationConfig 是否认识新键 =="
-  for k in compact_greedy sample_logits_cudagraph_scope; do
-    if timeout 60 docker exec corex5-py311 bash -c \
-        "grep -nE '^[[:space:]]*$k:' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/compilation.py"; then
-      :
-    else
-      echo "!! 缺少 $k"
-    fi
+  echo "== 1. 采集目录 =="
+  for d in "$A" "$B"; do
+    echo "---- $d"
+    ls -ld --time-style=long-iso "$d" 2>/dev/null || echo "缺目录"
+    du -sh "$d" 2>/dev/null
+    find "$d" -maxdepth 4 -type f -printf '%10s  %TY-%Tm-%Td %TH:%TM  %p\n' 2>/dev/null | sort -k4
   done
 
-  echo "== 7. 关键开关行(落盘后的脚本) =="
-  grep -nE 'COMPILATION_CONFIG=|VLLM_HOST_OPT|UMD_MAX|TORCH_MODULE|LD_PRELOAD|compact_greedy' "$DST"
+  echo "== 2. 是否用的是新脚本(run_env.txt) =="
+  for d in "$A" "$B"; do
+    echo "---- $d/run_env.txt"
+    cat "$d/run_env.txt" 2>/dev/null || echo "缺 run_env.txt —— 脚本不是新版"
+  done
+  echo "---- 两份 run_env 的差异(应只有 TEST_ID)"
+  if [ -f "$A/run_env.txt" ] && [ -f "$B/run_env.txt" ]; then
+    diff "$A/run_env.txt" "$B/run_env.txt"
+  fi
+
+  echo "== 3. server.log 关键行 =="
+  for d in "$A" "$B"; do
+    s="$d/logs/server.log"
+    echo "---- $s"
+    [ -f "$s" ] || { echo "缺 server.log"; continue; }
+    echo "  行数: $(wc -l < "$s")   大小: $(du -h "$s" | cut -f1)"
+    echo "  profiler 生效:   $(grep -cE 'Torch profiling enabled|Profiler with mode' "$s")"
+    echo "  Unknown env var: $(grep -c 'Unknown vLLM environment variable' "$s")"
+    echo "  报错行:          $(grep -cE 'ERROR|Traceback|OutOfMemory|CUDA error|RuntimeError' "$s")"
+    grep -nE 'Unknown vLLM environment variable|ERROR|Traceback|OutOfMemory|CUDA error|RuntimeError' "$s" | head -10
+    echo "  --- host-opt / cudagraph 相关 ---"
+    grep -niE 'host_opt|host-opt|compact_greedy|capturing|graph' "$s" | head -12
+    echo "  --- 末尾 15 行 ---"
+    tail -15 "$s"
+  done
+
+  echo "== 4. bench 结果 =="
+  for d in "$A" "$B"; do
+    for f in "$d"/logs/bench_instance*.log; do
+      [ -f "$f" ] || continue
+      echo "---- $f"
+      grep -iE 'Successful requests|Benchmark duration|Request throughput|Output token throughput|Mean TTFT|Mean TPOT|Mean ITL' "$f" | head -10
+      grep -iE 'error|exception|traceback' "$f" | head -5
+    done
+  done
+
+  echo "== 5. trace 文件 =="
+  FA=$(pick "$A"); FB=$(pick "$B")
+  echo "A=$FA"
+  ls -l --time-style=long-iso "$FA" 2>/dev/null
+  echo "B=$FB"
+  ls -l --time-style=long-iso "$FB" 2>/dev/null
+  if [ -z "$FA" ] || [ -z "$FB" ]; then echo "缺 trace,后面跳过"; set +x; exit 0; fi
+
+  echo "== 6. TSHG 对比(warmup 0 / 1) =="
+  TSHG_WARMUP=0,1 python3 "$DIR/trace_tshg_split.py" "$FA" "$FB" "$A_ID" "$B_ID"
+  echo "== 6 结束 exit=$? =="
 
   # ---- 命令结束 ----
 
