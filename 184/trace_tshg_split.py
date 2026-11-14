@@ -40,7 +40,10 @@ SYNC_APIS = {
 
 
 def load(path):
-    with gzip.open(path, "rt", encoding="utf-8") as f:
+    with open(path, "rb") as probe:
+        magic = probe.read(2)
+    opener = gzip.open if magic == b"\x1f\x8b" else open
+    with opener(path, "rt", encoding="utf-8") as f:
         return json.load(f)
 
 
