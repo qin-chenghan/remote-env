@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>鲲鹏与海光 decode 步：同步等待与其他 CPU 分析</title>
+<style>
+  body { font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif; color: #222; max-width: 1000px; margin: 32px auto; padding: 0 20px; line-height: 1.6; }
+  h1 { font-size: 24px; border-bottom: 2px solid #333; padding-bottom: 8px; }
+  h2 { font-size: 18px; margin-top: 36px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+  p.note { color: #555; font-size: 14px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0 8px; font-size: 14px; }
+  th, td { border: 1px solid #bbb; padding: 6px 10px; }
+  th { background: #f0f0f0; text-align: left; }
+  td.num, th.num { text-align: right; }
+  .callout { background: #f5f8fc; border-left: 4px solid #3b6ea8; padding: 10px 14px; margin: 16px 0; font-size: 14px; }
+  .src { color: #666; font-size: 13px; margin-top: 40px; border-top: 1px solid #ccc; padding-top: 8px; }
+  svg text { font-size: 12px; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
+</style>
+</head>
+<body>
+
+<h1>鲲鹏与海光 decode 步：同步等待与其他 CPU 分析</h1>
+
+<h2>一、同步等待和其他 CPU</h2>
+<p class="note">同步等待 = cudaDeviceSynchronize + cudaEventSynchronize + cudaStreamSynchronize + cudaStreamWaitEvent 的 Self CPU。其他 CPU = Self CPU 总量 − 同步等待。cudaGraphLaunch 和 cudaLaunchKernel 算在其他 CPU 里。四卡平均。Intel 只有未绑核的一次：4 实例，只 profile 了 instance0。</p>
+<table>
+  <tr><th>场景</th><th class="num">Self CPU 总</th><th class="num">同步等待</th><th class="num">其他 CPU</th><th class="num">其中 launch</th></tr>
+  <tr><td>鲲鹏绑核</td><td class="num">97.617 s</td><td class="num">88.131 s</td><td class="num">9.485 s</td><td class="num">0.766 s</td></tr>
+  <tr><td>鲲鹏不绑</td><td class="num">98.319 s</td><td class="num">88.451 s</td><td class="num">9.868 s</td><td class="num">0.853 s</td></tr>
+  <tr><td>海光绑核</td><td class="num">101.821 s</td><td class="num">89.548 s</td><td class="num">12.273 s</td><td class="num">0.683 s</td></tr>
+  <tr><td>海光不绑</td><td class="num">101.268 s</td><td class="num">89.747 s</td><td class="num">11.521 s</td><td class="num">0.659 s</td></tr>
+  <tr><td>Intel 6330 未绑核</td><td class="num">98.629 s</td><td class="num">88.910 s</td><td class="num">9.719 s</td><td class="num">0.845 s</td></tr>
+</table>
+
+<h2>二、一步 decode 的时间轴（鲲鹏绑核，稳态）</h2>
+<p class="note">cudaGraphLaunch 和 cudaDeviceSynchronize 是四卡平均；图外 kernel 时长是 rank0。先后按 4.4.0 trace：小 kernel 在图结束之后。整步横轴 0–23.2 ms。cudaGraphLaunch 只有 93.6 µs，贴在 0 ms，看下面的开头放大。图外三段贴在 21.6 ms 之后，看结尾放大。</p>
+
+<h3>整步，0–23.2 ms</h3>
+<svg width="960" height="180" viewBox="0 0 960 180" role="img" aria-label="整步时间轴">
+  <text x="8" y="58">CPU</text>
+  <text x="8" y="118">GPU</text>
+  <rect x="73.5" y="36" width="805.9" height="34" fill="#3b6ea8"/>
+  <text x="360" y="58" fill="#fff">cudaDeviceSynchronize 21.49 ms</text>
+  <rect x="70" y="36" width="3.5" height="34" fill="#555"/>
+  <text x="78" y="26">cudaGraphLaunch 在 0 ms</text>
+  <rect x="73.5" y="96" width="805.9" height="34" fill="#3b6ea8"/>
+  <text x="400" y="118" fill="#fff">CUDA Graph</text>
+  <rect x="879.4" y="96" width="23.3" height="34" fill="#c9a227"/>
+  <rect x="902.7" y="96" width="7.6" height="34" fill="#7a9e3a"/>
+  <rect x="910.3" y="96" width="11.9" height="34" fill="#8a5fa8"/>
+  <text x="700" y="152">右端细条：GEMM / AllGather / argmax</text>
+  <line x1="70" y1="156" x2="940" y2="156" stroke="#999"/>
+  <text x="66" y="172">0</text>
+  <text x="253" y="172">5</text>
+  <text x="441" y="172">10</text>
+  <text x="628" y="172">15</text>
+  <text x="816" y="172">20</text>
+  <text x="920" y="172">23 ms</text>
+</svg>
+
+<h3>开头放大：cudaGraphLaunch，0–0.40 ms</h3>
+<p class="note">横轴 0–0.40 ms。整步图里它贴在 0 ms，只有 93.6 µs，所以看不见。</p>
+<svg width="960" height="200" viewBox="0 0 960 200" role="img" aria-label="开头放大">
+  <text x="8" y="64">CPU</text>
+  <text x="8" y="140">GPU</text>
+  <rect x="60" y="40" width="206" height="40" fill="#555"/>
+  <text x="68" y="58" fill="#fff">cudaGraphLaunch</text>
+  <text x="68" y="74" fill="#ddd">93.6 µs</text>
+  <rect x="266" y="40" width="674" height="40" fill="#3b6ea8"/>
+  <text x="278" y="65" fill="#fff">cudaDeviceSynchronize 从这里开始</text>
+  <rect x="266" y="116" width="674" height="40" fill="#3b6ea8"/>
+  <text x="278" y="141" fill="#fff">CUDA Graph 从这里开始</text>
+  <line x1="60" y1="176" x2="940" y2="176" stroke="#999"/>
+  <text x="52" y="192">0</text>
+  <text x="272" y="192">0.1</text>
+  <text x="492" y="192">0.2</text>
+  <text x="712" y="192">0.3</text>
+  <text x="920" y="192">0.4 ms</text>
+</svg>
+
+<h3>结尾放大：图结束后，21.45–22.90 ms</h3>
+<p class="note">同步在左缘结束。GPU 跑 GEMM 时，CPU 在跑 host 代码，不等这次 GEMM。竖线是 cudaLaunchKernel，每次 7.8 µs。</p>
+<svg width="960" height="210" viewBox="0 0 960 210" role="img" aria-label="结尾放大">
+  <text x="8" y="58">CPU</text>
+  <text x="8" y="128">GPU</text>
+  <rect x="60" y="36" width="81" height="32" fill="#3b6ea8"/>
+  <rect x="141" y="36" width="693" height="32" fill="#d9d9d9"/>
+  <text x="150" y="57">其他 CPU，不等这次 GEMM</text>
+  <rect x="141" y="36" width="3" height="32" fill="#222"/>
+  <rect x="517" y="36" width="3" height="32" fill="#222"/>
+  <rect x="641" y="36" width="3" height="32" fill="#222"/>
+  <text x="148" y="26">cudaLaunchKernel 7.8 µs</text>
+  <rect x="60" y="108" width="81" height="32" fill="#3b6ea8"/>
+  <rect x="141" y="108" width="376" height="32" fill="#c9a227"/>
+  <text x="149" y="129">GEMM</text>
+  <text x="149" y="158">621 µs</text>
+  <rect x="517" y="108" width="124" height="32" fill="#7a9e3a"/>
+  <text x="525" y="129" fill="#fff">AllGather</text>
+  <text x="525" y="158">203 µs</text>
+  <rect x="641" y="108" width="193" height="32" fill="#8a5fa8"/>
+  <text x="649" y="129" fill="#fff">argmax</text>
+  <text x="649" y="158" fill="#333">319 µs</text>
+  <line x1="60" y1="180" x2="940" y2="180" stroke="#999"/>
+  <text x="40" y="198">21.45</text>
+  <text x="125" y="198">21.58</text>
+  <text x="500" y="198">22.20</text>
+  <text x="620" y="198">22.41</text>
+  <text x="820" y="198">22.73</text>
+  <text x="910" y="198">22.90 ms</text>
+</svg>
+<ul>
+  <li>CPU 先发射 CUDA Graph：cudaGraphLaunch 约 93.6 µs，记在其他 CPU。</li>
+  <li>立即进入 cudaDeviceSynchronize，约 21.49 ms，等 GPU 上的 CUDA Graph 回放结束。这一段记在同步等待。</li>
+  <li>同步返回后，GPU 跑 GEMM 621 µs、AllGather 203 µs、argmax 319 µs。这些 kernel 的时间记在 Self CUDA，不在同步等待那一列。</li>
+  <li>GEMM 运行期间，CPU 不在等这次 GEMM。rank0 的 trace 里 617 µs 中大约 573 µs 没有 CUDA 调用，CPU 在跑 host 代码，记在其他 CPU。中间穿插的 cudaLaunchKernel 每次约 5–8 µs，用来发射后面的 AllGather 和 argmax。</li>
+  <li>argmax 之后，CPU 通过 cudaEventSynchronize 拿到 token，单次约 18 µs。</li>
+</ul>
+
+<h2>三、绑核后同步等待的提升幅度为什么不一样</h2>
+<p>同步等待的提升幅度，鲲鹏是 0.36%（少 0.320 s），海光是 0.22%（少 0.199 s）。差在两处：鲲鹏少做了 9 次 CUDA Graph，海光一次没少；单次等待的四卡平均海光降得更多，但那是各 rank 之间此消彼长，不是每张卡的图都变短了。</p>
+<table>
+  <tr><th></th><th class="num">鲲鹏</th><th class="num">海光</th></tr>
+  <tr><td>同步等待总量少了</td><td class="num">0.320 s</td><td class="num">0.199 s</td></tr>
+  <tr><td>少做的步数</td><td class="num">−9 次 DeviceSync</td><td class="num">0</td></tr>
+  <tr><td>少做贡献</td><td class="num">约 0.194 s</td><td class="num">0</td></tr>
+  <tr><td>单次变短</td><td class="num">约 28 µs</td><td class="num">约 47 µs</td></tr>
+  <tr><td>单次变短贡献</td><td class="num">约 0.114 s</td><td class="num">约 0.194 s</td></tr>
+</table>
+
+<h2>四、少做的 9 次图</h2>
+<p class="note">鲲鹏 cudaGraphLaunch 4105 → 4096，和 cudaDeviceSynchronize 少的 9 次一致。海光两次都是 4096 次，batch 形状也相同。下表是鲲鹏。GPU 列是该形状 Self CUDA 合计。</p>
+<table>
+  <tr><th>形状</th><th>含义</th><th class="num">绑核次数</th><th class="num">不绑核次数</th><th class="num">绑核 GPU</th><th class="num">不绑核 GPU</th></tr>
+  <tr><td>new_0_cached_8</td><td>8 条都在 decode</td><td class="num">4090</td><td class="num">4080</td><td class="num">3.207 s</td><td class="num">3.360 s</td></tr>
+  <tr><td>new_0_cached_7</td><td>只有 7 条在 decode</td><td class="num">4</td><td class="num">13</td><td class="num">3.1 ms</td><td class="num">10.7 ms</td></tr>
+  <tr><td>new_0_cached_1</td><td>只有 1 条在 decode</td><td class="num">2</td><td class="num">12</td><td class="num">1.3 ms</td><td class="num">8.4 ms</td></tr>
+  <tr><td>new_6_cached_1</td><td>6 个 prefill，外加 1 条 decode</td><td class="num">0</td><td class="num">1</td><td class="num">0</td><td class="num">171.0 ms</td></tr>
+  <tr><td>new_1_cached_7</td><td>1 个 prefill，外加 7 条 decode</td><td class="num">0</td><td class="num">1</td><td class="num">0</td><td class="num">133.5 ms</td></tr>
+</table>
+<p>不绑核多出 9 次 bs7 和 10 次 bs1，绑核后并进 bs8，bs8 多 10 次，净少 9 次图回放。prefill 走 eager，不在这 9 次里。这 9 次约 0.194 s，是鲲鹏同步等待多出来的那一截。</p>
+
+<h2>五、每个 rank 的单次等待</h2>
+<p class="note">绑核后单次 cudaDeviceSynchronize 相对不绑核的变化。负号表示绑核后等得更久。四卡平均鲲鹏 −28 µs、海光 −47 µs，是下面四格加出来的。</p>
+<table>
+  <tr><th></th><th class="num">rank0</th><th class="num">rank1</th><th class="num">rank2</th><th class="num">rank3</th></tr>
+  <tr><td>鲲鹏</td><td class="num">−194 µs</td><td class="num">+118 µs</td><td class="num">+130 µs</td><td class="num">−165 µs</td></tr>
+  <tr><td>海光</td><td class="num">−438 µs</td><td class="num">+262 µs</td><td class="num">+87 µs</td><td class="num">−100 µs</td></tr>
+</table>
+<div class="callout">鲲鹏总量提升更大，是因为少了 9 次不满 batch 的图回放，约 0.194 s。海光单次平均降得更多，主要是 rank0 少等 438 µs、rank1 多等 262 µs，等待在卡之间搬家。一步的墙钟看最慢的那张卡，不跟着这个平均值少。cudaGraphLaunch 和 cudaLaunchKernel 的单次耗时在其他 CPU 里，不解释这两列同步等待的差。</div>
+
+<h2>六、为什么这两处再往下压不动</h2>
+<p>少掉的 9 次图，是不满 batch 的 decode 步并进了 bs8。绑核之后稳态已经是一步一次 CUDA Graph，4096 次，和生成的 token 步一一对应。再少一次图，就是少生成一步，不是把同一步的发射省掉。海光两次都是 4096 次，没有这 9 步可以再减。prefill 那些 100 ms 级的步走 eager，不在这 9 次里面。</p>
+<p>单次等待的 28 µs 和 47 µs 是四张卡平均出来的。rank0 少等的时候，rank1、rank2 在多等。一步要等最慢的那张卡，平均值下来并不缩短这一步。把 rank0 再推迟到和别的 rank 一起进图，只是把等待从一张卡记到另一张卡上，最慢的那张卡还是那么慢。图本体大约 21.5 ms，绑核能搬动的只有这几十微秒。鲲鹏绑核后单次已经是 21.49 ms，海光是 21.84 ms。</p>
+<p>cudaGraphLaunch 和 cudaLaunchKernel 属于其他 CPU，不在同步等待里。鲲鹏绑核后两项合计 0.766 s。次数这边，稳态 GraphLaunch 已经是一步一次，4096 次，再少就是少生成一步；LaunchKernel 多出来的那几百次是图外 eager，海光绑核少发过 901 次，端到端没有变快。单次时间这边，鲲鹏 GraphLaunch 约 94 µs、LaunchKernel 约 8 µs，绑核后已经从 107 µs 降到 94 µs；海光约 76 µs，绑核后反而略升。这份数据里看不到再往下压的空间。</p>
+
+<div class="src">
+数据来源：<br>
+鲲鹏 2026-11-02 绑核 torch profile：/data/gyx/kunpeng_profile/profile_torch_timeline_qwen3-32b-w8a8-taskset1_20261102_064551/<br>
+鲲鹏 2026-11-02 不绑核 torch profile：/data/gyx/kunpeng_profile/profile_torch_timeline_qwen3-32b-w8a8-taskset0_20261102_065519/<br>
+海光 2026-10-26 绑核 / 不绑核 torch profile：/data/gyx/haiguang_profile/profile_torch_timeline_qwen3-32b-w8a8-taskset1_20261026_084823/ 与 .../taskset0_20261026_085811/<br>
+Intel 6330 torch profile：/data/gyx/profile_torch_timeline_qwen3-32b_20260728_185343/<br>
+图外 kernel 的先后来自 4.4.0 ixsys trace：/data/gyx/instance0.pftrace（与 tp4/results/instance0_20260813 相同），不是同一次采集。
+</div>
+
+</body>
+</html>
