@@ -1,0 +1,151 @@
+### server: 184
+### host:   controller
+### time:   2026-11-14T06:18:00Z
+
++ echo '== 1. timeline 目录结构 =='
+== 1. timeline 目录结构 ==
++ ls -lat --time-style=long-iso /home/qch/scripts/timeline
++ head -10
+total 112
+-rw-r--r--.  1 root root 8827 2026-11-12 15:08 261110-2403_sp3-64k-report.txt
+drwxrwxr-x+ 13 root root 4096 2026-11-12 15:08 .
+-rw-r--r--.  1 root root 8899 2026-11-12 15:08 261109_oe-2403-sp3_report.txt
+drwxrwxr-x+ 17 root root 4096 2026-11-12 14:02 ..
+drwxr-xr-x.  4 root root 4096 2026-11-12 10:47 64k2
+drwxr-xr-x.  4 root root 4096 2026-11-12 10:35 4k2
+drwxr-xr-x.  4 root root 4096 2026-11-12 09:04 64k
+drwxr-xr-x.  4 root root 4096 2026-11-12 08:34 4k
+drwxrwxr-x+  5 root root 4096 2026-10-14 16:28 timeline_on4
++ for d in 4k 4k2 64k 64k2
++ echo '---- 4k'
+---- 4k
++ ls -l --time-style=long-iso /home/qch/scripts/timeline/4k/logs
++ head -6
+total 88
+-rw-r--r--. 1 root root  6401 2026-11-12 08:34 bench_instance0.log
+-rw-r--r--. 1 root root 76882 2026-11-12 08:34 server.log
++ for d in 4k 4k2 64k 64k2
++ echo '---- 4k2'
+---- 4k2
++ ls -l --time-style=long-iso /home/qch/scripts/timeline/4k2/logs
++ head -6
+total 88
+-rw-r--r--. 1 root root  6470 2026-11-12 10:35 bench_instance0.log
+-rw-r--r--. 1 root root 76257 2026-11-12 10:35 server.log
++ for d in 4k 4k2 64k 64k2
++ echo '---- 64k'
+---- 64k
++ ls -l --time-style=long-iso /home/qch/scripts/timeline/64k/logs
++ head -6
+total 88
+-rw-r--r--. 1 root root  6470 2026-11-12 09:04 bench_instance0.log
+-rw-r--r--. 1 root root 75722 2026-11-12 09:04 server.log
++ for d in 4k 4k2 64k 64k2
++ echo '---- 64k2'
+---- 64k2
++ ls -l --time-style=long-iso /home/qch/scripts/timeline/64k2/logs
++ head -6
+total 88
+-rw-r--r--. 1 root root  6401 2026-11-12 10:47 bench_instance0.log
+-rw-r--r--. 1 root root 75813 2026-11-12 10:47 server.log
++ echo '== 2. 日志里出现的解释器/依赖路径 =='
+== 2. 日志里出现的解释器/依赖路径 ==
++ for d in 4k 4k2 64k 64k2
++ L=/home/qch/scripts/timeline/4k/logs
++ '[' -d /home/qch/scripts/timeline/4k/logs ']'
++ echo '===== 4k'
+===== 4k
++ grep -ohE '/opt/cpython-vllm/v1|/opt/corex311-cpython-vllm|/opt/corex311/|/usr/local/lib/python3\.12|python3\.12|python3\.11' /home/qch/scripts/timeline/4k/logs/bench_instance0.log /home/qch/scripts/timeline/4k/logs/server.log
++ sort
++ uniq -c
++ sort -rn
++ head -8
+     17 python3.11
+     13 /opt/corex311-cpython-vllm
+      4 /opt/cpython-vllm/v1
++ for d in 4k 4k2 64k 64k2
++ L=/home/qch/scripts/timeline/4k2/logs
++ '[' -d /home/qch/scripts/timeline/4k2/logs ']'
++ echo '===== 4k2'
+===== 4k2
++ grep -ohE '/opt/cpython-vllm/v1|/opt/corex311-cpython-vllm|/opt/corex311/|/usr/local/lib/python3\.12|python3\.12|python3\.11' /home/qch/scripts/timeline/4k2/logs/bench_instance0.log /home/qch/scripts/timeline/4k2/logs/server.log
++ sort
++ uniq -c
++ sort -rn
++ head -8
+     17 python3.11
+     13 /opt/corex311-cpython-vllm
+      4 /opt/cpython-vllm/v1
++ for d in 4k 4k2 64k 64k2
++ L=/home/qch/scripts/timeline/64k/logs
++ '[' -d /home/qch/scripts/timeline/64k/logs ']'
++ echo '===== 64k'
+===== 64k
++ grep -ohE '/opt/cpython-vllm/v1|/opt/corex311-cpython-vllm|/opt/corex311/|/usr/local/lib/python3\.12|python3\.12|python3\.11' /home/qch/scripts/timeline/64k/logs/bench_instance0.log /home/qch/scripts/timeline/64k/logs/server.log
++ sort
++ uniq -c
++ sort -rn
++ head -8
+     17 python3.11
+     13 /opt/corex311-cpython-vllm
+      4 /opt/cpython-vllm/v1
++ for d in 4k 4k2 64k 64k2
++ L=/home/qch/scripts/timeline/64k2/logs
++ '[' -d /home/qch/scripts/timeline/64k2/logs ']'
++ echo '===== 64k2'
+===== 64k2
++ grep -ohE '/opt/cpython-vllm/v1|/opt/corex311-cpython-vllm|/opt/corex311/|/usr/local/lib/python3\.12|python3\.12|python3\.11' /home/qch/scripts/timeline/64k2/logs/bench_instance0.log /home/qch/scripts/timeline/64k2/logs/server.log
++ sort
++ uniq -c
++ sort -rn
++ head -8
+     17 python3.11
+     13 /opt/corex311-cpython-vllm
+      4 /opt/cpython-vllm/v1
++ echo '== 3. server.log 开头（看启动路径与 vllm 版本）=='
+== 3. server.log 开头（看启动路径与 vllm 版本）==
++ for d in 4k 64k
++ echo '===== 4k'
+===== 4k
++ head -6 /home/qch/scripts/timeline/4k/logs/server.log
++ cut -c1-180
+INFO 11-12 08:29:05 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-12 08:29:05 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-12 08:29:05 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-12 08:29:05 [__init__.py:238] Platform plugin iluvatar is activated
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
++ grep -m2 -E 'vllm.*version|Platform plugin' /home/qch/scripts/timeline/4k/logs/server.log
++ cut -c1-160
+INFO 11-12 08:29:05 [__init__.py:238] Platform plugin iluvatar is activated
+INFO 11-12 08:29:15 [__init__.py:238] Platform plugin iluvatar is activated
++ for d in 4k 64k
++ echo '===== 64k'
+===== 64k
++ head -6 /home/qch/scripts/timeline/64k/logs/server.log
++ cut -c1-180
+INFO 11-12 08:59:07 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-12 08:59:07 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-12 08:59:07 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-12 08:59:07 [__init__.py:238] Platform plugin iluvatar is activated
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
++ grep -m2 -E 'vllm.*version|Platform plugin' /home/qch/scripts/timeline/64k/logs/server.log
++ cut -c1-160
+INFO 11-12 08:59:07 [__init__.py:238] Platform plugin iluvatar is activated
+INFO 11-12 08:59:18 [__init__.py:238] Platform plugin iluvatar is activated
++ echo '== 4. 是否出现 host_opt / r14 相关日志 =='
+== 4. 是否出现 host_opt / r14 相关日志 ==
++ for d in 4k 64k
++ echo '===== 4k'
+===== 4k
++ grep -c 'COREX_HOST_OPT\|VLLM_HOST_OPT\|host_opt' /home/qch/scripts/timeline/4k/logs/server.log
+5
++ for d in 4k 64k
++ echo '===== 64k'
+===== 64k
++ grep -c 'COREX_HOST_OPT\|VLLM_HOST_OPT\|host_opt' /home/qch/scripts/timeline/64k/logs/server.log
+5
++ set +x
+
+### exit: 0
