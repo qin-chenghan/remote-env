@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：盘点 vllmBench 下最近的 run，识别 4K/64K 两份数据及产物完整性。
+# 只读：把四份完整 run 的 128/128 case 的吞吐与 TSHG 并排。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -21,27 +21,28 @@ mkdir -p "$DIR/tmp"
   R=/usr/local/corex-5.0.0/vllmBench
   dex() { timeout 120 docker exec "$C" bash -c "$1"; }
 
-  echo "== 1. vllmBench 下的 run 列表（按时间）=="
-  dex "ls -lat --time-style=long-iso $R | head -15"
-
-  echo "== 2. 每个最近 run 的 config 与产物 =="
-  dex "for d in \$(ls -dt $R/*/ | head -8); do
+  echo "== 1. 四份 run 的 128/128 吞吐行 =="
+  dex "for r in 150257 101902 164759 094606; do
+      d=\$(ls -d $R/litehost_gap_2026111?_${r} $R/litehost_gap_20261114_${r} 2>/dev/null | head -1)
       echo \"===== \$d\"
-      cat \$d/config.txt 2>/dev/null
-      echo '--- summary ---'; head -5 \$d/summary.csv 2>/dev/null
-      echo '--- host_summary ---'; ls \$d/host_summary 2>/dev/null || echo 无
-      echo '--- case 目录 ---'; ls -d \$d/litehost/*/ 2>/dev/null | wc -l
+      head -1 \$d/summary.csv | cut -d, -f1-3,4-7
+      grep -h 'bs8_in128_out128,' \$d/summary.csv
     done"
 
-  echo "== 3. run 里有没有记录内核/页大小的线索 =="
-  dex "for d in \$(ls -dt $R/*/ | head -6); do
+  echo "== 2. 四份 run 的 128/128 TSHG（all_formal）=="
+  dex "for r in 150257 101902 164759 094606; do
+      d=\$(ls -d $R/litehost_gap_2026111?_${r} $R/litehost_gap_20261114_${r} 2>/dev/null | head -1)
       echo \"===== \$d\"
-      grep -riE 'uname|kernel|64k|page.?size|PAGE_SIZE|6\.6\.0-' \$d/config.txt \$d/logs/preflight.log \$d/session.json 2>/dev/null | head -5
-      head -3 \$d/logs/server.log 2>/dev/null | cut -c1-160
+      grep -h 'bs8_in128_out128,' \$d/host_summary/four_rank_totals.csv 2>/dev/null
     done"
 
-  echo "== 4. 当前内核（仅作对照，不切）=="
-  uname -r; getconf PAGE_SIZE
+  echo "== 3. 每份 run 的 case 完整性 =="
+  dex "for r in 150257 101902 164759 094606; do
+      d=\$(ls -d $R/litehost_gap_2026111?_${r} $R/litehost_gap_20261114_${r} 2>/dev/null | head -1)
+      n=\$(ls -d \$d/litehost/*/ 2>/dev/null | wc -l)
+      ok=\$(python3 -c \"import json,glob,os;print(sum(1 for w in glob.glob('\$d/litehost/*/window.json') if json.load(open(w)).get('status')=='complete'))\" 2>/dev/null)
+      echo \"\$(basename \$d)  case目录=\$n  完成window=\$ok\"
+    done"
 
   # ---- 命令结束 ----
 
