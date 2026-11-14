@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 离线重算 11-12 的 4k/64k timeline trace：纯 CPU、绑 node0、不启动任何服务。
+# 定位 H/S 分歧：trace 侧把 S 拆主线程/其它线程 + sync 次数，与 litehost 报告对表。
+# 纯 CPU、绑 node0、不启动任何服务。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,46 +20,55 @@ mkdir -p "$DIR/tmp"
   # ---- 命令开始 ----
   T=/home/qch/scripts/timeline
   PY="$DIR/trace_tshg_split.py"
+  BIND="numactl --cpunodebind=0 --membind=0"
+  command -v numactl >/dev/null || BIND="taskset -c $(lscpu -e=CPU,NODE | awk '$2==0{print $1}' | paste -sd,)"
 
-  echo "== 1. 解释器 =="
-  command -v python3 && python3 -V
-  command -v taskset && nproc
-
-  echo "== 2. NUMA 布局 =="
-  (command -v numactl >/dev/null && numactl -H | head -6) || echo "no numactl"
-  CORES=$(lscpu -e=CPU,NODE 2>/dev/null | awk '$2==0{print $1}' | paste -sd,)
-  [ -n "$CORES" ] || CORES=$(seq -s, 0 $(( $(nproc) / 2 - 1 )))
-  echo "node0 cores: $CORES"
-  if command -v numactl >/dev/null; then BIND="numactl --cpunodebind=0 --membind=0"; else BIND="taskset -c $CORES"; fi
-  echo "bind: $BIND"
-
-  echo "== 3. 找 trace 文件 =="
-  for d in 4k 64k 4k2 64k2; do
-    echo "---- $d"
-    find "$T/$d" -type f -size +1M -printf '%10s %TY-%Tm-%Td %TH:%TM %p\n' 2>/dev/null | sort -rn | head -6
-  done
-
-  echo "== 4. 脚本 =="
-  ls -l "$PY"
-
-  pick() {  # 优先 *trace*.json*，否则退到最大的 json
+  pick() {
     local f
     f=$(find "$T/$1" -type f \( -name '*trace*.json' -o -name '*trace*.json.gz' \) -printf '%s %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
     [ -n "$f" ] || f=$(find "$T/$1" -type f \( -name '*.json' -o -name '*.json.gz' \) -printf '%s %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
     echo "$f"
   }
 
-  echo "== 5. 离线重算 =="
+  echo "== 1. trace 侧：主线程/其它线程 S 拆分 =="
   for pair in "4k 64k" "4k2 64k2"; do
     set -- $pair; A=$1; B=$2
-    FA=$(pick "$A")
-    FB=$(pick "$B")
+    FA=$(pick "$A"); FB=$(pick "$B")
     echo "===== $A vs $B"
     echo "A=$FA"
     echo "B=$FB"
     if [ -z "${FA:-}" ] || [ -z "${FB:-}" ]; then echo "缺 trace，跳过"; continue; fi
-    TSHG_WARMUP=0,2,16 timeout 900 $BIND python3 "$PY" "$FA" "$FB" "$A" "$B" 2>&1 | tail -60
-    echo "rc=${PIPESTATUS[0]}"
+    TSHG_WARMUP=0 timeout 900 $BIND python3 "$PY" "$FA" "$FB" "$A" "$B" 2>&1 | tail -70
+  done
+
+  echo "== 2. litehost 侧：找 bench 报告 =="
+  for r in /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k \
+           /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k \
+           /home/z30059427/vllmBench/litehost_gap_20261109_195202 \
+           /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715; do
+    echo "---- $r"
+    [ -d "$r" ] || { echo "(不存在)"; continue; }
+    find "$r" -maxdepth 4 \( -name 'per_rank.csv' -o -name 'four_rank_totals.csv' \) 2>/dev/null | head -5
+    for f in $(find "$r" -maxdepth 4 -name 'per_rank.csv' 2>/dev/null | head -2); do
+      echo "  ## $f"
+      head -1 "$f"
+      grep -m2 'in128_out128' "$f"
+    done
+    for f in $(find "$r" -maxdepth 4 -name 'four_rank_totals.csv' 2>/dev/null | head -2); do
+      echo "  ## $f"
+      head -1 "$f"
+      grep -m2 'in128_out128' "$f"
+    done
+  done
+
+  echo "== 3. litehost 侧：rank 行（含 sync_calls）=="
+  for r in /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k \
+           /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k \
+           /home/z30059427/vllmBench/litehost_gap_20261109_195202 \
+           /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715; do
+    [ -d "$r" ] || continue
+    echo "---- $r"
+    grep -rh "rank[0-3] pid=.*formal=" "$r" 2>/dev/null | head -4
   done
 
   # ---- 命令结束 ----
