@@ -390,6 +390,7 @@ done
 # 把这次实际生效的开关落盘,便于事后复现
 {
     echo "# TEST_ID=$TEST_ID  $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    echo "# uname: $(uname -srm)  PAGE_SIZE=$(getconf PAGE_SIZE)  boot=$(uptime -s 2>/dev/null)"
     echo "COMPILATION_CONFIG=$COMPILATION_CONFIG"
     env | grep -E '^(VLLM_|UMD_|TCMALLOC_|TORCH_MODULE|LD_PRELOAD)' | sort
 } > "${RUN_DIR}/run_env.txt"

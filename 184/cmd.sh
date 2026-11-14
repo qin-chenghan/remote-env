@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 检查 4k3 / 64k3 两次 timeline 采集:配置是否一致、服务端有没有告警、trace 是否完整、
-# TSHG 对比。纯 CPU,不启动 vllm,不动 GPU。
+# 确认 4k3(15:51-15:56) 与 64k3(16:01-16:06) 之间是否发生过重启 —— 只有重启过，
+# 两次才是不同页大小的内核。纯 CPU,不启动 vllm,不动 GPU。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,79 +18,43 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  T=/home/qch/scripts/timeline
-  A_ID=4k3
-  B_ID=64k3
-  A="$T/$A_ID"
-  B="$T/$B_ID"
-
-  pick() {
-    local d="$1" f
-    f=$(find "$d" -type f -name 'rank0*pt.trace.json*' -printf '%s %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
-    [ -n "$f" ] || f=$(find "$d" -type f \( -name '*.json' -o -name '*.json.gz' \) -printf '%s %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
-    echo "$f"
-  }
-
-  echo "== 0. 机器状态(只能反映当前引导) =="
+  echo "== 1. 当前引导 =="
+  date '+local now: %Y-%m-%d %H:%M:%S %Z'
   uptime -s
+  uptime -p
+  uname -a
   getconf PAGE_SIZE
-  cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>/dev/null
+  cat /proc/cmdline
 
-  echo "== 1. 采集目录 =="
-  for d in "$A" "$B"; do
-    echo "---- $d"
-    ls -ld --time-style=long-iso "$d" 2>/dev/null || echo "缺目录"
-    du -sh "$d" 2>/dev/null
-    find "$d" -maxdepth 4 -type f -printf '%10s  %TY-%Tm-%Td %TH:%TM  %p\n' 2>/dev/null | sort -k4
+  echo "== 2. 重启记录(wtmp,跨引导) =="
+  last -x reboot shutdown 2>/dev/null | head -20
+
+  echo "== 3. 引导列表 =="
+  journalctl --list-boots --no-pager 2>/dev/null | tail -10
+
+  echo "== 4. 每次引导的内核版本 =="
+  for b in 0 -1 -2 -3 -4; do
+    echo "---- boot $b"
+    journalctl -b "$b" -k --no-pager -o cat 2>/dev/null | grep -m1 -i 'Linux version'
+    journalctl -b "$b" --no-pager 2>/dev/null | sed -n '1p' | cut -c1-80
   done
 
-  echo "== 2. 是否用的是新脚本(run_env.txt) =="
-  for d in "$A" "$B"; do
-    echo "---- $d/run_env.txt"
-    cat "$d/run_env.txt" 2>/dev/null || echo "缺 run_env.txt —— 脚本不是新版"
-  done
-  echo "---- 两份 run_env 的差异(应只有 TEST_ID)"
-  if [ -f "$A/run_env.txt" ] && [ -f "$B/run_env.txt" ]; then
-    diff "$A/run_env.txt" "$B/run_env.txt"
-  fi
+  echo "== 5. 引导项 =="
+  (grubby --default-kernel 2>/dev/null || grub2-editenv list 2>/dev/null || cat /boot/grub2/grubenv 2>/dev/null) | head -5
+  ls -l --time-style=long-iso /boot/vmlinuz* 2>/dev/null | head -10
+  ls -l --time-style=long-iso /boot/*64k* /boot/*4k* 2>/dev/null | head -10
 
-  echo "== 3. server.log 关键行 =="
-  for d in "$A" "$B"; do
-    s="$d/logs/server.log"
-    echo "---- $s"
-    [ -f "$s" ] || { echo "缺 server.log"; continue; }
-    echo "  行数: $(wc -l < "$s")   大小: $(du -h "$s" | cut -f1)"
-    echo "  profiler 生效:   $(grep -cE 'Torch profiling enabled|Profiler with mode' "$s")"
-    echo "  Unknown env var: $(grep -c 'Unknown vLLM environment variable' "$s")"
-    echo "  报错行:          $(grep -cE 'ERROR|Traceback|OutOfMemory|CUDA error|RuntimeError' "$s")"
-    grep -nE 'Unknown vLLM environment variable|ERROR|Traceback|OutOfMemory|CUDA error|RuntimeError' "$s" | head -10
-    echo "  --- host-opt / cudagraph 相关 ---"
-    grep -niE 'host_opt|host-opt|compact_greedy|capturing|graph' "$s" | head -12
-    echo "  --- 末尾 15 行 ---"
-    tail -15 "$s"
+  echo "== 6. 两次采集的目录时间 =="
+  for d in /home/qch/scripts/timeline/4k3 /home/qch/scripts/timeline/64k3; do
+    stat -c '%n  mtime=%y' "$d" "$d/run_env.txt" "$d/logs/server.log" 2>/dev/null
+    grep -m2 -E 'Starting vLLM|Shutting down|Application shutdown complete' "$d/logs/server.log" 2>/dev/null
+    head -2 "$d/logs/server.log" 2>/dev/null | cut -c1-110
+    tail -1 "$d/logs/server.log" 2>/dev/null | cut -c1-110
   done
 
-  echo "== 4. bench 结果 =="
-  for d in "$A" "$B"; do
-    for f in "$d"/logs/bench_instance*.log; do
-      [ -f "$f" ] || continue
-      echo "---- $f"
-      grep -iE 'Successful requests|Benchmark duration|Request throughput|Output token throughput|Mean TTFT|Mean TPOT|Mean ITL' "$f" | head -10
-      grep -iE 'error|exception|traceback' "$f" | head -5
-    done
-  done
-
-  echo "== 5. trace 文件 =="
-  FA=$(pick "$A"); FB=$(pick "$B")
-  echo "A=$FA"
-  ls -l --time-style=long-iso "$FA" 2>/dev/null
-  echo "B=$FB"
-  ls -l --time-style=long-iso "$FB" 2>/dev/null
-  if [ -z "$FA" ] || [ -z "$FB" ]; then echo "缺 trace,后面跳过"; set +x; exit 0; fi
-
-  echo "== 6. TSHG 对比(warmup 0 / 1) =="
-  TSHG_WARMUP=0,1 python3 "$DIR/trace_tshg_split.py" "$FA" "$FB" "$A_ID" "$B_ID"
-  echo "== 6 结束 exit=$? =="
+  echo "== 7. 是否有切内核的脚本 =="
+  ls -l --time-style=long-iso /home/qch/scripts/ 2>/dev/null | head -20
+  grep -rlniE 'page_size|64k|64K|grubby|grub2-editenv' /home/qch/scripts/ 2>/dev/null | head -5
 
   # ---- 命令结束 ----
 
