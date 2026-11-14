@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：取 timeline_opt.sh 全文及其环境处理，与 bench 脚本对照。
+# 只读：确认 timeline 用的解释器、LightHostWorker 是否让 host_opt 走原始路径、登录 shell 的 PYTHONPATH。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,22 +17,26 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== 1. timeline_opt.sh 在哪里 =="
-  find /home -maxdepth 5 -name 'timeline_opt.sh' 2>/dev/null | head -10
+  C=corex5-py311
+  SP=/opt/corex311-cpython-vllm/lib/python3.11/site-packages
+  dex() { timeout 60 docker exec "$C" bash -c "$1"; }
 
-  echo "== 2. 全文 =="
-  for f in $(find /home -maxdepth 5 -name 'timeline_opt.sh' 2>/dev/null | head -2); do
-    echo "---- $f"; ls -l --time-style=long-iso "$f"; cat "$f"
-  done
+  echo "== 1. timeline 默认的 python3 到底是哪个 =="
+  dex 'bash -lc "command -v python3; readlink -f \$(command -v python3)"'
+  dex '/opt/corex311/bin/python3 -c "import sys,sysconfig;print(sys.executable);print(sys.base_prefix);print(sysconfig.get_config_var(\"CONFIG_ARGS\"))"'
+  echo "--- 对比 bench 用的 PGO 解释器 ---"
+  dex '/opt/corex311-cpython-vllm/bin/python3 -c "import sys,sysconfig;print(sys.executable);print(sys.base_prefix);print(sysconfig.get_config_var(\"CONFIG_ARGS\"))"'
 
-  echo "== 3. 关键项 grep =="
-  for f in $(find /home -maxdepth 5 -name 'timeline_opt.sh' 2>/dev/null | head -2); do
-    echo "---- $f"
-    grep -nE 'PYTHONPATH|PYTHONHOME|LD_PRELOAD|taskset|CPU_RANGE|PREFIX|PYTHON_BIN|compilation-config|NUM_PROMPTS|NUM_WARMUPS|MAX_CONCURRENCY|profiler|PROFILER|VLLM_' "$f"
-  done
+  echo "== 2. 登录 shell 里 PYTHONPATH 是否被 unset =="
+  dex 'bash -lc "echo PYTHONPATH=[\${PYTHONPATH:-<empty>}]"'
+  dex 'bash -lc "grep -rn PYTHONPATH /etc/profile /etc/profile.d /root/.bashrc 2>/dev/null | head -10"'
 
-  echo "== 4. 容器默认 PYTHONPATH（bench 脚本会 unset，timeline 未必）=="
-  docker exec corex5-py311 bash -c 'env | grep -E "^PYTHONPATH|^PYTHONHOME|^LD_PRELOAD" || echo 无' 2>&1
+  echo "== 3. LightHostWorker 是什么（是否 runner 子类）=="
+  dex 'cat /home/huawei_ts_program/litehost_perf_opt/light_host_worker.py'
+
+  echo "== 4. host_opt 的 supported 语义与调用点 =="
+  dex "sed -n '1,40p' $SP/vllm/v1/worker/host_opt.py"
+  dex "grep -rn 'supported' $SP/vllm/v1/worker/host_opt.py $SP/vllm/v1/worker/gpu_model_runner.py | head -20"
 
   # ---- 命令结束 ----
 
