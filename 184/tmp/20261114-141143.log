@@ -1,0 +1,148 @@
+### server: 184
+### host:   controller
+### time:   2026-11-14T06:11:43Z
+
++ C=corex5-py311
++ SP=/opt/corex311-cpython-vllm/lib/python3.11/site-packages
++ echo '== 1. timeline 默认的 python3 到底是哪个 =='
+== 1. timeline 默认的 python3 到底是哪个 ==
++ dex 'bash -lc "command -v python3; readlink -f \$(command -v python3)"'
++ timeout 60 docker exec corex5-py311 bash -c 'bash -lc "command -v python3; readlink -f \$(command -v python3)"'
+/usr/local/bin/python3
+/usr/local/bin/python3.12
++ dex '/opt/corex311/bin/python3 -c "import sys,sysconfig;print(sys.executable);print(sys.base_prefix);print(sysconfig.get_config_var(\"CONFIG_ARGS\"))"'
++ timeout 60 docker exec corex5-py311 bash -c '/opt/corex311/bin/python3 -c "import sys,sysconfig;print(sys.executable);print(sys.base_prefix);print(sysconfig.get_config_var(\"CONFIG_ARGS\"))"'
+/opt/corex311/bin/python3
+/opt/python-3.11.6
+'--prefix=/opt/python-3.11.6' '--enable-shared' '--enable-optimizations' '--with-ensurepip=install' 'LDFLAGS=-Wl,-rpath,/opt/python-3.11.6/lib' 'CC=/usr/bin/gcc'
++ echo '--- 对比 bench 用的 PGO 解释器 ---'
+--- 对比 bench 用的 PGO 解释器 ---
++ dex '/opt/corex311-cpython-vllm/bin/python3 -c "import sys,sysconfig;print(sys.executable);print(sys.base_prefix);print(sysconfig.get_config_var(\"CONFIG_ARGS\"))"'
++ timeout 60 docker exec corex5-py311 bash -c '/opt/corex311-cpython-vllm/bin/python3 -c "import sys,sysconfig;print(sys.executable);print(sys.base_prefix);print(sysconfig.get_config_var(\"CONFIG_ARGS\"))"'
+/opt/corex311-cpython-vllm/bin/python3
+/opt/cpython-vllm/v1
+'--prefix=/opt/cpython-vllm/v1' '--enable-shared' '--enable-optimizations' '--with-lto' '--with-ensurepip=install' 'CC=/usr/bin/gcc' 'CXX=/usr/bin/g++' 'AR=/usr/bin/gcc-ar' 'RANLIB=/usr/bin/gcc-ranlib' 'LDFLAGS=-Wl,-rpath,/opt/cpython-vllm/v1/lib'
++ echo '== 2. 登录 shell 里 PYTHONPATH 是否被 unset =='
+== 2. 登录 shell 里 PYTHONPATH 是否被 unset ==
++ dex 'bash -lc "echo PYTHONPATH=[\${PYTHONPATH:-<empty>}]"'
++ timeout 60 docker exec corex5-py311 bash -c 'bash -lc "echo PYTHONPATH=[\${PYTHONPATH:-<empty>}]"'
+PYTHONPATH=[/usr/local/lib/python3.12/site-packages]
++ dex 'bash -lc "grep -rn PYTHONPATH /etc/profile /etc/profile.d /root/.bashrc 2>/dev/null | head -10"'
++ timeout 60 docker exec corex5-py311 bash -c 'bash -lc "grep -rn PYTHONPATH /etc/profile /etc/profile.d /root/.bashrc 2>/dev/null | head -10"'
++ echo '== 3. LightHostWorker 是什么（是否 runner 子类）=='
+== 3. LightHostWorker 是什么（是否 runner 子类）==
++ dex 'cat /home/huawei_ts_program/litehost_perf_opt/light_host_worker.py'
++ timeout 60 docker exec corex5-py311 bash -c 'cat /home/huawei_ts_program/litehost_perf_opt/light_host_worker.py'
+from __future__ import annotations
+from contextlib import contextmanager
+import ctypes,logging,os
+from vllm.v1.worker.gpu_worker import Worker
+from vllm.v1.utils import compute_iteration_details
+from lh_common import VERSION,NATIVE,digest
+from lh_runtime import Controller
+class Result(ctypes.Structure):_fields_=[(k,ctypes.c_uint64) for k in NATIVE]
+class LightHostWorker(Worker):
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        if getattr(self,'profiler',None):raise RuntimeError('Disable Torch Profiler for Lite measurement')
+        self._lib=ctypes.PyDLL(None)
+        self._lib.litehost_build_version.restype=ctypes.c_char_p
+        self._lib.litehost_abi_version.restype=ctypes.c_int
+        if self._lib.litehost_abi_version()!=1 or self._lib.litehost_build_version().decode()!=VERSION:raise RuntimeError('Wrong/multiple liblitehost.so; build and preload this compatibility package')
+        self._lib.litehost_begin.argtypes=[];self._lib.litehost_begin.restype=ctypes.c_int
+        self._lib.litehost_end.argtypes=[ctypes.POINTER(Result)];self._lib.litehost_end.restype=ctypes.c_int
+        self._lh=Controller(os.environ['LIGHTHOST_SESSION'],int(self.rank),digest(os.environ['LIGHTHOST_LIB']))
+        logging.getLogger(__name__).warning('[litehost] rank=%s pid=%s ready version=%s multi-case',self.rank,os.getpid(),VERSION)
+    @contextmanager
+    def annotate_profile(self,scheduler_output):
+        with super().annotate_profile(scheduler_output):
+            ctx=self._lh.before(scheduler_output.num_scheduled_tokens,scheduler_output.finished_req_ids)
+            measuring=ctx['phase'].startswith('formal');r=Result() if measuring else None
+            started=False;label='';error='';native=None
+            try:
+                if measuring:
+                    d=compute_iteration_details(scheduler_output)
+                    label=f'execute_context_{d.num_ctx_requests}({d.num_ctx_tokens})_generation_{d.num_generation_requests}({d.num_generation_tokens})'
+                    if self._lib.litehost_begin():raise RuntimeError('native begin failed')
+                    started=True
+                yield
+            except BaseException as e:error=f'{type(e).__name__}: {e}';raise
+            finally:
+                if started:
+                    if self._lib.litehost_end(ctypes.byref(r)):error=error or 'native end failed'
+                    else:native={k:int(getattr(r,k)) for k in NATIVE}
+                self._lh.after(ctx,label,native,error)
+                if error=='native end failed':raise RuntimeError(error)
+    def shutdown(self):
+        try:
+            if hasattr(self,'_lh'):self._lh.close()
+        finally:super().shutdown()
++ echo '== 4. host_opt 的 supported 语义与调用点 =='
+== 4. host_opt 的 supported 语义与调用点 ==
++ dex 'sed -n '\''1,40p'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py'
++ timeout 60 docker exec corex5-py311 bash -c 'sed -n '\''1,40p'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py'
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+"""Optional host input preparation and sampled-token commit paths.
+
+GPUModelRunner owns one HostOpt instance. Configuration is resolved through
+vllm.envs at runner construction; templates and diagnostics have the same
+lifetime as the runner. The original paths remain the fallback.
+"""
+
+from typing import TYPE_CHECKING
+
+import numpy as np
+import torch
+
+from vllm import envs
+from vllm.logger import init_logger
+from vllm.v1.attention.backends.utils import PAD_SLOT_ID
+from vllm.v1.utils import CpuGpuBuffer
+from vllm.v1.worker.gpu_input_batch import CachedRequestState, InputBatch
+
+if TYPE_CHECKING:
+    from vllm.v1.core.sched.output import SchedulerOutput
+    from vllm.v1.worker.gpu_model_runner import GPUModelRunner
+
+logger = init_logger(__name__)
+PROGRESS_EVERY = 512
+NATIVE_MODULE = "vllm._host_opt_native"
+
+
+class HostOpt:
+    """Runner-local admission, buffers and optional correctness diagnostics.
+
+    Args:
+        runner: Owner of the input and request state.
+        supported: Whether the caller uses the reviewed model-runner contract.
+            Subclasses retain the original paths unless explicitly supported.
+    """
+
+    def __init__(
+        self, runner: "GPUModelRunner | None" = None, *, supported: bool = True
++ dex 'grep -rn '\''supported'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py | head -20'
++ timeout 60 docker exec corex5-py311 bash -c 'grep -rn '\''supported'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py | head -20'
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py:35:        supported: Whether the caller uses the reviewed model-runner contract.
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py:36:            Subclasses retain the original paths unless explicitly supported.
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py:40:        self, runner: "GPUModelRunner | None" = None, *, supported: bool = True
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py:56:        if not supported:
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py:59:                    name: "unsupported model runner"
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py:91:        if runner is not None and self.modes["arena"] != "off" and supported:
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py:161:                self.reasons["bookkeeping"] = "unsupported runner or input batch layout"
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py:201:            # Allocation failures and unsupported layouts must retain the original
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py:949:        self.host_opt = HostOpt(self, supported=type(self) is GPUModelRunner)
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py:2564:                assert ubid is None, "UBatching not supported with GDN yet"
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py:3144:            # treated as a signal that connector LoRA is supported.
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py:3413:    def get_supported_generation_tasks(self) -> list[GenerationTask]:
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py:3415:        supported_tasks = list[GenerationTask]()
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py:3418:            supported_tasks.append("generate")
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py:3424:            supported_tasks.append("transcription")
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py:3427:            supported_tasks.append("realtime")
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py:3429:        return supported_tasks
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py:3431:    def get_supported_pooling_tasks(self) -> list[PoolingTask]:
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py:3436:        return list(model.pooler.get_supported_tasks())
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py:3438:    def get_supported_tasks(self) -> tuple[SupportedTask, ...]:
++ set +x
+
+### exit: 0
