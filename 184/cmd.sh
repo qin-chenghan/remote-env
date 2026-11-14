@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：从 timeline 日志反查实际使用的解释器/vllm 路径（不启动任何服务）。
+# 只读：取 litehost 的 TSHG 权威定义（lh_runtime/lhctl/analyze 及相关文档）。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,32 +17,27 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== 1. timeline 目录结构 =="
-  ls -lat --time-style=long-iso /home/qch/scripts/timeline 2>/dev/null | head -10
-  for d in 4k 4k2 64k 64k2; do
-    echo "---- $d"; ls -l --time-style=long-iso "/home/qch/scripts/timeline/$d/logs" 2>/dev/null | head -6
-  done
+  D=/home/huawei_ts_program/litehost_perf_opt
 
-  echo "== 2. 日志里出现的解释器/依赖路径 =="
-  for d in 4k 4k2 64k 64k2; do
-    L=/home/qch/scripts/timeline/$d/logs
-    [ -d "$L" ] || continue
-    echo "===== $d"
-    grep -ohE '/opt/cpython-vllm/v1|/opt/corex311-cpython-vllm|/opt/corex311/|/usr/local/lib/python3\.12|python3\.12|python3\.11' "$L"/*.log 2>/dev/null | sort | uniq -c | sort -rn | head -8
-  done
+  echo "== 1. 工具目录清单 =="
+  ls -l --time-style=long-iso "$D" 2>/dev/null | head -20
+  echo "--- 相关文档 ---"
+  find "$D" /home/qch/scripts -maxdepth 2 -iname '*.md' -o -maxdepth 2 -iname 'README*' 2>/dev/null | head -10
 
-  echo "== 3. server.log 开头（看启动路径与 vllm 版本）=="
-  for d in 4k 64k; do
-    echo "===== $d"
-    head -6 "/home/qch/scripts/timeline/$d/logs/server.log" 2>/dev/null | cut -c1-180
-    grep -m2 -E 'vllm.*version|Platform plugin' "/home/qch/scripts/timeline/$d/logs/server.log" 2>/dev/null | cut -c1-160
-  done
+  echo "== 2. lh_runtime.py 全文 =="
+  cat "$D/lh_runtime.py" 2>/dev/null
 
-  echo "== 4. 是否出现 host_opt / r14 相关日志 =="
-  for d in 4k 64k; do
-    echo "===== $d"
-    grep -c 'COREX_HOST_OPT\|VLLM_HOST_OPT\|host_opt' "/home/qch/scripts/timeline/$d/logs/server.log" 2>/dev/null
-  done
+  echo "== 3. lh_common.py 全文 =="
+  cat "$D/lh_common.py" 2>/dev/null
+
+  echo "== 4. lhctl.py 全文 =="
+  cat "$D/lhctl.py" 2>/dev/null
+
+  echo "== 5. analyze_litehost.py 全文 =="
+  cat "$D/analyze_litehost.py" 2>/dev/null
+
+  echo "== 6. native 侧相关源码/头文件 =="
+  find "$D" -maxdepth 2 \( -name '*.cpp' -o -name '*.c' -o -name '*.h' -o -name '*.txt' \) 2>/dev/null | head -15
 
   # ---- 命令结束 ----
 
