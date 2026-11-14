@@ -1,0 +1,205 @@
+### server: 184
+### host:   controller
+### time:   2026-11-14T05:56:18Z
+
++ C=corex5-py311
++ B=/home/huawei_ts_program/litehost_perf_opt/vllmBench
++ echo '== 0. 开机时间与运行内核（用于判断四份是否跨内核）=='
+== 0. 开机时间与运行内核（用于判断四份是否跨内核）==
++ uptime -s
+2026-11-14 13:40:19
++ uname -r
+6.6.0-159.4.21.175.oe2403sp4.aarch64
++ getconf PAGE_SIZE
+4096
++ echo '== 1. 四份 run 的目录与 config =='
+== 1. 四份 run 的目录与 config ==
++ for d in 4k 4k2 64k 64k2
++ echo '===== 4k'
+===== 4k
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k
++ head -8
+total 40
+-rw-------. 1 root root   81 2026-11-14 13:12 bench.process.json
+-rw-r--r--. 1 root root 1030 2026-11-14 13:14 bs8_in128_out128.json
+-rw-r--r--. 1 root root  230 2026-11-14 13:11 config.txt
+drwxr-xr-x. 2 root root 4096 2026-11-14 13:12 control
+drwxr-xr-x. 2 root root 4096 2026-11-14 13:14 host_summary
+drwxr-xr-x. 3 root root 4096 2026-11-14 13:12 litehost
+drwxr-xr-x. 2 root root 4096 2026-11-14 13:14 logs
++ cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/config.txt
+test_id=4k
+started=2026-11-14T13:11:44+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
++ for d in 4k 4k2 64k 64k2
++ echo '===== 4k2'
+===== 4k2
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2
++ head -8
+total 40
+-rw-------. 1 root root   76 2026-11-14 13:43 bench.process.json
+-rw-r--r--. 1 root root 1031 2026-11-14 13:44 bs8_in128_out128.json
+-rw-r--r--. 1 root root  231 2026-11-14 13:41 config.txt
+drwxr-xr-x. 2 root root 4096 2026-11-14 13:42 control
+drwxr-xr-x. 2 root root 4096 2026-11-14 13:44 host_summary
+drwxr-xr-x. 3 root root 4096 2026-11-14 13:43 litehost
+drwxr-xr-x. 2 root root 4096 2026-11-14 13:44 logs
++ cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/config.txt
+test_id=4k2
+started=2026-11-14T13:41:54+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
++ for d in 4k 4k2 64k 64k2
++ echo '===== 64k'
+===== 64k
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k
++ head -8
+total 40
+-rw-------. 1 root root   76 2026-11-14 13:33 bench.process.json
+-rw-r--r--. 1 root root 1031 2026-11-14 13:34 bs8_in128_out128.json
+-rw-r--r--. 1 root root  231 2026-11-14 13:32 config.txt
+drwxr-xr-x. 2 root root 4096 2026-11-14 13:32 control
+drwxr-xr-x. 2 root root 4096 2026-11-14 13:34 host_summary
+drwxr-xr-x. 3 root root 4096 2026-11-14 13:33 litehost
+drwxr-xr-x. 2 root root 4096 2026-11-14 13:34 logs
++ cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/config.txt
+test_id=64k
+started=2026-11-14T13:32:03+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
++ for d in 4k 4k2 64k 64k2
++ echo '===== 64k2'
+===== 64k2
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2
++ head -8
+total 40
+-rw-------. 1 root root   76 2026-11-14 13:35 bench.process.json
+-rw-r--r--. 1 root root 1030 2026-11-14 13:36 bs8_in128_out128.json
+-rw-r--r--. 1 root root  232 2026-11-14 13:34 config.txt
+drwxr-xr-x. 2 root root 4096 2026-11-14 13:34 control
+drwxr-xr-x. 2 root root 4096 2026-11-14 13:36 host_summary
+drwxr-xr-x. 3 root root 4096 2026-11-14 13:35 litehost
+drwxr-xr-x. 2 root root 4096 2026-11-14 13:36 logs
++ cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/config.txt
+test_id=64k2
+started=2026-11-14T13:34:34+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
++ echo '== 2. summary 与 TSHG =='
+== 2. summary 与 TSHG ==
++ dex 'B=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+for d in 4k 4k2 64k 64k2; do
+  echo "===== $d"
+  cat $B/$d/summary.csv 2>/dev/null | head -3
+  echo "--- four_rank_totals ---"; cat $B/$d/host_summary/four_rank_totals.csv 2>/dev/null
+done'
++ timeout 120 docker exec corex5-py311 bash -c 'B=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+for d in 4k 4k2 64k 64k2; do
+  echo "===== $d"
+  cat $B/$d/summary.csv 2>/dev/null | head -3
+  echo "--- four_rank_totals ---"; cat $B/$d/host_summary/four_rank_totals.csv 2>/dev/null
+done'
+===== 4k
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+4k,bs8_in128_out128,100,61.8558268400011,1.6166625701837958,206.93280898352586,413.8656179670517,220.40364089987634,256.3550249997206,273.8450478001323,35.78780213149747,35.583690275588175,36.693436807078164,35.78780307401629,35.530369999833056,38.204981899143604
+--- four_rank_totals ---
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in128_out128,5a49fb3a09e84f49adc2578563983e63,all_formal,0.0,4,1692,60.7810394125,57.592875677500004,3.188163735,1.0648467175,4.2530104525,3.08985807,3.27985569
+bs8_in128_out128,5a49fb3a09e84f49adc2578563983e63,graph_formal,0.0,4,1651,58.6703458825,56.9125498525,1.75779603,,,1.70839793,1.8707809
+bs8_in128_out128,5a49fb3a09e84f49adc2578563983e63,no_graph_formal,0.0,4,41,2.11069353,0.6803258249999999,1.430367705,,,1.38146014,1.46665235
+===== 4k2
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+4k2,bs8_in128_out128,100,62.091080610000006,1.61053727874555,206.1487716794304,412.2975433588608,232.60562270000008,251.04363499998783,263.8145869999835,35.825388485826764,35.73681299212605,36.85785112440957,35.82538941574805,35.60652999999547,40.203913600002466
+--- four_rank_totals ---
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in128_out128,3db24663b9344f86a1ccac4b23ccf01c,all_formal,0.0,4,1692,60.9941882325,58.156550785,2.8376374474999997,1.0855050175,3.9231424649999997,2.69171184,3.15345808
+bs8_in128_out128,3db24663b9344f86a1ccac4b23ccf01c,graph_formal,0.0,4,1664,59.3728721625,57.507999825,1.8648723375,,,1.74158192,2.13183033
+bs8_in128_out128,3db24663b9344f86a1ccac4b23ccf01c,no_graph_formal,0.0,4,28,1.62131607,0.64855096,0.97276511,,,0.95012992,1.02162775
+===== 64k
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+64k,bs8_in128_out128,100,62.129075890000024,1.6095523483570031,206.0227005896964,412.0454011793928,231.21504669999865,250.3202599999952,261.18953849999514,35.86458941417321,35.69102559055115,36.88074906771655,35.86459034881887,35.50956999998789,41.70131120000747
+--- four_rank_totals ---
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in128_out128,93912297d10f4e20bf626ed6469127dc,all_formal,0.0,4,1692,61.0789391675,58.4972416425,2.581697525,1.039928295,3.62162582,2.48882631,2.83208527
+bs8_in128_out128,93912297d10f4e20bf626ed6469127dc,graph_formal,0.0,4,1664,59.5484329325,57.8483415825,1.7000913500000001,,,1.60854414,1.94762358
+bs8_in128_out128,93912297d10f4e20bf626ed6469127dc,no_graph_formal,0.0,4,28,1.530506235,0.64890006,0.881606175,,,0.87438981,0.88446169
+===== 64k2
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+64k2,bs8_in128_out128,100,61.72141429999999,1.6201832238312792,207.38345265040374,414.7669053008075,229.696698599995,249.49584000000868,258.32954589996916,35.63225847480315,35.53096173228336,36.73479793700824,35.63225937401579,35.47464499996522,39.633800200045926
+--- four_rank_totals ---
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
+bs8_in128_out128,d1ef732828084794bb737feba652fed1,all_formal,0.0,4,1692,60.710362752500004,58.2487638925,2.46159886,1.0033320525,3.4649309125,2.40810543,2.51307089
+bs8_in128_out128,d1ef732828084794bb737feba652fed1,graph_formal,0.0,4,1664,59.19020722,57.605224885,1.5849823349999999,,,1.52676537,1.65606013
+bs8_in128_out128,d1ef732828084794bb737feba652fed1,no_graph_formal,0.0,4,28,1.5201555325,0.6435390075,0.876616525,,,0.84268534,0.90314391
++ echo '== 3. 完整性：case 目录 / window 状态 / 是否有错误 =='
+== 3. 完整性：case 目录 / window 状态 / 是否有错误 ==
++ dex 'B=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+for d in 4k 4k2 64k 64k2; do
+  echo "===== $d"
+  ls -d $B/$d/litehost/*/ 2>/dev/null | wc -l
+  grep -h "\"status\"" $B/$d/litehost/*/window.json 2>/dev/null | sort | uniq -c
+  ls $B/$d/host_summary 2>/dev/null || echo 无host_summary
+done'
++ timeout 120 docker exec corex5-py311 bash -c 'B=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+for d in 4k 4k2 64k 64k2; do
+  echo "===== $d"
+  ls -d $B/$d/litehost/*/ 2>/dev/null | wc -l
+  grep -h "\"status\"" $B/$d/litehost/*/window.json 2>/dev/null | sort | uniq -c
+  ls $B/$d/host_summary 2>/dev/null || echo 无host_summary
+done'
+===== 4k
+1
+      4       "status": "complete",
+      1   "status": "complete",
+four_rank_totals.csv
+per_rank.csv
+report.txt
+summary.json
+===== 4k2
+1
+      4       "status": "complete",
+      1   "status": "complete",
+four_rank_totals.csv
+per_rank.csv
+report.txt
+summary.json
+===== 64k
+1
+      4       "status": "complete",
+      1   "status": "complete",
+four_rank_totals.csv
+per_rank.csv
+report.txt
+summary.json
+===== 64k2
+1
+      4       "status": "complete",
+      1   "status": "complete",
+four_rank_totals.csv
+per_rank.csv
+report.txt
+summary.json
++ set +x
+
+### exit: 0
