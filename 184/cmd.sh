@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 只读：取 litehost 的 TSHG 权威定义（lh_runtime/lhctl/analyze 及相关文档）。
+# 只读：取 liblitehost 实际拦截的 sync API 名单，用于对齐 trace 侧 SYNC_PATS。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,25 +19,20 @@ mkdir -p "$DIR/tmp"
   # ---- 命令开始 ----
   D=/home/huawei_ts_program/litehost_perf_opt
 
-  echo "== 1. 工具目录清单 =="
-  ls -l --time-style=long-iso "$D" 2>/dev/null | head -20
-  echo "--- 相关文档 ---"
-  find "$D" /home/qch/scripts -maxdepth 2 -iname '*.md' -o -maxdepth 2 -iname 'README*' 2>/dev/null | head -10
+  echo "== 1. 对外导出符号 =="
+  cat "$D/liblitehost.exports.txt" 2>/dev/null
 
-  echo "== 2. lh_runtime.py 全文 =="
-  cat "$D/lh_runtime.py" 2>/dev/null
+  echo "== 2. wrappers.cpp 全文 =="
+  cat "$D/liblitehost.wrappers.cpp" 2>/dev/null
 
-  echo "== 3. lh_common.py 全文 =="
-  cat "$D/lh_common.py" 2>/dev/null
+  echo "== 3. litehost.c 全文 =="
+  cat "$D/litehost.c" 2>/dev/null
 
-  echo "== 4. lhctl.py 全文 =="
-  cat "$D/lhctl.py" 2>/dev/null
+  echo "== 4. Makefile =="
+  cat "$D/Makefile" 2>/dev/null
 
-  echo "== 5. analyze_litehost.py 全文 =="
-  cat "$D/analyze_litehost.py" 2>/dev/null
-
-  echo "== 6. native 侧相关源码/头文件 =="
-  find "$D" -maxdepth 2 \( -name '*.cpp' -o -name '*.c' -o -name '*.h' -o -name '*.txt' \) 2>/dev/null | head -15
+  echo "== 5. README 里关于 S/H/G 的描述 =="
+  grep -nE 'sync|S_total|H_total|G_total|TSHG|scope' "$D/README.md" 2>/dev/null | head -40
 
   # ---- 命令结束 ----
 
