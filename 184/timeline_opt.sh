@@ -89,8 +89,9 @@ PROFILE_ACTIVE_ITERATIONS="${PROFILE_ACTIVE_ITERATIONS:-2000}"
 # compact_greedy:请求是纯 greedy(temperature=0/top_p=1/top_k=-1,本脚本的 bench 正是
 #   这么发的)时跳过 top-p/top-k 归一化,直接 argmax。
 # sample_logits_cudagraph:采样 logits 的切片/拷贝进图,避免每步 host 侧下发。
-#   all_admitted:对已准入的所有请求做,而不只是 decode 阶段。
-COMPILATION_CONFIG='{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "compact_greedy":true, "sample_logits_cudagraph":true, "sample_logits_cudagraph_scope":"all_admitted", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}'
+#   scope 取 vllm 默认值 decode,与 vllmBench_lite_opt.sh 的实际生效值一致;
+#   显式写出是为了让 run_env.txt 能记录到,而不是依赖版本默认值。
+COMPILATION_CONFIG='{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "compact_greedy":true, "sample_logits_cudagraph":true, "sample_logits_cudagraph_scope":"decode", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}'
 
 # ============ 目录结构 ============
 BASE_DIR="$(pwd)"
@@ -252,6 +253,7 @@ EOF
         --enable_chunked_prefill \
         --compilation-config "$COMPILATION_CONFIG" \
         --async-scheduling \
+        --no-enable-prefix-caching \
         --profiler-config "$profiler_config_json" \
         >> "$SERVER_LOG" 2>&1 &
 
