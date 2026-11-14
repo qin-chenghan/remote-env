@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 把 7-case 聚合结果落到 run 目录，并整理成表。不跑 GPU。
+# 只读：核对 vllmBench_lite_opt.sh 实际设的优化开关 vs venv 实际认的开关。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,34 +18,33 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
   C=corex5-py311
-  P=/usr/local/corex-5.0.0/vllmBench/litehost_gap_20261113_101902
-  dex() { timeout 120 docker exec "$C" bash -c "$1"; }
+  D=/home/huawei_ts_program/litehost_perf_opt
+  V=/opt/corex311-cpython-vllm
+  SP=$V/lib/python3.11/site-packages/vllm
+  dex() { timeout 60 docker exec "$C" bash -c "$1"; }
 
-  echo "== 1. 落地 host_summary =="
-  dex "ls -l /tmp/lh7c_out; cp -a /tmp/lh7c_out $P/host_summary && ls -l $P/host_summary"
+  echo "== 1. 脚本全文 =="
+  cat "$D/vllmBench_lite_opt.sh"
 
-  echo "== 2. four_rank_totals.csv 全量 =="
-  dex "cat $P/host_summary/four_rank_totals.csv"
+  echo "== 2. 脚本里引用的库文件是否存在 =="
+  for f in "$D/liblitehost.so" "$D/lhctl.py" "$D/analyze_litehost.py"; do ls -l "$f" 2>&1; done
+  find /home -maxdepth 4 -name 'libtcmalloc.so*' 2>/dev/null | head -5
 
-  echo "== 3. report.txt 全量 =="
-  dex "cat $P/host_summary/report.txt"
+  echo "== 3. venv 认可的 VLLM_HOST_OPT 开关 =="
+  dex "grep -n 'VLLM_HOST_OPT' $SP/envs.py | head -20"
+  echo "--- host_opt.py 的门控逻辑 ---"
+  dex "grep -nE 'VLLM_HOST_OPT|environ|getenv|enabled|ARENA|INPUTS|BOOKKEEPING|POSITIONS' $SP/v1/worker/host_opt.py | head -40"
 
-  echo "== 4. 7 case 汇总（all_formal）=="
-  dex "python3 - <<'PY'
-import csv
-rows=[r for r in csv.DictReader(open('$P/host_summary/four_rank_totals.csv')) if r['group']=='all_formal']
-print(f\"{'case':22s} {'T(s)':>9s} {'S(s)':>9s} {'H(s)':>7s} {'G(s)':>7s} {'H+G(s)':>8s} {'scopes':>7s}\")
-tot={k:0.0 for k in ('T','S','H','G','HG')}
-for r in rows:
-    t=float(r['four_rank_mean_T_total_s']); s=float(r['four_rank_mean_S_total_s'])
-    h=float(r['four_rank_mean_total_H_s']); g=float(r['four_rank_mean_G_total_s'])
-    hg=float(r['four_rank_mean_H_plus_G_total_s'])
-    tot['T']+=t; tot['S']+=s; tot['H']+=h; tot['G']+=g; tot['HG']+=hg
-    print(f\"{r['case_id']:22s} {t:9.3f} {s:9.3f} {h:7.3f} {g:7.3f} {hg:8.3f} {r['formal_scopes_per_rank']:>7s}\")
-print('-'*72)
-print(f\"{'SUM(7 cases)':22s} {tot['T']:9.3f} {tot['S']:9.3f} {tot['H']:7.3f} {tot['G']:7.3f} {tot['HG']:8.3f}\")
-print(f'cases={len(rows)}  missing=bs8_in2048_out1024, bs8_in2048_out2048')
-PY"
+  echo "== 4. compact_greedy 在 venv 里的开关方式 =="
+  dex "grep -n 'compact_greedy' $SP/config/compilation.py | head -10"
+  dex "grep -rn 'VLLM_COMPACT_GREEDY' $SP 2>/dev/null | head -5 || echo '无该环境变量'"
+
+  echo "== 5. 当前驱动多流参数 =="
+  cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>/dev/null
+
+  echo "== 6. venv 版本与 r14 落盘 =="
+  dex "ls -ld $SP/.host-opt-pr-backup; grep -oE 'VLLM_HOST_OPT[A-Z_]*' $SP/envs.py | sort -u"
+  dex "$V/bin/python -c 'import vllm;print(vllm.__version__)'"
 
   # ---- 命令结束 ----
 
