@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 定位 H/S 分歧：trace 侧把 S 拆主线程/其它线程 + sync 次数，与 litehost 报告对表。
-# 纯 CPU、绑 node0、不启动任何服务。
+# 安装"全优化开关"版 timeline_opt.sh:备份原文件 -> 覆盖 -> 语法检查 -> diff -> 校验编译配置键。
+# 纯 CPU,不启动 vllm,不动 GPU。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,58 +18,58 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  T=/home/qch/scripts/timeline
-  PY="$DIR/trace_tshg_split.py"
-  BIND="numactl --cpunodebind=0 --membind=0"
-  command -v numactl >/dev/null || BIND="taskset -c $(lscpu -e=CPU,NODE | awk '$2==0{print $1}' | paste -sd,)"
+  SRC="$DIR/timeline_opt.sh"
+  DST=/home/qch/scripts/timeline_opt.sh
+  BAK="$DST.bak-$TS"
+  SUDO=""
 
-  pick() {
-    local f
-    f=$(find "$T/$1" -type f \( -name '*trace*.json' -o -name '*trace*.json.gz' \) -printf '%s %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
-    [ -n "$f" ] || f=$(find "$T/$1" -type f \( -name '*.json' -o -name '*.json.gz' \) -printf '%s %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
-    echo "$f"
-  }
+  echo "== 0. 源文件 =="
+  ls -l --time-style=long-iso "$SRC" || exit 1
+  sha256sum "$SRC" 2>/dev/null || shasum -a 256 "$SRC"
 
-  echo "== 1. trace 侧：主线程/其它线程 S 拆分 =="
-  for pair in "4k 64k" "4k2 64k2"; do
-    set -- $pair; A=$1; B=$2
-    FA=$(pick "$A"); FB=$(pick "$B")
-    echo "===== $A vs $B"
-    echo "A=$FA"
-    echo "B=$FB"
-    if [ -z "${FA:-}" ] || [ -z "${FB:-}" ]; then echo "缺 trace，跳过"; continue; fi
-    TSHG_WARMUP=0 timeout 900 $BIND python3 "$PY" "$FA" "$FB" "$A" "$B" 2>&1 | tail -70
+  echo "== 1. 目标可写性 =="
+  ls -l --time-style=long-iso "$DST"
+  if [ -w "$(dirname "$DST")" ] && { [ ! -e "$DST" ] || [ -w "$DST" ]; }; then
+    echo "可直接写"
+  elif sudo -n true 2>/dev/null; then
+    SUDO="sudo"; echo "需要 sudo(已免密)"
+  else
+    echo "目标不可写且 sudo 需要密码"
+  fi
+
+  echo "== 2. 备份 =="
+  if $SUDO cp -p "$DST" "$BAK"; then
+    ls -l --time-style=long-iso "$BAK"
+  else
+    echo "备份失败,放弃安装"; exit 2
+  fi
+
+  echo "== 3. 覆盖 =="
+  if $SUDO cp "$SRC" "$DST" && $SUDO chmod +x "$DST"; then
+    ls -l --time-style=long-iso "$DST"
+    sha256sum "$DST" 2>/dev/null || shasum -a 256 "$DST"
+  else
+    echo "覆盖失败,原文件仍在备份 $BAK"; exit 3
+  fi
+
+  echo "== 4. 语法检查 =="
+  bash -n "$DST" && echo "bash -n OK"
+
+  echo "== 5. 与原文件的差异 =="
+  diff -u "$BAK" "$DST" | sed -n '1,200p'
+
+  echo "== 6. venv 里的 CompilationConfig 是否认识新键 =="
+  for k in compact_greedy sample_logits_cudagraph_scope; do
+    if timeout 60 docker exec corex5-py311 bash -c \
+        "grep -nE '^[[:space:]]*$k:' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/compilation.py"; then
+      :
+    else
+      echo "!! 缺少 $k"
+    fi
   done
 
-  echo "== 2. litehost 侧：找 bench 报告 =="
-  for r in /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k \
-           /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k \
-           /home/z30059427/vllmBench/litehost_gap_20261109_195202 \
-           /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715; do
-    echo "---- $r"
-    [ -d "$r" ] || { echo "(不存在)"; continue; }
-    find "$r" -maxdepth 4 \( -name 'per_rank.csv' -o -name 'four_rank_totals.csv' \) 2>/dev/null | head -5
-    for f in $(find "$r" -maxdepth 4 -name 'per_rank.csv' 2>/dev/null | head -2); do
-      echo "  ## $f"
-      head -1 "$f"
-      grep -m2 'in128_out128' "$f"
-    done
-    for f in $(find "$r" -maxdepth 4 -name 'four_rank_totals.csv' 2>/dev/null | head -2); do
-      echo "  ## $f"
-      head -1 "$f"
-      grep -m2 'in128_out128' "$f"
-    done
-  done
-
-  echo "== 3. litehost 侧：rank 行（含 sync_calls）=="
-  for r in /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k \
-           /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k \
-           /home/z30059427/vllmBench/litehost_gap_20261109_195202 \
-           /usr/local/corex-5.0.0/vllmBench/litehost_gap_20261110_164715; do
-    [ -d "$r" ] || continue
-    echo "---- $r"
-    grep -rh "rank[0-3] pid=.*formal=" "$r" 2>/dev/null | head -4
-  done
+  echo "== 7. 关键开关行(落盘后的脚本) =="
+  grep -nE 'COMPILATION_CONFIG=|VLLM_HOST_OPT|UMD_MAX|TORCH_MODULE|LD_PRELOAD|compact_greedy' "$DST"
 
   # ---- 命令结束 ----
 
