@@ -1,0 +1,181 @@
+### server: 184
+### host:   controller
+### time:   2026-11-14T08:19:24Z
+
++ echo '== 1. 当前引导 =='
+== 1. 当前引导 ==
++ date '+local now: %Y-%m-%d %H:%M:%S %Z'
+local now: 2026-11-14 16:19:24 CST
++ uptime -s
+2026-11-14 16:09:00
++ uptime -p
+up 10 minutes
++ uname -a
+Linux controller 6.6.0-159.4.21.175.oe2403sp4.aarch64 #1 SMP Mon Nov  9 19:33:01 CST 2026 aarch64 aarch64 aarch64 GNU/Linux
++ getconf PAGE_SIZE
+4096
++ cat /proc/cmdline
+BOOT_IMAGE=/vmlinuz-6.6.0-159.4.21.175.oe2403sp4.aarch64 root=/dev/mapper/openeuler00-root ro rd.lvm.lv=openeuler00/root rd.lvm.lv=openeuler00/swap video=VGA-1:640x480-32@60me cgroup_disable=files apparmor=0 crashkernel=1024M,high smmu.bypassdev=0x1000:0x17 smmu.bypassdev=0x1000:0x15 arm64.nopauth rhgb quiet console=tty0
++ echo '== 2. 重启记录(wtmp,跨引导) =='
+== 2. 重启记录(wtmp,跨引导) ==
++ last -x reboot shutdown
++ head -20
+reboot   system boot  6.6.0-159.4.21.1 Sat Nov 14 16:09   still running
+shutdown system down  6.6.0-159.4.3.15 Sat Nov 14 16:07 - 16:09  (00:01)
+reboot   system boot  6.6.0-159.4.3.15 Sat Nov 14 16:00 - 16:07  (00:07)
+shutdown system down  6.6.0-159.4.21.1 Sat Nov 14 15:57 - 16:00  (00:02)
+reboot   system boot  6.6.0-159.4.21.1 Sat Nov 14 13:40 - 15:57  (02:16)
+shutdown system down  6.6.0-159.4.3.15 Sat Nov 14 13:38 - 13:40  (00:01)
+reboot   system boot  6.6.0-159.4.3.15 Sat Nov 14 13:26 - 13:38  (00:12)
+shutdown system down  6.6.0-159.4.21.1 Sat Nov 14 13:24 - 13:26  (00:01)
+reboot   system boot  6.6.0-159.4.21.1 Sat Nov 14 13:19 - 13:24  (00:04)
+shutdown system down  6.6.0-159.4.21.1 Sat Nov 14 13:16 - 13:19  (00:02)
+reboot   system boot  6.6.0-159.4.21.1 Sat Nov 14 08:56 - 13:16  (04:20)
+shutdown system down  6.6.0-159.4.3.15 Sat Nov 14 08:54 - 08:56  (00:02)
+reboot   system boot  6.6.0-159.4.3.15 Fri Nov 13 16:46 - 08:54  (16:07)
+shutdown system down  6.6.0-159.4.21.1 Fri Nov 13 16:44 - 16:46  (00:02)
+reboot   system boot  6.6.0-159.4.21.1 Fri Nov 13 09:33 - 16:44  (07:11)
+shutdown system down  6.6.0-145.3.37.1 Fri Nov 13 09:29 - 09:33  (00:03)
+reboot   system boot  6.6.0-145.3.37.1 Thu Nov 12 10:54 - 09:29  (22:35)
+shutdown system down  6.6.02403_sp3-64 Thu Nov 12 10:50 - 10:54  (00:04)
+reboot   system boot  6.6.02403_sp3-64 Thu Nov 12 10:40 - 10:50  (00:09)
+shutdown system down  6.6.0-145.3.37.1 Thu Nov 12 10:38 - 10:40  (00:02)
++ echo '== 3. 引导列表 =='
+== 3. 引导列表 ==
++ journalctl --list-boots --no-pager
++ tail -10
+IDX BOOT ID                          FIRST ENTRY                 LAST ENTRY
+  0 0d6a6f0a56b5457790e78e831a8fa7f3 Sat 2026-11-14 16:09:02 CST Sat 2026-11-14 16:19:19 CST
++ echo '== 4. 每次引导的内核版本 =='
+== 4. 每次引导的内核版本 ==
++ for b in 0 -1 -2 -3 -4
++ echo '---- boot 0'
+---- boot 0
++ journalctl -b 0 -k --no-pager -o cat
++ grep -m1 -i 'Linux version'
+Linux version 6.6.0-159.4.21.175.oe2403sp4.aarch64 (root@node-crf88.compass-ci.net) (gcc_old (GCC) 12.3.1 (openEuler 12.3.1-113.oe2403sp4), GNU ld (GNU Binutils) 2.41) #1 SMP Mon Nov  9 19:33:01 CST 2026
++ journalctl -b 0 --no-pager
++ sed -n 1p
++ cut -c1-80
+Nov 14 16:09:02 controller kernel: Booting Linux on physical CPU 0x0300000000 [0
++ for b in 0 -1 -2 -3 -4
++ echo '---- boot -1'
+---- boot -1
++ journalctl -b -1 -k --no-pager -o cat
++ grep -m1 -i 'Linux version'
++ journalctl -b -1 --no-pager
++ sed -n 1p
++ cut -c1-80
++ for b in 0 -1 -2 -3 -4
++ echo '---- boot -2'
+---- boot -2
++ journalctl -b -2 -k --no-pager -o cat
++ grep -m1 -i 'Linux version'
++ journalctl -b -2 --no-pager
++ sed -n 1p
++ cut -c1-80
++ for b in 0 -1 -2 -3 -4
++ echo '---- boot -3'
+---- boot -3
++ journalctl -b -3 -k --no-pager -o cat
++ grep -m1 -i 'Linux version'
++ journalctl -b -3 --no-pager
++ sed -n 1p
++ cut -c1-80
++ for b in 0 -1 -2 -3 -4
++ echo '---- boot -4'
+---- boot -4
++ journalctl -b -4 -k --no-pager -o cat
++ grep -m1 -i 'Linux version'
++ journalctl -b -4 --no-pager
++ sed -n 1p
++ cut -c1-80
++ echo '== 5. 引导项 =='
+== 5. 引导项 ==
++ grubby --default-kernel
++ head -5
+/boot/vmlinuz-6.6.0-159.4.21.175.oe2403sp4.aarch64
++ head -10
++ ls -l --time-style=long-iso /boot/vmlinuz /boot/vmlinuz-0-rescue-1167791de91a49c9a9b06b663b3d7e59 /boot/vmlinuz-6.6.0-159.4.21.175.oe2403sp4.aarch64 /boot/vmlinuz-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
+lrwxrwxrwx. 1 root root       32 2026-11-10 16:26 /boot/vmlinuz -> /boot/vmlinuz-6.6.02403_sp3-64K+
+-rwxr-xr-x. 1 root root 11236371 2025-03-06 20:51 /boot/vmlinuz-0-rescue-1167791de91a49c9a9b06b663b3d7e59
+-rwxr-xr-x. 1 root root 12782500 2026-11-09 19:40 /boot/vmlinuz-6.6.0-159.4.21.175.oe2403sp4.aarch64
+-rwxr-xr-x. 1 root root 12725916 2026-06-29 01:53 /boot/vmlinuz-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
++ head -10
++ ls -l --time-style=long-iso /boot/config-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64 /boot/dtb-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64 /boot/initramfs-6.6.0-159.4.21.175.oe2403sp4.aarch64kdump.img /boot/initramfs-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64.img /boot/initramfs-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64kdump.img /boot/symvers-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64.gz /boot/System.map-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64 /boot/vmlinuz-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64 /boot/config-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64 /boot/dtb-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64 /boot/initramfs-6.6.0-159.4.21.175.oe2403sp4.aarch64kdump.img /boot/initramfs-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64.img /boot/initramfs-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64kdump.img /boot/symvers-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64.gz /boot/System.map-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64 /boot/vmlinuz-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
+-rw-r--r--. 1 root root   215259 2026-06-29 01:53 /boot/config-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
+-rw-r--r--. 1 root root   215259 2026-06-29 01:53 /boot/config-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
+-rw-------. 1 root root 59321856 2026-11-13 09:33 /boot/initramfs-6.6.0-159.4.21.175.oe2403sp4.aarch64kdump.img
+-rw-------. 1 root root 59321856 2026-11-13 09:33 /boot/initramfs-6.6.0-159.4.21.175.oe2403sp4.aarch64kdump.img
+-rw-------. 1 root root 52481999 2026-11-13 09:42 /boot/initramfs-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64.img
+-rw-------. 1 root root 52481999 2026-11-13 09:42 /boot/initramfs-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64.img
+-rw-------. 1 root root 59321856 2026-11-13 16:47 /boot/initramfs-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64kdump.img
+-rw-------. 1 root root 59321856 2026-11-13 16:47 /boot/initramfs-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64kdump.img
+-rw-r--r--. 1 root root   276660 2026-06-29 01:53 /boot/symvers-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64.gz
+-rw-r--r--. 1 root root   276660 2026-06-29 01:53 /boot/symvers-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64.gz
++ echo '== 6. 两次采集的目录时间 =='
+== 6. 两次采集的目录时间 ==
++ for d in /home/qch/scripts/timeline/4k3 /home/qch/scripts/timeline/64k3
++ stat -c '%n  mtime=%y' /home/qch/scripts/timeline/4k3 /home/qch/scripts/timeline/4k3/run_env.txt /home/qch/scripts/timeline/4k3/logs/server.log
+/home/qch/scripts/timeline/4k3  mtime=2026-11-14 15:56:38.063488530 +0800
+/home/qch/scripts/timeline/4k3/run_env.txt  mtime=2026-11-14 15:51:42.255488530 +0800
+/home/qch/scripts/timeline/4k3/logs/server.log  mtime=2026-11-14 15:56:36.351488530 +0800
++ grep -m2 -E 'Starting vLLM|Shutting down|Application shutdown complete' /home/qch/scripts/timeline/4k3/logs/server.log
+(APIServer pid=458864) INFO 11-14 15:52:32 [api_server.py:576] Starting vLLM server on http://127.0.0.1:8000
+(Worker_TP0 pid=463620) INFO 11-14 15:56:34 [wrapper.py:142] Shutting down profiler
++ head -2 /home/qch/scripts/timeline/4k3/logs/server.log
++ cut -c1-110
+INFO 11-14 15:51:45 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-14 15:51:45 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plug
++ tail -1 /home/qch/scripts/timeline/4k3/logs/server.log
++ cut -c1-110
+  warnings.warn('resource_tracker: There appear to be %d '
++ for d in /home/qch/scripts/timeline/4k3 /home/qch/scripts/timeline/64k3
++ stat -c '%n  mtime=%y' /home/qch/scripts/timeline/64k3 /home/qch/scripts/timeline/64k3/run_env.txt /home/qch/scripts/timeline/64k3/logs/server.log
+/home/qch/scripts/timeline/64k3  mtime=2026-11-14 16:06:28.724393860 +0800
+/home/qch/scripts/timeline/64k3/run_env.txt  mtime=2026-11-14 16:01:40.768393860 +0800
+/home/qch/scripts/timeline/64k3/logs/server.log  mtime=2026-11-14 16:06:28.576393860 +0800
++ grep -m2 -E 'Starting vLLM|Shutting down|Application shutdown complete' /home/qch/scripts/timeline/64k3/logs/server.log
+(APIServer pid=23522) INFO 11-14 16:02:39 [api_server.py:576] Starting vLLM server on http://127.0.0.1:8000
+(Worker_TP0 pid=24195) INFO 11-14 16:06:26 [wrapper.py:142] Shutting down profiler
++ head -2 /home/qch/scripts/timeline/64k3/logs/server.log
++ cut -c1-110
+INFO 11-14 16:01:44 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-14 16:01:44 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plug
++ tail -1 /home/qch/scripts/timeline/64k3/logs/server.log
++ cut -c1-110
+  warnings.warn('resource_tracker: There appear to be %d '
++ echo '== 7. 是否有切内核的脚本 =='
+== 7. 是否有切内核的脚本 ==
++ ls -l --time-style=long-iso /home/qch/scripts/
++ head -20
+total 416
+drwxrwxr-x+  2 root root  4096 2026-08-24 15:30 bak
+-rw-rw-r--+  1 root root 13894 2026-10-14 18:02 cpubind_compare.md
+drwxrwxr-x+  2 root root  4096 2026-08-24 15:30 docs
+-rwxrwxr-x+  1 root root  3883 2026-10-08 15:58 followup_host_driver.sh
+-rwxrwxr-x+  1 root root  4320 2026-10-08 15:55 followup_tp4_run_inside.sh
+-rwxrwxr-x+  1 root root  5429 2026-10-08 15:51 followup_tp4_run.sh
+drwxrwxr-x+  3 root root  4096 2026-09-01 17:10 instrumentation
+drwxrwxr-x+  7 root root  4096 2026-10-28 21:11 litehost_perf
+drwxrwxr-x+  2 root root  4096 2026-10-13 21:32 numan
+-rw-rw-r--+  1 root root  1532 2026-10-15 17:55 patch_203_cuda_graph.sh
+-rw-r--r--.  1 root root 16774 2026-11-05 17:15 pgo-doctor.py
+drwxrwxr-x+  2 root root  4096 2026-08-18 14:25 __pycache__
+drwxrwxr-x+  2 root root  4096 2026-08-24 14:31 Qwen2.5-0.5B-Instruct
+drwxrwxr-x+  2 root root  4096 2026-08-24 14:29 Qwen3-32B-W8A8
+drwxrwxr-x+  6 root root  4096 2026-09-29 19:58 Qwen3-8B
+-rw-rw-r--+  1 root root  6865 2026-10-08 10:44 serve_tp4_stageD.sh
+-rw-rw-r--+  1 root root  6084 2026-10-08 14:15 stageE_F_runA.sh
+drwxrwxr-x+  2 root root  4096 2026-08-24 15:31 summarize
+drwxrwxr-x+  2 root root  4096 2026-08-31 14:05 taskset
++ grep -rlniE 'page_size|64k|64K|grubby|grub2-editenv' /home/qch/scripts/
++ head -5
+/home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank3.1794443503310842050.pt.trace.json.gz
+/home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank1.1794443503568578280.pt.trace.json.gz
+/home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank0.1794443504630143460.pt.trace.json.gz
+/home/qch/scripts/timeline/4k/profile/case0_in128_out128/rank2.1794443503861682570.pt.trace.json.gz
+/home/qch/scripts/timeline/64k/logs/server.log
++ set +x
+
+### exit: 0
