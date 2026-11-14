@@ -1,0 +1,148 @@
+### server: 184
+### host:   controller
+### time:   2026-11-14T06:30:48Z
+
++ D=/home/huawei_ts_program/litehost_perf_opt
++ echo '== 1. 对外导出符号 =='
+== 1. 对外导出符号 ==
++ cat /home/huawei_ts_program/litehost_perf_opt/liblitehost.exports.txt
+0000000000001bc0 T cuCtxSynchronize
+00000000000011f4 T cudaDeviceSynchronize
+00000000000015e4 T cudaEventSynchronize
+0000000000001894 T cudaEventSynchronize_ptsz
+00000000000019f0 T cudaGraphLaunch
+0000000000001ad4 T cudaGraphLaunch_ptsz
+0000000000001490 T cudaStreamSynchronize
+0000000000001740 T cudaStreamSynchronize_ptsz
+0000000000001340 T cudaThreadSynchronize
+0000000000001e64 T cuEventSynchronize
+0000000000002114 T cuGraphLaunch
+0000000000002200 T cuGraphLaunch_ptsz
+0000000000001d10 T cuStreamSynchronize
+0000000000001fc0 T cuStreamSynchronize_ptsz
+00000000000023d0 T ixDeviceSynchronize
+0000000000002360 T ixEventSynchronize
+0000000000002430 T ixGraphLaunch
+00000000000022f0 T ixStreamSynchronize
+0000000000000e10 T litehost_abi_version
+0000000000000e30 T litehost_begin
+0000000000000e20 T litehost_build_version
+0000000000000f20 T litehost_end
++ echo '== 2. wrappers.cpp 全文 =='
+== 2. wrappers.cpp 全文 ==
++ cat /home/huawei_ts_program/litehost_perf_opt/liblitehost.wrappers.cpp
+#include "/usr/local/corex-5.0.0/include/cuda_runtime_api.h"
+
+#include <atomic>
+#include <tuple>
+#include <type_traits>
+#include "litehost_internal.h"
+template<class> struct traits;
+template<class R,class...A>struct traits<R(*)(A...)>{using ret=R;using args=std::tuple<A...>;static constexpr int n=sizeof...(A);template<int I>using arg=typename std::tuple_element<I,args>::type;};
+template<class R,class...A>struct traits<R(*)(A...)noexcept>:traits<R(*)(A...)>{};
+using f_ixStreamSynchronize=decltype(&::ixStreamSynchronize);using t_ixStreamSynchronize=traits<f_ixStreamSynchronize>;
+static_assert(t_ixStreamSynchronize::n==1,"Unexpected API arity");
+extern "C" t_ixStreamSynchronize::ret wrap_ixStreamSynchronize(t_ixStreamSynchronize::arg<0> a0) __asm__("ixStreamSynchronize");
+extern "C" t_ixStreamSynchronize::ret wrap_ixStreamSynchronize(t_ixStreamSynchronize::arg<0> a0){static std::atomic<f_ixStreamSynchronize>p{nullptr};auto f=p.load(std::memory_order_acquire);if(!f){f=reinterpret_cast<f_ixStreamSynchronize>(lh_next("ixStreamSynchronize"));p.store(f,std::memory_order_release);}lh_sync_enter(1);auto r=f(a0);lh_sync_leave();return r;}
+static_assert(std::is_convertible<f_ixStreamSynchronize,decltype(&wrap_ixStreamSynchronize)>::value,"Wrapper type mismatch");
+using f_ixEventSynchronize=decltype(&::ixEventSynchronize);using t_ixEventSynchronize=traits<f_ixEventSynchronize>;
+static_assert(t_ixEventSynchronize::n==1,"Unexpected API arity");
+extern "C" t_ixEventSynchronize::ret wrap_ixEventSynchronize(t_ixEventSynchronize::arg<0> a0) __asm__("ixEventSynchronize");
+extern "C" t_ixEventSynchronize::ret wrap_ixEventSynchronize(t_ixEventSynchronize::arg<0> a0){static std::atomic<f_ixEventSynchronize>p{nullptr};auto f=p.load(std::memory_order_acquire);if(!f){f=reinterpret_cast<f_ixEventSynchronize>(lh_next("ixEventSynchronize"));p.store(f,std::memory_order_release);}lh_sync_enter(2);auto r=f(a0);lh_sync_leave();return r;}
+static_assert(std::is_convertible<f_ixEventSynchronize,decltype(&wrap_ixEventSynchronize)>::value,"Wrapper type mismatch");
+using f_ixDeviceSynchronize=decltype(&::ixDeviceSynchronize);using t_ixDeviceSynchronize=traits<f_ixDeviceSynchronize>;
+static_assert(t_ixDeviceSynchronize::n==0,"Unexpected API arity");
+extern "C" t_ixDeviceSynchronize::ret wrap_ixDeviceSynchronize(void) __asm__("ixDeviceSynchronize");
+extern "C" t_ixDeviceSynchronize::ret wrap_ixDeviceSynchronize(void){static std::atomic<f_ixDeviceSynchronize>p{nullptr};auto f=p.load(std::memory_order_acquire);if(!f){f=reinterpret_cast<f_ixDeviceSynchronize>(lh_next("ixDeviceSynchronize"));p.store(f,std::memory_order_release);}lh_sync_enter(3);auto r=f();lh_sync_leave();return r;}
+static_assert(std::is_convertible<f_ixDeviceSynchronize,decltype(&wrap_ixDeviceSynchronize)>::value,"Wrapper type mismatch");
+using f_ixGraphLaunch=decltype(&::ixGraphLaunch);using t_ixGraphLaunch=traits<f_ixGraphLaunch>;
+static_assert(t_ixGraphLaunch::n==2,"Unexpected API arity");
+extern "C" t_ixGraphLaunch::ret wrap_ixGraphLaunch(t_ixGraphLaunch::arg<0> a0,t_ixGraphLaunch::arg<1> a1) __asm__("ixGraphLaunch");
+extern "C" t_ixGraphLaunch::ret wrap_ixGraphLaunch(t_ixGraphLaunch::arg<0> a0,t_ixGraphLaunch::arg<1> a1){static std::atomic<f_ixGraphLaunch>p{nullptr};auto f=p.load(std::memory_order_acquire);if(!f){f=reinterpret_cast<f_ixGraphLaunch>(lh_next("ixGraphLaunch"));p.store(f,std::memory_order_release);}lh_graph_enter();auto r=f(a0,a1);lh_graph_leave();return r;}
+static_assert(std::is_convertible<f_ixGraphLaunch,decltype(&wrap_ixGraphLaunch)>::value,"Wrapper type mismatch");
++ echo '== 3. litehost.c 全文 =='
+== 3. litehost.c 全文 ==
++ cat /home/huawei_ts_program/litehost_perf_opt/litehost.c
+#define _GNU_SOURCE
+#include <stdint.h>
+#include <stdatomic.h>
+#include <time.h>
+#include <dlfcn.h>
+#include <stdio.h>
+#include <unistd.h>
+#include "litehost_internal.h"
+typedef struct {
+ uint64_t start_ns,end_ns,thread_cpu_ns,sync_ns,stream_sync_ns,event_sync_ns,other_sync_ns;
+ uint64_t sync_calls,stream_sync_calls,event_sync_calls,other_sync_calls,graph_launch_calls;
+} result_t;
+typedef struct {result_t r;uint64_t cpu_start,sync_start;unsigned sync_depth,graph_depth,kind;int active;} state_t;
+static __thread state_t state;
+static uint64_t ns(clockid_t c){struct timespec t;if(clock_gettime(c,&t))_exit(126);return (uint64_t)t.tv_sec*1000000000ULL+t.tv_nsec;}
+int litehost_abi_version(void){return 1;}
+const char*litehost_build_version(void){return "0.4.0-compat";}
+int litehost_begin(void){if(state.active||state.sync_depth||state.graph_depth)return -1;state=(state_t){0};state.cpu_start=ns(CLOCK_THREAD_CPUTIME_ID);state.r.start_ns=ns(CLOCK_MONOTONIC);state.active=1;return 0;}
+int litehost_end(result_t*r){if(!r||!state.active||state.sync_depth||state.graph_depth)return -1;state.r.end_ns=ns(CLOCK_MONOTONIC);state.r.thread_cpu_ns=ns(CLOCK_THREAD_CPUTIME_ID)-state.cpu_start;state.active=0;*r=state.r;return 0;}
+void lh_sync_enter(unsigned kind){if(state.active&&state.sync_depth++==0){state.sync_start=ns(CLOCK_MONOTONIC);state.kind=kind;}}
+void lh_sync_leave(void){if(!state.active||!state.sync_depth||--state.sync_depth)return;uint64_t d=ns(CLOCK_MONOTONIC)-state.sync_start;state.r.sync_ns+=d;state.r.sync_calls++;if(state.kind==1){state.r.stream_sync_ns+=d;state.r.stream_sync_calls++;}else if(state.kind==2){state.r.event_sync_ns+=d;state.r.event_sync_calls++;}else{state.r.other_sync_ns+=d;state.r.other_sync_calls++;}}
+void lh_graph_enter(void){if(state.active&&state.graph_depth++==0)state.r.graph_launch_calls++;}
+void lh_graph_leave(void){if(state.active&&state.graph_depth)--state.graph_depth;}
+void*lh_next(const char*n){void*p=dlsym(RTLD_NEXT,n);if(!p){fprintf(stderr,"[litehost] missing RTLD_NEXT symbol: %s\n",n);_exit(127);}return p;}
+#define FN0(n,k) int n(void){static _Atomic(int(*)(void))ptr=NULL;int(*f)(void)=atomic_load_explicit(&ptr,memory_order_acquire);if(!f){f=(int(*)(void))lh_next(#n);atomic_store_explicit(&ptr,f,memory_order_release);}lh_sync_enter(k);int r=f();lh_sync_leave();return r;}
+#define FN1(n,k) int n(void*a){static _Atomic(int(*)(void*))ptr=NULL;int(*f)(void*)=atomic_load_explicit(&ptr,memory_order_acquire);if(!f){f=(int(*)(void*))lh_next(#n);atomic_store_explicit(&ptr,f,memory_order_release);}lh_sync_enter(k);int r=f(a);lh_sync_leave();return r;}
+#define FN2(n) int n(void*a,void*b){static _Atomic(int(*)(void*,void*))ptr=NULL;int(*f)(void*,void*)=atomic_load_explicit(&ptr,memory_order_acquire);if(!f){f=(int(*)(void*,void*))lh_next(#n);atomic_store_explicit(&ptr,f,memory_order_release);}lh_graph_enter();int r=f(a,b);lh_graph_leave();return r;}
+FN0(cudaDeviceSynchronize,3) FN0(cudaThreadSynchronize,3)
+FN1(cudaStreamSynchronize,1) FN1(cudaEventSynchronize,2)
+FN1(cudaStreamSynchronize_ptsz,1) FN1(cudaEventSynchronize_ptsz,2)
+FN2(cudaGraphLaunch) FN2(cudaGraphLaunch_ptsz)
+FN0(cuCtxSynchronize,3) FN1(cuStreamSynchronize,1) FN1(cuEventSynchronize,2)
+FN1(cuStreamSynchronize_ptsz,1) FN2(cuGraphLaunch) FN2(cuGraphLaunch_ptsz)
++ echo '== 4. Makefile =='
+== 4. Makefile ==
++ cat /home/huawei_ts_program/litehost_perf_opt/Makefile
+PYTHON ?= python3
+COREX_ROOT ?= /usr/local/corex
+.PHONY: all test check clean
+all:
+	$(PYTHON) build_corex.py --corex-root "$(COREX_ROOT)"
+test:
+	$(PYTHON) -m unittest discover -s tests -v
+check:
+	$(PYTHON) lhctl.py check
+clean:
+	rm -f liblitehost.so liblitehost.build.json liblitehost.build.log liblitehost.exports.txt liblitehost.wrappers.cpp
++ echo '== 5. README 里关于 S/H/G 的描述 =='
+== 5. README 里关于 S/H/G 的描述 ==
++ grep -nE 'sync|S_total|H_total|G_total|TSHG|scope' /home/huawei_ts_program/litehost_perf_opt/README.md
++ head -40
+74:    │     正式请求（单独 run_id）→ Worker 主线程 scope 打点
+91:一个正式 scope：
+94:T_i = end_ns(i) - start_ns(i)                    主线程 scope 墙钟时间
+95:S_i = 同一主线程 scope 内同步 API 区间去重后的总时长
+99:对同一个 rank，把**所有正式 scope** 按时间先后排序：
+103:S_total(rank) = Σ S_i
+104:H_total(rank) = T_total - S_total + S_total × p/100   ← 原 H 不变
+106:G_total(rank) = Σ [ start_ns(i+1) - end_ns(i) ] / 1e9
+107:H+G(rank)     = H_total(rank) + G_total(rank)
+109:four_rank_mean_total_H_s        = [H_total(0)+...+H_total(3)] / 4
+110:four_rank_mean_G_total_s        = [G_total(0)+...+G_total(3)] / 4
+111:four_rank_mean_H_plus_G_total_s = [H+G(0)+...+H+G(3)] / 4
+116:**G 的统计边界**：只算第一个正式 scope 结束到最后一个正式 scope 之间的每段空档，不包括 ARM→第一轮以及最后一轮→FINALIZE 的边缘间隔，不跨 case，也不包含 warmup。G 是**间隔墙钟时长**，其中可能有 Host 工作、阻塞等待、调度等待等；`H+G` **没有扣除间隔内部可能存在的同步等待**，不能称为纯 CPU 使用时间或实例延迟。若 CoreX dev1 将原等待移出 scope，G 能帮助发现“等待时间去哪了”，但不能直接证明它是 CPU 计算。
+118:- `all_formal`：全部正式 scope，包括 prefill、mixed、decode 及有请求归属的尾部清理，**唯一附带 G / H+G 的分组**。
+119:- `graph_formal`：仅 GraphLaunch 所在正式 scope 的总 H；不单独分摊 G。
+120:- `no_graph_formal`：其余正式 scope 的总 H；不单独分摊 G，不应直接等同于纯 prefill。
+122:若按 Graph 子集计算“相邻 Graph 的间隔”，中间可能包括 Non-Graph scope，会造成重复计费。因此，分析器只在 `all_formal` 计算 G，其他分组的 G/H+G 列留空。
+135:  rank0 ... T_total=...s S_total=...s H_total=...s G_total=...s H+G=...s
+136:  rank1 ... T_total=...s S_total=...s H_total=...s G_total=...s H+G=...s
+137:  rank2 ... T_total=...s S_total=...s H_total=...s G_total=...s H+G=...s
+138:  rank3 ... T_total=...s S_total=...s H_total=...s G_total=...s H+G=...s
+142:FINAL [bs8_in128_out128]: four_rank_mean_total_H_s = ... s G_total=...s H+G=...s
+146:FINAL [bs8_in1024_out1024]: four_rank_mean_total_H_s = ... s G_total=...s H+G=...s
+149:`FINAL` 的 G 与 H+G 是**四个 rank 的平均总秒数**；rank 行则是各自的总秒数。`H_total` 仍为原主指标。终端最终只打印一次，但每 case 的 `litehost/<case>/host_report/` 和总报告 `host_summary/` 都会保存，可以单独排查。
+160:      rank0_pid*.csv ... rank3_pid*.csv    含正式 scope 的时间戳和同步计数
+166:    per_rank.csv                          all_formal: G_total_s, H_plus_G_total_s
+167:    four_rank_totals.csv                  all_formal: four_rank_mean_G_total_s,
+168:                                          four_rank_mean_H_plus_G_total_s
+176:- 缺 rank、重复 PID、不同 run ID/CSV、缺 ARM/FINALIZE ACK、scope 顺序重叠、同步时长无效、四 rank 序列不匹配等，都会拒绝汇总。单 rank 正式 scope 超过 `HOST_MAX_SCOPES` 也会报错，不静默截取。
++ set +x
+
+### exit: 0
