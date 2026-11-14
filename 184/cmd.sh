@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 确认 4k3(15:51-15:56) 与 64k3(16:01-16:06) 之间是否发生过重启 —— 只有重启过，
-# 两次才是不同页大小的内核。纯 CPU,不启动 vllm,不动 GPU。
+# 核对 litehost 那两次(4K/64K)采集时真正生效的 server 配置:
+# compact_greedy / sample_logits_cudagraph / prefix caching / host-opt 是否两边一致。
+# 纯 CPU,不启动 vllm,不动 GPU。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,43 +19,52 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== 1. 当前引导 =="
-  date '+local now: %Y-%m-%d %H:%M:%S %Z'
-  uptime -s
-  uptime -p
-  uname -a
-  getconf PAGE_SIZE
-  cat /proc/cmdline
+  V=/home/huawei_ts_program/litehost_perf_opt/vllmBench
 
-  echo "== 2. 重启记录(wtmp,跨引导) =="
-  last -x reboot shutdown 2>/dev/null | head -20
+  echo "== 0. vllmBench 下所有 run 目录 =="
+  find "$V" -maxdepth 1 -mindepth 1 -type d -printf '%TY-%Tm-%Td %TH:%TM  %p\n' 2>/dev/null | sort
 
-  echo "== 3. 引导列表 =="
-  journalctl --list-boots --no-pager 2>/dev/null | tail -10
+  echo "== 1. 每个 run 的 server.log 时间范围 =="
+  find "$V" -maxdepth 3 -name server.log -printf '%TY-%Tm-%Td %TH:%TM %10s  %p\n' 2>/dev/null | sort
 
-  echo "== 4. 每次引导的内核版本 =="
-  for b in 0 -1 -2 -3 -4; do
-    echo "---- boot $b"
-    journalctl -b "$b" -k --no-pager -o cat 2>/dev/null | grep -m1 -i 'Linux version'
-    journalctl -b "$b" --no-pager 2>/dev/null | sed -n '1p' | cut -c1-80
+  echo "== 2. 逐 run:真正生效的配置(来自 server.log 的 non-default args) =="
+  for d in "$V"/*; do
+    s="$d/logs/server.log"
+    [ -f "$s" ] || continue
+    echo "-------- $d"
+    head -1 "$s" | cut -c1-60
+    echo -n "  compact_greedy 出现次数: "; grep -c 'compact_greedy' "$s" 2>/dev/null || true
+    echo -n "  VLLM_COMPACT_GREEDY 警告: "; grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' "$s" 2>/dev/null || true
+    grep -m1 -o "'compact_greedy': [A-Za-z]*" "$s" | sed 's/^/  parsed: /'
+    grep -m1 -o "'sample_logits_cudagraph': [A-Za-z]*" "$s" | sed 's/^/  parsed: /'
+    grep -m1 -o "'sample_logits_cudagraph_scope': '[a-z_]*'" "$s" | sed 's/^/  parsed: /'
+    grep -m1 -o "enable_prefix_caching=[A-Za-z]*" "$s" | sed 's/^/  parsed: /'
+    grep -m1 -o "compilation_config={'mode'[^}]*}" "$s" | cut -c1-160 | sed 's/^/  config: /'
   done
 
-  echo "== 5. 引导项 =="
-  (grubby --default-kernel 2>/dev/null || grub2-editenv list 2>/dev/null || cat /boot/grub2/grubenv 2>/dev/null) | head -5
-  ls -l --time-style=long-iso /boot/vmlinuz* 2>/dev/null | head -10
-  ls -l --time-style=long-iso /boot/*64k* /boot/*4k* 2>/dev/null | head -10
-
-  echo "== 6. 两次采集的目录时间 =="
-  for d in /home/qch/scripts/timeline/4k3 /home/qch/scripts/timeline/64k3; do
-    stat -c '%n  mtime=%y' "$d" "$d/run_env.txt" "$d/logs/server.log" 2>/dev/null
-    grep -m2 -E 'Starting vLLM|Shutting down|Application shutdown complete' "$d/logs/server.log" 2>/dev/null
-    head -2 "$d/logs/server.log" 2>/dev/null | cut -c1-110
-    tail -1 "$d/logs/server.log" 2>/dev/null | cut -c1-110
+  echo "== 3. host-opt 是否两边都真正激活 =="
+  for d in "$V"/*; do
+    s="$d/logs/server.log"
+    [ -f "$s" ] || continue
+    echo "---- $d"
+    grep -m2 'Host opt modes' "$s" 2>/dev/null | cut -c1-200
   done
 
-  echo "== 7. 是否有切内核的脚本 =="
-  ls -l --time-style=long-iso /home/qch/scripts/ 2>/dev/null | head -20
-  grep -rlniE 'page_size|64k|64K|grubby|grub2-editenv' /home/qch/scripts/ 2>/dev/null | head -5
+  echo "== 4. 每 run 的实测结果 =="
+  for d in "$V"/*; do
+    [ -d "$d" ] || continue
+    echo "---- $d"
+    ls -l --time-style=long-iso "$d"/*.json 2>/dev/null | head -3
+    for f in "$d"/summary.csv; do
+      [ -f "$f" ] && { echo "  ## $f"; head -3 "$f"; }
+    done
+    for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2>/dev/null | head -1); do
+      echo "  ## $f"; head -1 "$f"; grep -m1 'in128_out128' "$f"
+    done
+    for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2>/dev/null | head -1); do
+      echo "  ## $f"; head -1 "$f"; grep -m1 'in128_out128' "$f"
+    done
+  done
 
   # ---- 命令结束 ----
 
