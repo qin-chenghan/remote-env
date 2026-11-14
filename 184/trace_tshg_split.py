@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
-"""按 TSHG 口径切分 prefill / decode：
-S = sync 类调用的 self 时长（cudaStreamSynchronize / cudaEventSynchronize / EventQuery / wait_stream ...）
-H = T - S（CPU 真正干活）
-G = 相邻 execute_model 步之间的间隙
+"""按 litehost 的 TSHG 定义切分 trace（口径见 analyze_litehost.py）：
+T = scope 墙钟（litehost 用 native start_ns/end_ns）
+S = scope 内 sync 调用的阻塞墙钟（litehost 用 native 拦截；此处用 trace 事件近似）
+H = T - S
+G = 相邻 formal scope 的 (start_next - end_next)，不允许负值
 CPU 侧真实开销 = H + G
+
+与 litehost 的已知差异（无法从 trace 恢复）：
+  1. scope 锚点：litehost 包住 Worker.execute_model；trace 只能用名为
+     "execute_model" 的事件，边界略窄，圈外的 host 工作会落到 G。
+  2. S：litehost 由 liblitehost 拦截 sync API 得到真实阻塞时长；trace 只能按
+     事件名匹配 sync 家族，未命中的 sync 会算进 H。
 """
 import bisect
 import collections
 import gzip
 import json
+import os
 import statistics
 import sys
 
@@ -63,7 +71,7 @@ def is_sync(name):
     return any(p in n for p in SYNC_PATS)
 
 
-def analyze(path, label):
+def analyze(path, label, warmup=0):
     data = load(path)
     ev = data.get("traceEvents") or data.get("events") or []
 
@@ -85,6 +93,12 @@ def analyze(path, label):
     if not steps:
         print(f"[{label}] no step anchor")
         return None
+    if warmup:
+        if warmup >= len(steps):
+            print(f"[{label}] warmup={warmup} >= scopes={len(steps)}")
+            return None
+        steps = steps[warmup:]
+        print(f"[{label}] excluded first {warmup} scopes as warmup")
     starts = [s[0] for s in steps]
     ar_sorted = sorted(ar)
     nsteps = len(steps)
@@ -97,8 +111,9 @@ def analyze(path, label):
         step_data[i] = {"T": e - s, "S": 0.0, "G": 0.0, "iv": []}
     for i in range(nsteps - 1):
         gap = steps[i + 1][0] - steps[i][1]
-        if gap > 0:
-            step_data[i]["G"] = gap
+        if gap < 0:
+            raise ValueError(f"overlapping scopes at step {i}: gap={gap}")
+        step_data[i]["G"] = gap
 
     sync_by_name = collections.defaultdict(float)
     for ts, dur, name, cat, selfd in self_time(ev):
@@ -133,6 +148,11 @@ def analyze(path, label):
         if cur_lo is not None:
             tot += cur_hi - cur_lo
         p_["S"] = tot
+
+    total_sync_ms = sum(sync_by_name.values())
+    if total_sync_ms <= 0:
+        print(f"[{label}] ERROR: no sync events matched; H invalid (litehost would reject)")
+        return None
 
     res = {}
     for ph in ("prefill", "decode"):
@@ -179,13 +199,14 @@ def cmp(ra, rb):
 
 
 def main():
+    warmup = int(os.environ.get("TSHG_WARMUP", "0"))
     A = sys.argv[1]
     la = sys.argv[3] if len(sys.argv) > 3 else "A"
-    ra = analyze(A, la)
+    ra = analyze(A, la, warmup)
     if len(sys.argv) > 2:
         B = sys.argv[2]
         lb = sys.argv[4] if len(sys.argv) > 4 else "B"
-        rb = analyze(B, lb)
+        rb = analyze(B, lb, warmup)
         if ra and rb:
             cmp(ra, rb)
 
