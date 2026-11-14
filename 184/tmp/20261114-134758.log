@@ -1,0 +1,11 @@
+### server: 184
+### host:   controller
+### time:   2026-11-14T05:47:58Z
+
++ C=corex5-py311
++ R=/usr/local/corex-5.0.0/vllmBench
++ echo '== 1. 四份 run 的 128/128 吞吐行 =='
+== 1. 四份 run 的 128/128 吞吐行 ==
+./cmd.sh: line 30: r: unbound variable
+
+### exit: 1
