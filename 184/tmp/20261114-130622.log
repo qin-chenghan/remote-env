@@ -1,0 +1,157 @@
+### server: 184
+### host:   controller
+### time:   2026-11-14T05:06:22Z
+
++ C=corex5-py311
++ V=/opt/corex311-cpython-vllm
++ SP=/opt/corex311-cpython-vllm/lib/python3.11/site-packages
++ echo '== 1. r14 的 feature 名单与门控 =='
+== 1. r14 的 feature 名单与门控 ==
++ dex 'sed -n '\''35,60p'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py'
++ timeout 60 docker exec corex5-py311 bash -c 'sed -n '\''35,60p'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py'
+        supported: Whether the caller uses the reviewed model-runner contract.
+            Subclasses retain the original paths unless explicitly supported.
+    """
+
+    def __init__(
+        self, runner: "GPUModelRunner | None" = None, *, supported: bool = True
+    ) -> None:
+        self.runner = runner
+        default_mode = envs.VLLM_HOST_OPT.lower()
+        self.modes = {
+            name: (
+                getattr(envs, "VLLM_HOST_OPT_" + name.upper()) or default_mode
+            ).lower()
+            for name in ("inputs", "arena", "bookkeeping", "positions")
+        }
+        self.diagnostics = envs.VLLM_HOST_OPT_DIAGNOSTICS.lower() in ("1", "on")
+        self.arena_max_reqs = envs.VLLM_HOST_OPT_ARENA_MAX_REQS
+        if self.arena_max_reqs <= 0:
+            raise ValueError("VLLM_HOST_OPT_ARENA_MAX_REQS must be a positive integer")
+        self.reasons: dict[str, str] = {}
+        self.native = None
+        if not supported:
+            self.reasons.update(
+                {
+                    name: "unsupported model runner"
+                    for name in self.modes
++ echo '--- 四特性在 envs.py 的位置 ---'
+--- 四特性在 envs.py 的位置 ---
++ dex 'sed -n '\''575,605p'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py'
++ timeout 60 docker exec corex5-py311 bash -c 'sed -n '\''575,605p'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/envs.py'
+        "highest",
+        ["highest", "high", "medium"],
+        case_sensitive=False,
+    ),
+    # Optional model-runner host paths. Resolve once at runner construction;
+    # per-feature modes inherit VLLM_HOST_OPT when unset.
+    "VLLM_HOST_OPT": env_with_choices(
+        "VLLM_HOST_OPT", "off", ["off", "on", "verify"], case_sensitive=False
+    ),
+    "VLLM_HOST_OPT_INPUTS": env_with_choices(
+        "VLLM_HOST_OPT_INPUTS", None, ["off", "on", "verify"], case_sensitive=False
+    ),
+    "VLLM_HOST_OPT_ARENA": env_with_choices(
+        "VLLM_HOST_OPT_ARENA", None, ["off", "on", "verify"], case_sensitive=False
+    ),
+    "VLLM_HOST_OPT_BOOKKEEPING": env_with_choices(
+        "VLLM_HOST_OPT_BOOKKEEPING",
+        None,
+        ["off", "on", "verify"],
+        case_sensitive=False,
+    ),
+    "VLLM_HOST_OPT_POSITIONS": env_with_choices(
+        "VLLM_HOST_OPT_POSITIONS", None, ["off", "on", "verify"], case_sensitive=False
+    ),
+    "VLLM_HOST_OPT_ARENA_MAX_REQS": lambda: int(
+        os.getenv("VLLM_HOST_OPT_ARENA_MAX_REQS", "2048")
+    ),
+    "VLLM_HOST_OPT_DIAGNOSTICS": env_with_choices(
+        "VLLM_HOST_OPT_DIAGNOSTICS",
+        "0",
+        ["0", "1", "off", "on"],
++ echo '== 2. metadata（PR2）挂在哪 =='
+== 2. metadata（PR2）挂在哪 ==
++ dex 'grep -rn '\''VLLM_HOST_OPT'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py 2>/dev/null | head -20'
++ timeout 60 docker exec corex5-py311 bash -c 'grep -rn '\''VLLM_HOST_OPT'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py 2>/dev/null | head -20'
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py:66:# Optional and default off. Selected by VLLM_HOST_OPT_METADATA, which
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py:67:# falls back to VLLM_HOST_OPT; values off / on / verify. An invalid value
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py:84:    value = os.environ.get("VLLM_HOST_OPT_METADATA")
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py:86:        value = os.environ.get("VLLM_HOST_OPT", "off")
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py:89:        raise ValueError("VLLM_HOST_OPT_METADATA must be one of "
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py:95:#: Per-call counters. Kept only under verify or VLLM_HOST_OPT_DIAGNOSTICS,
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/attention/backends/ilu_flash_attn.py:99:    os.environ.get("VLLM_HOST_OPT_DIAGNOSTICS", "0").strip().lower()
++ dex 'grep -n '\''metadata'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py | head -15'
++ timeout 60 docker exec corex5-py311 bash -c 'grep -n '\''metadata'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/host_opt.py | head -15'
+207:            logger.warning("Host metadata arena unavailable: %s", reason)
+550:# vendor kernels that vectorise accesses to persistent metadata pointers.
+734:        return "requires the request metadata arena"
++ echo '== 3. compact_greedy 配置项 =='
+== 3. compact_greedy 配置项 ==
++ dex 'sed -n '\''645,660p'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/compilation.py; sed -n '\''805,825p'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/compilation.py'
++ timeout 60 docker exec corex5-py311 bash -c 'sed -n '\''645,660p'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/compilation.py; sed -n '\''805,825p'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/compilation.py'
+    Only after that, the execution will be recorded, and the recorded
+    cudagraph will be used for subsequent runs."""
+    cudagraph_capture_sizes: list[int] = None  # type: ignore[assignment]
+    """Sizes to capture cudagraph.
+    - None (default): capture sizes are inferred from vllm config.
+    - list[int]: capture sizes are specified as given."""
+    compact_greedy: bool = False
+    """Use admitted vocabulary-parallel greedy token output."""
+    sample_logits_cudagraph: bool = False
+    """Capture the compact greedy output head on supported CUDA backends."""
+    sample_logits_cudagraph_scope: Literal["decode", "all_admitted"] = "decode"
+    """Use decode-only replay, or all admitted phases with a provider contract."""
+    sample_logits_cudagraph_capture_sizes: list[int] | None = None
+    """Exact row counts; None inherits backbone capture sizes."""
+    sample_logits_cudagraph_max_bytes: int = 64 * 1024 * 1024
+    """Maximum retained output-head graph memory per rank."""
+            "debug_dump_path",
+            "cache_dir",
+            "local_cache_dir",
+            "traced_files",
+            "compilation_time",
+            "encoder_compilation_time",
+            "static_forward_context",
+            "pass_config",  # handled separately below
+            "dynamic_shapes_config",  # handled separately below
+            # These policies run after the final hidden states.
+            "compact_greedy",
+            "sample_logits_cudagraph",
+            "sample_logits_cudagraph_scope",
+            "sample_logits_cudagraph_capture_sizes",
+            "sample_logits_cudagraph_max_bytes",
+        }
+
+        from vllm.config.utils import get_hash_factors, hash_factors
+
+        factors = get_hash_factors(self, ignored_factors)
+
++ echo '== 4. torch module attr fastpath 是否真的装了 =='
+== 4. torch module attr fastpath 是否真的装了 ==
++ dex '/opt/corex311-cpython-vllm/bin/pip list 2>/dev/null | grep -iE '\''torch.module.attr|fastpath|metadata'\'''
++ timeout 60 docker exec corex5-py311 bash -c '/opt/corex311-cpython-vllm/bin/pip list 2>/dev/null | grep -iE '\''torch.module.attr|fastpath|metadata'\'''
+torch-module-attr-fastpath               0.1.0.dev2
+vllm-corex-metadata                      0.2.0
++ dex 'grep -rl '\''TORCH_MODULE_ATTR_FASTPATH'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages 2>/dev/null | head -5'
++ timeout 60 docker exec corex5-py311 bash -c 'grep -rl '\''TORCH_MODULE_ATTR_FASTPATH'\'' /opt/corex311-cpython-vllm/lib/python3.11/site-packages 2>/dev/null | head -5'
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch_module_attr_fastpath_bootstrap.py
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/__pycache__/torch_module_attr_fastpath_bootstrap.cpython-311.pyc
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch_module_attr_fastpath-0.1.0.dev2.dist-info/METADATA
++ echo '== 5. 参照：32 上 opt 脚本的 compilation-config =='
+== 5. 参照：32 上 opt 脚本的 compilation-config ==
++ sort -u
++ head -10
++ grep -rhn compilation-config /home/c00986490/litehost_perf/vllmBench_lite.sh /home/g30061491/litehost_perf/vllmBench_lite.sh /home/huawei_ts_program/litehost_perf_opt/lqqvllmBench_lite_base.sh /home/huawei_ts_program/litehost_perf_opt/timeline.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt_single-case.sh /home/s00806700/litehost_perf_base/vllmBench_lite.sh /home/s00806700/litehost_perf_gccnopgo/vllmBench_lite.sh /home/s00806700/litehost_perf_gen/lite-config.sh /home/s00806700/litehost_perf_genold/vllmBench_lite.sh /home/s00806700/litehost_perf_gen/run-lite.sh /home/s00806700/litehost_perf_gen/vllmBench_lite_pgo.sh /home/s00806700/litehost_perf_gen/vllmBench_lite.sh /home/s00806700/litehost_perf_llvmopt/vllmBench_lite.sh /home/s00806700/litehost_perf_optbak/lqqvllmBench_lite_base.sh /home/s00806700/litehost_perf_optbak/s3_opt5off.sh /home/s00806700/litehost_perf_optbak/s3_seq.sh /home/s00806700/litehost_perf_optbak/timeline.sh /home/s00806700/litehost_perf_optbak/vllmBench_lite_base.sh /home/s00806700/litehost_perf_optbak/vllmBench_lite_opt.sh /home/s00806700/litehost_perf_opt/lqqvllmBench_lite_base.sh /home/s00806700/litehost_perf_opt/test.sh /home/s00806700/litehost_perf_opt/timeline.sh /home/s00806700/litehost_perf_opt/vllmBench_lite_base.sh /home/s00806700/litehost_perf_opt/vllmBench_lite_opt1.sh /home/s00806700/litehost_perf_opt/vllmBench_lite_opt2.sh /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_llvm.sh /home/s00806700/litehost_perf_opt/vllmBench_lite_opt_pgosrv.sh /home/s00806700/litehost_perf_opt/vllmBench_lite_opt.sh /home/s00806700/litehost_perf/vllmBench_lite.sh /home/z30059427/litehost_perf/performance-env.sh /home/z30059427/litehost_perf_py312/vllmBench_lite.sh /home/z30059427/litehost_perf/run_diagnostic.sh /home/z30059427/litehost_perf/run_ladder.sh /home/z30059427/litehost_perf/run_next.sh /home/z30059427/litehost_perf/scalar-item-env.sh /home/z30059427/litehost_perf/vllmBench_lite.sh
+159:        --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}' \
+75:    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}'
+76:    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}'
+79:    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}'
+79:    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}'
+80:    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}'
+81:    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0}'
+88:    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}'
+89:    --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}'
++ set +x
+
+### exit: 0
