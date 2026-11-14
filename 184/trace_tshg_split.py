@@ -11,13 +11,15 @@ CPU 侧真实开销 = H + G
      "execute_model" 的事件，边界略窄，圈外的 host 工作会落到 G。
   2. S：litehost 由 liblitehost 拦截 sync API 得到真实阻塞时长；trace 只能按
      事件名匹配 sync 家族，未命中的 sync 会算进 H。
+
+用法: trace_tshg_split.py A.json[.gz] [B.json[.gz]] [labelA] [labelB]
+环境: TSHG_WARMUP=0,1,2,16   逗号分隔，一次性解析、多种 warmup 各出一份
 """
 import bisect
 import collections
 import gzip
 import json
 import os
-import statistics
 import sys
 
 # litehost 实际拦截的同步 API（见 liblitehost.exports.txt / litehost.c）。
@@ -90,7 +92,25 @@ def is_sync(name):
     return sync_kind(name) is not None
 
 
-def analyze(path, label, warmup=0):
+def union_len(ivs):
+    ivs = sorted(ivs)
+    tot = 0.0
+    cur_lo = cur_hi = None
+    for lo, hi in ivs:
+        if cur_lo is None:
+            cur_lo, cur_hi = lo, hi
+        elif lo <= cur_hi:
+            cur_hi = max(cur_hi, hi)
+        else:
+            tot += cur_hi - cur_lo
+            cur_lo, cur_hi = lo, hi
+    if cur_lo is not None:
+        tot += cur_hi - cur_lo
+    return tot
+
+
+def build(path, label):
+    """解析一次，返回 (steps, phase, step_data, sync_by_name)。step_data 不随 warmup 变。"""
     data = load(path)
     ev = data.get("traceEvents") or data.get("events") or []
 
@@ -112,12 +132,6 @@ def analyze(path, label, warmup=0):
     if not steps:
         print(f"[{label}] no step anchor")
         return None
-    if warmup:
-        if warmup >= len(steps):
-            print(f"[{label}] warmup={warmup} >= scopes={len(steps)}")
-            return None
-        steps = steps[warmup:]
-        print(f"[{label}] excluded first {warmup} scopes as warmup")
     starts = [s[0] for s in steps]
     ar_sorted = sorted(ar)
     nsteps = len(steps)
@@ -131,7 +145,7 @@ def analyze(path, label, warmup=0):
     for i in range(nsteps - 1):
         gap = steps[i + 1][0] - steps[i][1]
         if gap < 0:
-            raise ValueError(f"overlapping scopes at step {i}: gap={gap}")
+            raise ValueError(f"[{label}] overlapping scopes at step {i}: gap={gap}")
         step_data[i]["G"] = gap
 
     sync_by_name = collections.defaultdict(float)
@@ -139,7 +153,6 @@ def analyze(path, label, warmup=0):
         if dur <= 0 or not is_sync(name):
             continue
         sync_by_name[name] += selfd
-        # 用"事件整段区间"做并集（sync 的 self 占比通常接近整段）
         end = ts + dur
         i = bisect.bisect_right(starts, ts) - 1
         k = i if i >= 0 else 0
@@ -151,31 +164,33 @@ def analyze(path, label, warmup=0):
                 step_data[k]["iv"].append((lo, hi))
             k += 1
 
-    # 每步内 sync 区间的墙钟并集
     for p_ in step_data.values():
-        ivs = sorted(p_["iv"])
-        tot = 0.0
-        cur_lo = cur_hi = None
-        for lo, hi in ivs:
-            if cur_lo is None:
-                cur_lo, cur_hi = lo, hi
-            elif lo <= cur_hi:
-                cur_hi = max(cur_hi, hi)
-            else:
-                tot += cur_hi - cur_lo
-                cur_lo, cur_hi = lo, hi
-        if cur_lo is not None:
-            tot += cur_hi - cur_lo
-        p_["S"] = tot
+        p_["S"] = union_len(p_["iv"])
 
-    total_sync_ms = sum(sync_by_name.values())
-    if total_sync_ms <= 0:
+    print(f"[{label}] steps={nsteps}  "
+          f"T_first3={[round(step_data[i]['T']/1000,1) for i in range(min(3, nsteps))]}ms  "
+          f"T_last3={[round(step_data[i]['T']/1000,1) for i in range(max(0, nsteps-3), nsteps)]}ms")
+    print(f"[{label}] sync 明细（全 trace，self 时长 ms）:")
+    for name, v in sorted(sync_by_name.items(), key=lambda kv: -kv[1])[:8]:
+        print(f"    {v/1000:9.2f}  {name[:90]}")
+    if sum(sync_by_name.values()) <= 0:
         print(f"[{label}] ERROR: no sync events matched; H invalid (litehost would reject)")
+        return None
+    return steps, step_phase, step_data, sync_by_name
+
+
+def analyze_one(built, label, warmup):
+    if built is None:
+        return None
+    steps, step_phase, step_data, _ = built
+    nsteps = len(steps)
+    if warmup >= nsteps:
+        print(f"[{label}] warmup={warmup} >= scopes={nsteps}")
         return None
 
     res = {}
     for ph in ("prefill", "decode"):
-        lst = [step_data[i] for i in step_data if step_phase[i] == ph]
+        lst = [step_data[i] for i in range(warmup, nsteps) if step_phase[i] == ph]
         if not lst:
             continue
         T_tot = sum(p["T"] for p in lst) / 1000
@@ -187,21 +202,19 @@ def analyze(path, label, warmup=0):
             "HG": H_tot + G_tot,
             "S_ratio": S_tot / T_tot * 100 if T_tot else 0,
         }
-    print(f"[{label}] steps={len(steps)} prefill={res.get('prefill', {}).get('n', 0)} decode={res.get('decode', {}).get('n', 0)}")
+    print(f"[{label}] warmup={warmup}  formal scopes={nsteps - warmup}  "
+          f"prefill={res.get('prefill', {}).get('n', 0)} decode={res.get('decode', {}).get('n', 0)}")
     for ph in ("prefill", "decode"):
         if ph not in res:
             continue
         r = res[ph]
         print(f"  {ph:7s} n={r['n']:5d} T={r['T']:9.2f}ms S={r['S']:9.2f}ms ({r['S_ratio']:5.1f}% of T) "
               f"H={r['H']:8.2f}ms G={r['G']:7.2f}ms H+G={r['HG']:8.2f}ms")
-    print("  sync 明细（全 trace，self 时长 ms）:")
-    for name, v in sorted(sync_by_name.items(), key=lambda kv: -kv[1])[:6]:
-        print(f"    {v/1000:9.2f}  {name[:90]}")
     return res
 
 
-def cmp(ra, rb):
-    print("\n== 跨条件对比（B - A）==")
+def cmp(ra, rb, warmup):
+    print(f"\n== 跨条件对比（B - A, warmup={warmup}）==")
     for ph in ("prefill", "decode"):
         if ph not in ra or ph not in rb:
             continue
@@ -218,16 +231,22 @@ def cmp(ra, rb):
 
 
 def main():
-    warmup = int(os.environ.get("TSHG_WARMUP", "0"))
+    warmups = [int(x) for x in os.environ.get("TSHG_WARMUP", "0").split(",") if x.strip()]
     A = sys.argv[1]
     la = sys.argv[3] if len(sys.argv) > 3 else "A"
-    ra = analyze(A, la, warmup)
-    if len(sys.argv) > 2:
-        B = sys.argv[2]
-        lb = sys.argv[4] if len(sys.argv) > 4 else "B"
-        rb = analyze(B, lb, warmup)
-        if ra and rb:
-            cmp(ra, rb)
+    lb = sys.argv[4] if len(sys.argv) > 4 else "B"
+    B = sys.argv[2] if len(sys.argv) > 2 else None
+
+    print(f"=== analyze {la}: {A}")
+    ba = build(A, la)
+    bb = build(B, lb) if B else None
+    for w in warmups:
+        print(f"\n===== warmup={w}")
+        ra = analyze_one(ba, la, w)
+        if B:
+            rb = analyze_one(bb, lb, w)
+            if ra and rb:
+                cmp(ra, rb, w)
 
 
 if __name__ == "__main__":
