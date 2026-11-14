@@ -1,0 +1,2004 @@
+### server: 184
+### host:   controller
+### time:   2026-11-14T08:30:52Z
+
++ V=/home/huawei_ts_program/litehost_perf_opt/vllmBench
++ echo '== 0. vllmBench 下所有 run 目录 =='
+== 0. vllmBench 下所有 run 目录 ==
++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench -maxdepth 1 -mindepth 1 -type d -printf '%TY-%Tm-%Td %TH:%TM  %p\n'
++ sort
+2026-11-02 15:57  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216
+2026-11-02 17:44  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036
+2026-11-02 22:06  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217
+2026-11-04 09:56  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555
+2026-11-04 14:54  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405
+2026-11-04 15:08  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810
+2026-11-04 18:57  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652
+2026-11-04 19:10  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934
+2026-11-04 19:23  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323
+2026-11-04 19:36  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534
+2026-11-04 20:17  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710
+2026-11-04 21:02  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203
+2026-11-04 21:14  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342
+2026-11-04 21:14  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_211428
+2026-11-05 14:02  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113
+2026-11-05 14:42  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111
+2026-11-05 15:18  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708
+2026-11-05 16:28  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747
+2026-11-05 16:57  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521
+2026-11-05 19:23  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235
+2026-11-05 22:01  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703
+2026-11-06 10:05  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311
+2026-11-06 16:20  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706
+2026-11-06 19:08  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326
+2026-11-13 14:13  /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952
+2026-11-14 13:14  /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k
+2026-11-14 13:34  /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k
+2026-11-14 13:36  /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2
+2026-11-14 13:44  /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2
++ echo '== 1. 每个 run 的 server.log 时间范围 =='
+== 1. 每个 run 的 server.log 时间范围 ==
++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench -maxdepth 3 -name server.log -printf '%TY-%Tm-%Td %TH:%TM %10s  %p\n'
++ sort
+2026-11-02 15:57      45517  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/logs/server.log
+2026-11-02 17:44     269805  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/logs/server.log
+2026-11-02 22:06     269812  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/logs/server.log
+2026-11-04 09:56      72726  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/logs/server.log
+2026-11-04 14:54      72336  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/logs/server.log
+2026-11-04 15:43      65390  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/logs/server.log
+2026-11-04 18:57      72677  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/logs/server.log
+2026-11-04 19:10      58020  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/logs/server.log
+2026-11-04 19:23      58127  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/logs/server.log
+2026-11-04 19:36      58021  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/logs/server.log
+2026-11-04 20:17      58022  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/logs/server.log
+2026-11-04 21:02      57707  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/logs/server.log
+2026-11-04 21:14      57705  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/logs/server.log
+2026-11-05 14:19      66995  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/logs/server.log
+2026-11-05 14:42      73053  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/logs/server.log
+2026-11-05 15:18      72920  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/logs/server.log
+2026-11-05 16:28      72522  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/logs/server.log
+2026-11-05 16:57      72444  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/logs/server.log
+2026-11-05 19:23      71943  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/logs/server.log
+2026-11-05 22:01     269817  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/logs/server.log
+2026-11-06 10:05      45977  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/logs/server.log
+2026-11-06 16:20     285605  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/logs/server.log
+2026-11-06 19:08     269857  /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log
+2026-11-13 14:13      40592  /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/logs/server.log
+2026-11-14 13:14      50208  /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/logs/server.log
+2026-11-14 13:34      49902  /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/logs/server.log
+2026-11-14 13:36      49946  /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/logs/server.log
+2026-11-14 13:44      49920  /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/logs/server.log
++ echo '== 2. 逐 run:真正生效的配置(来自 server.log 的 non-default args) =='
+== 2. 逐 run:真正生效的配置(来自 server.log 的 non-default args) ==
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/logs/server.log
++ cut -c1-60
+INFO 11-14 13:11:47 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/logs/server.log
+6
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: 'compact_greedy': True
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: 'sample_logits_cudagraph': True
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: 'sample_logits_cudagraph_scope': 'decode'
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/logs/server.log
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/logs/server.log
++ cut -c1-60
+INFO 11-14 13:41:59 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/logs/server.log
+6
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: 'compact_greedy': True
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: 'sample_logits_cudagraph': True
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: 'sample_logits_cudagraph_scope': 'decode'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/logs/server.log
++ cut -c1-60
+INFO 11-14 13:32:07 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/logs/server.log
+6
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: 'compact_greedy': True
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: 'sample_logits_cudagraph': True
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: 'sample_logits_cudagraph_scope': 'decode'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/logs/server.log
++ cut -c1-60
+INFO 11-14 13:34:37 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/logs/server.log
+6
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: 'compact_greedy': True
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: 'sample_logits_cudagraph': True
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: 'sample_logits_cudagraph_scope': 'decode'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/logs/server.log
++ cut -c1-60
+INFO 11-02 15:55:28 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/logs/server.log
++ cut -c1-60
+INFO 11-02 16:00:41 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/logs/server.log
++ cut -c1-60
+INFO 11-02 20:22:21 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/logs/server.log
++ cut -c1-60
+INFO 11-04 09:36:00 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/logs/server.log
++ cut -c1-60
+INFO 11-04 14:34:08 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/logs/server.log
++ cut -c1-60
+INFO 11-04 15:08:13 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/logs/server.log
++ cut -c1-60
+INFO 11-04 18:36:55 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/logs/server.log
++ cut -c1-60
+INFO 11-04 18:59:37 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/logs/server.log
++ cut -c1-60
+INFO 11-04 19:13:26 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/logs/server.log
++ cut -c1-60
+INFO 11-04 19:25:37 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/logs/server.log
++ cut -c1-60
+INFO 11-04 20:07:14 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/logs/server.log
++ cut -c1-60
+INFO 11-04 20:52:08 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/logs/server.log
++ cut -c1-60
+INFO 11-04 21:03:46 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_211428/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_211428/logs/server.log ']'
++ continue
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/logs/server.log
++ cut -c1-60
+INFO 11-05 14:01:45 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/logs/server.log
++ cut -c1-60
+INFO 11-05 14:21:23 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/logs/server.log
++ cut -c1-60
+INFO 11-05 14:57:14 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/logs/server.log
++ cut -c1-60
+INFO 11-05 16:07:51 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/logs/server.log
++ cut -c1-60
+INFO 11-05 16:36:26 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/logs/server.log
++ cut -c1-60
+INFO 11-05 19:02:39 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/logs/server.log
++ cut -c1-60
+INFO 11-05 20:17:06 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/logs/server.log
++ cut -c1-60
+INFO 11-06 10:03:16 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/logs/server.log
++ cut -c1-60
+ERROR: ld.so: object '/home/huawei_ts_program/gperftools/.li
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log
++ cut -c1-60
+ERROR: ld.so: object '/home/huawei_ts_program/gperftools/.li
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log
+0
++ true
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log
+0
++ true
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log
++ sed 's/^/  parsed: /'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/logs/server.log ']'
++ echo '-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952'
+-------- /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/logs/server.log
++ cut -c1-60
+INFO 11-13 14:09:56 [__init__.py:44] Available plugins for g
++ echo -n '  compact_greedy 出现次数: '
+  compact_greedy 出现次数: + grep -c compact_greedy /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/logs/server.log
+6
++ echo -n '  VLLM_COMPACT_GREEDY 警告: '
+  VLLM_COMPACT_GREEDY 警告: + grep -c 'Unknown vLLM environment variable detected: VLLM_COMPACT_GREEDY' /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/logs/server.log
+2
++ grep -m1 -o ''\''compact_greedy'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: 'compact_greedy': False
++ grep -m1 -o ''\''sample_logits_cudagraph'\'': [A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: 'sample_logits_cudagraph': True
++ grep -m1 -o ''\''sample_logits_cudagraph_scope'\'': '\''[a-z_]*'\''' /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: 'sample_logits_cudagraph_scope': 'decode'
++ grep -m1 -o 'enable_prefix_caching=[A-Za-z]*' /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/logs/server.log
++ sed 's/^/  parsed: /'
+  parsed: enable_prefix_caching=False
++ grep -m1 -o 'compilation_config={'\''mode'\''[^}]*}' /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/logs/server.log
++ cut -c1-160
++ sed 's/^/  config: /'
+  config: compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', '
++ echo '== 3. host-opt 是否两边都真正激活 =='
+== 3. host-opt 是否两边都真正激活 ==
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/logs/server.log
++ cut -c1-200
+(Worker pid=771094) INFO 11-14 13:12:11 [host_opt.py:111] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on', 'positions': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': 
+(Worker pid=771095) INFO 11-14 13:12:11 [host_opt.py:111] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on', 'positions': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': 
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/logs/server.log
++ cut -c1-200
+(Worker pid=28180) INFO 11-14 13:42:25 [host_opt.py:111] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on', 'positions': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': T
+(Worker pid=28181) INFO 11-14 13:42:25 [host_opt.py:111] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on', 'positions': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': T
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/logs/server.log
++ cut -c1-200
+(Worker pid=36256) INFO 11-14 13:32:31 [host_opt.py:111] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on', 'positions': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': T
+(Worker pid=36255) INFO 11-14 13:32:31 [host_opt.py:111] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on', 'positions': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': T
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/logs/server.log
++ cut -c1-200
+(Worker pid=44474) INFO 11-14 13:34:59 [host_opt.py:111] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on', 'positions': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': T
+(Worker pid=44473) INFO 11-14 13:34:59 [host_opt.py:111] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on', 'positions': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': T
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_211428/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_211428/logs/server.log ']'
++ continue
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/logs/server.log
++ cut -c1-200
++ for d in "$V"/*
++ s=/home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/logs/server.log
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/logs/server.log ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952
++ grep -m2 'Host opt modes' /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/logs/server.log
++ cut -c1-200
+(Worker pid=721217) INFO 11-13 14:10:22 [host_opt.py:111] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on', 'positions': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': 
+(Worker pid=721218) INFO 11-13 14:10:22 [host_opt.py:111] Host opt modes={'inputs': 'on', 'arena': 'on', 'bookkeeping': 'on', 'positions': 'on'}, active={'inputs': True, 'arena': True, 'bookkeeping': 
++ echo '== 4. 每 run 的实测结果 =='
+== 4. 每 run 的实测结果 ==
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/bs8_in128_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/session.json
++ head -3
+-rw-------. 1 root root   81 2026-11-14 13:12 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/bench.process.json
+-rw-r--r--. 1 root root 1030 2026-11-14 13:14 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/bs8_in128_out128.json
+-rw-------. 1 root root   81 2026-11-14 13:11 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+4k,bs8_in128_out128,100,61.8558268400011,1.6166625701837958,206.93280898352586,413.8656179670517,220.40364089987634,256.3550249997206,273.8450478001323,35.78780213149747,35.583690275588175,36.693436807078164,35.78780307401629,35.530369999833056,38.204981899143604
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/host_summary/four_rank_totals.csv
+bs8_in128_out128,5a49fb3a09e84f49adc2578563983e63,all_formal,0.0,4,1692,60.7810394125,57.592875677500004,3.188163735,1.0648467175,4.2530104525,3.08985807,3.27985569
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/host_summary/per_rank.csv
+bs8_in128_out128,5a49fb3a09e84f49adc2578563983e63,0,771094,all_formal,0.0,262,1692,60.80627896,57.52642327,3.27985569,0.0,3.27985569,1.9384489893617023,3382,3302,1.03967825,4.31953394
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2
++ head -3
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/bs8_in128_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/session.json
+-rw-------. 1 root root   76 2026-11-14 13:43 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/bench.process.json
+-rw-r--r--. 1 root root 1031 2026-11-14 13:44 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/bs8_in128_out128.json
+-rw-------. 1 root root   75 2026-11-14 13:41 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+4k2,bs8_in128_out128,100,62.091080610000006,1.61053727874555,206.1487716794304,412.2975433588608,232.60562270000008,251.04363499998783,263.8145869999835,35.825388485826764,35.73681299212605,36.85785112440957,35.82538941574805,35.60652999999547,40.203913600002466
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/host_summary/four_rank_totals.csv
+bs8_in128_out128,3db24663b9344f86a1ccac4b23ccf01c,all_formal,0.0,4,1692,60.9941882325,58.156550785,2.8376374474999997,1.0855050175,3.9231424649999997,2.69171184,3.15345808
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/host_summary/per_rank.csv
+bs8_in128_out128,3db24663b9344f86a1ccac4b23ccf01c,0,28178,all_formal,0.0,262,1692,60.98477908,57.831321,3.15345808,0.0,3.15345808,1.8637459101654845,3382,3328,1.0949871,4.24844518
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/bs8_in128_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/session.json
++ head -3
+-rw-------. 1 root root   76 2026-11-14 13:33 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/bench.process.json
+-rw-r--r--. 1 root root 1031 2026-11-14 13:34 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/bs8_in128_out128.json
+-rw-------. 1 root root   76 2026-11-14 13:32 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+64k,bs8_in128_out128,100,62.129075890000024,1.6095523483570031,206.0227005896964,412.0454011793928,231.21504669999865,250.3202599999952,261.18953849999514,35.86458941417321,35.69102559055115,36.88074906771655,35.86459034881887,35.50956999998789,41.70131120000747
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/host_summary/four_rank_totals.csv
+bs8_in128_out128,93912297d10f4e20bf626ed6469127dc,all_formal,0.0,4,1692,61.0789391675,58.4972416425,2.581697525,1.039928295,3.62162582,2.48882631,2.83208527
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/host_summary/per_rank.csv
+bs8_in128_out128,93912297d10f4e20bf626ed6469127dc,0,36255,all_formal,0.0,262,1692,61.12244159,58.29035632,2.83208527,0.0,2.83208527,1.6738092612293143,3382,3328,0.99648992,3.82857519
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/bs8_in128_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/session.json
++ head -3
+-rw-------. 1 root root   76 2026-11-14 13:35 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/bench.process.json
+-rw-r--r--. 1 root root 1030 2026-11-14 13:36 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/bs8_in128_out128.json
+-rw-------. 1 root root   76 2026-11-14 13:34 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+64k2,bs8_in128_out128,100,61.72141429999999,1.6201832238312792,207.38345265040374,414.7669053008075,229.696698599995,249.49584000000868,258.32954589996916,35.63225847480315,35.53096173228336,36.73479793700824,35.63225937401579,35.47464499996522,39.633800200045926
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/host_summary/four_rank_totals.csv
+bs8_in128_out128,d1ef732828084794bb737feba652fed1,all_formal,0.0,4,1692,60.710362752500004,58.2487638925,2.46159886,1.0033320525,3.4649309125,2.40810543,2.51307089
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/host_summary/per_rank.csv
+bs8_in128_out128,d1ef732828084794bb737feba652fed1,0,44473,all_formal,0.0,262,1692,60.7329779,58.23423243,2.49874547,0.0,2.49874547,1.4767999231678488,3382,3328,0.98075876,3.47950423
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/bs8_in128_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/session.json
++ head -3
+-rw-------. 1 root root   76 2026-11-02 15:56 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/bench.process.json
+-rw-r--r--. 1 root root 1032 2026-11-02 15:57 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/bs8_in128_out128.json
+-rw-------. 1 root root   76 2026-11-02 15:55 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261102_155216,bs8_in128_out128,100,63.267193850000126,1.5805979989738363,202.31654386865105,404.6330877373021,230.69067389999873,250.18516499994803,264.4306372000392,36.56168613543302,36.489020118109494,37.54473972755979,36.56168751653534,36.39545999999427,39.352045500039594
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/host_summary/four_rank_totals.csv
+bs8_in128_out128,f49343a319454a9db256b138b84607a1,all_formal,0.0,4,1692,62.067448925,58.6420267825,3.4254221425,1.18878444,4.6142065825,3.3309171,3.52750006
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/host_summary/per_rank.csv
+bs8_in128_out128,f49343a319454a9db256b138b84607a1,0,58079,all_formal,0.0,262,1692,62.09469042,58.67556636,3.41912406,0.0,3.41912406,2.02075890070922,5046,1664,1.16155387,4.58067793
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036
++ head -3
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/bs8_in1024_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/bs8_in1024_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/bs8_in1024_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/bs8_in128_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/bs8_in128_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/bs8_in128_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/bs8_in2048_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/bs8_in2048_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/bs8_in2048_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/session.json
+-rw-------. 1 root root   80 2026-11-02 17:24 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/bench.process.json
+-rw-r--r--. 1 root root 1035 2026-11-02 16:47 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/bs8_in1024_out1024.json
+-rw-r--r--. 1 root root 1036 2026-11-02 16:36 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/bs8_in1024_out128.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261102_160036,bs8_in1024_out1024,100,520.1538467599999,0.19225081314478912,196.86483266026406,393.7296653205281,685.2426617000401,644.0577999999277,1693.7330613999302,38.58373741260994,38.713395180840514,39.093109814760275,38.58373757556203,37.820289999899614,41.48563109975838
+litehost_gap_20261102_160036,bs8_in1024_out128,100,81.95212041000013,1.2202246811883295,156.18875919210618,1405.6988327289555,684.9184482999863,644.2573850001736,1700.6651822997173,44.75201998031508,44.995881417324156,48.27885711810873,44.752021151181125,37.953474999994796,216.42957369987474
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/host_summary/four_rank_totals.csv
+bs8_in128_out128,b2a8fa1e7ad64e6ca5fee3001d1514ed,all_formal,0.0,4,1692,62.103968815,58.784795545,3.31917327,1.1439052875,4.463078557499999,3.19506313,3.45747349
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/host_summary/per_rank.csv
+bs8_in128_out128,b2a8fa1e7ad64e6ca5fee3001d1514ed,0,134137,all_formal,0.0,262,1692,62.16351117,58.86911232,3.29439885,0.0,3.29439885,1.9470442375886523,5046,1664,1.08441144,4.37881029
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217
++ head -3
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/bs8_in1024_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/bs8_in1024_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/bs8_in1024_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/bs8_in128_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/bs8_in128_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/bs8_in128_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/bs8_in2048_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/bs8_in2048_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/bs8_in2048_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/session.json
+-rw-------. 1 root root   84 2026-11-02 21:46 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/bench.process.json
+-rw-r--r--. 1 root root 1033 2026-11-02 21:09 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/bs8_in1024_out1024.json
+-rw-r--r--. 1 root root 1028 2026-11-02 20:58 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/bs8_in1024_out128.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261102_202217,bs8_in1024_out1024,100,520.5066227299976,0.19212051419348222,196.7314065341258,393.4628130682516,683.9917371000774,643.3444550020795,1694.101673098703,38.609686167742055,38.72058684750636,39.13593264917145,38.60968631749773,37.855775000934955,40.211745400811196
+litehost_gap_20261102_202217,bs8_in1024_out128,100,81.8268972099977,1.2220920431989921,156.427781529471,1407.850033765239,684.0718158999516,642.9717699993489,1700.9527804017125,44.68300697008032,44.93740051181853,48.16078068110475,44.68300822283523,37.902089998169686,216.15130219845014
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/host_summary/four_rank_totals.csv
+bs8_in128_out128,e488c8a4d10c4cf8901989928f30d2c8,all_formal,0.0,4,1692,61.996823129999996,58.510665505,3.4861576249999997,1.188473245,4.67463087,3.46444747,3.50002275
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/host_summary/per_rank.csv
+bs8_in128_out128,e488c8a4d10c4cf8901989928f30d2c8,0,929316,all_formal,0.0,262,1692,62.0132742,58.51482357,3.49845063,0.0,3.49845063,2.0676422163120565,5046,1664,1.17204118,4.67049181
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/bs8_in1024_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/session.json
++ head -3
+-rw-------. 1 root root   85 2026-11-04 09:36 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/bench.process.json
+-rw-r--r--. 1 root root 1036 2026-11-04 09:56 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/bs8_in1024_out2048.json
+-rw-------. 1 root root   85 2026-11-04 09:35 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261104_093555,bs8_in1024_out2048,100,1018.0747860299889,0.09822461117021943,201.16400367660938,301.7460055149141,685.2999345987337,644.1293650132138,1692.9459003076772,38.028265838055894,38.11866188569483,38.34357080596914,38.02826592330196,37.64373999729287,39.928112196212176
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/host_summary/four_rank_totals.csv
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/host_summary/per_rank.csv
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/bs8_in1024_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/session.json
++ head -3
+-rw-------. 1 root root   82 2026-11-04 14:34 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/bench.process.json
+-rw-r--r--. 1 root root 1033 2026-11-04 14:54 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/bs8_in1024_out2048.json
+-rw-------. 1 root root   82 2026-11-04 14:34 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261104_143405,bs8_in1024_out2048,100,1012.1843594000093,0.09879623121155204,202.33468152125857,303.50202228188783,685.3112259003683,644.3945200007875,1694.6751287925872,37.8060138346856,37.894866165116866,38.11465504220104,37.8060139187597,37.38493999117054,40.25557429849869
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/host_summary/four_rank_totals.csv
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/host_summary/per_rank.csv
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/session.json
++ head -3
+-rw-------. 1 root root  82 2026-11-04 15:08 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/bench.process.json
+-rw-------. 1 root root  82 2026-11-04 15:08 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/server.process.json
+-rw-------. 1 root root 879 2026-11-04 15:08 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/session.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/summary.csv ']'
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/bs8_in1024_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/session.json
++ head -3
+-rw-------. 1 root root   85 2026-11-04 18:37 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/bench.process.json
+-rw-r--r--. 1 root root 1033 2026-11-04 18:57 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/bs8_in1024_out2048.json
+-rw-------. 1 root root   85 2026-11-04 18:36 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261104_183652,bs8_in1024_out2048,100,1014.8911196400004,0.09853273722157678,201.79504582978925,302.69256874468385,685.3721298021264,644.1585650027264,1695.990572698065,37.902826359110506,37.96921252320596,38.30215846403894,37.9028264338054,37.49981500732247,39.99579958181131
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/host_summary/four_rank_totals.csv
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/host_summary/per_rank.csv
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/bs8_in128_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/session.json
++ head -3
+-rw-------. 1 root root   85 2026-11-04 19:00 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/bench.process.json
+-rw-r--r--. 1 root root 1029 2026-11-04 19:09 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/bs8_in128_out1024.json
+-rw-------. 1 root root   85 2026-11-04 18:59 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261104_185934,bs8_in128_out1024,100,491.075908430008,0.20363450595592145,208.52173409886356,234.5869508612215,230.692673100275,249.94109499675687,263.9757994815591,36.7523209927648,36.7993293157385,36.94275367390841,36.75232113137556,36.554049991536885,39.21586250828107
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/host_summary/four_rank_totals.csv
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/host_summary/per_rank.csv
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/bs8_in128_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/session.json
++ head -3
+-rw-------. 1 root root   85 2026-11-04 19:14 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/bench.process.json
+-rw-r--r--. 1 root root 1035 2026-11-04 19:23 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/bs8_in128_out1024.json
+-rw-------. 1 root root   85 2026-11-04 19:13 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261104_191323,bs8_in128_out1024,100,491.76867802999914,0.20334763978990086,208.22798314485848,234.25648103796578,231.08435480098706,250.07616501534358,261.7068967007799,36.80587810606081,36.84597764417011,37.00043100490921,36.805878233920794,36.61173998261802,39.159517081861814
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/host_summary/four_rank_totals.csv
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/host_summary/per_rank.csv
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/bs8_in128_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/session.json
++ head -3
+-rw-------. 1 root root   85 2026-11-04 19:26 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/bench.process.json
+-rw-r--r--. 1 root root 1035 2026-11-04 19:35 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/bs8_in128_out1024.json
+-rw-------. 1 root root   85 2026-11-04 19:25 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261104_192534,bs8_in128_out1024,100,492.9082294499967,0.20287752166682893,207.74658218683282,233.71490496018694,230.71782769926358,250.15814999642316,262.3067081993213,36.88787192306873,36.92546217008276,37.08589852892931,36.887872052980775,36.65305001777597,39.95652332028839
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/host_summary/four_rank_totals.csv
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/host_summary/per_rank.csv
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/bs8_in128_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/session.json
++ head -3
+-rw-------. 1 root root   85 2026-11-04 20:07 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/bench.process.json
+-rw-r--r--. 1 root root 1039 2026-11-04 20:17 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/bs8_in128_out1024.json
+-rw-------. 1 root root   85 2026-11-04 20:07 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261104_200710,bs8_in128_out1024,100,494.73195467999903,0.20212965638065908,206.9807681337949,232.85336415051924,231.56696610181825,250.40591500874143,266.34323341801064,37.03550075913972,37.089128963827825,37.230349039100275,37.035500891397426,36.79238499898929,39.280912120884715
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/host_summary/four_rank_totals.csv
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/host_summary/per_rank.csv
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/bs8_in128_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/session.json
++ head -3
+-rw-------. 1 root root   76 2026-11-04 20:53 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/bench.process.json
+-rw-r--r--. 1 root root 1027 2026-11-04 21:02 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/bs8_in128_out1024.json
+-rw-------. 1 root root   76 2026-11-04 20:52 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261104_205203,bs8_in128_out1024,100,499.67015161,0.2001320264534262,204.93519508830843,230.55209447434697,231.90796480000017,250.221334999992,269.63182890001406,37.415829746627566,37.48009154447703,37.64413215767354,37.41582987419355,37.27060999997889,40.91133299997181
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/host_summary/four_rank_totals.csv
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/host_summary/per_rank.csv
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/bs8_in128_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/session.json
++ head -3
+-rw-------. 1 root root   76 2026-11-04 21:04 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/bench.process.json
+-rw-r--r--. 1 root root 1034 2026-11-04 21:14 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/bs8_in128_out1024.json
+-rw-------. 1 root root   76 2026-11-04 21:03 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261104_210342,bs8_in128_out1024,100,499.31936071000007,0.20027262683707361,205.07916988116338,230.7140661163088,232.1126415999936,250.43423499994333,268.59375889995704,37.390505661388076,37.44773968230708,37.62615275786888,37.39050578455523,37.22446500000842,39.91877019998583
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/host_summary/four_rank_totals.csv
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/host_summary/per_rank.csv
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_211428 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_211428'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_211428
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_211428/session.json
++ head -3
+-rw-------. 1 root root 879 2026-11-04 21:14 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_211428/session.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_211428/summary.csv ']'
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_211428 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_211428 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/session.json
++ head -3
+-rw-------. 1 root root  75 2026-11-05 14:02 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/bench.process.json
+-rw-------. 1 root root  84 2026-11-05 14:01 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/server.process.json
+-rw-------. 1 root root 879 2026-11-05 14:01 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/session.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/summary.csv ']'
+++ head -1
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113 -maxdepth 3 -name four_rank_totals.csv
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/bs8_in1024_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/session.json
++ head -3
+-rw-------. 1 root root   81 2026-11-05 14:22 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/bench.process.json
+-rw-r--r--. 1 root root 1029 2026-11-05 14:42 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/bs8_in1024_out2048.json
+-rw-------. 1 root root   81 2026-11-05 14:21 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261105_142111,bs8_in1024_out2048,100,1032.5494216499937,0.09684766453135188,198.34401696020865,297.516025440313,691.6079624000122,651.557370001683,1703.2357340964518,38.53651428998537,38.59586111870963,38.87427703800627,38.536514371714674,38.01750000275206,41.2632610982837
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/host_summary/four_rank_totals.csv
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/host_summary/per_rank.csv
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/bs8_in1024_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/session.json
++ head -3
+-rw-------. 1 root root   81 2026-11-05 14:58 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/bench.process.json
+-rw-r--r--. 1 root root 1035 2026-11-05 15:18 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/bs8_in1024_out2048.json
+-rw-------. 1 root root   81 2026-11-05 14:57 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261105_145708,bs8_in1024_out2048,100,1029.599157509998,0.09712517659964087,198.9123616760645,298.36854251409676,691.6937460006739,650.477420000243,1707.2915970974282,38.425540682217736,38.493878573523055,38.700004940594454,38.42554076028317,37.96803999284748,40.243330603989314
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/host_summary/four_rank_totals.csv
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/host_summary/per_rank.csv
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/bs8_in1024_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/session.json
++ head -3
+-rw-------. 1 root root   77 2026-11-05 16:08 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/bench.process.json
+-rw-r--r--. 1 root root 1033 2026-11-05 16:28 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/bs8_in1024_out2048.json
+-rw-------. 1 root root   76 2026-11-05 16:07 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261105_160747,bs8_in1024_out2048,100,1021.9396921799998,0.09785313239637476,200.4032151477755,300.6048227216633,686.7904000999852,645.8446399999502,1703.5674304000167,38.182743476013684,38.29196562286275,38.491329328529574,38.18274355764533,37.77998500004287,40.48245029990085
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/host_summary/four_rank_totals.csv
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/host_summary/per_rank.csv
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521
++ head -3
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/bs8_in1024_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/session.json
+-rw-------. 1 root root   80 2026-11-05 16:37 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/bench.process.json
+-rw-r--r--. 1 root root 1032 2026-11-05 16:57 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/bs8_in1024_out2048.json
+-rw-------. 1 root root   80 2026-11-05 16:36 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261105_163521,bs8_in1024_out2048,100,1020.6511551499998,0.0979766686153444,200.65621732422534,300.98432598633804,686.660227999987,645.0584049998724,1698.6554792000152,38.12174407059112,38.18928932828522,38.48506208553976,38.12174415031754,37.71154500009288,40.50158489983461
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/host_summary/four_rank_totals.csv
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/host_summary/per_rank.csv
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/bs8_in1024_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/session.json
++ head -3
+-rw-------. 1 root root   76 2026-11-05 19:03 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/bench.process.json
+-rw-r--r--. 1 root root 1030 2026-11-05 19:23 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/bs8_in1024_out2048.json
+-rw-------. 1 root root   76 2026-11-05 19:02 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261105_190235,bs8_in1024_out2048,100,1017.66667319,0.09826400199049246,201.24467607652855,301.8670141147928,684.7372139000038,643.7500299999783,1694.4391412000164,38.014161088519785,38.10824387396191,38.326869967660016,38.01416116150463,37.62410000001637,39.72637549992669
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/host_summary/four_rank_totals.csv
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/host_summary/per_rank.csv
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/bs8_in1024_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/bs8_in1024_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/bs8_in1024_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/bs8_in128_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/bs8_in128_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/bs8_in128_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/bs8_in2048_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/bs8_in2048_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/bs8_in2048_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/session.json
++ head -3
+-rw-------. 1 root root   80 2026-11-05 21:40 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/bench.process.json
+-rw-r--r--. 1 root root 1031 2026-11-05 21:04 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/bs8_in1024_out1024.json
+-rw-r--r--. 1 root root 1032 2026-11-05 20:53 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/bs8_in1024_out128.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261105_201703,bs8_in1024_out1024,100,521.3410892299999,0.1918130031678417,196.4165152438699,392.8330304877398,685.4596350999964,644.6673549999105,1695.6818569998268,38.67305862482894,38.78869801564021,39.210916472727604,38.67305878201371,37.930865000362246,40.63704080053867
+litehost_gap_20261105_201703,bs8_in1024_out128,100,82.02791617999992,1.2190971641966695,156.0444370171737,1404.399933154563,684.3153478000568,644.1304400000263,1695.3735266003423,44.807821814960704,44.98645925196962,48.38793174567013,44.80782307874004,38.016384999991715,216.04796229942625
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/host_summary/four_rank_totals.csv
+bs8_in128_out128,7ff79b50941447c780392998d078bcf8,all_formal,0.0,4,1692,62.202808534999996,58.34227599,3.860532545,1.1344035749999999,4.99493612,3.62054877,3.999895
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/host_summary/per_rank.csv
+bs8_in128_out128,7ff79b50941447c780392998d078bcf8,0,209562,all_formal,0.0,262,1692,62.28539735,58.36238612,3.92301123,0.0,3.92301123,2.3185645567375888,5046,1651,1.05181198,4.97482321
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/bs8_in128_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/session.json
++ head -3
+-rw-------. 1 root root   76 2026-11-06 10:04 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/bench.process.json
+-rw-r--r--. 1 root root 1035 2026-11-06 10:05 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/bs8_in128_out128.json
+-rw-------. 1 root root   76 2026-11-06 10:03 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261106_100311,bs8_in128_out128,100,63.327933020000046,1.5790820137524193,202.12249776030967,404.24499552061934,230.98540680000497,250.2680049999526,265.5771265000135,36.59779680393696,36.51166574803129,37.57662535196827,36.597797882677085,36.442985000007866,38.266657599968994
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/host_summary/four_rank_totals.csv
+bs8_in128_out128,d518949e9de643c1ae9d26d7a1feeb0e,all_formal,0.0,4,1692,61.970091455,58.22410493,3.745986525,1.347291805,5.09327833,3.47445091,4.00968718
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/host_summary/per_rank.csv
+bs8_in128_out128,d518949e9de643c1ae9d26d7a1feeb0e,0,41437,all_formal,0.0,262,1692,62.06821041,58.27217978,3.79603063,0.0,3.79603063,2.2435169208037826,5046,1664,1.2491857,5.045216330000001
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706
++ head -3
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/bs8_in1024_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/bs8_in1024_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/bs8_in1024_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/bs8_in128_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/bs8_in128_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/bs8_in128_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/bs8_in2048_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/bs8_in2048_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/bs8_in2048_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/session.json
+-rw-------. 1 root root   84 2026-11-06 15:58 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/bench.process.json
+-rw-r--r--. 1 root root 1034 2026-11-06 15:19 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/bs8_in1024_out1024.json
+-rw-r--r--. 1 root root 1032 2026-11-06 15:07 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/bs8_in1024_out128.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261106_142706,bs8_in1024_out1024,100,573.3948544199993,0.17439989080674967,178.58548818611166,357.1709763722233,718.2114612997975,676.4300600007118,1765.8371448003163,42.721919758748946,43.047358494623715,43.4704305713559,42.72191989433058,41.828039999018074,46.931251499045175
+litehost_gap_20261106_142706,bs8_in1024_out128,100,87.32341322999855,1.145168246419926,146.58153554175053,1319.2338198757548,715.3289709997989,675.9631099994294,1764.4096583018836,47.9084165858306,48.21326220471962,51.718260638595595,47.90841756378061,40.798804997393745,227.0896116005679
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/host_summary/four_rank_totals.csv
+bs8_in128_out128,7e7648bf74fd4fba9ca7ae457411e868,all_formal,0.0,4,1692,73.8181324275,70.5405748625,3.277557565,1.239784255,4.51734182,3.15224006,3.42056764
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/host_summary/per_rank.csv
+bs8_in128_out128,7e7648bf74fd4fba9ca7ae457411e868,0,1158662,all_formal,0.0,262,1692,74.00622034,70.85398028,3.15224006,0.0,3.15224006,1.8630260401891254,3382,1664,1.05172849,4.20396855
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326
++ head -3
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/bs8_in1024_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/bs8_in1024_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/bs8_in1024_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/bs8_in128_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/bs8_in128_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/bs8_in128_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/bs8_in2048_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/bs8_in2048_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/bs8_in2048_out2048.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/server.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/session.json
+-rw-------. 1 root root   80 2026-11-06 18:47 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/bench.process.json
+-rw-r--r--. 1 root root 1034 2026-11-06 18:11 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/bs8_in1024_out1024.json
+-rw-r--r--. 1 root root 1031 2026-11-06 18:00 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/bs8_in1024_out128.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+litehost_gap_20261106_172326,bs8_in1024_out1024,100,517.1761771300003,0.19335770753196052,197.99829251272757,395.99658502545515,684.0131643999803,643.2052249999742,1693.0855328999587,38.367136112707705,38.450395913978376,38.93972962238513,38.36713624584556,37.58652499982418,39.986973700424635
+litehost_gap_20261106_172326,bs8_in1024_out128,100,81.29500310999993,1.230087904230601,157.45125174151693,1417.0612656736523,683.1075331000147,642.7302000001873,1694.1524103997153,44.36897555590546,44.59341393700789,47.9007582566901,44.368976685826624,37.587785000141594,215.7435510999403
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'four_rank_totals.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/host_summary/four_rank_totals.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/host_summary/four_rank_totals.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/host_summary/four_rank_totals.csv
+case_id,run_id,group,link_percent,ranks,formal_scopes_per_rank,four_rank_mean_T_total_s,four_rank_mean_S_total_s,four_rank_mean_total_H_s,four_rank_mean_G_total_s,four_rank_mean_H_plus_G_total_s,min_rank_total_H_s,max_rank_total_H_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/host_summary/four_rank_totals.csv
+bs8_in128_out128,c4fde97b4c874636b71d56228454cdca,all_formal,0.0,4,1692,61.535929265,58.6589751175,2.8769541475000002,1.0665761175,3.943530265,2.84785185,2.92930362
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326 -maxdepth 3 -name per_rank.csv
+++ head -1
++ for f in $(find "$d" -maxdepth 3 -name 'per_rank.csv' 2> /dev/null | head -1)
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/host_summary/per_rank.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/host_summary/per_rank.csv
++ head -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/host_summary/per_rank.csv
+case_id,run_id,rank,pid,group,link_percent,warmup_excluded,iterations,T_total_s,S_total_s,H_base_total_s,link_addback_s,H_total_s,H_ms_per_iter_aux,sync_calls,graph_calls,G_total_s,H_plus_G_total_s
++ grep -m1 in128_out128 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/host_summary/per_rank.csv
+bs8_in128_out128,c4fde97b4c874636b71d56228454cdca,0,42091,all_formal,0.0,262,1692,61.63809659,58.70879297,2.92930362,0.0,2.92930362,1.7312669148936168,3382,1664,0.96443822,3.89374184
++ for d in "$V"/*
++ '[' -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952 ']'
++ echo '---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952'
+---- /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/bs8_in2048_out1024.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/server.process.json
++ head -3
+-rw-------. 1 root root   81 2026-11-13 14:10 /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/bench.process.json
+-rw-r--r--. 1 root root 1030 2026-11-13 14:12 /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/bs8_in2048_out1024.json
+-rw-------. 1 root root   81 2026-11-13 14:09 /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/server.process.json
++ for f in "$d"/summary.csv
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/summary.csv ']'
++ echo '  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/summary.csv'
+  ## /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/summary.csv
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+probe_140952,bs8_in2048_out1024,16,82.31965370000034,0.19436427731230765,199.02901996780304,597.0870599034091,1820.6364612499328,1716.656859998693,3487.2111010028675,38.39584663184305,38.46715589442819,39.622026299121885,38.39584677358286,36.85100000075181,39.393420000124024
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952 -maxdepth 3 -name four_rank_totals.csv
+++ head -1
+++ find /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952 -maxdepth 3 -name per_rank.csv
+++ head -1
++ set +x
+
+### exit: 0
