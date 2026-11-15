@@ -36,6 +36,7 @@ PROFILE_DELAY_ITERATIONS="${PROFILE_DELAY_ITERATIONS:-0}"
 PROFILE_MAX_ITERATIONS="${PROFILE_MAX_ITERATIONS:-0}"
 PROFILE_WARMUP_ITERATIONS="${PROFILE_WARMUP_ITERATIONS:-0}"
 PROFILE_ACTIVE_ITERATIONS="${PROFILE_ACTIVE_ITERATIONS:-2000}"
+PROFILE_FLUSH_TIMEOUT="${PROFILE_FLUSH_TIMEOUT:-300}"
 VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
 SERVER_EXTRA_ENV=(
     UMD_MAXCOMMANDBUFFERNUMBER=256
@@ -132,8 +133,24 @@ cleanup() {
     fi
     if [[ -n "$SERVER_PID" ]]; then
         log "停止本次服务 PID=$SERVER_PID（不使用全局 pkill）"
-        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
-        wait "$SERVER_PID" 2>/dev/null || true
+        if [[ "$PROFILE" == 1 ]]; then
+            # torch profiler 在停服时落盘；procutil.py stop 只等 10s 就 SIGKILL，这里给足时间。
+            kill -TERM -- -"$SERVER_PID" 2>/dev/null || true
+            local_i=0
+            while (( local_i < PROFILE_FLUSH_TIMEOUT / 3 )); do
+                kill -0 "$SERVER_PID" 2>/dev/null || break
+                sleep 3; local_i=$((local_i+1))
+            done
+            if kill -0 "$SERVER_PID" 2>/dev/null; then
+                log "WARNING: ${PROFILE_FLUSH_TIMEOUT}s 内未退出，SIGKILL"
+                kill -KILL -- -"$SERVER_PID" 2>/dev/null || true
+            fi
+            wait "$SERVER_PID" 2>/dev/null || true
+            "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
+        else
+            "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
+            wait "$SERVER_PID" 2>/dev/null || true
+        fi
         SERVER_PID=""; rm -f -- "$PID_FILE"
     fi
     if [[ "$INIT_DONE" == 1 ]]; then
