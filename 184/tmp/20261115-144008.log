@@ -1,0 +1,175 @@
+### server: 184
+### host:   controller
+### time:   2026-11-15T06:40:08Z
+
++ echo '== 0. toolkit 目录 =='
+== 0. toolkit 目录 ==
++ ls -l /home/huawei_ts_program/litehost_perf_opt
+total 468
+-rw-r--r--.  1 root root 10954 Oct 13 08:33 analyze_litehost.py
+-rw-r--r--.  1 root root  6513 Nov 13 14:08 bench_driver.py
+-rw-r--r--.  1 root root  6332 Oct 13 08:27 bench_driver.py.bak-failed-errors-20261113-140806
+-rw-r--r--.  1 root root  7460 Oct 13 08:27 build_corex.py
+drwxr-xr-x.  2 root root  4096 Oct 13 18:24 docs
+-rw-r--r--.  1 root root  2467 Oct 13 08:27 lh_common.py
+-rw-r--r--.  1 root root  7600 Oct 13 08:30 lhctl.py
+-rw-r--r--.  1 root root  9741 Oct 13 08:27 lh_runtime.py
+-rw-------.  1 root root   671 Oct 29 20:56 liblitehost.build.json
+-rw-r--r--.  1 root root 44120 Oct 29 20:56 liblitehost.build.log
+-rw-r--r--.  1 root root   854 Oct 29 20:56 liblitehost.exports.txt
+-rwxr-xr-x.  1 root root 72152 Oct 29 20:56 liblitehost.so
+-rw-r--r--.  1 root root  3577 Oct 29 20:56 liblitehost.wrappers.cpp
+-rw-r--r--.  1 root root  2709 Oct 13 08:27 light_host_worker.py
+-rw-r--r--.  1 root root  3288 Oct 13 08:27 litehost.c
+-rw-r--r--.  1 root root   407 Oct 13 08:27 litehost_internal.h
+-rwxr-xr-x.  1 root root 14001 Nov  4 18:59 lqqvllmBench_lite_base.sh
+-rw-r--r--.  1 root root   344 Oct 13 08:27 Makefile
+-rw-r--r--.  1 root root  1696 Oct 13 08:27 procutil.py
+drwxr-xr-x.  2 root root  4096 Nov 13 16:47 __pycache__
+-rw-r--r--.  1 root root  9625 Oct 13 18:25 README.md
+-rw-r--r--.  1 root root  1559 Oct 13 08:45 SHA256SUMS
+-rw-r--r--.  1 root root  2383 Oct 30 14:59 TCMalloc-PGO-vLLM-host侧热点函数优化.md
+drwxr-xr-x.  2 root root  4096 Oct 13 18:24 tests
+-rw-r--r--.  1 root root     0 Nov  4 22:53 timeline.sh
+-rw-r--r--.  1 root root  4595 Oct 13 08:27 verify_torch.py
+drwxr-xr-x. 31 root root  4096 Nov 14 13:41 vllmBench
+-rwxr-xr-x.  1 root root 13520 Nov 14 13:10 vllmBench_lite_base.sh
+-rwxr-xr-x.  1 root root 17940 Nov  9 08:59 vllmBench_lite_base.sh.bak-20261109-105413
+-rwxr-xr-x.  1 root root 13957 Nov  9 15:22 vllmBench_lite_base.sh.bak-20261109-153627
+-rwxr-xr-x.  1 root root 13532 Nov  9 19:35 vllmBench_lite_base.sh.bak-fix-20261110-095844
+-rwxr-xr-x.  1 root root 13535 Nov  9 15:36 vllmBench_lite_base.sh.bak-modelpath-20261109-193513
+-rwxr-xr-x.  1 root root 14015 Nov 14 13:11 vllmBench_lite_opt_128_128.sh
+-rwxr-xr-x.  1 root root 13999 Nov 14 13:10 vllmBench_lite_opt.sh
+-rwxr-xr-x.  1 root root 17970 Nov  6 14:26 vllmBench_lite_opt.sh.bak-20261109-105413
+-rwxr-xr-x.  1 root root 14128 Nov  9 15:22 vllmBench_lite_opt.sh.bak-20261109-153627
+-rwxr-xr-x.  1 root root 14057 Nov 14 12:59 vllmBench_lite_opt.sh.bak-compact-20261114-130846
+-rwxr-xr-x.  1 root root 14050 Nov  9 19:35 vllmBench_lite_opt.sh.bak-fix-20261110-095844
+-rwxr-xr-x.  1 root root 14053 Nov  9 19:27 vllmBench_lite_opt.sh.bak-modelpath-20261109-193513
+-rwxr-xr-x.  1 root root 13706 Nov  9 15:36 vllmBench_lite_opt.sh.bak-r10-20261109-192734
+-rwxr-xr-x.  1 root root 14049 Nov 12 16:28 vllmBench_lite_opt_single-case.sh
+-rwxr-xr-x.  1 root root 14042 Nov 11 14:52 vllmBench_lite_opt_single-case.sh.bak-cpu-range-20261112-162801
++ echo '== 1. bench_driver.py 全文 =='
+== 1. bench_driver.py 全文 ==
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/bench_driver.py ']'
++ cat -n /home/huawei_ts_program/litehost_perf_opt/bench_driver.py
+     1	#!/usr/bin/env python3
+     2	"""Same installed vLLM client/CLI/parameters; only instrument formal boundaries.
+     3	Official warmups remain unchanged. Does not modify installed source files.
+     4	"""
+     5	from __future__ import annotations
+     6	import ast,asyncio,inspect,os,runpy,sys,textwrap,time,hashlib
+     7	from dataclasses import replace,is_dataclass
+     8	from pathlib import Path
+     9	from functools import wraps
+    10	from lh_common import atomic_json,read_json,all_ranks
+    11	
+    12	def patch_tree(source):
+    13	    tree=ast.parse(textwrap.dedent(source));fn=tree.body[0]
+    14	    if len(tree.body)!=1 or not isinstance(fn,ast.AsyncFunctionDef) or fn.name!='benchmark' or fn.decorator_list:raise ValueError('Unsupported benchmark function')
+    15	    def assigned(s,n):return isinstance(s,ast.Assign) and len(s.targets)==1 and isinstance(s.targets[0],ast.Name) and s.targets[0].id==n
+    16	    starts=[i for i,s in enumerate(fn.body) if assigned(s,'benchmark_start_time')]
+    17	    ends=[i for i,s in enumerate(fn.body) if assigned(s,'benchmark_duration')]
+    18	    if len(starts)!=1 or len(ends)!=1 or starts[0]>=ends[0]:raise ValueError('Unknown benchmark timer layout')
+    19	    a,b=starts[0],ends[0]
+    20	    if ast.unparse(fn.body[a].value)!='time.perf_counter()' or ast.unparse(fn.body[b].value)!='time.perf_counter() - benchmark_start_time':raise ValueError('Timer expressions changed')
+    21	    warm=[i for i,s in enumerate(fn.body) if isinstance(s,ast.If) and 'num_warmups' in ast.unparse(s.test)]
+    22	    if len(warm)!=1 or warm[0]>=a or 'asyncio.gather' not in ast.unparse(fn.body[warm[0]]):raise ValueError('Warmup ordering changed')
+    23	    test=[s for s in ast.walk(fn) if assigned(s,'test_input')]
+    24	    if len(test)!=1 or not isinstance(test[0].value,ast.Call) or any(k.arg=='request_id' for k in test[0].value.keywords):raise ValueError('Warmup request ID forwarding changed')
+    25	    mid='\n'.join(ast.unparse(s) for s in fn.body[a:b])
+    26	    if 'request.request_id' not in mid or 'request_id=request_id' not in mid or 'await asyncio.gather(*tasks)' not in mid:raise ValueError('Formal request loop changed')
+    27	    body=[]
+    28	    for i,s in enumerate(fn.body):
+    29	        if i==a:body.extend(ast.parse('await __lh_start()').body)
+    30	        body.append(s)
+    31	        if i==b:body.extend(ast.parse('await __lh_end(outputs, benchmark_duration)').body)
+    32	    fn.body=body;fn.name='__lh_benchmark';return ast.fix_missing_locations(tree)
+    33	
+    34	class Boundaries:
+    35	    def __init__(self,session_file,case_dir):
+    36	        self.session=read_json(session_file);self.root=Path(case_dir);self.case=read_json(self.root/'case.json')
+    37	        if self.case['session_id']!=self.session['session_id']:raise ValueError('Case/session mismatch')
+    38	        self.window={'status':'preparing','run_id':self.case['run_id'],'case_id':self.case['case_id'],'session_id':self.case['session_id']}
+    39	        self.calls=0;self.ended=False
+    40	    def save(self):atomic_json(self.root/'window.json',self.window)
+    41	    async def start(self):
+    42	        self.window['arm_acks']=await asyncio.to_thread(all_ranks,self.session,'arm',run_id=self.case['run_id'])
+    43	        self.window.update(status='armed',main_start_ns=time.monotonic_ns());self.save()
+    44	        print('[litehost] 4 ranks ARMED; all ready-check/warmup scopes excluded',flush=True)
+    45	    async def end(self,outputs,duration):
+    46	        self.window.update(main_end_ns=time.monotonic_ns(),benchmark_duration_s=duration,successful=sum(bool(o.success) for o in outputs),failed=sum(not bool(o.success) for o in outputs))
+    47	        if len(outputs)!=self.case['expected_requests'] or not all(o.success for o in outputs):
+    48	            self.window['failed_errors']=[{'i':i,'error':str(getattr(o,'error',''))[:300]} for i,o in enumerate(outputs) if not o.success][:10]
+    49	            self.save()
+    50	            raise RuntimeError('Formal requests incomplete/failed; no valid H')
+    51	        self.window['finalize_acks']=await asyncio.to_thread(all_ranks,self.session,'finalize',run_id=self.case['run_id'])
+    52	        self.window['status']='finalized';self.ended=True;self.save()
+    53	        print('[litehost] 4 ranks FINALIZED; data saved; same server ready for next case',flush=True)
+    54	
+    55	def install(module,b):
+    56	    original=module.benchmark;src=inspect.getsource(original);tree=patch_tree(src)
+    57	    ns=module.__dict__;ns['__lh_start']=b.start;ns['__lh_end']=b.end
+    58	    exec(compile(tree,inspect.getsourcefile(original) or '<bench>','exec'),ns)
+    59	    patched=ns['__lh_benchmark'];sig=inspect.signature(original)
+    60	    b.window['benchmark_source_sha256']=hashlib.sha256(src.encode()).hexdigest()
+    61	    (b.root/'benchmark_hooked.py.txt').write_text(ast.unparse(tree)+'\n')
+    62	    @wraps(original)
+    63	    async def wrapped(*args,**kwargs):
+    64	        b.calls+=1
+    65	        if b.calls!=1:raise ValueError('One benchmark call per client process required')
+    66	        bind=sig.bind(*args,**kwargs);bind.apply_defaults()
+    67	        if bind.arguments.get('profile'):raise ValueError('Torch profiler must be disabled')
+    68	        if bind.arguments.get('endpoint_type') not in ('vllm','openai'):raise ValueError('Only original text completions backend supported')
+    69	        requests=list(bind.arguments['input_requests'])
+    70	        if len(requests)!=b.case['expected_requests']:raise ValueError('Request count mismatch')
+    71	        new=[]
+    72	        for i,r in enumerate(requests):
+    73	            if not is_dataclass(r) or not isinstance(r.prompt,str):raise ValueError('Expected text SampleRequest dataclass')
+    74	            if any(getattr(r,k,None) for k in ('multi_modal_data','chat_messages','request_overrides')):raise ValueError('Multimodal/chat/overrides unsupported')
+    75	            new.append(replace(r,request_id='lh'+b.case['run_id']+'-'+str(i)))
+    76	        bind.arguments['input_requests']=new
+    77	        b.window['num_warmups']=bind.arguments.get('num_warmups');b.save()
+    78	        return await patched(*bind.args,**bind.kwargs)
+    79	    module.benchmark=wrapped
+    80	
+    81	def main():
+    82	    b=Boundaries(os.environ['LIGHTHOST_SESSION'],os.environ['LIGHTHOST_CASE_DIR'])
+    83	    try:
+    84	        import vllm.benchmarks.serve as module
+    85	        install(module,b);sys.argv=['vllm','bench','serve',*sys.argv[1:]]
+    86	        try:runpy.run_module('vllm.entrypoints.cli.main',run_name='__main__');rc=0
+    87	        except SystemExit as e:rc=int(e.code or 0)
+    88	        if rc or b.calls!=1 or not b.ended:raise RuntimeError(f'Client incomplete: rc={rc},calls={b.calls},ended={b.ended}')
+    89	        b.window['status']='complete';b.save();return 0
+    90	    except BaseException as e:
+    91	        b.window.update(status='failed',error=f'{type(e).__name__}: {e}');b.save()
+    92	        __import__('traceback').print_exc();return 2
+    93	if __name__=='__main__':raise SystemExit(main())
++ echo '== 2. LightHostWorker 是否感知 profiler =='
+== 2. LightHostWorker 是否感知 profiler ==
+++ ls /home/huawei_ts_program/litehost_perf_opt/light_host_worker.py /home/huawei_ts_program/litehost_perf_opt/litehost_compat_slim/light_host_worker.py
+++ head -1
++ W=/home/huawei_ts_program/litehost_perf_opt/light_host_worker.py
++ echo 'worker file: /home/huawei_ts_program/litehost_perf_opt/light_host_worker.py'
+worker file: /home/huawei_ts_program/litehost_perf_opt/light_host_worker.py
++ '[' -n /home/huawei_ts_program/litehost_perf_opt/light_host_worker.py ']'
++ grep -n 'profil\|torch.profiler\|Profiler' /home/huawei_ts_program/litehost_perf_opt/light_host_worker.py
+12:        if getattr(self,'profiler',None):raise RuntimeError('Disable Torch Profiler for Lite measurement')
+22:    def annotate_profile(self,scheduler_output):
+23:        with super().annotate_profile(scheduler_output):
++ echo '== 3. vLLM profiler 实现：ignore_frontend / 迭代控制 =='
+== 3. vLLM profiler 实现：ignore_frontend / 迭代控制 ==
+++ env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python3 -c 'import os,vllm;print(os.path.dirname(vllm.__file__))'
++ VLLM_DIR=
++ echo 'vllm dir: UNRESOLVED'
+vllm dir: UNRESOLVED
++ '[' -n '' ']'
++ echo '== 4. /start_profile /stop_profile 路由 =='
+== 4. /start_profile /stop_profile 路由 ==
++ '[' -n '' ']'
++ echo '== 5. bench serve 客户端的 --profile 定义 =='
+== 5. bench serve 客户端的 --profile 定义 ==
++ '[' -n '' ']'
++ set +x
+
+### exit: 0
