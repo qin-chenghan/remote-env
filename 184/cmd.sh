@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 补上 off 分支缺失的 PGO tcmalloc，重装并验证。
+# 检查 4k1 这一轮的产物：配置是否与 11-14 一致、tcmalloc 是否真加载、trace 是否齐全。
 # 纯 CPU，不启动 vllm，不动 GPU。
 set -uo pipefail
 
@@ -10,8 +10,7 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
-TARGET=/home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
-CTR=corex5-py311
+BASE=/home/qch/scripts/litehost_perf/vllmBench
 
 {
   echo "### server: $SERVER"
@@ -21,21 +20,46 @@ CTR=corex5-py311
   set -x
 
   # ---- 命令开始 ----
-  echo "== 0. 安装（备份） =="
-  [ -f "$TARGET" ] && cp -a "$TARGET" "$TARGET.bak-$TS"
-  install -m 755 "$DIR/vllmBench_lite_timeline.sh" "$TARGET" || exit 1
-  sha256sum "$TARGET"
-  bash -n "$TARGET" && echo "bash -n OK"
+  echo "== 0. 现有 run 目录 =="
+  ls -dt "$BASE"/*/ 2>/dev/null | head -10
 
-  echo "== 1. start_server 的环境注入段 =="
-  sed -n '/^start_server() {/,/^}/p' "$TARGET" | sed -n '1,40p' | cat -n
+  R="${RUN_DIR:-$(ls -dt "$BASE"/*/ 2>/dev/null | head -1)}"
+  R="${R%/}"
+  echo "RUNDIR=$R"
+  echo
 
-  echo "== 2. tcmalloc 库是否可见 =="
-  docker exec "$CTR" ls -l /home/lw/gperftools/.libs/libtcmalloc.so 2>&1
+  echo "== 1. config.txt =="
+  cat "$R/config.txt" 2>&1
 
-  echo "== 3. 容器内 dry-run =="
-  docker exec "$CTR" bash -lc "cd /tmp && HOST_DRY_RUN=1 TEST_ID=dryrun_$TS bash $TARGET"
-  echo "  (dry-run exit=$?)"
+  echo "== 2. 关键生效配置（server.log） =="
+  grep -nE "enable_prefix_caching|compact_greedy|sample_logits_cudagraph|Profiler with mode|Torch profiling enabled|profiler" "$R/logs/server.log" 2>/dev/null | head -40
+
+  echo "== 3. server.log 里的启动命令 / 环境 =="
+  grep -nE "LD_PRELOAD|tcmalloc|TCMALLOC|VLLM_HOST_OPT|TORCH_MODULE_ATTR_FASTPATH|UMD_MAXCOMMAND|api_server|--profiler-config" "$R/logs/server.log" 2>/dev/null | head -20
+
+  echo "== 4. server.log 尾部（tcmalloc MALLOCSTATS 应在这里） =="
+  tail -40 "$R/logs/server.log" 2>&1
+
+  echo "== 5. server.log 中的错误 =="
+  grep -cE "Traceback|ERROR" "$R/logs/server.log" 2>/dev/null || true
+  grep -nE "Traceback|ERROR" "$R/logs/server.log" 2>/dev/null | head -20
+
+  echo "== 6. bench 结果 =="
+  cat "$R/logs/bench_"*.log 2>/dev/null | tail -30
+  echo "-- summary.csv --"
+  cat "$R/summary.csv" 2>/dev/null | head -5
+
+  echo "== 7. trace 产物 =="
+  find "$R/timeline" -type f -printf '%TY-%Tm-%Td %TH:%TM %12s  %p\n' 2>/dev/null | sort
+  echo "-- 目录大小 --"
+  du -sh "$R/timeline" 2>/dev/null
+
+  echo "== 8. 每个 trace 文件是否非空且像 JSON =="
+  for f in "$R/timeline"/*; do
+    [ -f "$f" ] || continue
+    printf '%s  size=%s  head=' "$(basename "$f")" "$(stat -c %s "$f")"
+    head -c 60 "$f" | tr -d '\n'; echo
+  done
 
   # ---- 命令结束 ----
 
