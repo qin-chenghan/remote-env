@@ -1,0 +1,72 @@
+### server: 184
+### host:   controller
+### time:   2026-11-15T07:05:09Z
+
++ echo '== 0. 安装（备份） =='
+== 0. 安装（备份） ==
++ '[' -f /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh ']'
++ cp -a /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh.bak-20261115-150509
++ install -m 755 /home/qch/tools/remote-env/184/vllmBench_lite_timeline.sh /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
++ sha256sum /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
+22351f6c133300d477189deb8b031d0668d193cb92db752f00c2db0b62df6064  /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
++ bash -n /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
++ echo 'bash -n OK'
+bash -n OK
++ echo '== 1. start_server 的环境注入段 =='
+== 1. start_server 的环境注入段 ==
++ sed -n '/^start_server() {/,/^}/p' /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
++ sed -n 1,40p
++ cat -n
+     1	start_server() {
+     2	    # Refuse an occupied port. Never kill an unrelated service by name/port.
+     3	    "${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$PORT" <<'PY' || return 1
+     4	import socket,sys
+     5	with socket.socket() as s:s.bind(('127.0.0.1',int(sys.argv[1])))
+     6	PY
+     7	    check_gpu_memory "$GPU_LIST"
+     8	    local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1
+     9	        "${SERVER_EXTRA_ENV[@]}")
+    10	    [[ "$PROFILE" == 1 ]] && env_args+=(VLLM_RPC_TIMEOUT="$VLLM_RPC_TIMEOUT")
+    11	    if [[ "$HOST_MEASURE" == lite ]]; then
+    12	        env_args+=(PYTHONPATH="$HOST_TOOLKIT"
+    13	            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/lw/gperftools/.libs/libtcmalloc.so"
+    14	            TCMALLOC_MAX_TOTAL_THREAD_CACHE_BYTES=536870912
+    15	            MALLOCSTATS=1
+    16	            LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+    17	    else
+    18	        # 与 lite 分支同一份 PGO tcmalloc（全优化包的一项）；liblitehost.so 只属于 lite 测量层。
+    19	        env_args+=(LD_PRELOAD="/home/lw/gperftools/.libs/libtcmalloc.so"
+    20	            TCMALLOC_MAX_TOTAL_THREAD_CACHE_BYTES=536870912
+    21	            MALLOCSTATS=1)
+    22	    fi
+    23	    "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/server.process.json" -- \
+    24	        "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}" >> "$SERVER_LOG" 2>&1 &
+    25	    SERVER_PID=$!; echo "$SERVER_PID" > "$PID_FILE"
+    26	    log "服务 PID=$SERVER_PID；所有 case 复用；日志=$SERVER_LOG"
+    27	    wait_for_server || return 1
+    28	    if [[ "$PROFILE" == 1 ]]; then
+    29	        if grep -qE "Profiler with mode|Torch profiling enabled" "$SERVER_LOG" 2>/dev/null; then
+    30	            log "profiler 已生效：$PROFILER_CONFIG_JSON"
+    31	        else
+    32	            log "WARNING: server.log 里没找到 profiler 关键字，确认 --profiler-config 已生效"
+    33	        fi
+    34	    fi
+    35	    return 0
+    36	}
++ echo '== 2. tcmalloc 库是否可见 =='
+== 2. tcmalloc 库是否可见 ==
++ docker exec corex5-py311 ls -l /home/lw/gperftools/.libs/libtcmalloc.so
+lrwxrwxrwx. 1 root root 20 Oct 27 10:05 /home/lw/gperftools/.libs/libtcmalloc.so -> libtcmalloc.so.4.6.8
++ echo '== 3. 容器内 dry-run =='
+== 3. 容器内 dry-run ==
++ docker exec corex5-py311 bash -lc 'cd /tmp && HOST_DRY_RUN=1 TEST_ID=dryrun_20261115-150509 bash /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh'
+[2026-11-15 15:05:09] PREFIX=/opt/corex311-cpython-vllm
+[2026-11-15 15:05:09] TEST_ID=dryrun_20261115-150509 | MODE=off | PROFILE=1 | WARMUP=16 | CPU_RANGE=80-159,240-319
+[2026-11-15 15:05:09] prefix cache=OFF | backend=vllm | 同一服务运行 9 个 case | RUN_DIR=/tmp/vllmBench/dryrun_20261115-150509
+SERVER: taskset -c 80-159\,240-319 /opt/corex311-cpython-vllm/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8848 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --dtype auto --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1 --tensor_parallel_size 4 --data_parallel_size 1 --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto --enable_chunked_prefill --compilation-config \{\"cudagraph_mode\":\"FULL_DECODE_ONLY\"\,\ \"mode\":0\,\ \"compact_greedy\":true\,\ \"sample_logits_cudagraph\":\"on\"\,\ \"sample_logits_cudagraph_max_bytes\":67108864\,\ \"sample_logits_cudagraph_capture_sizes\":\[1\,2\,3\,4\,5\,6\,7\,8\]\} --async-scheduling --no-enable-prefix-caching --profiler-config \{\"profiler\":\"torch\"\,\"torch_profiler_dir\":\"/tmp/vllmBench/dryrun_20261115-150509/timeline\"\,\"delay_iterations\":0\,\"max_iterations\":0\,\"warmup_iterations\":0\,\"active_iterations\":2000\,\"ignore_frontend\":true\} 
+CASES: 128 128; 128 1024; 128 2048; 1024 128; 1024 1024; 1024 2048; 2048 128; 2048 1024; 2048 2048; 
++ echo '  (dry-run exit=0)'
+  (dry-run exit=0)
++ set +x
+
+### exit: 0
