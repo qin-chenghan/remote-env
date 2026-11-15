@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 取回 vllmBench_lite_timeline.sh 全文，并与现有 bench 脚本对比时效性。
+# 对齐 vllmBench_lite_timeline.sh 到 huawei_ts_program 的 vllmBench_lite_opt.sh：
+# 先确认 lite 侧 bench 客户端怎么触发 profiler（bench_driver.py 是否支持 --profile，
+# 以及 vLLM 的 ignore_frontend/active_iterations 迭代控制是什么语义）。
 # 纯 CPU，不启动 vllm，不动 GPU。
 set -uo pipefail
 
@@ -10,6 +12,10 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
+PREFIX="${PREFIX:-/opt/corex311-cpython-vllm}"
+PY="$PREFIX/bin/python3"
+TOOLKIT=/home/huawei_ts_program/litehost_perf_opt
+
 {
   echo "### server: $SERVER"
   echo "### host:   $(hostname)"
@@ -18,64 +24,47 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  echo "== 0. 所有 vllmBench_lite* 脚本（按修改时间） =="
-  find /home -maxdepth 4 -name 'vllmBench_lite*.sh' -printf '%TY-%Tm-%Td %TH:%TM %10s  %p\n' 2>/dev/null | sort
+  echo "== 0. toolkit 目录 =="
+  ls -l "$TOOLKIT" 2>/dev/null || echo "MISSING $TOOLKIT"
 
-  echo "== 1. 目标脚本 stat + sha256 =="
-  for f in /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh \
-           /home/qch/scripts/litehost_perf/vllmBench_lite_opt.sh \
-           /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh \
-           /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh \
-           /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_timeline.sh ; do
-    if [ -f "$f" ]; then
-      stat -c '%n  mtime=%y  size=%s' "$f"
-      sha256sum "$f"
-    else
-      echo "MISSING  $f"
-    fi
-  done
-
-  echo "== 2. vllmBench_lite_timeline.sh 全文 (/home/qch/scripts/litehost_perf) =="
-  if [ -f /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh ]; then
-    cat -n /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
+  echo "== 1. bench_driver.py 全文 =="
+  if [ -f "$TOOLKIT/bench_driver.py" ]; then
+    cat -n "$TOOLKIT/bench_driver.py"
   else
-    echo "MISSING"
+    echo "MISSING $TOOLKIT/bench_driver.py"
   fi
 
-  echo "== 3. 与 vllmBench_lite_opt.sh 的差异 (/home/qch/scripts/litehost_perf) =="
-  if [ -f /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh ] && \
-     [ -f /home/qch/scripts/litehost_perf/vllmBench_lite_opt.sh ]; then
-    diff -u /home/qch/scripts/litehost_perf/vllmBench_lite_opt.sh \
-            /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
-    echo "  (diff exit=$?)"
+  echo "== 2. LightHostWorker 是否感知 profiler =="
+  W=$(ls "$TOOLKIT"/light_host_worker.py "$TOOLKIT"/litehost_compat_slim/light_host_worker.py 2>/dev/null | head -1)
+  echo "worker file: ${W:-MISSING}"
+  if [ -n "${W:-}" ]; then
+    grep -n "profil\|torch.profiler\|Profiler" "$W" || echo "  (no profiler references)"
   fi
 
-  echo "== 4. 与 11-14 实际使用的 vllmBench_lite_opt.sh 的差异 (/home/huawei_ts_program) =="
-  if [ -f /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh ] && \
-     [ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh ]; then
-    diff -u /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh \
-            /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
-    echo "  (diff exit=$?)"
+  echo "== 3. vLLM profiler 实现：ignore_frontend / 迭代控制 =="
+  VLLM_DIR=$(env -u PYTHONPATH -u PYTHONHOME "$PY" -c 'import os,vllm;print(os.path.dirname(vllm.__file__))' 2>/dev/null)
+  echo "vllm dir: ${VLLM_DIR:-UNRESOLVED}"
+  if [ -n "${VLLM_DIR:-}" ]; then
+    echo "-- 含 ignore_frontend 的文件 --"
+    grep -rln "ignore_frontend" "$VLLM_DIR" 2>/dev/null | head -20
+    echo "-- 含 active_iterations 的文件 --"
+    grep -rln "active_iterations" "$VLLM_DIR" 2>/dev/null | head -20
+    echo "-- 定义/使用点（带 3 行上下文） --"
+    grep -rn "ignore_frontend\|delay_iterations\|warmup_iterations\|active_iterations\|max_iterations" \
+      "$VLLM_DIR" --include='*.py' 2>/dev/null | head -60
+    echo "-- profiler 目录 --"
+    ls -l "$VLLM_DIR/profiler" 2>/dev/null
   fi
 
-  echo "== 5. 副本之间是否一致 =="
-  diff -q /home/qch/scripts/litehost_perf/vllmBench_lite_opt.sh \
-          /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh \
-    && echo "  两份 vllmBench_lite_opt.sh 完全相同" \
-    || echo "  两份 vllmBench_lite_opt.sh 不同"
+  echo "== 4. /start_profile /stop_profile 路由 =="
+  if [ -n "${VLLM_DIR:-}" ]; then
+    grep -rn "start_profile\|stop_profile" "$VLLM_DIR/entrypoints" --include='*.py' 2>/dev/null | head -30
+  fi
 
-  echo "== 6. 关键开关：timeline 脚本里有没有 =="
-  T=/home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
-  for pat in compact_greedy sample_logits_cudagraph_scope sample_logits_cudagraph \
-             no-enable-prefix-caching VLLM_COMPACT_GREEDY \
-             VLLM_HOST_OPT_POSITIONS VLLM_HOST_OPT_METADATA VLLM_HOST_OPT_INPUTS \
-             VLLM_HOST_OPT_ARENA VLLM_HOST_OPT_BOOKKEEPING \
-             TORCH_MODULE_ATTR_FASTPATH UMD_MAXCOMMANDBUFFER TCMALLOC_MAX_TOTAL_THREAD_CACHE_BYTES \
-             liblitehost light_host_worker profiler-config profiler_config \
-             taskset CPU_RANGE PREFIX= PORT= NUM_PROMPTS NUM_WARMUPS MAX_CONCURRENCY ; do
-    n=$(grep -c -- "$pat" "$T" 2>/dev/null || true)
-    printf '  %-38s %s\n' "$pat" "${n:-0}"
-  done
+  echo "== 5. bench serve 客户端的 --profile 定义 =="
+  if [ -n "${VLLM_DIR:-}" ]; then
+    grep -rn "\-\-profile\b\|profile:" "$VLLM_DIR/benchmarks" --include='*.py' 2>/dev/null | head -20
+  fi
 
   # ---- 命令结束 ----
 
