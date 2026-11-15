@@ -17,7 +17,10 @@ import collections
 import gzip
 import json
 import os
+import re
 import sys
+
+ADDR_RE = re.compile(r" at 0x[0-9a-f]+")
 
 # 与 litehost 实际拦截的同步 API 一致
 SYNC_APIS = {
@@ -162,11 +165,39 @@ def main():
     syncname = collections.defaultdict(float)
     synccnt = collections.Counter()
 
+    # 深挖模式：只统计 decode 步窗口内、锚点线程上的 self time，名字去掉对象地址
+    deep = os.environ.get("DEEP", "") not in ("", "0")
+    dwarm = int(os.environ.get("DEEP_WARMUP", max(warmups) if warmups else 0))
+    deep_topn = int(os.environ.get("DEEP_TOPN", "200"))
+    allcat = collections.defaultdict(float)
+    mcat = collections.defaultdict(float)
+    mfun = collections.defaultdict(float)
+    mfunc = collections.defaultdict(int)
+    msync = collections.defaultdict(float)
+    msynccnt = collections.Counter()
+
     def sink(ts, dur, name, cat, selfd, key):
         if selfd <= 0:
             return
         fun[(cat, name)] += selfd
         func[(cat, name)] += 1
+        if deep:
+            i = bisect.bisect_right(starts, ts) - 1
+            if (
+                0 <= i < nsteps
+                and i >= dwarm
+                and phase[i] == "decode"
+                and ts < steps[i][1]
+            ):
+                allcat[cat] += selfd
+                if key[1] in main_tids:
+                    cn = ADDR_RE.sub("", name)
+                    mfun[(cat, cn)] += selfd
+                    mfunc[(cat, cn)] += 1
+                    mcat[cat] += selfd
+                    if sync_kind(name) is not None:
+                        msync[cn] += selfd
+                        msynccnt[cn] += 1
         if sync_kind(name) is None:
             return
         syncname[name] += selfd
@@ -222,6 +253,29 @@ def main():
     print(f"### {label} FUN top60 (µs/step, calls/step)")
     for (cat, name), v in sorted(fun.items(), key=lambda kv: -kv[1])[:60]:
         print(f"FUN\t{label}\t{cat}\t{name}\t{v / nsteps:.1f}\t{func[(cat, name)] / nsteps:.2f}")
+
+    if deep:
+        dec = [i for i in range(dwarm, nsteps) if phase[i] == "decode"]
+        ndec = len(dec)
+        if ndec:
+            mt = sum(step[i]["T"] for i in dec) / ndec
+            allsum = sum(allcat.values()) / ndec
+            msum = sum(mcat.values()) / ndec
+            mssum = sum(msync.values()) / ndec
+            print(
+                f"### {label} DEEP decode_steps={ndec} warmup={dwarm}"
+                f" mean_T={mt:.1f}us all_self={allsum:.1f}us"
+                f" main_self={msum:.1f}us main_sync={mssum:.1f}us"
+            )
+            for cat, v in sorted(allcat.items(), key=lambda kv: -kv[1]):
+                print(f"ACAT\t{label}\t{cat}\t{v / ndec:.1f}")
+            for cat, v in sorted(mcat.items(), key=lambda kv: -kv[1]):
+                print(f"MCAT\t{label}\t{cat}\t{v / ndec:.1f}")
+            for n, v in sorted(msync.items(), key=lambda kv: -kv[1])[:20]:
+                print(f"MSYNC\t{label}\t{n}\t{v / ndec:.1f}\t{msynccnt[n] / ndec:.2f}")
+            print(f"### {label} MFUN top{deep_topn} (µs/decode-step, calls/step, anchor tid)")
+            for (cat, n), v in sorted(mfun.items(), key=lambda kv: -kv[1])[:deep_topn]:
+                print(f"MFUN\t{label}\t{cat}\t{n}\t{v / ndec:.1f}\t{mfunc[(cat, n)] / ndec:.2f}")
     return 0
 
 

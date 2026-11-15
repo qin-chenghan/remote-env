@@ -72,16 +72,19 @@ pick_trace() {
         echo
     done
 
-    echo "== 2. TSHG（trace 口径，rank0，warmup 0/16） =="
+    echo "== 2. TSHG + 逐函数（trace 口径，rank0，warmup 16，decode 主线程） =="
     for R in "${RUNS[@]}"; do
         [[ -f "$R/config.txt" ]] || continue
         grep -q 'profile=1' "$R/config.txt" || continue
         F="$(pick_trace "$R")" || { echo "### $(basename "$R") no rank0 trace"; continue; }
         echo "### 分析 $(basename "$R") <- $(basename "$F")"
         if command -v python3 >/dev/null 2>&1; then
-            TSHG_WARMUP=0,16 python3 "$EVAL" "$(basename "$R")" "$F"
+            DEEP=1 DEEP_TOPN=250 TSHG_WARMUP=0,16 \
+                python3 "$EVAL" "$(basename "$R")" "$F"
         else
-            docker exec corex5-py311 python3 "$EVAL" "$(basename "$R")" "$F"
+            DEEP=1 DEEP_TOPN=250 TSHG_WARMUP=0,16 \
+                docker exec -e DEEP=1 -e DEEP_TOPN=250 -e TSHG_WARMUP=0,16 \
+                corex5-py311 python3 "$EVAL" "$(basename "$R")" "$F"
         fi
         echo
     done
