@@ -1,0 +1,241 @@
+### server: 184
+### host:   controller
+### time:   2026-11-15T07:27:30Z
+
++ echo '== 0. 现有 run 目录 =='
+== 0. 现有 run 目录 ==
++ head -10
++ ls -dt /home/qch/scripts/litehost_perf/vllmBench/base/ /home/qch/scripts/litehost_perf/vllmBench/before_reboot/ /home/qch/scripts/litehost_perf/vllmBench/opt/ /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/
+/home/qch/scripts/litehost_perf/vllmBench/timeline4k1/
+/home/qch/scripts/litehost_perf/vllmBench/base/
+/home/qch/scripts/litehost_perf/vllmBench/before_reboot/
+/home/qch/scripts/litehost_perf/vllmBench/opt/
+++ ls -dt /home/qch/scripts/litehost_perf/vllmBench/base/ /home/qch/scripts/litehost_perf/vllmBench/before_reboot/ /home/qch/scripts/litehost_perf/vllmBench/opt/ /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/
+++ head -1
++ R=/home/qch/scripts/litehost_perf/vllmBench/timeline4k1/
++ R=/home/qch/scripts/litehost_perf/vllmBench/timeline4k1
++ echo RUNDIR=/home/qch/scripts/litehost_perf/vllmBench/timeline4k1
+RUNDIR=/home/qch/scripts/litehost_perf/vllmBench/timeline4k1
++ echo
+
++ echo '== 1. config.txt =='
+== 1. config.txt ==
++ cat /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/config.txt
+test_id=timeline4k1
+started=2026-11-15T15:08:26+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+host_measure=off profile=1 profile_dir=/home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline
++ echo '== 2. 关键生效配置（server.log） =='
+== 2. 关键生效配置（server.log） ==
++ grep -nE 'enable_prefix_caching|compact_greedy|sample_logits_cudagraph|Profiler with mode|Torch profiling enabled|profiler' /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/logs/server.log
++ head -40
+13:(APIServer pid=3409434) INFO 11-15 15:08:32 [api_utils.py:273] non-default args: {'host': '127.0.0.1', 'port': 8848, 'model': '/home/model/Qwen3-32B-W8A8', 'trust_remote_code': True, 'max_model_len': 4096, 'quantization': 'compressed-tensors', 'distributed_executor_backend': 'mp', 'tensor_parallel_size': 4, 'gpu_memory_utilization': 0.9, 'enable_prefix_caching': False, 'enable_chunked_prefill': True, 'async_scheduling': True, 'compilation_config': {'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': None, 'compact_greedy': True, 'sample_logits_cudagraph': True, 'sample_logits_cudagraph_scope': 'decode', 'sample_logits_cudagraph_capture_sizes': [1, 2, 3, 4, 5, 6, 7, 8], 'sample_logits_cudagraph_max_bytes': 67108864, 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}, 'profiler_config': ProfilerConfig(profiler='torch', torch_profiler_dir='/home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline', torch_profiler_with_stack=True, torch_profiler_with_flops=False, torch_profiler_use_gzip=True, torch_profiler_dump_cuda_time_total=True, torch_profiler_record_shapes=False, torch_profiler_with_memory=False, ignore_frontend=True, delay_iterations=0, max_iterations=0, warmup_iterations=0, active_iterations=2000, wait_iterations=0)}
+33:(EngineCore pid=3409830) INFO 11-15 15:08:43 [core.py:114] Initializing a V1 LLM engine (v0.23.0) with config: model='/home/model/Qwen3-32B-W8A8', speculative_config=None, tokenizer='/home/model/Qwen3-32B-W8A8', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=4096, download_dir=None, load_format=auto, tensor_parallel_size=4, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=compressed-tensors, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_verbose=False), seed=0, served_model_name=/home/model/Qwen3-32B-W8A8, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [2048], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'compact_greedy': True, 'sample_logits_cudagraph': True, 'sample_logits_cudagraph_scope': 'decode', 'sample_logits_cudagraph_capture_sizes': [1, 2, 3, 4, 5, 6, 7, 8], 'sample_logits_cudagraph_max_bytes': 67108864, 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_rope_kvcache_cat_mla': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': True, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native']), enable_flashinfer_autotune=True, moe_backend='auto', linear_backend='auto')
+132:(Worker_TP0 pid=3410170) INFO 11-15 15:09:13 [compact_greedy_graph.py:244] Compact token graph status=ready reason= keys=[1, 2, 3, 4, 5, 6, 7, 8] retained=50700288 budget=67108864
+133:(Worker_TP1 pid=3410171) INFO 11-15 15:09:13 [compact_greedy_graph.py:244] Compact token graph status=ready reason= keys=[1, 2, 3, 4, 5, 6, 7, 8] retained=50700288 budget=67108864
+134:(Worker_TP2 pid=3410172) INFO 11-15 15:09:13 [compact_greedy_graph.py:244] Compact token graph status=ready reason= keys=[1, 2, 3, 4, 5, 6, 7, 8] retained=50700288 budget=67108864
+135:(Worker_TP3 pid=3410173) INFO 11-15 15:09:13 [compact_greedy_graph.py:244] Compact token graph status=ready reason= keys=[1, 2, 3, 4, 5, 6, 7, 8] retained=50700288 budget=67108864
+149:(APIServer pid=3409434) WARNING 11-15 15:09:14 [api_router.py:41] Profiler with mode 'torch' is enabled in the API server. This should ONLY be used for local development!
+212:(APIServer pid=3409434) INFO 11-15 15:09:34 [api_router.py:23] Starting profiler...
+213:(Worker_TP0 pid=3410170) INFO 11-15 15:09:34 [wrapper.py:174] Torch profiling enabled. Traces will be saved to: /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline
+214:(Worker_TP1 pid=3410171) /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/profiler/profiler.py:217: UserWarning: Warning: Profiler clears events at the end of each cycle.Only events from the current cycle will be reported.To keep events across cycles, set acc_events=True.
+216:(Worker_TP0 pid=3410170) /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/profiler/profiler.py:217: UserWarning: Warning: Profiler clears events at the end of each cycle.Only events from the current cycle will be reported.To keep events across cycles, set acc_events=True.
+218:(Worker_TP2 pid=3410172) /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/profiler/profiler.py:217: UserWarning: Warning: Profiler clears events at the end of each cycle.Only events from the current cycle will be reported.To keep events across cycles, set acc_events=True.
+219:(Worker_TP3 pid=3410173) /opt/corex311-cpython-vllm/lib/python3.11/site-packages/torch/profiler/profiler.py:217: UserWarning: Warning: Profiler clears events at the end of each cycle.Only events from the current cycle will be reported.To keep events across cycles, set acc_events=True.
+336:(APIServer pid=3409434) INFO 11-15 15:10:49 [api_router.py:31] Stopping profiler...
++ echo '== 3. server.log 里的启动命令 / 环境 =='
+== 3. server.log 里的启动命令 / 环境 ==
++ grep -nE 'LD_PRELOAD|tcmalloc|TCMALLOC|VLLM_HOST_OPT|TORCH_MODULE_ATTR_FASTPATH|UMD_MAXCOMMAND|api_server|--profiler-config' /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/logs/server.log
++ head -20
+15:(APIServer pid=3409434) WARNING 11-15 15:08:32 [envs.py:2041] Unknown vLLM environment variable detected: VLLM_HOST_OPT_METADATA
+148:(APIServer pid=3409434) INFO 11-15 15:09:14 [api_server.py:572] Supported tasks: ['generate']
+152:(APIServer pid=3409434) INFO 11-15 15:09:15 [api_server.py:576] Starting vLLM server on http://127.0.0.1:8848
++ echo '== 4. server.log 尾部（tcmalloc MALLOCSTATS 应在这里） =='
+== 4. server.log 尾部（tcmalloc MALLOCSTATS 应在这里） ==
++ tail -40 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/logs/server.log
+MALLOC: +    245178368 (  233.8 MiB) Bytes in page heap freelist
+MALLOC: +     32327240 (   30.8 MiB) Bytes in central cache freelist
+MALLOC: +      5846016 (    5.6 MiB) Bytes in transfer cache freelist
+MALLOC: +      6490128 (    6.2 MiB) Bytes in thread cache freelists
+MALLOC: +      4980800 (    4.8 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =    550182976 (  524.7 MiB) Actual memory used (physical + swap)
+MALLOC: +            0 (    0.0 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =    550182976 (  524.7 MiB) Virtual address space used
+MALLOC:
+MALLOC:          20791              Spans in use
+MALLOC:            161              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
+/opt/cpython-vllm/v1/lib/python3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 4 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+/opt/cpython-vllm/v1/lib/python3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 6 leaked shared_memory objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+------------------------------------------------
+MALLOC:         536064 (    0.5 MiB) Bytes in use by application
+MALLOC: +      1007616 (    1.0 MiB) Bytes in page heap freelist
+MALLOC: +       555448 (    0.5 MiB) Bytes in central cache freelist
+MALLOC: +       269312 (    0.3 MiB) Bytes in transfer cache freelist
+MALLOC: +       777288 (    0.7 MiB) Bytes in thread cache freelists
+MALLOC: +      2490432 (    2.4 MiB) Bytes in malloc metadata
+MALLOC:   ------------
+MALLOC: =      5636160 (    5.4 MiB) Actual memory used (physical + swap)
+MALLOC: +            0 (    0.0 MiB) Bytes released to OS (aka unmapped)
+MALLOC:   ------------
+MALLOC: =      5636160 (    5.4 MiB) Virtual address space used
+MALLOC:
+MALLOC:            150              Spans in use
+MALLOC:              1              Thread heaps in use
+MALLOC:           8192              Tcmalloc page size
+------------------------------------------------
+Call ReleaseFreeMemory() to release freelist memory to the OS (via madvise()).
+Bytes released to the OS take up virtual address space but no physical memory.
++ echo '== 5. server.log 中的错误 =='
+== 5. server.log 中的错误 ==
++ grep -cE 'Traceback|ERROR' /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/logs/server.log
+0
++ true
++ grep -nE 'Traceback|ERROR' /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/logs/server.log
++ head -20
++ echo '== 6. bench 结果 =='
+== 6. bench 结果 ==
++ cat /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/logs/bench_bs8_in128_out128.log
++ tail -30
+Maximum request concurrency: 8
+  0%|          | 0/100 [00:00<?, ?it/s]  1%|          | 1/100 [00:05<09:30,  5.76s/it]  9%|▉         | 9/100 [00:11<01:43,  1.13s/it] 17%|█▋        | 17/100 [00:17<01:14,  1.11it/s] 25%|██▌       | 25/100 [00:23<01:01,  1.21it/s] 33%|███▎      | 33/100 [00:29<00:52,  1.27it/s] 41%|████      | 41/100 [00:34<00:45,  1.31it/s] 49%|████▉     | 49/100 [00:40<00:38,  1.33it/s] 57%|█████▋    | 57/100 [00:46<00:32,  1.34it/s] 65%|██████▌   | 65/100 [00:52<00:25,  1.35it/s] 73%|███████▎  | 73/100 [00:58<00:19,  1.36it/s] 81%|████████  | 81/100 [01:03<00:13,  1.36it/s] 89%|████████▉ | 89/100 [01:09<00:08,  1.37it/s] 97%|█████████▋| 97/100 [01:14<00:02,  1.45it/s] 98%|█████████▊| 98/100 [01:14<00:01,  1.50it/s]100%|██████████| 100/100 [01:14<00:00,  1.34it/s]
+tip: install termplotlib and gnuplot to plot the metrics
+============ Serving Benchmark Result ============
+Successful requests:                     100       
+Failed requests:                         0         
+Maximum request concurrency:             8         
+Benchmark duration (s):                  74.80     
+Total input tokens:                      12800     
+Total generated tokens:                  12800     
+Request throughput (req/s):              1.34      
+Output token throughput (tok/s):         171.12    
+Peak output token throughput (tok/s):    192.00    
+Peak concurrent requests:                16.00     
+Total token throughput (tok/s):          342.23    
+---------------Time to First Token----------------
+Mean TTFT (ms):                          322.22    
+Median TTFT (ms):                        343.79    
+P99 TTFT (ms):                           376.23    
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          43.01     
+Median TPOT (ms):                        43.13     
+P99 TPOT (ms):                           44.44     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           43.01     
+Median ITL (ms):                         43.04     
+P99 ITL (ms):                            46.24     
+==================================================
+Stopping profiler...
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ echo '-- summary.csv --'
+-- summary.csv --
++ cat /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/summary.csv
++ head -5
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+timeline4k1,bs8_in128_out128,100,74.80323111999314,1.336840648495361,171.1156030074062,342.2312060148124,322.2153135992994,343.78680500230985,376.2348241971631,43.013918450405626,43.13254748031316,44.435127850401486,43.013919366934516,43.041909993917216,46.242791805707384
++ echo '== 7. trace 产物 =='
+== 7. trace 产物 ==
++ find /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline -type f -printf '%TY-%Tm-%Td %TH:%TM %12s  %p\n'
++ sort
+2026-11-15 15:12     79767451  /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank2.1794726666691112630.pt.trace.json.gz
+2026-11-15 15:12     80396332  /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank1.1794726665838268240.pt.trace.json.gz
+2026-11-15 15:12     80421997  /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank3.1794726666460792580.pt.trace.json.gz
+2026-11-15 15:12     86532227  /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank0.1794726666779713690.pt.trace.json.gz
+2026-11-15 15:13        20652  /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_0.txt
+2026-11-15 15:13        20652  /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_1.txt
+2026-11-15 15:13        20652  /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_2.txt
+2026-11-15 15:13        20652  /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_3.txt
++ echo '-- 目录大小 --'
+-- 目录大小 --
++ du -sh /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline
+313M	/home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline
++ echo '== 8. 每个 trace 文件是否非空且像 JSON =='
+== 8. 每个 trace 文件是否非空且像 JSON ==
++ for f in "$R/timeline"/*
++ '[' -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_0.txt ']'
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_0.txt
+++ stat -c %s /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_0.txt
++ printf '%s  size=%s  head=' profiler_out_0.txt 20652
+profiler_out_0.txt  size=20652  head=+ head -c 60 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_0.txt
++ tr -d '\n'
+-------------------------------------------------------  ---+ echo
+
++ for f in "$R/timeline"/*
++ '[' -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_1.txt ']'
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_1.txt
+++ stat -c %s /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_1.txt
++ printf '%s  size=%s  head=' profiler_out_1.txt 20652
+profiler_out_1.txt  size=20652  head=+ head -c 60 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_1.txt
++ tr -d '\n'
+-------------------------------------------------------  ---+ echo
+
++ for f in "$R/timeline"/*
++ '[' -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_2.txt ']'
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_2.txt
+++ stat -c %s /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_2.txt
++ printf '%s  size=%s  head=' profiler_out_2.txt 20652
+profiler_out_2.txt  size=20652  head=+ head -c 60 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_2.txt
++ tr -d '\n'
+-------------------------------------------------------  ---+ echo
+
++ for f in "$R/timeline"/*
++ '[' -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_3.txt ']'
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_3.txt
+++ stat -c %s /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_3.txt
++ printf '%s  size=%s  head=' profiler_out_3.txt 20652
+profiler_out_3.txt  size=20652  head=+ head -c 60 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/profiler_out_3.txt
++ tr -d '\n'
+-------------------------------------------------------  ---+ echo
+
++ for f in "$R/timeline"/*
++ '[' -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank0.1794726666779713690.pt.trace.json.gz ']'
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank0.1794726666779713690.pt.trace.json.gz
+++ stat -c %s /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank0.1794726666779713690.pt.trace.json.gz
++ printf '%s  size=%s  head=' rank0.1794726666779713690.pt.trace.json.gz 86532227
+rank0.1794726666779713690.pt.trace.json.gz  size=86532227  head=+ head -c 60 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank0.1794726666779713690.pt.trace.json.gz
++ tr -d '\n'
+�[�j�rank0.1794726666779713690.pt.trace.json �]�ɑ�y�+ echo
+
++ for f in "$R/timeline"/*
++ '[' -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank1.1794726665838268240.pt.trace.json.gz ']'
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank1.1794726665838268240.pt.trace.json.gz
+++ stat -c %s /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank1.1794726665838268240.pt.trace.json.gz
++ printf '%s  size=%s  head=' rank1.1794726665838268240.pt.trace.json.gz 80396332
+rank1.1794726665838268240.pt.trace.json.gz  size=80396332  head=+ head -c 60 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank1.1794726665838268240.pt.trace.json.gz
++ tr -d '\n'
+�[�j�rank1.1794726665838268240.pt.trace.json �]�Gr�y�+ echo
+
++ for f in "$R/timeline"/*
++ '[' -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank2.1794726666691112630.pt.trace.json.gz ']'
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank2.1794726666691112630.pt.trace.json.gz
+++ stat -c %s /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank2.1794726666691112630.pt.trace.json.gz
++ printf '%s  size=%s  head=' rank2.1794726666691112630.pt.trace.json.gz 79767451
+rank2.1794726666691112630.pt.trace.json.gz  size=79767451  head=+ head -c 60 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank2.1794726666691112630.pt.trace.json.gz
++ tr -d '\n'
+�[�j�rank2.1794726666691112630.pt.trace.json �]�g�q�y?+ echo
+
++ for f in "$R/timeline"/*
++ '[' -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank3.1794726666460792580.pt.trace.json.gz ']'
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank3.1794726666460792580.pt.trace.json.gz
+++ stat -c %s /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank3.1794726666460792580.pt.trace.json.gz
++ printf '%s  size=%s  head=' rank3.1794726666460792580.pt.trace.json.gz 80421997
+rank3.1794726666460792580.pt.trace.json.gz  size=80421997  head=+ head -c 60 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank3.1794726666460792580.pt.trace.json.gz
++ tr -d '\n'
+�[�j�rank3.1794726666460792580.pt.trace.json �]��q�y?+ echo
+
++ set +x
+
+### exit: 0
