@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 真跑前的三项确认：11-14 单 case 变体改了什么、当前内核/页大小、profiler 落盘时机。
+# 补上 off 分支缺失的 PGO tcmalloc，重装并验证。
 # 纯 CPU，不启动 vllm，不动 GPU。
 set -uo pipefail
 
@@ -10,9 +10,8 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
-TOOLKIT=/home/huawei_ts_program/litehost_perf_opt
+TARGET=/home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
 CTR=corex5-py311
-PREFIX=/opt/corex311-cpython-vllm
 
 {
   echo "### server: $SERVER"
@@ -22,18 +21,21 @@ PREFIX=/opt/corex311-cpython-vllm
   set -x
 
   # ---- 命令开始 ----
-  echo "== 1. 当前内核 / 页大小 / 开机时长 =="
-  uname -r
-  getconf PAGE_SIZE
-  uptime -s 2>/dev/null || uptime
-  echo "-- 最近引导 --"
-  last -x reboot shutdown 2>/dev/null | head -10
+  echo "== 0. 安装（备份） =="
+  [ -f "$TARGET" ] && cp -a "$TARGET" "$TARGET.bak-$TS"
+  install -m 755 "$DIR/vllmBench_lite_timeline.sh" "$TARGET" || exit 1
+  sha256sum "$TARGET"
+  bash -n "$TARGET" && echo "bash -n OK"
 
-  echo "== 2. profiler 落盘时机（wrapper.py 200-320） =="
-  docker exec "$CTR" sed -n '190,320p' "$PREFIX/lib/python3.11/site-packages/vllm/profiler/wrapper.py" 2>&1
+  echo "== 1. start_server 的环境注入段 =="
+  sed -n '/^start_server() {/,/^}/p' "$TARGET" | sed -n '1,40p' | cat -n
 
-  echo "== 3. 当前装好的 timeline 脚本 =="
-  sha256sum /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
+  echo "== 2. tcmalloc 库是否可见 =="
+  docker exec "$CTR" ls -l /home/lw/gperftools/.libs/libtcmalloc.so 2>&1
+
+  echo "== 3. 容器内 dry-run =="
+  docker exec "$CTR" bash -lc "cd /tmp && HOST_DRY_RUN=1 TEST_ID=dryrun_$TS bash $TARGET"
+  echo "  (dry-run exit=$?)"
 
   # ---- 命令结束 ----
 

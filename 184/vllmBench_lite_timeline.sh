@@ -203,6 +203,11 @@ PY
             TCMALLOC_MAX_TOTAL_THREAD_CACHE_BYTES=536870912
             MALLOCSTATS=1
             LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
+    else
+        # 与 lite 分支同一份 PGO tcmalloc（全优化包的一项）；liblitehost.so 只属于 lite 测量层。
+        env_args+=(LD_PRELOAD="/home/lw/gperftools/.libs/libtcmalloc.so"
+            TCMALLOC_MAX_TOTAL_THREAD_CACHE_BYTES=536870912
+            MALLOCSTATS=1)
     fi
     "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/server.process.json" -- \
         "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}" >> "$SERVER_LOG" 2>&1 &
