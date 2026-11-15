@@ -1,0 +1,299 @@
+### server: 184
+### host:   controller
+### time:   2026-11-15T06:55:39Z
+
++ echo '== 0. 安装（备份） =='
+== 0. 安装（备份） ==
++ '[' -f /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh ']'
++ cp -a /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh.bak-20261115-145539
++ install -m 755 /home/qch/tools/remote-env/184/vllmBench_lite_timeline.sh /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
++ sha256sum /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
+60211bf20becb673c2b30146a947ec51e8efac061759c8c06ca96c91c586127c  /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
++ bash -n /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
++ echo 'bash -n OK'
+bash -n OK
++ echo '== 1. 与 11-14 脚本的完整差异 =='
+== 1. 与 11-14 脚本的完整差异 ==
++ diff -u /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
+--- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh	2026-11-14 13:10:27.290988440 +0800
++++ /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh	2026-11-15 14:55:39.118563500 +0800
+@@ -2,10 +2,20 @@
+ # Adapted from the uploaded vllmBench_lite.sh. Keep one server for all cases.
+ # Defaults retained: warmups=16, cache OFF, CPUs 192-255 (NUMA node 3), backend=vllm.
+ # Requires the matching files in this slim folder (included in the ZIP).
++#
++# 本文件 = /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh (2026-11-14 13:10)
++# 逐行复制，只加 torch profiler 相关行，其余服务参数、环境、bench 参数完全一致。
++#
++# 为什么必须 HOST_MEASURE=off：lite 测量层与 torch profiler 互斥——
++#   bench_driver.py:67      `if bind.arguments.get('profile'): raise ValueError('Torch profiler must be disabled')`
++#   light_host_worker.py:12 `if getattr(self,'profiler',None): raise RuntimeError('Disable Torch Profiler for Lite measurement')`
++# 所以 4K/64K 的 trace 只能用默认 worker + vllm bench serve --profile 采集：
++# 模型、vLLM 启动参数、SERVER_EXTRA_ENV、case、prompts、warmups、并发、seed 全部与 lite 脚本相同，
++# 唯一区别是测量层（litehost 拦截 vs torch profiler）。
+ set -uo pipefail
+ 
+ MODEL_PATH="${MODEL_PATH:-/home/model/Qwen3-32B-W8A8}"
+-TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
++TEST_ID="${TEST_ID:-"timeline_$(date +%Y%m%d_%H%M%S)"}"
+ PREFIX="${PREFIX:-/opt/corex311-cpython-vllm}"
+ PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+ GPU_LIST="${GPU_LIST:-0,1,2,3}"
+@@ -16,11 +26,18 @@
+ MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+ CASE_INTERVAL="${CASE_INTERVAL:-60}"
+ CPU_RANGE="${CPU_RANGE-80-159,240-319}"
+-HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
++HOST_MEASURE="${HOST_MEASURE:-off}"         # 本脚本要求 off；lite 与 torch profiler 互斥
+ HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
+ HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
+ HOST_MAX_SCOPES="${HOST_MAX_SCOPES:-200000}"
+ HOST_DRY_RUN="${HOST_DRY_RUN:-0}"
++PROFILE="${PROFILE:-1}"                     # 1=开 torch profiler 出 trace
++PROFILE_DELAY_ITERATIONS="${PROFILE_DELAY_ITERATIONS:-0}"
++PROFILE_MAX_ITERATIONS="${PROFILE_MAX_ITERATIONS:-0}"
++PROFILE_WARMUP_ITERATIONS="${PROFILE_WARMUP_ITERATIONS:-0}"
++PROFILE_ACTIVE_ITERATIONS="${PROFILE_ACTIVE_ITERATIONS:-2000}"
++PROFILE_FLUSH_TIMEOUT="${PROFILE_FLUSH_TIMEOUT:-300}"
++VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
+ SERVER_EXTRA_ENV=(
+     UMD_MAXCOMMANDBUFFERNUMBER=256
+     UMD_MAXCOMMANDBUFFERSIZE=16384
+@@ -36,12 +53,19 @@
+ # Do not use an inherited OLD LIGHTHOST_HOME silently.
+ if [[ -f "$SCRIPT_DIR/lhctl.py" ]]; then
+     HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR}"
+-else
++elif [[ -f "$SCRIPT_DIR/litehost_compat_slim/lhctl.py" ]]; then
+     HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR/litehost_compat_slim}"
++else
++    HOST_TOOLKIT="${HOST_TOOLKIT:-/home/huawei_ts_program/litehost_perf_opt}"
+ fi
+-HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 解压完整 litehost_compat_slim_v041.zip 或设置 HOST_TOOLKIT' >&2; exit 2; }
++HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 设置 HOST_TOOLKIT 或解压完整 litehost_compat_slim_v041.zip' >&2; exit 2; }
+ [[ -x "$PYTHON_BIN" && -f "$HOST_TOOLKIT/lhctl.py" ]] || { echo 'ERROR: Python 或配套文件缺失' >&2; exit 2; }
+ [[ "$HOST_MEASURE" == lite || "$HOST_MEASURE" == off ]] || { echo 'ERROR: HOST_MEASURE=lite|off' >&2; exit 2; }
++[[ "$PROFILE" == 0 || "$PROFILE" == 1 ]] || { echo 'ERROR: PROFILE=0|1' >&2; exit 2; }
++if [[ "$PROFILE" == 1 && "$HOST_MEASURE" != off ]]; then
++    echo 'ERROR: lite 测量层与 torch profiler 互斥（bench_driver.py 与 LightHostWorker 都会拒绝）；PROFILE=1 时必须 HOST_MEASURE=off' >&2
++    exit 2
++fi
+ [[ "$GPUS_PER_INSTANCE" == 4 ]] || { echo 'ERROR: 此版要求四卡 TP=4, PP=1, DP=1' >&2; exit 2; }
+ [[ "$TEST_ID" =~ ^[A-Za-z0-9_.-]+$ && "$TEST_ID" != . && "$TEST_ID" != .. ]] || { echo 'ERROR: TEST_ID 不能包含路径分隔符' >&2; exit 2; }
+ 
+@@ -52,6 +76,7 @@
+ SUMMARY_CSV="${RUN_DIR}/summary.csv"
+ SESSION_FILE="${RUN_DIR}/session.json"
+ PID_FILE="${RUN_DIR}/server.pid"
++PROFILE_DIR="${RUN_DIR}/timeline"
+ SERVER_PID=""; BENCH_PID=""; CLEANED=0; INIT_DONE=0
+ 
+ # Original case matrix: only 128/128 enabled; uncomment the others as before.
+@@ -86,6 +111,16 @@
+     --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "compact_greedy":true, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}'
+     --async-scheduling --no-enable-prefix-caching
+ )
++# torch_profiler_dir 必须是绝对路径（vLLM 以 server 进程 cwd 解析相对路径）。
++PROFILER_CONFIG_JSON=''
++if [[ "$PROFILE" == 1 ]]; then
++    PROFILER_CONFIG_JSON=$(cat <<EOF
++{"profiler":"torch","torch_profiler_dir":"${PROFILE_DIR}","delay_iterations":${PROFILE_DELAY_ITERATIONS},"max_iterations":${PROFILE_MAX_ITERATIONS},"warmup_iterations":${PROFILE_WARMUP_ITERATIONS},"active_iterations":${PROFILE_ACTIVE_ITERATIONS},"ignore_frontend":true}
++EOF
++)
++    PROFILER_CONFIG_JSON="$(echo "$PROFILER_CONFIG_JSON" | tr -d '\n')"
++    SERVER_ARGS+=(--profiler-config "$PROFILER_CONFIG_JSON")
++fi
+ [[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
+ 
+ cleanup() {
+@@ -98,8 +133,24 @@
+     fi
+     if [[ -n "$SERVER_PID" ]]; then
+         log "停止本次服务 PID=$SERVER_PID（不使用全局 pkill）"
+-        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
+-        wait "$SERVER_PID" 2>/dev/null || true
++        if [[ "$PROFILE" == 1 ]]; then
++            # torch profiler 在停服时落盘；procutil.py stop 只等 10s 就 SIGKILL，这里给足时间。
++            kill -TERM -- -"$SERVER_PID" 2>/dev/null || true
++            local_i=0
++            while (( local_i < PROFILE_FLUSH_TIMEOUT / 3 )); do
++                kill -0 "$SERVER_PID" 2>/dev/null || break
++                sleep 3; local_i=$((local_i+1))
++            done
++            if kill -0 "$SERVER_PID" 2>/dev/null; then
++                log "WARNING: ${PROFILE_FLUSH_TIMEOUT}s 内未退出，SIGKILL"
++                kill -KILL -- -"$SERVER_PID" 2>/dev/null || true
++            fi
++            wait "$SERVER_PID" 2>/dev/null || true
++            "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
++        else
++            "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
++            wait "$SERVER_PID" 2>/dev/null || true
++        fi
+         SERVER_PID=""; rm -f -- "$PID_FILE"
+     fi
+     if [[ "$INIT_DONE" == 1 ]]; then
+@@ -145,6 +196,7 @@
+     check_gpu_memory "$GPU_LIST"
+     local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1
+         "${SERVER_EXTRA_ENV[@]}")
++    [[ "$PROFILE" == 1 ]] && env_args+=(VLLM_RPC_TIMEOUT="$VLLM_RPC_TIMEOUT")
+     if [[ "$HOST_MEASURE" == lite ]]; then
+         env_args+=(PYTHONPATH="$HOST_TOOLKIT"
+             LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/lw/gperftools/.libs/libtcmalloc.so"
+@@ -156,14 +208,22 @@
+         "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}" >> "$SERVER_LOG" 2>&1 &
+     SERVER_PID=$!; echo "$SERVER_PID" > "$PID_FILE"
+     log "服务 PID=$SERVER_PID；所有 case 复用；日志=$SERVER_LOG"
+-    wait_for_server
++    wait_for_server || return 1
++    if [[ "$PROFILE" == 1 ]]; then
++        if grep -qE "Profiler with mode|Torch profiling enabled" "$SERVER_LOG" 2>/dev/null; then
++            log "profiler 已生效：$PROFILER_CONFIG_JSON"
++        else
++            log "WARNING: server.log 里没找到 profiler 关键字，确认 --profiler-config 已生效"
++        fi
++    fi
++    return 0
+ }
+ run_case() {
+     local input_len="$1" output_len="$2"
+     local case_id="bs${MAX_CONCURRENCY}_in${input_len}_out${output_len}"
+     local case_log="${LOG_DIR}/bench_${case_id}.log" case_dir="${RUN_DIR}/litehost/${case_id}"
+-    local -a client env_args
+-    env_args=()
++    local -a client env_args profile_args
++    env_args=(); profile_args=()
+     if [[ "$HOST_MEASURE" == lite ]]; then
+         "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" prepare --session "$SESSION_FILE" \
+             --case-id "$case_id" --num-prompts "$NUM_PROMPTS" --input-len "$input_len" --output-len "$output_len" || return 1
+@@ -171,8 +231,9 @@
+         env_args=(LIGHTHOST_SESSION="$SESSION_FILE" LIGHTHOST_CASE_DIR="$case_dir")
+     else
+         client=(-m vllm.entrypoints.cli.main bench serve)
++        [[ "$PROFILE" == 1 ]] && profile_args=(--profile)
+     fi
+-    log "==== $case_id | mode=$HOST_MEASURE | warmup=$NUM_WARMUPS | 同一服务 ===="
++    log "==== $case_id | mode=$HOST_MEASURE | profile=$PROFILE | warmup=$NUM_WARMUPS | 同一服务 ===="
+     "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/bench.process.json" -- \
+         "$PYTHON_BIN" "${client[@]}" \
+         --backend vllm \
+@@ -180,6 +241,7 @@
+         --dataset_name random --random_input_len "$input_len" --random_output_len "$output_len" \
+         --host 127.0.0.1 --port "$PORT" --model "$MODEL_PATH" --trust_remote_code \
+         --ignore_eos --top_p 1 --top_k -1 --temperature 0 --seed 42 \
++        "${profile_args[@]}" \
+         --save-result --result-dir "$RUN_DIR" --result_filename "${case_id}.json" > "$case_log" 2>&1 &
+     BENCH_PID=$!
+     local rc=0
+@@ -205,7 +267,7 @@
+     parts=x.split()
+     if len(parts)!=2 or min(map(int,parts))<=0 or sum(map(int,parts))>4096:raise ValueError('case 需要两个正整数且总长 <= 4096')
+ PY
+-log "TEST_ID=$TEST_ID | MODE=$HOST_MEASURE | WARMUP=$NUM_WARMUPS | CPU_RANGE=$CPU_RANGE"
++log "TEST_ID=$TEST_ID | MODE=$HOST_MEASURE | PROFILE=$PROFILE | WARMUP=$NUM_WARMUPS | CPU_RANGE=$CPU_RANGE"
+ log "prefix cache=OFF | backend=vllm | 同一服务运行 ${#CASES[@]} 个 case | RUN_DIR=$RUN_DIR"
+ if [[ "$HOST_DRY_RUN" == 1 ]]; then
+     printf 'SERVER: '; printf '%q ' "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}"; printf '\n'
+@@ -215,6 +277,7 @@
+ [[ -d "$MODEL_PATH" ]] || { log 'ERROR: MODEL_PATH 不是本地目录'; exit 2; }
+ if [[ -e "$RUN_DIR" ]]; then log 'ERROR: RUN_DIR 已存在，请换一个 TEST_ID，避免混入旧文件'; exit 2; fi
+ mkdir -p "$LOG_DIR"
++[[ "$PROFILE" == 1 ]] && mkdir -p "$PROFILE_DIR"
+ {
+     echo "test_id=$TEST_ID"
+     echo "started=$(date -Is)"
+@@ -225,6 +288,7 @@
+     echo "model_path=$MODEL_PATH"
+     echo "gpus=$GPU_LIST tp=$GPUS_PER_INSTANCE"
+     echo "prompts=$NUM_PROMPTS concurrency=$MAX_CONCURRENCY warmups=$NUM_WARMUPS"
++    echo "host_measure=$HOST_MEASURE profile=$PROFILE profile_dir=$PROFILE_DIR"
+ } > "$RUN_DIR/config.txt" 2>/dev/null || true
+ if [[ "$HOST_MEASURE" == lite ]]; then
+     "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" init --run-dir "$RUN_DIR" \
+@@ -252,6 +316,19 @@
+         --link-percent "$HOST_LINK_PERCENT" --out "$RUN_DIR/host_summary" --quiet || FAILED=1
+ fi
+ cleanup
++# profiler 可能在停服时才落盘（timeline_opt.sh 里 flush 要几分钟），停服后最多等 180s。
++if [[ "$PROFILE" == 1 && "$FAILED" == 0 ]]; then
++    local_i=0
++    while (( local_i < 60 )); do
++        if find "$PROFILE_DIR" -type f \( -name '*.json' -o -name '*.json.gz' \) 2>/dev/null | grep -q .; then break; fi
++        sleep 3; local_i=$((local_i+1))
++    done
++    if find "$PROFILE_DIR" -type f \( -name '*.json' -o -name '*.json.gz' \) 2>/dev/null | grep -q .; then
++        log "trace 已产出：$(find "$PROFILE_DIR" -type f | wc -l) 个文件"
++    else
++        log "ERROR: 等待 180s 后 $PROFILE_DIR 仍无 trace 文件，检查 --profiler-config 与 bench --profile"; FAILED=1
++    fi
++fi
+ (( FAILED == 0 )) || { log "部分失败，保留诊断：$RUN_DIR"; exit 2; }
+ 
+ log "========== 所有 case 最终结果（仅此处打印一次） =========="
+@@ -279,4 +356,9 @@
+     echo '===== LiteHost：四 rank、所有 case 的 H 与 H+G ====='
+     cat "$RUN_DIR/host_summary/report.txt"
+ fi
++if [[ "$PROFILE" == 1 ]]; then
++    echo '===== Timeline 产物 ====='
++    find "$PROFILE_DIR" -type f 2>/dev/null | head -50
++    echo "Timeline 目录(Perfetto JSON): $PROFILE_DIR"
++fi
+ log "全部完成 | benchmark=$SUMMARY_CSV | host=$([[ "$HOST_MEASURE" == lite ]] && echo "$RUN_DIR/host_summary/report.txt" || echo 'OFF/未采集')"
++ echo '  (diff exit=1)'
+  (diff exit=1)
++ echo '== 2. 停服逻辑（cleanup 段） =='
+== 2. 停服逻辑（cleanup 段） ==
++ sed -n '/^cleanup() {/,/^}/p' /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
++ cat -n
+     1	cleanup() {
+     2	    if [[ "$CLEANED" == 1 ]]; then return; fi
+     3	    CLEANED=1
+     4	    if [[ -n "$BENCH_PID" ]]; then
+     5	        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/bench.process.json" || true
+     6	        wait "$BENCH_PID" 2>/dev/null || true
+     7	        BENCH_PID=""
+     8	    fi
+     9	    if [[ -n "$SERVER_PID" ]]; then
+    10	        log "停止本次服务 PID=$SERVER_PID（不使用全局 pkill）"
+    11	        if [[ "$PROFILE" == 1 ]]; then
+    12	            # torch profiler 在停服时落盘；procutil.py stop 只等 10s 就 SIGKILL，这里给足时间。
+    13	            kill -TERM -- -"$SERVER_PID" 2>/dev/null || true
+    14	            local_i=0
+    15	            while (( local_i < PROFILE_FLUSH_TIMEOUT / 3 )); do
+    16	                kill -0 "$SERVER_PID" 2>/dev/null || break
+    17	                sleep 3; local_i=$((local_i+1))
+    18	            done
+    19	            if kill -0 "$SERVER_PID" 2>/dev/null; then
+    20	                log "WARNING: ${PROFILE_FLUSH_TIMEOUT}s 内未退出，SIGKILL"
+    21	                kill -KILL -- -"$SERVER_PID" 2>/dev/null || true
+    22	            fi
+    23	            wait "$SERVER_PID" 2>/dev/null || true
+    24	            "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
+    25	        else
+    26	            "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
+    27	            wait "$SERVER_PID" 2>/dev/null || true
+    28	        fi
+    29	        SERVER_PID=""; rm -f -- "$PID_FILE"
+    30	    fi
+    31	    if [[ "$INIT_DONE" == 1 ]]; then
+    32	        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" cleanup-control --session "$SESSION_FILE" || true
+    33	    fi
+    34	}
++ echo '== 3. PREFIX 可见性 =='
+== 3. PREFIX 可见性 ==
++ ls -ld /opt/corex311-cpython-vllm
+ls: cannot access '/opt/corex311-cpython-vllm': No such file or directory
++ ls -l /opt/corex311-cpython-vllm/bin/python3
+ls: cannot access '/opt/corex311-cpython-vllm/bin/python3': No such file or directory
++ echo '== 4. dry-run（venv 不可见时跳过，需在容器内执行） =='
+== 4. dry-run（venv 不可见时跳过，需在容器内执行） ==
++ '[' -x /opt/corex311-cpython-vllm/bin/python3 ']'
++ echo '  SKIP: /opt/corex311-cpython-vllm/bin/python3 不可执行；请在容器内跑:'
+  SKIP: /opt/corex311-cpython-vllm/bin/python3 不可执行；请在容器内跑:
++ echo '        cd /tmp && HOST_DRY_RUN=1 TEST_ID=dryrun_20261115-145539 bash /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh'
+        cd /tmp && HOST_DRY_RUN=1 TEST_ID=dryrun_20261115-145539 bash /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
++ set +x
+
+### exit: 0
