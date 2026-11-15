@@ -1,0 +1,104 @@
+### server: 184
+### host:   controller
+### time:   2026-11-15T06:57:06Z
+
++ echo '== 0. 容器运行时 =='
+== 0. 容器运行时 ==
++ RT=
++ for c in docker podman nerdctl
++ command -v docker
++ RT=docker
++ break
++ echo 'runtime: docker'
+runtime: docker
++ '[' -n docker ']'
++ docker ps --format '{{.Names}}'
++ head -20
+corex5-py311
+supabase_db_agentpress
+supabase_studio_agentpress
+supabase_pg_meta_agentpress
+supabase_imgproxy_agentpress
+supabase_storage_agentpress
+supabase_rest_agentpress
+supabase_realtime_agentpress
+supabase_inbucket_agentpress
+supabase_auth_agentpress
+supabase_kong_agentpress
+supabase_vector_agentpress
+supabase_analytics_agentpress
++ echo '== 1. 容器内 dry-run =='
+== 1. 容器内 dry-run ==
++ '[' -n docker ']'
++ docker ps --format '{{.Names}}'
++ grep -qx corex5-py311
++ docker exec corex5-py311 bash -lc 'cd /tmp && HOST_DRY_RUN=1 TEST_ID=dryrun_20261115-145706 bash /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh'
+[2026-11-15 14:57:06] PREFIX=/opt/corex311-cpython-vllm
+[2026-11-15 14:57:06] TEST_ID=dryrun_20261115-145706 | MODE=off | PROFILE=1 | WARMUP=16 | CPU_RANGE=80-159,240-319
+[2026-11-15 14:57:06] prefix cache=OFF | backend=vllm | 同一服务运行 9 个 case | RUN_DIR=/tmp/vllmBench/dryrun_20261115-145706
+SERVER: taskset -c 80-159\,240-319 /opt/corex311-cpython-vllm/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8848 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --dtype auto --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1 --tensor_parallel_size 4 --data_parallel_size 1 --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto --enable_chunked_prefill --compilation-config \{\"cudagraph_mode\":\"FULL_DECODE_ONLY\"\,\ \"mode\":0\,\ \"compact_greedy\":true\,\ \"sample_logits_cudagraph\":\"on\"\,\ \"sample_logits_cudagraph_max_bytes\":67108864\,\ \"sample_logits_cudagraph_capture_sizes\":\[1\,2\,3\,4\,5\,6\,7\,8\]\} --async-scheduling --no-enable-prefix-caching --profiler-config \{\"profiler\":\"torch\"\,\"torch_profiler_dir\":\"/tmp/vllmBench/dryrun_20261115-145706/timeline\"\,\"delay_iterations\":0\,\"max_iterations\":0\,\"warmup_iterations\":0\,\"active_iterations\":2000\,\"ignore_frontend\":true\} 
+CASES: 128 128; 128 1024; 128 2048; 1024 128; 1024 1024; 1024 2048; 2048 128; 2048 1024; 2048 2048; 
++ echo '  (dry-run exit=0)'
+  (dry-run exit=0)
++ echo '== 2. 容器内 vLLM 版本与 profiler 实现 =='
+== 2. 容器内 vLLM 版本与 profiler 实现 ==
++ '[' -n docker ']'
++ docker ps --format '{{.Names}}'
++ grep -qx corex5-py311
++ docker exec corex5-py311 bash -lc '
+      V=$(env -u PYTHONPATH -u PYTHONHOME /opt/corex311-cpython-vllm/bin/python3 -c "import os,vllm;print(vllm.__version__);print(os.path.dirname(vllm.__file__))" 2>&1)
+      echo "$V"
+      D=$(echo "$V" | tail -1)
+      if [ -d "$D" ]; then
+        echo "-- ignore_frontend 出现位置 --"
+        grep -rn "ignore_frontend" "$D" --include="*.py" 2>/dev/null | head -10
+        echo "-- delay/warmup/active/max_iterations --"
+        grep -rn "delay_iterations\|warmup_iterations\|active_iterations\|max_iterations" "$D" --include="*.py" 2>/dev/null | head -20
+        echo "-- profiler 文件 --"
+        ls -l "$D/profiler" 2>/dev/null
+      fi
+    '
+0.23.0
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm
+-- ignore_frontend 出现位置 --
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/profiler.py:69:    ignore_frontend: bool = False
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/profiler.py:128:        if self.profiler == "torch" and has_delay_or_limit and not self.ignore_frontend:
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/profiler.py:131:                "while ignore_frontend is False may result in high overhead."
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/engine/async_llm.py:180:            and not vllm_config.profiler_config.ignore_frontend
+-- delay/warmup/active/max_iterations --
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/profiler.py:76:    delay_iterations: int = Field(default=0, ge=0)
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/profiler.py:81:    max_iterations: int = Field(default=0, ge=0)
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/profiler.py:86:    warmup_iterations: int = Field(default=0, ge=0)
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/profiler.py:94:    active_iterations: int = Field(default=5, ge=1)
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/profiler.py:127:        has_delay_or_limit = self.delay_iterations > 0 or self.max_iterations > 0
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/config/profiler.py:130:                "Using 'torch' profiler with delay_iterations or max_iterations "
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/profiler/wrapper.py:21:        self._delay_iters = profiler_config.delay_iterations
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/profiler/wrapper.py:28:        self._max_iters = profiler_config.max_iterations
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/profiler/wrapper.py:202:        if profiler_config.warmup_iterations > 0 or profiler_config.wait_iterations > 0:
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/profiler/wrapper.py:206:                warmup=profiler_config.warmup_iterations,
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/profiler/wrapper.py:207:                active=profiler_config.active_iterations,
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/profiler/wrapper.py:214:                    profiler_config.warmup_iterations,
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/profiler/wrapper.py:215:                    profiler_config.active_iterations,
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/profiler/wrapper.py:230:        self._warmup_iterations = profiler_config.warmup_iterations
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/profiler/wrapper.py:235:            profiler_config.wait_iterations + profiler_config.warmup_iterations - 1,
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/profiler/wrapper.py:299:            # Track warmup steps - only count active steps toward max_iterations
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/model_executor/warmup/deep_gemm_warmup.py:336:def _count_warmup_iterations(model: torch.nn.Module, max_tokens: int) -> int:
+/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/model_executor/warmup/deep_gemm_warmup.py:366:    total = _count_warmup_iterations(model, max_tokens)
+-- profiler 文件 --
+total 40
+-rw-r--r--. 1 root root     0 Nov  9 09:09 __init__.py
+-rw-r--r--. 1 root root 14065 Nov  9 09:09 layerwise_profile.py
+drwxr-xr-x. 2 root root  4096 Nov 11 09:04 __pycache__
+-rw-r--r--. 1 root root  4711 Nov  9 09:09 utils.py
+-rw-r--r--. 1 root root 11707 Nov  9 09:09 wrapper.py
++ echo '== 3. GPU 占用（决定何时能真跑） =='
+== 3. GPU 占用（决定何时能真跑） ==
++ command -v ixsmi
++ ixsmi --query-gpu=index,memory.used,memory.total,utilization.gpu --format=csv,noheader
+0, 66 MiB, 32768 MiB, 0 %
+1, 66 MiB, 32768 MiB, 0 %
+2, 66 MiB, 32768 MiB, 0 %
+3, 66 MiB, 32768 MiB, 0 %
++ set +x
+
+### exit: 0
