@@ -22,10 +22,6 @@ PREFIX=/opt/corex311-cpython-vllm
   set -x
 
   # ---- 命令开始 ----
-  echo "== 0. 11-14 单 case 变体的差异 =="
-  diff -u "$TOOLKIT/vllmBench_lite_opt.sh" "$TOOLKIT/vllmBench_lite_opt_128_128.sh"
-  echo "  (diff exit=$?)"
-
   echo "== 1. 当前内核 / 页大小 / 开机时长 =="
   uname -r
   getconf PAGE_SIZE
@@ -38,7 +34,6 @@ PREFIX=/opt/corex311-cpython-vllm
 
   echo "== 3. 当前装好的 timeline 脚本 =="
   sha256sum /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
-  grep -n "CASES=\|CASES_FILE" /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh | head
 
   # ---- 命令结束 ----
 
