@@ -50,26 +50,6 @@ TOOLKIT=/home/huawei_ts_program/litehost_perf_opt
   ls -ld /home/qch/scripts/litehost_perf "$TOOLKIT"
   ls -l /home/qch/scripts/litehost_perf/lhctl.py "$TOOLKIT/lhctl.py" 2>&1
 
-  echo "== 6. 旧 timeline 脚本是否跑过：产物与历史 =="
-  echo "-- 6a. timeline 目录（旧脚本产物根：<cwd>/timeline/<TEST_ID>） --"
-  find /home /root /opt -maxdepth 6 -type d -name timeline 2>/dev/null | head -50
-  echo "-- 6b. profile 目录 --"
-  find /home /root /opt -maxdepth 8 -type d -name profile 2>/dev/null | head -50
-  echo "-- 6c. trace 文件（按时间） --"
-  find /home /root /opt -maxdepth 10 -type f \( -name '*.pt.trace.json*' -o -name '*trace*.json*' -o -name '*.json.gz' \) \
-    -printf '%TY-%Tm-%Td %TH:%TM %10s  %p\n' 2>/dev/null | sort | tail -60
-  echo "-- 6d. 旧脚本残留的 server.log / bench 日志 --"
-  find /home /root /opt -maxdepth 10 -path '*/timeline/*' -type f \
-    \( -name 'server.log' -o -name 'bench_*.log' \) \
-    -printf '%TY-%Tm-%Td %TH:%TM %10s  %p\n' 2>/dev/null | sort | tail -30
-  echo "-- 6e. shell 历史里的调用 --"
-  for h in /home/*/.bash_history /root/.bash_history; do
-    [ -f "$h" ] || continue
-    n=$(grep -c 'vllmBench_lite_timeline' "$h" 2>/dev/null || true)
-    printf '  %-40s timeline_calls=%s\n' "$h" "${n:-0}"
-    grep -n 'vllmBench_lite_timeline\|TEST_ID=' "$h" 2>/dev/null | tail -10
-  done
-
   # ---- 命令结束 ----
 
   set +x
