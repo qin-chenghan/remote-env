@@ -1,0 +1,692 @@
+### server: 184
+### host:   controller
+### time:   2026-11-15T08:09:17Z
+
++ echo '== 0. 当前内核 / 页大小 / 引导表 =='
+== 0. 当前内核 / 页大小 / 引导表 ==
++ uname -r
+6.6.0-159.4.21.175.oe2403sp4.aarch64
++ getconf PAGE_SIZE
+4096
++ uptime -s
+2026-11-15 15:49:44
++ echo '-- 最近引导（run 的 started 对照这里找内核版本）--'
+-- 最近引导（run 的 started 对照这里找内核版本）--
++ last -x reboot shutdown
++ head -20
+reboot   system boot  6.6.0-159.4.21.1 Sun Nov 15 15:49   still running
+shutdown system down  6.6.0-159.4.3.15 Sun Nov 15 15:48 - 15:49  (00:01)
+reboot   system boot  6.6.0-159.4.3.15 Sun Nov 15 15:34 - 15:48  (00:13)
+shutdown system down  6.6.0-159.4.21.1 Sun Nov 15 15:31 - 15:34  (00:02)
+reboot   system boot  6.6.0-159.4.21.1 Sat Nov 14 16:09 - 15:31  (23:22)
+shutdown system down  6.6.0-159.4.3.15 Sat Nov 14 16:07 - 16:09  (00:01)
+reboot   system boot  6.6.0-159.4.3.15 Sat Nov 14 16:00 - 16:07  (00:07)
+shutdown system down  6.6.0-159.4.21.1 Sat Nov 14 15:57 - 16:00  (00:02)
+reboot   system boot  6.6.0-159.4.21.1 Sat Nov 14 13:40 - 15:57  (02:16)
+shutdown system down  6.6.0-159.4.3.15 Sat Nov 14 13:38 - 13:40  (00:01)
+reboot   system boot  6.6.0-159.4.3.15 Sat Nov 14 13:26 - 13:38  (00:12)
+shutdown system down  6.6.0-159.4.21.1 Sat Nov 14 13:24 - 13:26  (00:01)
+reboot   system boot  6.6.0-159.4.21.1 Sat Nov 14 13:19 - 13:24  (00:04)
+shutdown system down  6.6.0-159.4.21.1 Sat Nov 14 13:16 - 13:19  (00:02)
+reboot   system boot  6.6.0-159.4.21.1 Sat Nov 14 08:56 - 13:16  (04:20)
+shutdown system down  6.6.0-159.4.3.15 Sat Nov 14 08:54 - 08:56  (00:02)
+reboot   system boot  6.6.0-159.4.3.15 Fri Nov 13 16:46 - 08:54  (16:07)
+shutdown system down  6.6.0-159.4.21.1 Fri Nov 13 16:44 - 16:46  (00:02)
+reboot   system boot  6.6.0-159.4.21.1 Fri Nov 13 09:33 - 16:44  (07:11)
+shutdown system down  6.6.0-145.3.37.1 Fri Nov 13 09:29 - 09:33  (00:03)
++ echo '== 1. timeline* run 清单 =='
+== 1. timeline* run 清单 ==
++ RUNS=()
++ IFS=
++ read -r d
+++ ls -dt /home/qch/scripts/litehost_perf/vllmBench/base/ /home/qch/scripts/litehost_perf/vllmBench/before_reboot/ /home/qch/scripts/litehost_perf/vllmBench/opt/ /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/ /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/ /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/ /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/
++ RUNS+=("${d%/}")
++ IFS=
++ read -r d
++ RUNS+=("${d%/}")
++ IFS=
++ read -r d
++ RUNS+=("${d%/}")
++ IFS=
++ read -r d
++ RUNS+=("${d%/}")
++ IFS=
++ read -r d
++ RUNS+=("${d%/}")
++ IFS=
++ read -r d
++ RUNS+=("${d%/}")
++ IFS=
++ read -r d
++ RUNS+=("${d%/}")
++ IFS=
++ read -r d
++ echo '共 7 个目录'
+共 7 个目录
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/config.txt ]]
++ grep -q profile=1 /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/config.txt
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k2
++ echo '-- timeline4k2 --'
+-- timeline4k2 --
++ cat /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/config.txt
+test_id=timeline4k2
+started=2026-11-15T15:52:09+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+host_measure=off profile=1 profile_dir=/home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline
++ grep -oE ''\''enable_prefix_caching'\'': [A-Za-z]+|'\''compact_greedy'\'': [A-Za-z]+|'\''sample_logits_cudagraph_scope'\'': '\''[a-z_]+'\''' /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/logs/server.log
++ sort -u
+'compact_greedy': True
+'enable_prefix_caching': False
+'sample_logits_cudagraph_scope': 'decode'
++ grep -oE 'Profiler with mode '\''[a-z]+'\''|Torch profiling enabled' /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/logs/server.log
++ sort -u
+Profiler with mode 'torch'
+Torch profiling enabled
+++ grep -cE 'Traceback|ERROR' /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/logs/server.log
+++ echo NA
+++ grep -c 'Tcmalloc page size' /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/logs/server.log
++ echo 'errors=0
+NA tcmalloc_blocks=2'
+errors=0
+NA tcmalloc_blocks=2
+++ grep -oE 'torch_profiler_dir='\''[^'\'']+'\''' /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/logs/server.log
+++ head -1
++ echo 'profiler_dir: torch_profiler_dir='\''/home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline'\'''
+profiler_dir: torch_profiler_dir='/home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline'
++ echo '-- trace 文件 --'
+-- trace 文件 --
++ find /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline -maxdepth 1 -name 'rank*.gz' -printf '%TY-%Tm-%Td %TH:%TM %10s %f\n'
++ sort
+2026-11-15 15:56   73717456 rank3.1794729303854449330.pt.trace.json.gz
+2026-11-15 15:56   73937129 rank1.1794729304119974030.pt.trace.json.gz
+2026-11-15 15:56   74374207 rank2.1794729303008129540.pt.trace.json.gz
+2026-11-15 15:56   82223391 rank0.1794729305092258220.pt.trace.json.gz
++ echo '-- summary.csv --'
+-- summary.csv --
++ head -5 /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+timeline4k2,bs8_in128_out128,100,74.42024624000001,1.343720359074157,171.9962059614921,343.9924119229842,341.8720217000012,366.6082299999971,382.52514150000735,42.67899703937004,42.810615196850314,44.16771689606305,42.67899796929132,42.67753000002017,46.193000599960214
++ echo
+
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/config.txt ]]
++ grep -q profile=1 /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/config.txt
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k2
++ echo '-- timeline64k2 --'
+-- timeline64k2 --
++ cat /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/config.txt
+test_id=timeline64k2
+started=2026-11-15T15:41:08+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+host_measure=off profile=1 profile_dir=/home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline
++ grep -oE ''\''enable_prefix_caching'\'': [A-Za-z]+|'\''compact_greedy'\'': [A-Za-z]+|'\''sample_logits_cudagraph_scope'\'': '\''[a-z_]+'\''' /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/logs/server.log
++ sort -u
+'compact_greedy': True
+'enable_prefix_caching': False
+'sample_logits_cudagraph_scope': 'decode'
++ grep -oE 'Profiler with mode '\''[a-z]+'\''|Torch profiling enabled' /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/logs/server.log
++ sort -u
+Profiler with mode 'torch'
+Torch profiling enabled
+++ grep -cE 'Traceback|ERROR' /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/logs/server.log
+++ echo NA
+++ grep -c 'Tcmalloc page size' /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/logs/server.log
++ echo 'errors=0
+NA tcmalloc_blocks=2'
+errors=0
+NA tcmalloc_blocks=2
+++ grep -oE 'torch_profiler_dir='\''[^'\'']+'\''' /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/logs/server.log
+++ head -1
++ echo 'profiler_dir: torch_profiler_dir='\''/home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline'\'''
+profiler_dir: torch_profiler_dir='/home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline'
++ echo '-- trace 文件 --'
+-- trace 文件 --
++ find /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline -maxdepth 1 -name 'rank*.gz' -printf '%TY-%Tm-%Td %TH:%TM %10s %f\n'
++ sort
+2026-11-15 15:45   75496962 rank1.1794728624148380680.pt.trace.json.gz
+2026-11-15 15:45   75752883 rank3.1794728624240474120.pt.trace.json.gz
+2026-11-15 15:45   75797484 rank2.1794728624561409140.pt.trace.json.gz
+2026-11-15 15:45   83271413 rank0.1794728625069608660.pt.trace.json.gz
++ echo '-- summary.csv --'
+-- summary.csv --
++ head -5 /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+timeline64k2,bs8_in128_out128,100,72.81249930999996,1.373390570954706,175.79399308220238,351.58798616440475,328.72701529999347,347.1209649999878,366.66181350000613,41.783927300000016,41.87281574803144,43.26057567716568,41.78392830314964,41.572269999988976,48.26547100004632
++ echo
+
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/config.txt ]]
++ grep -q profile=1 /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/config.txt
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k1
++ echo '-- timeline64k1 --'
+-- timeline64k1 --
++ cat /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/config.txt
+test_id=timeline64k1
+started=2026-11-15T15:35:53+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+host_measure=off profile=1 profile_dir=/home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline
++ grep -oE ''\''enable_prefix_caching'\'': [A-Za-z]+|'\''compact_greedy'\'': [A-Za-z]+|'\''sample_logits_cudagraph_scope'\'': '\''[a-z_]+'\''' /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/logs/server.log
++ sort -u
+'compact_greedy': True
+'enable_prefix_caching': False
+'sample_logits_cudagraph_scope': 'decode'
++ grep -oE 'Profiler with mode '\''[a-z]+'\''|Torch profiling enabled' /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/logs/server.log
++ sort -u
+Profiler with mode 'torch'
+Torch profiling enabled
+++ grep -cE 'Traceback|ERROR' /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/logs/server.log
+++ echo NA
+++ grep -c 'Tcmalloc page size' /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/logs/server.log
++ echo 'errors=0
+NA tcmalloc_blocks=2'
+errors=0
+NA tcmalloc_blocks=2
+++ grep -oE 'torch_profiler_dir='\''[^'\'']+'\''' /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/logs/server.log
+++ head -1
++ echo 'profiler_dir: torch_profiler_dir='\''/home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline'\'''
+profiler_dir: torch_profiler_dir='/home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline'
++ echo '-- trace 文件 --'
+-- trace 文件 --
++ find /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline -maxdepth 1 -name 'rank*.gz' -printf '%TY-%Tm-%Td %TH:%TM %10s %f\n'
++ sort
+2026-11-15 15:40   74823746 rank3.1794728322255599370.pt.trace.json.gz
+2026-11-15 15:40   75346570 rank2.1794728321647044650.pt.trace.json.gz
+2026-11-15 15:40   75534525 rank1.1794728319730450360.pt.trace.json.gz
+2026-11-15 15:40   82690779 rank0.1794728322749583570.pt.trace.json.gz
++ echo '-- summary.csv --'
+-- summary.csv --
++ head -5 /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+timeline64k1,bs8_in128_out128,100,72.74212509,1.3747192548509584,175.96406462092267,351.92812924184534,329.6450102999998,353.0597000000171,371.1039731000096,41.72907192047244,41.757876771653535,43.42440421338569,41.72907289527561,41.57171499997503,45.79735089998678
++ echo
+
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/config.txt ]]
++ grep -q profile=1 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/config.txt
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1
++ echo '-- timeline4k1 --'
+-- timeline4k1 --
++ cat /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/config.txt
+test_id=timeline4k1
+started=2026-11-15T15:08:26+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+host_measure=off profile=1 profile_dir=/home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline
++ grep -oE ''\''enable_prefix_caching'\'': [A-Za-z]+|'\''compact_greedy'\'': [A-Za-z]+|'\''sample_logits_cudagraph_scope'\'': '\''[a-z_]+'\''' /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/logs/server.log
++ sort -u
+'compact_greedy': True
+'enable_prefix_caching': False
+'sample_logits_cudagraph_scope': 'decode'
++ grep -oE 'Profiler with mode '\''[a-z]+'\''|Torch profiling enabled' /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/logs/server.log
++ sort -u
+Profiler with mode 'torch'
+Torch profiling enabled
+++ grep -cE 'Traceback|ERROR' /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/logs/server.log
+++ echo NA
+++ grep -c 'Tcmalloc page size' /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/logs/server.log
++ echo 'errors=0
+NA tcmalloc_blocks=2'
+errors=0
+NA tcmalloc_blocks=2
+++ grep -oE 'torch_profiler_dir='\''[^'\'']+'\''' /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/logs/server.log
+++ head -1
++ echo 'profiler_dir: torch_profiler_dir='\''/home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline'\'''
+profiler_dir: torch_profiler_dir='/home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline'
++ echo '-- trace 文件 --'
+-- trace 文件 --
++ find /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline -maxdepth 1 -name 'rank*.gz' -printf '%TY-%Tm-%Td %TH:%TM %10s %f\n'
++ sort
+2026-11-15 15:12   79767451 rank2.1794726666691112630.pt.trace.json.gz
+2026-11-15 15:12   80396332 rank1.1794726665838268240.pt.trace.json.gz
+2026-11-15 15:12   80421997 rank3.1794726666460792580.pt.trace.json.gz
+2026-11-15 15:12   86532227 rank0.1794726666779713690.pt.trace.json.gz
++ echo '-- summary.csv --'
+-- summary.csv --
++ head -5 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+timeline4k1,bs8_in128_out128,100,74.80323111999314,1.336840648495361,171.1156030074062,342.2312060148124,322.2153135992994,343.78680500230985,376.2348241971631,43.013918450405626,43.13254748031316,44.435127850401486,43.013919366934516,43.041909993917216,46.242791805707384
++ echo
+
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/base/config.txt ]]
++ continue
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/before_reboot/config.txt ]]
++ continue
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/opt/config.txt ]]
++ continue
++ echo '== 2. TSHG（trace 口径，rank0，warmup 0/16） =='
+== 2. TSHG（trace 口径，rank0，warmup 0/16） ==
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/config.txt ]]
++ grep -q profile=1 /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/config.txt
+++ pick_trace /home/qch/scripts/litehost_perf/vllmBench/timeline4k2
+++ local r=/home/qch/scripts/litehost_perf/vllmBench/timeline4k2
+++ fs=()
+++ local -a fs
+++ mapfile -t fs
++++ ls -1 /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline/rank0.1794729305092258220.pt.trace.json.gz
++++ sort
+++ (( 1 == 0 ))
+++ (( 1 == 1 ))
+++ echo /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline/rank0.1794729305092258220.pt.trace.json.gz
+++ return 0
++ F=/home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline/rank0.1794729305092258220.pt.trace.json.gz
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k2
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline/rank0.1794729305092258220.pt.trace.json.gz
++ echo '### 分析 timeline4k2 <- rank0.1794729305092258220.pt.trace.json.gz'
+### 分析 timeline4k2 <- rank0.1794729305092258220.pt.trace.json.gz
++ command -v python3
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k2
++ TSHG_WARMUP=0,16
++ python3 /home/qch/tools/remote-env/184/trace_eval_run.py timeline4k2 /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline/rank0.1794729305092258220.pt.trace.json.gz
+### timeline4k2 file=/home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline/rank0.1794729305092258220.pt.trace.json.gz
+### timeline4k2 events=3981962 span=74479.3ms tids=8
+### timeline4k2 anchor    1692 vllm/v1/worker/worker_base.py(340): execute_model
+### timeline4k2 anchor    1692 vllm/v1/worker/gpu_worker.py(807): execute_model
+### timeline4k2 anchor    1692 vllm/v1/worker/gpu_model_runner.py(4246): execute_model
+### timeline4k2 sync_total=5073
+###       3382 次   67546.23 ms  cudaEventSynchronize
+###       1690 次   65456.91 ms  cudaStreamSynchronize
+###          1 次       0.09 ms  cudaDeviceSynchronize
+TSHG	timeline4k2	w=0	prefill	n=52	T=5129.41	S=1797.37	Sm=1708.11	H=3332.04	Hm=3421.30	G=57.88	HG=3389.92	HGm=3479.18	S_pct=35.0
+TSHG	timeline4k2	w=0	decode	n=1640	T=67559.32	S=65856.27	Sm=63752.66	H=1703.05	Hm=3806.66	G=1661.15	HG=3364.20	HGm=5467.81	S_pct=97.5
+TSHG	timeline4k2	w=16	prefill	n=48	T=4763.23	S=1701.61	Sm=1617.93	H=3061.62	Hm=3145.30	G=53.53	HG=3115.14	HGm=3198.83	S_pct=35.7
+TSHG	timeline4k2	w=16	decode	n=1628	T=67044.26	S=65353.44	Sm=63265.11	H=1690.82	Hm=3779.15	G=1649.96	HG=3340.78	HGm=5429.11	S_pct=97.5
+### timeline4k2 FUN top60 (µs/step, calls/step)
+FUN	timeline4k2	python_function	<built-in method acquire of _thread.lock object at 0xfffe3dce82c0>	85505.8	12.02
+FUN	timeline4k2	Trace	PyTorch Profiler (0)	44018.5	0.00
+FUN	timeline4k2	python_function	vllm/usage/usage_lib.py(256): _report_continuous_usage	44018.4	0.00
+FUN	timeline4k2	python_function	vllm/v1/worker/gpu_worker.py(807): execute_model	42840.8	1.00
+FUN	timeline4k2	cuda_runtime	cudaEventSynchronize	39920.9	2.00
+FUN	timeline4k2	cuda_runtime	cudaStreamSynchronize	38686.1	1.00
+FUN	timeline4k2	python_function	threading.py(331): wait	6219.5	0.00
+FUN	timeline4k2	cuda_runtime	cudaLaunchKernel	455.5	34.38
+FUN	timeline4k2	kernel	void ixformer::comm::allreduce_ring_step_sum_fused<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	451.1	3.96
+FUN	timeline4k2	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<256u, 256u, 64u, 64u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, false, 2u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	382.7	1.36
+FUN	timeline4k2	kernel	void ixformer::comm::allreduce_ring_step_copy<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	345.0	2.97
+FUN	timeline4k2	cpu_op	aten::copy_	225.7	13.04
+FUN	timeline4k2	cuda_runtime	cudaEventQuery	225.4	2.04
+FUN	timeline4k2	cpu_op	aten::empty_strided	207.0	14.89
+FUN	timeline4k2	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<128u, 256u, 64u, 32u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, false, 5u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	157.3	1.97
+FUN	timeline4k2	kernel	void ixformer::comm::allreduce_ring_step_sum<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	148.7	1.98
+FUN	timeline4k2	cuda_runtime	cudaGraphLaunch	140.7	1.97
+FUN	timeline4k2	kernel	void ixformer::comm::allreduce_ring_step_copy_fused<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	138.2	2.97
+FUN	timeline4k2	gpu_user_annotation	execute_context_1(128)_generation_0(0)	138.2	0.01
+FUN	timeline4k2	cpu_op	aten::empty	135.4	11.41
+FUN	timeline4k2	kernel	void ixformer::comm::allreduce_ring_last_step_copy<__ix_bfloat16>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, unsigned int)	131.4	1.98
+FUN	timeline4k2	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<256u, 256u, 64u, 64u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, true, 2u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	124.4	0.45
+FUN	timeline4k2	python_function	<built-in method all_reduce of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object at 0xfffe6aea61b0>	115.6	1.98
+FUN	timeline4k2	gpu_user_annotation	execute_context_7(896)_generation_1(1)	114.1	0.01
+FUN	timeline4k2	gpu_memcpy	Memcpy DtoD (Device -> Device)	111.6	4.93
+FUN	timeline4k2	python_function	<built-in method to of Tensor object at 0xff7d86f3dc70>	109.3	3.03
+FUN	timeline4k2	python_function	zmq/sugar/socket.py(623): send	105.1	2.00
+FUN	timeline4k2	cpu_op	aten::slice	96.0	40.51
+FUN	timeline4k2	cuda_runtime	cudaMemcpyAsync	83.8	11.96
+FUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(4246): execute_model	82.7	1.00
+FUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(1999): _prepare_inputs	74.7	1.00
+FUN	timeline4k2	python_function	<built-in method w8a8_gemm of PyCapsule object at 0xfffe5d45a970>	71.1	3.93
+FUN	timeline4k2	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(465): _corex_fast_build	69.4	1.00
+FUN	timeline4k2	kernel	void ixformer::kernels::infer::residual_rms_norm_kernel<__ix_bfloat16, 5u, 2u, false, true, false>(__ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16*, __ix_bfloat16*, float, unsigned int, unsigned int, unsigned int, float)	66.8	1.97
+FUN	timeline4k2	python_function	<built-in method empty of type object at 0xffff8ce2d130>	66.1	10.86
+FUN	timeline4k2	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(942): forward	63.6	0.98
+FUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(2370): _build_attention_metadata	61.2	1.00
+FUN	timeline4k2	python_function	<built-in method scaled_int8_quant of PyCapsule object at 0xfffe5d45a9d0>	60.8	3.93
+FUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(1816): _prepare_input_ids	58.3	1.00
+FUN	timeline4k2	python_function	<built-in method copy_ of Tensor object at 0xff7dab29d590>	55.8	6.98
+FUN	timeline4k2	python_function	<built-in method view of Tensor object at 0xff7d86f3ef30>	53.3	22.17
+FUN	timeline4k2	python_function	<built-in method synchronize of Stream object at 0xff7db9033930>	50.4	0.99
+FUN	timeline4k2	cpu_op	aten::index	50.2	1.01
+FUN	timeline4k2	user_annotation	execute_context_0(0)_generation_8(8)	47.0	0.89
+FUN	timeline4k2	cpu_op	aten::fill_	43.3	5.02
+FUN	timeline4k2	python_function	torch/utils/_contextlib.py(120): decorate_context	42.5	5.00
+FUN	timeline4k2	python_function	torch/nn/modules/module.py(1780): _call_impl	41.0	12.83
+FUN	timeline4k2	kernel	void ixformer::kernels::infer::scaled_int8_quant_opt1<__ix_bfloat16, true, 3>(__ix_bfloat16 const*, signed char*, float*, int)	37.3	1.97
+FUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(3775): _bookkeeping_sync	37.2	1.00
+FUN	timeline4k2	python_function	<built-in function dumps>	37.0	2.00
+FUN	timeline4k2	cpu_op	aten::sub	36.7	1.01
+FUN	timeline4k2	python_function	<built-in method replay of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object at 0xfffede861d10>	36.7	1.97
+FUN	timeline4k2	python_function	vllm/v1/executor/multiproc_executor.py(966): async_output_busy_loop	35.7	0.00
+FUN	timeline4k2	python_function	vllm/model_executor/layers/quantization/compressed_tensors/schemes/iluvatar/compressed_tensors_w8a8_int8.py(265): apply_weights	35.6	3.93
+FUN	timeline4k2	cpu_op	aten::as_strided	35.3	49.67
+FUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(4652): sample_tokens	34.9	1.00
+FUN	timeline4k2	python_function	<built-in method residual_rms_norm of PyCapsule object at 0xfffe5d45a460>	34.7	1.97
+FUN	timeline4k2	python_function	vllm/v1/attention/backends/utils.py(637): reorder_batch_to_split_decodes_and_prefills	34.5	1.00
+FUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(1169): _update_states	33.6	1.00
+FUN	timeline4k2	python_function	<built-in method reduce of numpy.ufunc object at 0xffff8e2f2140>	33.6	8.02
++ echo
+
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/config.txt ]]
++ grep -q profile=1 /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/config.txt
+++ pick_trace /home/qch/scripts/litehost_perf/vllmBench/timeline64k2
+++ local r=/home/qch/scripts/litehost_perf/vllmBench/timeline64k2
+++ fs=()
+++ local -a fs
+++ mapfile -t fs
++++ ls -1 /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline/rank0.1794728625069608660.pt.trace.json.gz
++++ sort
+++ (( 1 == 0 ))
+++ (( 1 == 1 ))
+++ echo /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline/rank0.1794728625069608660.pt.trace.json.gz
+++ return 0
++ F=/home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline/rank0.1794728625069608660.pt.trace.json.gz
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k2
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline/rank0.1794728625069608660.pt.trace.json.gz
++ echo '### 分析 timeline64k2 <- rank0.1794728625069608660.pt.trace.json.gz'
+### 分析 timeline64k2 <- rank0.1794728625069608660.pt.trace.json.gz
++ command -v python3
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k2
++ TSHG_WARMUP=0,16
++ python3 /home/qch/tools/remote-env/184/trace_eval_run.py timeline64k2 /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline/rank0.1794728625069608660.pt.trace.json.gz
+### timeline64k2 file=/home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline/rank0.1794728625069608660.pt.trace.json.gz
+### timeline64k2 events=4046444 span=72938.3ms tids=8
+### timeline64k2 anchor    1692 vllm/v1/worker/worker_base.py(340): execute_model
+### timeline64k2 anchor    1692 vllm/v1/worker/gpu_worker.py(807): execute_model
+### timeline64k2 anchor    1692 vllm/v1/worker/gpu_model_runner.py(4246): execute_model
+### timeline64k2 sync_total=5073
+###       3382 次   66572.24 ms  cudaEventSynchronize
+###       1690 次   64656.88 ms  cudaStreamSynchronize
+###          1 次       0.08 ms  cudaDeviceSynchronize
+TSHG	timeline64k2	w=0	prefill	n=51	T=4950.29	S=1799.85	Sm=1724.54	H=3150.44	Hm=3225.76	G=46.69	HG=3197.14	HGm=3272.45	S_pct=36.4
+TSHG	timeline64k2	w=0	decode	n=1641	T=66381.89	S=64858.57	Sm=62935.58	H=1523.32	Hm=3446.31	G=1427.20	HG=2950.52	HGm=4873.51	S_pct=97.7
+TSHG	timeline64k2	w=16	prefill	n=48	T=4620.48	S=1690.68	Sm=1618.76	H=2929.80	Hm=3001.72	G=43.81	HG=2973.60	HGm=3045.53	S_pct=36.6
+TSHG	timeline64k2	w=16	decode	n=1628	T=65883.00	S=64373.03	Sm=62464.33	H=1509.97	Hm=3418.67	G=1415.52	HG=2925.50	HGm=4834.19	S_pct=97.7
+### timeline64k2 FUN top60 (µs/step, calls/step)
+FUN	timeline64k2	python_function	<built-in method acquire of _thread.lock object at 0xfffb4d5abd40>	81562.1	12.01
+FUN	timeline64k2	Trace	PyTorch Profiler (0)	43107.7	0.00
+FUN	timeline64k2	python_function	vllm/usage/usage_lib.py(256): _report_continuous_usage	43107.7	0.00
+FUN	timeline64k2	python_function	vllm/v1/worker/gpu_worker.py(807): execute_model	42053.3	1.00
+FUN	timeline64k2	cuda_runtime	cudaEventSynchronize	39345.3	2.00
+FUN	timeline64k2	cuda_runtime	cudaStreamSynchronize	38213.3	1.00
+FUN	timeline64k2	python_function	threading.py(331): wait	8041.7	0.00
+FUN	timeline64k2	cuda_runtime	cudaLaunchKernel	445.0	34.38
+FUN	timeline64k2	kernel	void ixformer::comm::allreduce_ring_step_sum_fused<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	435.1	3.96
+FUN	timeline64k2	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<256u, 256u, 64u, 64u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, false, 2u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	382.4	1.36
+FUN	timeline64k2	kernel	void ixformer::comm::allreduce_ring_step_copy<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	340.2	2.97
+FUN	timeline64k2	cpu_op	aten::copy_	204.5	13.04
+FUN	timeline64k2	cpu_op	aten::empty_strided	198.6	14.89
+FUN	timeline64k2	cuda_runtime	cudaEventQuery	167.6	2.04
+FUN	timeline64k2	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<128u, 256u, 64u, 32u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, false, 5u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	157.2	1.97
+FUN	timeline64k2	kernel	void ixformer::comm::allreduce_ring_step_copy_fused<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	152.3	2.97
+FUN	timeline64k2	cpu_op	aten::empty	130.9	11.41
+FUN	timeline64k2	cuda_runtime	cudaGraphLaunch	128.0	1.97
+FUN	timeline64k2	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<256u, 256u, 64u, 64u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, true, 2u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	125.1	0.45
+FUN	timeline64k2	gpu_user_annotation	execute_context_1(128)_generation_0(0)	121.7	0.01
+FUN	timeline64k2	gpu_user_annotation	execute_context_7(896)_generation_1(1)	114.1	0.01
+FUN	timeline64k2	kernel	void ixformer::comm::allreduce_ring_step_sum<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	112.1	1.98
+FUN	timeline64k2	gpu_memcpy	Memcpy DtoD (Device -> Device)	111.0	4.93
+FUN	timeline64k2	kernel	void ixformer::comm::allreduce_ring_last_step_copy<__ix_bfloat16>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, unsigned int)	106.2	1.98
+FUN	timeline64k2	python_function	<built-in method all_reduce of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object at 0xfffb7b2561b0>	101.8	1.98
+FUN	timeline64k2	python_function	<built-in method to of Tensor object at 0xff7a9f1c8c30>	99.5	3.03
+FUN	timeline64k2	python_function	zmq/sugar/socket.py(623): send	92.4	2.00
+FUN	timeline64k2	cpu_op	aten::slice	89.4	40.51
+FUN	timeline64k2	cuda_runtime	cudaMemcpyAsync	82.1	11.96
+FUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(4246): execute_model	69.9	1.00
+FUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(1999): _prepare_inputs	67.9	1.00
+FUN	timeline64k2	python_function	<built-in method w8a8_gemm of PyCapsule object at 0xfffb6d80a970>	67.3	3.93
+FUN	timeline64k2	kernel	void ixformer::kernels::infer::residual_rms_norm_kernel<__ix_bfloat16, 5u, 2u, false, true, false>(__ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16*, __ix_bfloat16*, float, unsigned int, unsigned int, unsigned int, float)	66.4	1.97
+FUN	timeline64k2	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(465): _corex_fast_build	65.9	1.00
+FUN	timeline64k2	python_function	<built-in method empty of type object at 0xfffc9d1fd130>	63.8	10.86
+FUN	timeline64k2	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(942): forward	61.7	0.98
+FUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(2370): _build_attention_metadata	56.8	1.00
+FUN	timeline64k2	python_function	<built-in method scaled_int8_quant of PyCapsule object at 0xfffb6d80a9d0>	56.2	3.93
+FUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(1816): _prepare_input_ids	52.9	1.00
+FUN	timeline64k2	python_function	<built-in method view of Tensor object at 0xff7a9f1c84b0>	52.2	22.17
+FUN	timeline64k2	python_function	<built-in method copy_ of Tensor object at 0xff7a9f1ca440>	49.5	6.98
+FUN	timeline64k2	cpu_op	aten::index	48.6	1.01
+FUN	timeline64k2	cpu_op	aten::fill_	40.6	5.02
+FUN	timeline64k2	user_annotation	execute_context_0(0)_generation_8(8)	40.2	0.89
+FUN	timeline64k2	python_function	torch/nn/modules/module.py(1780): _call_impl	39.5	12.83
+FUN	timeline64k2	python_function	<built-in method synchronize of Stream object at 0xff7aad213d90>	38.4	0.99
+FUN	timeline64k2	python_function	torch/utils/_contextlib.py(120): decorate_context	37.0	5.00
+FUN	timeline64k2	kernel	void ixformer::kernels::infer::scaled_int8_quant_opt1<__ix_bfloat16, true, 3>(__ix_bfloat16 const*, signed char*, float*, int)	36.8	1.97
+FUN	timeline64k2	python_function	<built-in method empty_like of type object at 0xfffc9d1fd130>	34.4	9.83
+FUN	timeline64k2	python_function	<built-in method replay of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object at 0xfffbeec25d10>	33.6	1.97
+FUN	timeline64k2	cpu_op	aten::sub	33.3	1.01
+FUN	timeline64k2	python_function	<built-in method reduce of numpy.ufunc object at 0xfffc9e6b6140>	32.9	8.02
+FUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(1169): _update_states	32.8	1.00
+FUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(3775): _bookkeeping_sync	32.7	1.00
+FUN	timeline64k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(664): acquire_read	32.7	2.00
+FUN	timeline64k2	python_function	<built-in function dumps>	32.7	2.00
+FUN	timeline64k2	kernel	void ixformer::kernels::infer::fused_rms_norm_qk_kernel<__ix_bfloat16, (ixformer::kernels::infer::RMSNormType)0, 2u>(__ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, float)	32.6	0.98
+FUN	timeline64k2	python_function	vllm/v1/executor/multiproc_executor.py(966): async_output_busy_loop	32.3	0.00
+FUN	timeline64k2	cpu_op	aten::as_strided	32.0	49.67
+FUN	timeline64k2	python_function	vllm/v1/attention/backends/utils.py(637): reorder_batch_to_split_decodes_and_prefills	31.9	1.00
++ echo
+
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/config.txt ]]
++ grep -q profile=1 /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/config.txt
+++ pick_trace /home/qch/scripts/litehost_perf/vllmBench/timeline64k1
+++ local r=/home/qch/scripts/litehost_perf/vllmBench/timeline64k1
+++ fs=()
+++ local -a fs
+++ mapfile -t fs
++++ ls -1 /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline/rank0.1794728322749583570.pt.trace.json.gz
++++ sort
+++ (( 1 == 0 ))
+++ (( 1 == 1 ))
+++ echo /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline/rank0.1794728322749583570.pt.trace.json.gz
+++ return 0
++ F=/home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline/rank0.1794728322749583570.pt.trace.json.gz
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k1
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline/rank0.1794728322749583570.pt.trace.json.gz
++ echo '### 分析 timeline64k1 <- rank0.1794728322749583570.pt.trace.json.gz'
+### 分析 timeline64k1 <- rank0.1794728322749583570.pt.trace.json.gz
++ command -v python3
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k1
++ TSHG_WARMUP=0,16
++ python3 /home/qch/tools/remote-env/184/trace_eval_run.py timeline64k1 /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline/rank0.1794728322749583570.pt.trace.json.gz
+### timeline64k1 file=/home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline/rank0.1794728322749583570.pt.trace.json.gz
+### timeline64k1 events=4035371 span=72847.7ms tids=8
+### timeline64k1 anchor    1692 vllm/v1/worker/worker_base.py(340): execute_model
+### timeline64k1 anchor    1692 vllm/v1/worker/gpu_worker.py(807): execute_model
+### timeline64k1 anchor    1692 vllm/v1/worker/gpu_model_runner.py(4246): execute_model
+### timeline64k1 sync_total=5073
+###       3382 次   66574.91 ms  cudaEventSynchronize
+###       1690 次   64684.01 ms  cudaStreamSynchronize
+###          1 次       0.07 ms  cudaDeviceSynchronize
+TSHG	timeline64k1	w=0	prefill	n=51	T=4947.80	S=1837.16	Sm=1765.37	H=3110.64	Hm=3182.43	G=45.42	HG=3156.06	HGm=3227.85	S_pct=37.1
+TSHG	timeline64k1	w=0	decode	n=1641	T=66344.29	S=64825.19	Sm=62921.85	H=1519.10	Hm=3422.44	G=1397.15	HG=2916.26	HGm=4819.60	S_pct=97.7
+TSHG	timeline64k1	w=16	prefill	n=48	T=4613.09	S=1733.79	Sm=1665.12	H=2879.29	Hm=2947.97	G=42.80	HG=2922.09	HGm=2990.77	S_pct=37.6
+TSHG	timeline64k1	w=16	decode	n=1628	T=65844.20	S=64338.12	Sm=62448.87	H=1506.08	Hm=3395.33	G=1387.01	HG=2893.09	HGm=4782.34	S_pct=97.7
+### timeline64k1 FUN top60 (µs/step, calls/step)
+FUN	timeline64k1	python_function	<built-in method acquire of _thread.lock object at 0xfffe20704240>	87741.3	12.01
+FUN	timeline64k1	Trace	PyTorch Profiler (0)	43054.2	0.00
+FUN	timeline64k1	python_function	vllm/usage/usage_lib.py(256): _report_continuous_usage	43054.1	0.00
+FUN	timeline64k1	python_function	vllm/v1/worker/gpu_worker.py(807): execute_model	42030.8	1.00
+FUN	timeline64k1	cuda_runtime	cudaEventSynchronize	39346.9	2.00
+FUN	timeline64k1	cuda_runtime	cudaStreamSynchronize	38229.3	1.00
+FUN	timeline64k1	python_function	threading.py(331): wait	1682.0	0.00
+FUN	timeline64k1	cuda_runtime	cudaLaunchKernel	440.5	34.38
+FUN	timeline64k1	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<256u, 256u, 64u, 64u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, false, 2u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	382.5	1.36
+FUN	timeline64k1	kernel	void ixformer::comm::allreduce_ring_step_sum_fused<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	374.4	3.96
+FUN	timeline64k1	kernel	void ixformer::comm::allreduce_ring_step_copy<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	344.7	2.97
+FUN	timeline64k1	kernel	void ixformer::comm::allreduce_ring_step_copy_fused<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	234.4	2.97
+FUN	timeline64k1	cpu_op	aten::copy_	200.1	13.04
+FUN	timeline64k1	cpu_op	aten::empty_strided	189.4	14.89
+FUN	timeline64k1	cuda_runtime	cudaEventQuery	162.6	2.04
+FUN	timeline64k1	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<128u, 256u, 64u, 32u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, false, 5u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	157.2	1.97
+FUN	timeline64k1	gpu_user_annotation	execute_context_1(128)_generation_0(0)	144.8	0.01
+FUN	timeline64k1	cpu_op	aten::empty	128.5	11.41
+FUN	timeline64k1	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<256u, 256u, 64u, 64u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, true, 2u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	124.8	0.45
+FUN	timeline64k1	cuda_runtime	cudaGraphLaunch	124.0	1.97
+FUN	timeline64k1	gpu_memcpy	Memcpy DtoD (Device -> Device)	113.9	4.93
+FUN	timeline64k1	gpu_user_annotation	execute_context_7(896)_generation_1(1)	108.9	0.01
+FUN	timeline64k1	kernel	void ixformer::comm::allreduce_ring_last_step_copy<__ix_bfloat16>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, unsigned int)	108.7	1.98
+FUN	timeline64k1	python_function	<built-in method all_reduce of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object at 0xfffe4d7261b0>	102.0	1.98
+FUN	timeline64k1	python_function	zmq/sugar/socket.py(623): send	97.0	2.00
+FUN	timeline64k1	python_function	<built-in method to of Tensor object at 0xff7d7169a8f0>	96.5	3.03
+FUN	timeline64k1	cpu_op	aten::slice	87.9	40.51
+FUN	timeline64k1	cuda_runtime	cudaMemcpyAsync	77.7	11.96
+FUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(1999): _prepare_inputs	72.9	1.00
+FUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(4246): execute_model	69.4	1.00
+FUN	timeline64k1	python_function	<built-in method w8a8_gemm of PyCapsule object at 0xfffe3fcde970>	66.9	3.93
+FUN	timeline64k1	kernel	void ixformer::kernels::infer::residual_rms_norm_kernel<__ix_bfloat16, 5u, 2u, false, true, false>(__ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16*, __ix_bfloat16*, float, unsigned int, unsigned int, unsigned int, float)	65.8	1.97
+FUN	timeline64k1	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(465): _corex_fast_build	65.7	1.00
+FUN	timeline64k1	python_function	<built-in method empty of type object at 0xffff6f6cd130>	62.7	10.86
+FUN	timeline64k1	python_function	<built-in method scaled_int8_quant of PyCapsule object at 0xfffe3fcde9d0>	59.7	3.93
+FUN	timeline64k1	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(942): forward	59.2	0.98
+FUN	timeline64k1	kernel	void ixformer::comm::allreduce_ring_step_sum<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	57.6	1.98
+FUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(2370): _build_attention_metadata	57.1	1.00
+FUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(1816): _prepare_input_ids	52.4	1.00
+FUN	timeline64k1	python_function	<built-in method copy_ of Tensor object at 0xff7d71699360>	51.2	6.98
+FUN	timeline64k1	python_function	<built-in method view of Tensor object at 0xff7d715faa30>	50.6	22.17
+FUN	timeline64k1	cpu_op	aten::index	45.0	1.01
+FUN	timeline64k1	python_function	torch/nn/modules/module.py(1780): _call_impl	41.5	12.83
+FUN	timeline64k1	python_function	threading.py(327): wait	40.6	0.00
+FUN	timeline64k1	cpu_op	aten::fill_	39.8	5.02
+FUN	timeline64k1	python_function	<built-in method synchronize of Stream object at 0xff7d7f6e3bd0>	39.4	0.99
+FUN	timeline64k1	user_annotation	execute_context_0(0)_generation_8(8)	39.3	0.89
+FUN	timeline64k1	python_function	torch/utils/_contextlib.py(120): decorate_context	36.9	5.00
+FUN	timeline64k1	kernel	void ixformer::kernels::infer::scaled_int8_quant_opt1<__ix_bfloat16, true, 3>(__ix_bfloat16 const*, signed char*, float*, int)	36.7	1.97
+FUN	timeline64k1	python_function	<built-in method replay of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object at 0xfffec10f5d10>	34.7	1.97
+FUN	timeline64k1	python_function	<built-in method reduce of numpy.ufunc object at 0xffff70b86140>	33.3	8.02
+FUN	timeline64k1	python_function	<built-in function dumps>	33.0	2.00
+FUN	timeline64k1	kernel	void ixformer::kernels::infer::fused_rms_norm_qk_kernel<__ix_bfloat16, (ixformer::kernels::infer::RMSNormType)0, 2u>(__ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, float)	32.7	0.98
+FUN	timeline64k1	python_function	vllm/v1/attention/backends/utils.py(637): reorder_batch_to_split_decodes_and_prefills	32.6	1.00
+FUN	timeline64k1	python_function	vllm/v1/executor/multiproc_executor.py(966): async_output_busy_loop	32.6	0.00
+FUN	timeline64k1	cpu_op	aten::sub	32.6	1.01
+FUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(3775): _bookkeeping_sync	32.0	1.00
+FUN	timeline64k1	cpu_op	aten::as_strided	31.2	49.67
+FUN	timeline64k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(664): acquire_read	31.2	2.00
+FUN	timeline64k1	python_function	<built-in method empty_like of type object at 0xffff6f6cd130>	31.1	9.83
++ echo
+
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/config.txt ]]
++ grep -q profile=1 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/config.txt
+++ pick_trace /home/qch/scripts/litehost_perf/vllmBench/timeline4k1
+++ local r=/home/qch/scripts/litehost_perf/vllmBench/timeline4k1
+++ fs=()
+++ local -a fs
+++ mapfile -t fs
++++ ls -1 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank0.1794726666779713690.pt.trace.json.gz
++++ sort
+++ (( 1 == 0 ))
+++ (( 1 == 1 ))
+++ echo /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank0.1794726666779713690.pt.trace.json.gz
+++ return 0
++ F=/home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank0.1794726666779713690.pt.trace.json.gz
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank0.1794726666779713690.pt.trace.json.gz
++ echo '### 分析 timeline4k1 <- rank0.1794726666779713690.pt.trace.json.gz'
+### 分析 timeline4k1 <- rank0.1794726666779713690.pt.trace.json.gz
++ command -v python3
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1
++ TSHG_WARMUP=0,16
++ python3 /home/qch/tools/remote-env/184/trace_eval_run.py timeline4k1 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank0.1794726666779713690.pt.trace.json.gz
+### timeline4k1 file=/home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank0.1794726666779713690.pt.trace.json.gz
+### timeline4k1 events=4275686 span=74854.7ms tids=8
+### timeline4k1 anchor    1692 vllm/v1/worker/worker_base.py(340): execute_model
+### timeline4k1 anchor    1692 vllm/v1/worker/gpu_worker.py(807): execute_model
+### timeline4k1 anchor    1692 vllm/v1/worker/gpu_model_runner.py(4246): execute_model
+### timeline4k1 sync_total=5073
+###       3382 次   68159.51 ms  cudaEventSynchronize
+###       1690 次   66149.40 ms  cudaStreamSynchronize
+###          1 次       0.09 ms  cudaDeviceSynchronize
+TSHG	timeline4k1	w=0	prefill	n=52	T=4849.26	S=1680.69	Sm=1599.93	H=3168.56	Hm=3249.33	G=54.60	HG=3223.16	HGm=3303.92	S_pct=34.7
+TSHG	timeline4k1	w=0	decode	n=1640	T=68152.45	S=66548.09	Sm=64553.26	H=1604.36	Hm=3599.19	G=1736.75	HG=3341.11	HGm=5335.93	S_pct=97.6
+TSHG	timeline4k1	w=16	prefill	n=48	T=4486.76	S=1588.33	Sm=1512.88	H=2898.43	Hm=2973.88	G=50.60	HG=2949.03	HGm=3024.48	S_pct=35.4
+TSHG	timeline4k1	w=16	decode	n=1628	T=67636.64	S=66044.46	Sm=64064.40	H=1592.17	Hm=3572.24	G=1725.73	HG=3317.90	HGm=5297.97	S_pct=97.6
+### timeline4k1 FUN top60 (µs/step, calls/step)
+FUN	timeline4k1	python_function	<built-in method acquire of _thread.lock object at 0xfffe5c2561c0>	85186.1	12.02
+FUN	timeline4k1	Trace	PyTorch Profiler (0)	44240.4	0.00
+FUN	timeline4k1	python_function	vllm/usage/usage_lib.py(256): _report_continuous_usage	44240.3	0.00
+FUN	timeline4k1	python_function	vllm/v1/worker/gpu_worker.py(807): execute_model	43031.7	1.00
+FUN	timeline4k1	cuda_runtime	cudaEventSynchronize	40283.4	2.00
+FUN	timeline4k1	cuda_runtime	cudaStreamSynchronize	39095.4	1.00
+FUN	timeline4k1	python_function	threading.py(331): wait	6730.7	0.00
+FUN	timeline4k1	cuda_runtime	cudaLaunchKernel	447.5	34.38
+FUN	timeline4k1	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<256u, 256u, 64u, 64u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, false, 2u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	382.7	1.36
+FUN	timeline4k1	kernel	void ixformer::comm::allreduce_ring_step_sum_fused<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	364.9	3.96
+FUN	timeline4k1	kernel	void ixformer::comm::allreduce_ring_step_copy<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	344.5	2.97
+FUN	timeline4k1	cpu_op	aten::copy_	216.5	13.04
+FUN	timeline4k1	cpu_op	aten::empty_strided	197.7	14.89
+FUN	timeline4k1	kernel	void ixformer::comm::allreduce_ring_step_copy_fused<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	195.2	2.97
+FUN	timeline4k1	cuda_runtime	cudaEventQuery	186.8	2.04
+FUN	timeline4k1	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<128u, 256u, 64u, 32u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, false, 5u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	157.3	1.97
+FUN	timeline4k1	python_function	<built-in method synchronize of torch.Event object at 0xfffe58f53e30>	147.1	2.00
+FUN	timeline4k1	cuda_runtime	cudaGraphLaunch	134.5	1.97
+FUN	timeline4k1	cpu_op	aten::empty	132.3	11.41
+FUN	timeline4k1	gpu_user_annotation	execute_context_1(128)_generation_0(0)	131.3	0.01
+FUN	timeline4k1	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<256u, 256u, 64u, 64u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, true, 2u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	124.3	0.45
+FUN	timeline4k1	python_function	zmq/sugar/socket.py(623): send	121.1	2.00
+FUN	timeline4k1	gpu_memcpy	Memcpy DtoD (Device -> Device)	113.6	4.93
+FUN	timeline4k1	python_function	<built-in method all_reduce of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object at 0xfffe890921b0>	110.7	1.98
+FUN	timeline4k1	gpu_user_annotation	execute_context_7(896)_generation_1(1)	109.5	0.01
+FUN	timeline4k1	python_function	<built-in method to of Tensor object at 0xff7da513bc50>	102.4	3.03
+FUN	timeline4k1	kernel	void ixformer::comm::allreduce_ring_last_step_copy<__ix_bfloat16>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, unsigned int)	101.7	1.98
+FUN	timeline4k1	cpu_op	aten::slice	92.7	40.51
+FUN	timeline4k1	cuda_runtime	cudaMemcpyAsync	77.2	11.96
+FUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(4246): execute_model	75.5	1.00
+FUN	timeline4k1	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(465): _corex_fast_build	71.2	1.00
+FUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(1999): _prepare_inputs	70.0	1.00
+FUN	timeline4k1	python_function	<built-in method w8a8_gemm of PyCapsule object at 0xfffe88eba970>	69.1	3.93
+FUN	timeline4k1	kernel	void ixformer::kernels::infer::residual_rms_norm_kernel<__ix_bfloat16, 5u, 2u, false, true, false>(__ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16*, __ix_bfloat16*, float, unsigned int, unsigned int, unsigned int, float)	66.0	1.97
+FUN	timeline4k1	python_function	<built-in function sched_yield>	62.6	37.67
+FUN	timeline4k1	python_function	<built-in method empty of type object at 0xffffab01d130>	60.8	10.86
+FUN	timeline4k1	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(942): forward	60.0	0.98
+FUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(2370): _build_attention_metadata	58.7	1.00
+FUN	timeline4k1	python_function	<built-in method scaled_int8_quant of PyCapsule object at 0xfffe88eba9d0>	57.0	3.93
+FUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(1816): _prepare_input_ids	54.6	1.00
+FUN	timeline4k1	kernel	void ixformer::comm::allreduce_ring_step_sum<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	53.9	1.98
+FUN	timeline4k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(664): acquire_read	53.0	2.00
+FUN	timeline4k1	python_function	<built-in method view of Tensor object at 0xff7dd73d5090>	51.8	22.17
+FUN	timeline4k1	python_function	<built-in method copy_ of Tensor object at 0xff7dc91965d0>	51.7	6.98
+FUN	timeline4k1	cpu_op	aten::index	47.9	1.01
+FUN	timeline4k1	user_annotation	execute_context_0(0)_generation_8(8)	44.7	0.89
+FUN	timeline4k1	python_function	<built-in method synchronize of Stream object at 0xff7dd7233380>	41.5	0.99
+FUN	timeline4k1	cpu_op	aten::fill_	41.3	5.02
+FUN	timeline4k1	python_function	torch/nn/modules/module.py(1780): _call_impl	39.4	12.83
+FUN	timeline4k1	python_function	torch/utils/_contextlib.py(120): decorate_context	39.3	5.00
+FUN	timeline4k1	kernel	void ixformer::kernels::infer::scaled_int8_quant_opt1<__ix_bfloat16, true, 3>(__ix_bfloat16 const*, signed char*, float*, int)	36.8	1.97
+FUN	timeline4k1	python_function	<built-in method replay of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object at 0xfffefca51d10>	35.7	1.97
+FUN	timeline4k1	python_function	vllm/v1/executor/multiproc_executor.py(966): async_output_busy_loop	35.4	0.00
+FUN	timeline4k1	python_function	<built-in function dumps>	34.6	2.00
+FUN	timeline4k1	cpu_op	aten::sub	34.3	1.01
+FUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(3775): _bookkeeping_sync	33.8	1.00
+FUN	timeline4k1	cpu_op	aten::as_strided	33.8	49.67
+FUN	timeline4k1	python_function	vllm/v1/attention/backends/utils.py(637): reorder_batch_to_split_decodes_and_prefills	33.4	1.00
+FUN	timeline4k1	python_function	<built-in method reduce of numpy.ufunc object at 0xffffac4e2140>	33.3	8.02
+FUN	timeline4k1	kernel	void ixformer::kernels::infer::fused_rms_norm_qk_kernel<__ix_bfloat16, (ixformer::kernels::infer::RMSNormType)0, 2u>(__ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, float)	32.7	0.98
++ echo
+
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/base/config.txt ]]
++ continue
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/before_reboot/config.txt ]]
++ continue
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/opt/config.txt ]]
++ continue
++ set +x
+
+### exit: 0
