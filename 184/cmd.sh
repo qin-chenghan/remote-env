@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 检查 4k1 这一轮的产物：配置是否与 11-14 一致、tcmalloc 是否真加载、trace 是否齐全。
-# 纯 CPU，不启动 vllm，不动 GPU。
+# 4k1 / 4k2 / 64k1 / 64k2 四份 timeline 采集：来源核对 + TSHG（trace 口径）汇总。
+# 纯 CPU：只读日志、解析 trace，不启动 vllm、不动 GPU。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,59 +11,84 @@ OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
 BASE=/home/qch/scripts/litehost_perf/vllmBench
+EVAL="$DIR/trace_eval_run.py"
+
+pick_trace() {
+    local r="$1"
+    local -a fs=()
+    mapfile -t fs < <(ls -1 "$r"/timeline/rank0.*.pt.trace.json.gz 2>/dev/null | sort)
+    ((${#fs[@]} == 0)) && return 1
+    ((${#fs[@]} == 1)) && { echo "${fs[0]}"; return 0; }
+    # 多个 case 各有一次 profiler 落盘：取 in128_out128 bench 日志之后最近的那份
+    local cl="$r/logs/bench_bs8_in128_out128.log"
+    if [[ -f "$cl" ]]; then
+        local t0 best="" bestd=999999 t d
+        t0=$(stat -c %Y "$cl")
+        for f in "${fs[@]}"; do
+            t=$(stat -c %Y "$f"); d=$((t - t0))
+            if ((d >= -30 && d < bestd)); then bestd=$d; best=$f; fi
+        done
+        [[ -n "$best" ]] && { echo "$best"; return 0; }
+    fi
+    echo "${fs[0]}"
+}
 
 {
-  echo "### server: $SERVER"
-  echo "### host:   $(hostname)"
-  echo "### time:   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  echo
-  set -x
+    echo "### server: $SERVER"
+    echo "### host:   $(hostname)"
+    echo "### time:   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    echo
+    set -x
 
-  # ---- 命令开始 ----
-  echo "== 0. 现有 run 目录 =="
-  ls -dt "$BASE"/*/ 2>/dev/null | head -10
+    # ---- 命令开始 ----
+    echo "== 0. 当前内核 / 页大小 / 引导表 =="
+    uname -r
+    getconf PAGE_SIZE
+    uptime -s
+    echo "-- 最近引导（run 的 started 对照这里找内核版本）--"
+    last -x reboot shutdown 2>/dev/null | head -20
 
-  R="${RUN_DIR:-$(ls -dt "$BASE"/*/ 2>/dev/null | head -1)}"
-  R="${R%/}"
-  echo "RUNDIR=$R"
-  echo
+    echo "== 1. timeline* run 清单 =="
+    RUNS=()
+    while IFS= read -r d; do
+        RUNS+=("${d%/}")
+    done < <(ls -dt "$BASE"/*/ 2>/dev/null)
+    echo "共 ${#RUNS[@]} 个目录"
 
-  echo "== 1. config.txt =="
-  cat "$R/config.txt" 2>&1
+    for R in "${RUNS[@]}"; do
+        [[ -f "$R/config.txt" ]] || continue
+        grep -q 'profile=1' "$R/config.txt" || continue
+        echo "-- $(basename "$R") --"
+        cat "$R/config.txt"
+        grep -oE "'enable_prefix_caching': [A-Za-z]+|'compact_greedy': [A-Za-z]+|'sample_logits_cudagraph_scope': '[a-z_]+'" \
+            "$R/logs/server.log" 2>/dev/null | sort -u
+        grep -oE "Profiler with mode '[a-z]+'|Torch profiling enabled" "$R/logs/server.log" 2>/dev/null | sort -u
+        echo "errors=$(grep -cE 'Traceback|ERROR' "$R/logs/server.log" 2>/dev/null || echo NA) tcmalloc_blocks=$(grep -c 'Tcmalloc page size' "$R/logs/server.log" 2>/dev/null || echo NA)"
+        echo "profiler_dir: $(grep -oE "torch_profiler_dir='[^']+'" "$R/logs/server.log" 2>/dev/null | head -1)"
+        echo "-- trace 文件 --"
+        find "$R/timeline" -maxdepth 1 -name 'rank*.gz' -printf '%TY-%Tm-%Td %TH:%TM %10s %f\n' 2>/dev/null | sort
+        echo "-- summary.csv --"
+        head -5 "$R/summary.csv" 2>/dev/null
+        echo
+    done
 
-  echo "== 2. 关键生效配置（server.log） =="
-  grep -nE "enable_prefix_caching|compact_greedy|sample_logits_cudagraph|Profiler with mode|Torch profiling enabled|profiler" "$R/logs/server.log" 2>/dev/null | head -40
+    echo "== 2. TSHG（trace 口径，rank0，warmup 0/16） =="
+    for R in "${RUNS[@]}"; do
+        [[ -f "$R/config.txt" ]] || continue
+        grep -q 'profile=1' "$R/config.txt" || continue
+        F="$(pick_trace "$R")" || { echo "### $(basename "$R") no rank0 trace"; continue; }
+        echo "### 分析 $(basename "$R") <- $(basename "$F")"
+        if command -v python3 >/dev/null 2>&1; then
+            TSHG_WARMUP=0,16 python3 "$EVAL" "$(basename "$R")" "$F"
+        else
+            docker exec corex5-py311 python3 "$EVAL" "$(basename "$R")" "$F"
+        fi
+        echo
+    done
 
-  echo "== 3. server.log 里的启动命令 / 环境 =="
-  grep -nE "LD_PRELOAD|tcmalloc|TCMALLOC|VLLM_HOST_OPT|TORCH_MODULE_ATTR_FASTPATH|UMD_MAXCOMMAND|api_server|--profiler-config" "$R/logs/server.log" 2>/dev/null | head -20
+    # ---- 命令结束 ----
 
-  echo "== 4. server.log 尾部（tcmalloc MALLOCSTATS 应在这里） =="
-  tail -40 "$R/logs/server.log" 2>&1
-
-  echo "== 5. server.log 中的错误 =="
-  grep -cE "Traceback|ERROR" "$R/logs/server.log" 2>/dev/null || true
-  grep -nE "Traceback|ERROR" "$R/logs/server.log" 2>/dev/null | head -20
-
-  echo "== 6. bench 结果 =="
-  cat "$R/logs/bench_"*.log 2>/dev/null | tail -30
-  echo "-- summary.csv --"
-  cat "$R/summary.csv" 2>/dev/null | head -5
-
-  echo "== 7. trace 产物 =="
-  find "$R/timeline" -type f -printf '%TY-%Tm-%Td %TH:%TM %12s  %p\n' 2>/dev/null | sort
-  echo "-- 目录大小 --"
-  du -sh "$R/timeline" 2>/dev/null
-
-  echo "== 8. 每个 trace 文件是否非空且像 JSON =="
-  for f in "$R/timeline"/*; do
-    [ -f "$f" ] || continue
-    printf '%s  size=%s  head=' "$(basename "$f")" "$(stat -c %s "$f")"
-    head -c 60 "$f" | tr -d '\n'; echo
-  done
-
-  # ---- 命令结束 ----
-
-  set +x
+    set +x
 } 2>&1 | tee "$OUT"
 
 STATUS=${PIPESTATUS[0]}
