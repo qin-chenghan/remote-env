@@ -9,7 +9,7 @@
   H+G = T - S + G
 
 用法: trace_eval_run.py LABEL trace.json[.gz]
-环境: TSHG_WARMUP=0,16
+环境: TSHG_WARMUP=0,16；DEEP=1 出 scope 内逐函数；GAP=1 出 scope 间空档归因
 输出行首标记：### 元信息 / TSHG 汇总 / FUN 逐函数
 """
 import bisect
@@ -167,8 +167,27 @@ def main():
 
     # 深挖模式：只统计 decode 步窗口内、锚点线程上的 self time，名字去掉对象地址
     deep = os.environ.get("DEEP", "") not in ("", "0")
+    gap_mode = os.environ.get("GAP", "") not in ("", "0")
     dwarm = int(os.environ.get("DEEP_WARMUP", max(warmups) if warmups else 0))
     deep_topn = int(os.environ.get("DEEP_TOPN", "200"))
+    gap_topn = int(os.environ.get("GAP_TOPN", "200"))
+
+    # G 窗口：相邻两个 decode scope 之间、锚点线程的空档
+    gaps = []
+    if gap_mode:
+        for i in range(nsteps - 1):
+            if (
+                i >= dwarm
+                and phase[i] == "decode"
+                and phase[i + 1] == "decode"
+                and step[i]["G"] > 0
+            ):
+                gaps.append((steps[i][1], steps[i + 1][0]))
+    gstarts = [g[0] for g in gaps]
+    gends = [g[1] for g in gaps]
+    gfun = collections.defaultdict(float)
+    gfunc = collections.defaultdict(int)
+    gall = collections.defaultdict(float)
     allcat = collections.defaultdict(float)
     mcat = collections.defaultdict(float)
     mfun = collections.defaultdict(float)
@@ -198,6 +217,14 @@ def main():
                     if sync_kind(name) is not None:
                         msync[cn] += selfd
                         msynccnt[cn] += 1
+        if gap_mode:
+            j = bisect.bisect_right(gstarts, ts) - 1
+            if 0 <= j < len(gaps) and ts < gends[j]:
+                gall[cat] += selfd
+                if key[1] in main_tids:
+                    cn = ADDR_RE.sub("", name)
+                    gfun[(cat, cn)] += selfd
+                    gfunc[(cat, cn)] += 1
         if sync_kind(name) is None:
             return
         syncname[name] += selfd
@@ -276,6 +303,21 @@ def main():
             print(f"### {label} MFUN top{deep_topn} (µs/decode-step, calls/step, anchor tid)")
             for (cat, n), v in sorted(mfun.items(), key=lambda kv: -kv[1])[:deep_topn]:
                 print(f"MFUN\t{label}\t{cat}\t{n}\t{v / ndec:.1f}\t{mfunc[(cat, n)] / ndec:.2f}")
+
+    if gap_mode and gaps:
+        ng = len(gaps)
+        gwall = sum(e - s for s, e in gaps) / ng
+        gself = sum(gfun.values()) / ng
+        gallsum = sum(gall.values()) / ng
+        print(
+            f"### {label} GAP gaps={ng} warmup={dwarm}"
+            f" mean_G={gwall:.1f}us anchor_self={gself:.1f}us all_self={gallsum:.1f}us"
+        )
+        for cat, v in sorted(gall.items(), key=lambda kv: -kv[1]):
+            print(f"GCAT\t{label}\t{cat}\t{v / ng:.1f}")
+        print(f"### {label} GFUN top{gap_topn} (µs/gap, calls/step, anchor tid)")
+        for (cat, n), v in sorted(gfun.items(), key=lambda kv: -kv[1])[:gap_topn]:
+            print(f"GFUN\t{label}\t{cat}\t{n}\t{v / ng:.1f}\t{gfunc[(cat, n)] / ng:.2f}")
     return 0
 
 
