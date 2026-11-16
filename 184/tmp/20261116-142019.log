@@ -1,0 +1,240 @@
+### server: 184
+### host:   controller
+### time:   2026-11-16T06:20:19Z
+
++ echo '== 0. 内核与系统 =='
+== 0. 内核与系统 ==
++ uname -a
+Linux controller 6.6.0-145.3.38.169.oe2403sp3.aarch64 #1 SMP Mon Nov  9 19:19:21 CST 2026 aarch64 aarch64 aarch64 GNU/Linux
+++ getconf PAGESIZE
++ echo PAGESIZE=4096
+PAGESIZE=4096
++ sed -n 1,4p /etc/os-release
+NAME="openEuler"
+VERSION="24.03 (LTS-SP4)"
+ID="openEuler"
+VERSION_ID="24.03"
++ grubby --default-kernel
+/boot/vmlinuz-6.6.0-145.3.38.169.oe2403sp3.aarch64
++ grub2-editenv list
+saved_entry=0
+boot_success=0
++ df -h /
++ tail -1
+/dev/mapper/openeuler00-root  875G  309G  530G  37% /
++ echo '== 1. 驱动现状 =='
+== 1. 驱动现状 ==
++ LOADED=0
++ lsmod
++ grep -q '^iluvatar'
++ echo LOADED=0
+LOADED=0
++ lsmod
++ grep '^iluvatar'
+iluvatar             1675264  0
++ head
++ ls -l /dev/iluvatar0 /dev/iluvatar1 /dev/iluvatar2 /dev/iluvatar3
+crw-rw-rw-. 1 root root 237, 0 Nov 16 13:58 /dev/iluvatar0
+crw-rw-rw-. 1 root root 237, 1 Nov 16 13:58 /dev/iluvatar1
+crw-rw-rw-. 1 root root 237, 2 Nov 16 13:58 /dev/iluvatar2
+crw-rw-rw-. 1 root root 237, 3 Nov 16 13:58 /dev/iluvatar3
++ timeout 20 /usr/local/corex-5.0.0/bin/ixsmi
++ echo 'ixsmi rc=0'
+ixsmi rc=0
++ head -20 /tmp/ixsmi.75755
+Timestamp    Mon Nov 16 14:20:19 2026
++--------------------------------------------------------------------------------+
+|  IX-ML: 5.0.0            Driver Version: 5.0.0          CUDA Version: 10.2     |
+|----------------------------------+----------------------+----------------------|
+| GPU  Name                        | Bus-Id               | Clock-SM  Clock-Mem  |
+| Fan  Temp  Perf    Pwr:Usage/Cap |      Memory-Usage    | GPU-Util  Compute M. |
+|==================================+======================+======================|
+| 0    Iluvatar BI-V150            | 00000000:45:00.0     | 1500MHz   1600MHz    |
+| N/A  42C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 1    Iluvatar BI-V150            | 00000000:48:00.0     | 1500MHz   1600MHz    |
+| N/A  42C   P0       102W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 2    Iluvatar BI-V150            | 00000000:AF:00.0     | 1500MHz   1600MHz    |
+| N/A  39C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 3    Iluvatar BI-V150            | 00000000:B2:00.0     | 1500MHz   1600MHz    |
+| N/A  40C   P0       101W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+
++ grep -i iluvatar
++ dmesg
++ tail -12
+[   15.103123] systemd[1]: Created slice Slice /system/iluvatarcorex-init.
+[   15.185281] iluvatar: loading out-of-tree module taints kernel.
+[   15.185294] iluvatar: module verification failed: signature and/or required key missing - tainting kernel
+[   15.193126] iluvatar 0000:45:00.0: enabling device (0140 -> 0142)
+[   15.899449] iluvatar 0000:45:00.0: DEV-0 is okay.
+[   15.899724] iluvatar 0000:48:00.0: enabling device (0140 -> 0142)
+[   16.602726] iluvatar 0000:48:00.0: DEV-1 is okay.
+[   16.603222] iluvatar 0000:af:00.0: enabling device (0140 -> 0142)
+[   17.315999] iluvatar 0000:af:00.0: DEV-2 is okay.
+[   17.316415] iluvatar 0000:b2:00.0: enabling device (0140 -> 0142)
+[   18.029691] iluvatar 0000:b2:00.0: DEV-3 is okay.
++ echo '== 2. DKMS / 源码 / 头文件 =='
+== 2. DKMS / 源码 / 头文件 ==
++ command -v dkms
+/usr/sbin/dkms
++ dkms status
+corex/5.0.0, 6.6.0-145.3.38.169.oe2403sp3.aarch64, aarch64: installed
+corex/5.0.0, 6.6.0-159.4.21.175.oe2403sp4.aarch64, aarch64: installed
+corex/5.0.0, 6.6.0-159.4.3.154.oe2403sp4+64k.aarch64, aarch64: installed
++ ls -d /usr/src/corex-5.0.0
+/usr/src/corex-5.0.0
++ ls -d /var/lib/dkms/corex/5.0.0 /var/lib/dkms/corex/kernel-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb-aarch64 /var/lib/dkms/corex/kernel-5.10.0-326.0.0.227.oe2203sp4.aarch64-aarch64 /var/lib/dkms/corex/kernel-6.6.0-145.3.37.168.oe2403sp3.aarch64-aarch64 /var/lib/dkms/corex/kernel-6.6.0-145.3.38.169.oe2403sp3.aarch64-aarch64 /var/lib/dkms/corex/kernel-6.6.0-159.4.21.175.oe2403sp4.aarch64-aarch64 /var/lib/dkms/corex/kernel-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64-aarch64
++ head
+/var/lib/dkms/corex/5.0.0
+/var/lib/dkms/corex/kernel-5.10.0-225.0.0.124.oe2203sp4.aarch64+64kb-aarch64
+/var/lib/dkms/corex/kernel-5.10.0-326.0.0.227.oe2203sp4.aarch64-aarch64
+/var/lib/dkms/corex/kernel-6.6.0-145.3.37.168.oe2403sp3.aarch64-aarch64
+/var/lib/dkms/corex/kernel-6.6.0-145.3.38.169.oe2403sp3.aarch64-aarch64
+/var/lib/dkms/corex/kernel-6.6.0-159.4.21.175.oe2403sp4.aarch64-aarch64
+/var/lib/dkms/corex/kernel-6.6.0-159.4.3.154.oe2403sp4+64k.aarch64-aarch64
++ grep -n '_BUILDOPT\|VGPU_ENABLE' /usr/src/corex-5.0.0/dkms.conf
+5:_BUILDOPT="VGPU_ENABLE=0 "
+30:EXTRA_BUILD="${EXTRA_BUILD} && KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) itr_peer_mem OFA_KERNEL=${OFED_SOURCE_DIR}"
+40:EXTRA_BUILD="${EXTRA_BUILD} && KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) itr_fs"
+48:MAKE[0]="KERNEL_UNAME=${kernelver} ${_BUILDOPT} make -j$(nproc) ${EXTRA_BUILD}"
++ ls -d /usr/src/kernels/6.6.0-145.3.38.169.oe2403sp3.aarch64 /usr/src/kernels/6.6.0-159.4.21.175.oe2403sp4.aarch64 /usr/src/kernels/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
+/usr/src/kernels/6.6.0-145.3.38.169.oe2403sp3.aarch64
+/usr/src/kernels/6.6.0-159.4.21.175.oe2403sp4.aarch64
+/usr/src/kernels/6.6.0-159.4.3.154.oe2403sp4+64k.aarch64
++ ls -l /lib/modules/6.6.0-145.3.38.169.oe2403sp3.aarch64/build
+lrwxrwxrwx. 1 root root 53 Nov  9 19:27 /lib/modules/6.6.0-145.3.38.169.oe2403sp3.aarch64/build -> /usr/src/kernels/6.6.0-145.3.38.169.oe2403sp3.aarch64
++ ls -l /lib/modules/6.6.0-145.3.38.169.oe2403sp3.aarch64/updates/
++ head
+total 356
+-rw-r--r--. 1 root root 361116 Nov 16 13:49 iluvatar.ko.xz
++ modinfo -F vermagic /lib/modules/6.6.0-145.3.38.169.oe2403sp3.aarch64/updates/iluvatar.ko.xz
+6.6.0-145.3.38.169.oe2403sp3.aarch64 SMP mod_unload modversions aarch64
++ WORKING=0
++ [[ 0 == 1 ]]
++ echo WORKING=0
+WORKING=0
++ [[ 0 == 1 ]]
++ [[ 0 == 1 ]]
++ echo '== 3. 源码与头文件检查 =='
+== 3. 源码与头文件检查 ==
++ SRC=/usr/src/corex-5.0.0
++ [[ ! -f /usr/src/corex-5.0.0/dkms.conf ]]
++ [[ 0 == 0 ]]
++ [[ -d /usr/src/kernels/6.6.0-145.3.38.169.oe2403sp3.aarch64 ]]
++ [[ -e /lib/modules/6.6.0-145.3.38.169.oe2403sp3.aarch64/build ]]
++ echo 'kernel-devel present: 6.6.0-145.3.38.169.oe2403sp3.aarch64'
+kernel-devel present: 6.6.0-145.3.38.169.oe2403sp3.aarch64
++ [[ 0 == 0 ]]
++ [[ ! -e /lib/modules/6.6.0-145.3.38.169.oe2403sp3.aarch64/build ]]
++ [[ 0 == 0 ]]
++ echo '== 4. VGPU_ENABLE=0（源目录） =='
+== 4. VGPU_ENABLE=0（源目录） ==
++ CONF=/usr/src/corex-5.0.0/dkms.conf
++ grep -n VGPU_ENABLE /usr/src/corex-5.0.0/dkms.conf
+5:_BUILDOPT="VGPU_ENABLE=0 "
++ grep -q VGPU_ENABLE=1 /usr/src/corex-5.0.0/dkms.conf
++ grep -n VGPU_ENABLE /usr/src/corex-5.0.0/dkms.conf
+5:_BUILDOPT="VGPU_ENABLE=0 "
++ echo '== 5. dkms build / install =='
+== 5. dkms build / install ==
++ dkms build --force corex/5.0.0 -k 6.6.0-145.3.38.169.oe2403sp3.aarch64
+Sign command: /lib/modules/6.6.0-145.3.38.169.oe2403sp3.aarch64/build/scripts/sign-file
+Signing key: /var/lib/dkms/mok.key
+Public certificate (MOK): /var/lib/dkms/mok.pub
+
+Building module:
+Cleaning build area...
+KERNEL_UNAME=6.6.0-145.3.38.169.oe2403sp3.aarch64 VGPU_ENABLE=0 make -j320 ......
+Signing module /var/lib/dkms/corex/5.0.0/build/iluvatar.ko
+Cleaning build area...
++ [[ 0 == 0 ]]
++ dkms install --force corex/5.0.0 -k 6.6.0-145.3.38.169.oe2403sp3.aarch64
+Module corex-5.0.0 for kernel 6.6.0-145.3.38.169.oe2403sp3.aarch64 (aarch64).
+Before uninstall, this module version was ACTIVE on this kernel.
+Removing any linked weak-modules
+
+iluvatar.ko.xz:
+ - Uninstallation
+   - Deleting from: /lib/modules/6.6.0-145.3.38.169.oe2403sp3.aarch64/updates/
+ - Original module
+   - No original module was found for this module on this kernel.
+   - Use the dkms install command to reinstall any previous module version.
+depmod...
+
+iluvatar.ko.xz:
+Running module version sanity check.
+ - Original module
+   - No original module exists within this kernel
+ - Installation
+   - Installing to /lib/modules/6.6.0-145.3.38.169.oe2403sp3.aarch64/updates/
+Adding any weak-modules
+depmod...
++ [[ 0 == 0 ]]
++ echo '== 6. depmod + modprobe =='
+== 6. depmod + modprobe ==
++ depmod -a 6.6.0-145.3.38.169.oe2403sp3.aarch64
++ modprobe iluvatar
++ echo 'modprobe rc=0'
+modprobe rc=0
++ sleep 3
++ echo '== 7. 验证 =='
+== 7. 验证 ==
++ lsmod
++ grep '^iluvatar'
+iluvatar             1675264  0
++ head
++ ls -l /dev/iluvatar0 /dev/iluvatar1 /dev/iluvatar2 /dev/iluvatar3
+crw-rw-rw-. 1 root root 237, 0 Nov 16 13:58 /dev/iluvatar0
+crw-rw-rw-. 1 root root 237, 1 Nov 16 13:58 /dev/iluvatar1
+crw-rw-rw-. 1 root root 237, 2 Nov 16 13:58 /dev/iluvatar2
+crw-rw-rw-. 1 root root 237, 3 Nov 16 13:58 /dev/iluvatar3
++ timeout 20 /usr/local/corex-5.0.0/bin/ixsmi
++ echo 'ixsmi rc=0'
+ixsmi rc=0
++ head -20 /tmp/ixsmi.75755
+Timestamp    Mon Nov 16 14:21:14 2026
++--------------------------------------------------------------------------------+
+|  IX-ML: 5.0.0            Driver Version: 5.0.0          CUDA Version: 10.2     |
+|----------------------------------+----------------------+----------------------|
+| GPU  Name                        | Bus-Id               | Clock-SM  Clock-Mem  |
+| Fan  Temp  Perf    Pwr:Usage/Cap |      Memory-Usage    | GPU-Util  Compute M. |
+|==================================+======================+======================|
+| 0    Iluvatar BI-V150            | 00000000:45:00.0     | 1500MHz   1600MHz    |
+| N/A  42C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 1    Iluvatar BI-V150            | 00000000:48:00.0     | 1500MHz   1600MHz    |
+| N/A  42C   P0       102W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 2    Iluvatar BI-V150            | 00000000:AF:00.0     | 1500MHz   1600MHz    |
+| N/A  39C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 3    Iluvatar BI-V150            | 00000000:B2:00.0     | 1500MHz   1600MHz    |
+| N/A  40C   P0       101W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+
++ dmesg
++ grep -i iluvatar
++ tail -15
+[   15.103123] systemd[1]: Created slice Slice /system/iluvatarcorex-init.
+[   15.185281] iluvatar: loading out-of-tree module taints kernel.
+[   15.185294] iluvatar: module verification failed: signature and/or required key missing - tainting kernel
+[   15.193126] iluvatar 0000:45:00.0: enabling device (0140 -> 0142)
+[   15.899449] iluvatar 0000:45:00.0: DEV-0 is okay.
+[   15.899724] iluvatar 0000:48:00.0: enabling device (0140 -> 0142)
+[   16.602726] iluvatar 0000:48:00.0: DEV-1 is okay.
+[   16.603222] iluvatar 0000:af:00.0: enabling device (0140 -> 0142)
+[   17.315999] iluvatar 0000:af:00.0: DEV-2 is okay.
+[   17.316415] iluvatar 0000:b2:00.0: enabling device (0140 -> 0142)
+[   18.029691] iluvatar 0000:b2:00.0: DEV-3 is okay.
++ dkms status
+corex/5.0.0, 6.6.0-145.3.38.169.oe2403sp3.aarch64, aarch64: installed
+corex/5.0.0, 6.6.0-159.4.21.175.oe2403sp4.aarch64, aarch64: installed
+corex/5.0.0, 6.6.0-159.4.3.154.oe2403sp4+64k.aarch64, aarch64: installed
++ [[ 0 != 0 ]]
++ rm -f /tmp/ixsmi.75755
++ set +x
+
+### exit: 0
