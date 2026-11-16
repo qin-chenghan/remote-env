@@ -19,9 +19,9 @@ BASE=/home/qch/scripts/litehost_perf/vllmBench
     set -x
 
     # ---- 命令开始 ----
-    echo "== 0. 两份脚本（以 huawei_ts_program 下的为准；qch 下的是旧副本） =="
+    echo "== 0. 两份脚本（opt 用 huawei_ts_program 下的；timeline 用 qch 下的） =="
     OPT=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
-    TL=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_timeline.sh
+    TL=/home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
     echo "-- 正式路径 --"
     for f in "$OPT" "$TL"; do
         ls -l --time-style=long-iso "$f" 2>&1
@@ -29,8 +29,9 @@ BASE=/home/qch/scripts/litehost_perf/vllmBench
         wc -l "$f" 2>&1
     done
     echo "-- 其他同名副本（仅参照，不参与 diff）--"
-    find /home/qch /home/lw -maxdepth 4 \
-        \( -name 'vllmBench_lite_opt.sh' -o -name 'vllmBench_lite_timeline.sh' \) 2>/dev/null | while read -r f; do
+    find /home/qch /home/huawei_ts_program /home/lw -maxdepth 4 \
+        \( -name 'vllmBench_lite_opt.sh' -o -name 'vllmBench_lite_timeline.sh' \) \
+        ! -path "$OPT" ! -path "$TL" 2>/dev/null | while read -r f; do
         ls -l --time-style=long-iso "$f"
         sha256sum "$f"
     done
