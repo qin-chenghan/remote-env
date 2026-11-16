@@ -1,0 +1,943 @@
+### server: 184
+### host:   controller
+### time:   2026-11-16T03:18:53Z
+
++ echo '== 0. 两份脚本（opt 用 huawei_ts_program 下的；timeline 用 qch 下的） =='
+== 0. 两份脚本（opt 用 huawei_ts_program 下的；timeline 用 qch 下的） ==
++ OPT=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ TL=/home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
++ echo '-- 正式路径 --'
+-- 正式路径 --
++ for f in "$OPT" "$TL"
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+-rwxr-xr-x. 1 root root 13999 2026-11-14 13:10 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ sha256sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+d3390d56cb7794331e83199cbd5f3da19508136db313887efa01f6de79b95a92  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ wc -l /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+282 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ for f in "$OPT" "$TL"
++ ls -l --time-style=long-iso /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
+-rwxr-xr-x. 1 root root 19082 2026-11-15 15:08 /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
++ sha256sum /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
+14299aff7a61b59a198f383ba04c4ba846bc6de4c5f31ec4c833029a7f8b2ea6  /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
++ wc -l /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
+369 /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
++ echo '-- 其他同名副本（仅参照，不参与 diff）--'
+-- 其他同名副本（仅参照，不参与 diff）--
++ find /home/qch /home/huawei_ts_program /home/lw -maxdepth 4 '(' -name vllmBench_lite_opt.sh -o -name vllmBench_lite_timeline.sh ')' '!' -path /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh '!' -path /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
++ read -r f
++ ls -l --time-style=long-iso /home/qch/scripts/litehost_perf/vllmBench_lite_opt.sh
+-rwxrwxr-x+ 1 root root 12965 2026-10-29 20:22 /home/qch/scripts/litehost_perf/vllmBench_lite_opt.sh
++ sha256sum /home/qch/scripts/litehost_perf/vllmBench_lite_opt.sh
+33a8946493f68d2c1431628e0adcce5ce103f4d9c17b19984931ea1945801fd6  /home/qch/scripts/litehost_perf/vllmBench_lite_opt.sh
++ read -r f
++ ls -l --time-style=long-iso /home/qch/tools/remote-env/184/vllmBench_lite_timeline.sh
+-rw-r--r--. 1 root root 19066 2026-11-15 15:05 /home/qch/tools/remote-env/184/vllmBench_lite_timeline.sh
++ sha256sum /home/qch/tools/remote-env/184/vllmBench_lite_timeline.sh
+22351f6c133300d477189deb8b031d0668d193cb92db752f00c2db0b62df6064  /home/qch/tools/remote-env/184/vllmBench_lite_timeline.sh
++ read -r f
++ echo '== 1. 两份脚本 diff =='
+== 1. 两份脚本 diff ==
++ echo OPT=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+OPT=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ echo TL=/home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
+TL=/home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
++ [[ -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh ]]
++ [[ -n /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh ]]
++ diff -u /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
++ head -400
+--- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh	2026-11-14 13:10:27.290988440 +0800
++++ /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh	2026-11-15 15:08:24.570563500 +0800
+@@ -2,10 +2,20 @@
+ # Adapted from the uploaded vllmBench_lite.sh. Keep one server for all cases.
+ # Defaults retained: warmups=16, cache OFF, CPUs 192-255 (NUMA node 3), backend=vllm.
+ # Requires the matching files in this slim folder (included in the ZIP).
++#
++# 本文件 = /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh (2026-11-14 13:10)
++# 逐行复制，只加 torch profiler 相关行，其余服务参数、环境、bench 参数完全一致。
++#
++# 为什么必须 HOST_MEASURE=off：lite 测量层与 torch profiler 互斥——
++#   bench_driver.py:67      `if bind.arguments.get('profile'): raise ValueError('Torch profiler must be disabled')`
++#   light_host_worker.py:12 `if getattr(self,'profiler',None): raise RuntimeError('Disable Torch Profiler for Lite measurement')`
++# 所以 4K/64K 的 trace 只能用默认 worker + vllm bench serve --profile 采集：
++# 模型、vLLM 启动参数、SERVER_EXTRA_ENV、case、prompts、warmups、并发、seed 全部与 lite 脚本相同，
++# 唯一区别是测量层（litehost 拦截 vs torch profiler）。
+ set -uo pipefail
+ 
+ MODEL_PATH="${MODEL_PATH:-/home/model/Qwen3-32B-W8A8}"
+-TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
++TEST_ID="${TEST_ID:-"timeline_$(date +%Y%m%d_%H%M%S)"}"
+ PREFIX="${PREFIX:-/opt/corex311-cpython-vllm}"
+ PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+ GPU_LIST="${GPU_LIST:-0,1,2,3}"
+@@ -16,11 +26,18 @@
+ MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+ CASE_INTERVAL="${CASE_INTERVAL:-60}"
+ CPU_RANGE="${CPU_RANGE-80-159,240-319}"
+-HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
++HOST_MEASURE="${HOST_MEASURE:-off}"         # 本脚本要求 off；lite 与 torch profiler 互斥
+ HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
+ HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
+ HOST_MAX_SCOPES="${HOST_MAX_SCOPES:-200000}"
+ HOST_DRY_RUN="${HOST_DRY_RUN:-0}"
++PROFILE="${PROFILE:-1}"                     # 1=开 torch profiler 出 trace
++PROFILE_DELAY_ITERATIONS="${PROFILE_DELAY_ITERATIONS:-0}"
++PROFILE_MAX_ITERATIONS="${PROFILE_MAX_ITERATIONS:-0}"
++PROFILE_WARMUP_ITERATIONS="${PROFILE_WARMUP_ITERATIONS:-0}"
++PROFILE_ACTIVE_ITERATIONS="${PROFILE_ACTIVE_ITERATIONS:-2000}"
++PROFILE_FLUSH_TIMEOUT="${PROFILE_FLUSH_TIMEOUT:-300}"
++VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
+ SERVER_EXTRA_ENV=(
+     UMD_MAXCOMMANDBUFFERNUMBER=256
+     UMD_MAXCOMMANDBUFFERSIZE=16384
+@@ -36,12 +53,19 @@
+ # Do not use an inherited OLD LIGHTHOST_HOME silently.
+ if [[ -f "$SCRIPT_DIR/lhctl.py" ]]; then
+     HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR}"
+-else
++elif [[ -f "$SCRIPT_DIR/litehost_compat_slim/lhctl.py" ]]; then
+     HOST_TOOLKIT="${HOST_TOOLKIT:-$SCRIPT_DIR/litehost_compat_slim}"
++else
++    HOST_TOOLKIT="${HOST_TOOLKIT:-/home/huawei_ts_program/litehost_perf_opt}"
+ fi
+-HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 解压完整 litehost_compat_slim_v041.zip 或设置 HOST_TOOLKIT' >&2; exit 2; }
++HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 设置 HOST_TOOLKIT 或解压完整 litehost_compat_slim_v041.zip' >&2; exit 2; }
+ [[ -x "$PYTHON_BIN" && -f "$HOST_TOOLKIT/lhctl.py" ]] || { echo 'ERROR: Python 或配套文件缺失' >&2; exit 2; }
+ [[ "$HOST_MEASURE" == lite || "$HOST_MEASURE" == off ]] || { echo 'ERROR: HOST_MEASURE=lite|off' >&2; exit 2; }
++[[ "$PROFILE" == 0 || "$PROFILE" == 1 ]] || { echo 'ERROR: PROFILE=0|1' >&2; exit 2; }
++if [[ "$PROFILE" == 1 && "$HOST_MEASURE" != off ]]; then
++    echo 'ERROR: lite 测量层与 torch profiler 互斥（bench_driver.py 与 LightHostWorker 都会拒绝）；PROFILE=1 时必须 HOST_MEASURE=off' >&2
++    exit 2
++fi
+ [[ "$GPUS_PER_INSTANCE" == 4 ]] || { echo 'ERROR: 此版要求四卡 TP=4, PP=1, DP=1' >&2; exit 2; }
+ [[ "$TEST_ID" =~ ^[A-Za-z0-9_.-]+$ && "$TEST_ID" != . && "$TEST_ID" != .. ]] || { echo 'ERROR: TEST_ID 不能包含路径分隔符' >&2; exit 2; }
+ 
+@@ -52,19 +76,20 @@
+ SUMMARY_CSV="${RUN_DIR}/summary.csv"
+ SESSION_FILE="${RUN_DIR}/session.json"
+ PID_FILE="${RUN_DIR}/server.pid"
++PROFILE_DIR="${RUN_DIR}/timeline"
+ SERVER_PID=""; BENCH_PID=""; CLEANED=0; INIT_DONE=0
+ 
+ # Original case matrix: only 128/128 enabled; uncomment the others as before.
+ CASES=(
+   "128 128"
+-  "128 1024"
+-  "128 2048"
+-  "1024 128"
+-  "1024 1024"
+-  "1024 2048"
+-  "2048 128"
+-  "2048 1024"
+-  "2048 2048"
++#   "128 1024"
++#   "128 2048"
++#   "1024 128"
++#   "1024 1024"
++#   "1024 2048"
++#   "2048 128"
++#   "2048 1024"
++#   "2048 2048"
+ )
+ # Optional text file, one 'input output' case per nonblank/non-comment line.
+ if [[ -n "${CASES_FILE:-}" ]]; then
+@@ -86,6 +111,16 @@
+     --enable_chunked_prefill --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0, "compact_greedy":true, "sample_logits_cudagraph":"on", "sample_logits_cudagraph_max_bytes":67108864, "sample_logits_cudagraph_capture_sizes":[1,2,3,4,5,6,7,8]}'
+     --async-scheduling --no-enable-prefix-caching
+ )
++# torch_profiler_dir 必须是绝对路径（vLLM 以 server 进程 cwd 解析相对路径）。
++PROFILER_CONFIG_JSON=''
++if [[ "$PROFILE" == 1 ]]; then
++    PROFILER_CONFIG_JSON=$(cat <<EOF
++{"profiler":"torch","torch_profiler_dir":"${PROFILE_DIR}","delay_iterations":${PROFILE_DELAY_ITERATIONS},"max_iterations":${PROFILE_MAX_ITERATIONS},"warmup_iterations":${PROFILE_WARMUP_ITERATIONS},"active_iterations":${PROFILE_ACTIVE_ITERATIONS},"ignore_frontend":true}
++EOF
++)
++    PROFILER_CONFIG_JSON="$(echo "$PROFILER_CONFIG_JSON" | tr -d '\n')"
++    SERVER_ARGS+=(--profiler-config "$PROFILER_CONFIG_JSON")
++fi
+ [[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
+ 
+ cleanup() {
+@@ -98,8 +133,24 @@
+     fi
+     if [[ -n "$SERVER_PID" ]]; then
+         log "停止本次服务 PID=$SERVER_PID（不使用全局 pkill）"
+-        "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
+-        wait "$SERVER_PID" 2>/dev/null || true
++        if [[ "$PROFILE" == 1 ]]; then
++            # torch profiler 在停服时落盘；procutil.py stop 只等 10s 就 SIGKILL，这里给足时间。
++            kill -TERM -- -"$SERVER_PID" 2>/dev/null || true
++            local_i=0
++            while (( local_i < PROFILE_FLUSH_TIMEOUT / 3 )); do
++                kill -0 "$SERVER_PID" 2>/dev/null || break
++                sleep 3; local_i=$((local_i+1))
++            done
++            if kill -0 "$SERVER_PID" 2>/dev/null; then
++                log "WARNING: ${PROFILE_FLUSH_TIMEOUT}s 内未退出，SIGKILL"
++                kill -KILL -- -"$SERVER_PID" 2>/dev/null || true
++            fi
++            wait "$SERVER_PID" 2>/dev/null || true
++            "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
++        else
++            "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" stop "$RUN_DIR/server.process.json" || true
++            wait "$SERVER_PID" 2>/dev/null || true
++        fi
+         SERVER_PID=""; rm -f -- "$PID_FILE"
+     fi
+     if [[ "$INIT_DONE" == 1 ]]; then
+@@ -145,25 +196,39 @@
+     check_gpu_memory "$GPU_LIST"
+     local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1
+         "${SERVER_EXTRA_ENV[@]}")
++    [[ "$PROFILE" == 1 ]] && env_args+=(VLLM_RPC_TIMEOUT="$VLLM_RPC_TIMEOUT")
+     if [[ "$HOST_MEASURE" == lite ]]; then
+         env_args+=(PYTHONPATH="$HOST_TOOLKIT"
+             LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/lw/gperftools/.libs/libtcmalloc.so"
+             TCMALLOC_MAX_TOTAL_THREAD_CACHE_BYTES=536870912
+             MALLOCSTATS=1
+             LIGHTHOST_LIB="$HOST_TOOLKIT/liblitehost.so" LIGHTHOST_SESSION="$SESSION_FILE")
++    else
++        # 与 lite 分支同一份 PGO tcmalloc（全优化包的一项）；liblitehost.so 只属于 lite 测量层。
++        env_args+=(LD_PRELOAD="/home/lw/gperftools/.libs/libtcmalloc.so"
++            TCMALLOC_MAX_TOTAL_THREAD_CACHE_BYTES=536870912
++            MALLOCSTATS=1)
+     fi
+     "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/server.process.json" -- \
+         "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}" >> "$SERVER_LOG" 2>&1 &
+     SERVER_PID=$!; echo "$SERVER_PID" > "$PID_FILE"
+     log "服务 PID=$SERVER_PID；所有 case 复用；日志=$SERVER_LOG"
+-    wait_for_server
++    wait_for_server || return 1
++    if [[ "$PROFILE" == 1 ]]; then
++        if grep -qE "Profiler with mode|Torch profiling enabled" "$SERVER_LOG" 2>/dev/null; then
++            log "profiler 已生效：$PROFILER_CONFIG_JSON"
++        else
++            log "WARNING: server.log 里没找到 profiler 关键字，确认 --profiler-config 已生效"
++        fi
++    fi
++    return 0
+ }
+ run_case() {
+     local input_len="$1" output_len="$2"
+     local case_id="bs${MAX_CONCURRENCY}_in${input_len}_out${output_len}"
+     local case_log="${LOG_DIR}/bench_${case_id}.log" case_dir="${RUN_DIR}/litehost/${case_id}"
+-    local -a client env_args
+-    env_args=()
++    local -a client env_args profile_args
++    env_args=(); profile_args=()
+     if [[ "$HOST_MEASURE" == lite ]]; then
+         "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" prepare --session "$SESSION_FILE" \
+             --case-id "$case_id" --num-prompts "$NUM_PROMPTS" --input-len "$input_len" --output-len "$output_len" || return 1
+@@ -171,8 +236,9 @@
+         env_args=(LIGHTHOST_SESSION="$SESSION_FILE" LIGHTHOST_CASE_DIR="$case_dir")
+     else
+         client=(-m vllm.entrypoints.cli.main bench serve)
++        [[ "$PROFILE" == 1 ]] && profile_args=(--profile)
+     fi
+-    log "==== $case_id | mode=$HOST_MEASURE | warmup=$NUM_WARMUPS | 同一服务 ===="
++    log "==== $case_id | mode=$HOST_MEASURE | profile=$PROFILE | warmup=$NUM_WARMUPS | 同一服务 ===="
+     "${CLEAN_ENV[@]}" "${env_args[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/procutil.py" exec "$RUN_DIR/bench.process.json" -- \
+         "$PYTHON_BIN" "${client[@]}" \
+         --backend vllm \
+@@ -180,6 +246,7 @@
+         --dataset_name random --random_input_len "$input_len" --random_output_len "$output_len" \
+         --host 127.0.0.1 --port "$PORT" --model "$MODEL_PATH" --trust_remote_code \
+         --ignore_eos --top_p 1 --top_k -1 --temperature 0 --seed 42 \
++        "${profile_args[@]}" \
+         --save-result --result-dir "$RUN_DIR" --result_filename "${case_id}.json" > "$case_log" 2>&1 &
+     BENCH_PID=$!
+     local rc=0
+@@ -205,7 +272,7 @@
+     parts=x.split()
+     if len(parts)!=2 or min(map(int,parts))<=0 or sum(map(int,parts))>4096:raise ValueError('case 需要两个正整数且总长 <= 4096')
+ PY
+-log "TEST_ID=$TEST_ID | MODE=$HOST_MEASURE | WARMUP=$NUM_WARMUPS | CPU_RANGE=$CPU_RANGE"
++log "TEST_ID=$TEST_ID | MODE=$HOST_MEASURE | PROFILE=$PROFILE | WARMUP=$NUM_WARMUPS | CPU_RANGE=$CPU_RANGE"
+ log "prefix cache=OFF | backend=vllm | 同一服务运行 ${#CASES[@]} 个 case | RUN_DIR=$RUN_DIR"
+ if [[ "$HOST_DRY_RUN" == 1 ]]; then
+     printf 'SERVER: '; printf '%q ' "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}"; printf '\n'
+@@ -215,6 +282,7 @@
+ [[ -d "$MODEL_PATH" ]] || { log 'ERROR: MODEL_PATH 不是本地目录'; exit 2; }
+ if [[ -e "$RUN_DIR" ]]; then log 'ERROR: RUN_DIR 已存在，请换一个 TEST_ID，避免混入旧文件'; exit 2; fi
+ mkdir -p "$LOG_DIR"
++[[ "$PROFILE" == 1 ]] && mkdir -p "$PROFILE_DIR"
+ {
+     echo "test_id=$TEST_ID"
+     echo "started=$(date -Is)"
+@@ -225,6 +293,7 @@
+     echo "model_path=$MODEL_PATH"
+     echo "gpus=$GPU_LIST tp=$GPUS_PER_INSTANCE"
+     echo "prompts=$NUM_PROMPTS concurrency=$MAX_CONCURRENCY warmups=$NUM_WARMUPS"
++    echo "host_measure=$HOST_MEASURE profile=$PROFILE profile_dir=$PROFILE_DIR"
+ } > "$RUN_DIR/config.txt" 2>/dev/null || true
+ if [[ "$HOST_MEASURE" == lite ]]; then
+     "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" init --run-dir "$RUN_DIR" \
+@@ -252,6 +321,19 @@
+         --link-percent "$HOST_LINK_PERCENT" --out "$RUN_DIR/host_summary" --quiet || FAILED=1
+ fi
+ cleanup
++# profiler 可能在停服时才落盘（timeline_opt.sh 里 flush 要几分钟），停服后最多等 180s。
++if [[ "$PROFILE" == 1 && "$FAILED" == 0 ]]; then
++    local_i=0
++    while (( local_i < 60 )); do
++        if find "$PROFILE_DIR" -type f \( -name '*.json' -o -name '*.json.gz' \) 2>/dev/null | grep -q .; then break; fi
++        sleep 3; local_i=$((local_i+1))
++    done
++    if find "$PROFILE_DIR" -type f \( -name '*.json' -o -name '*.json.gz' \) 2>/dev/null | grep -q .; then
++        log "trace 已产出：$(find "$PROFILE_DIR" -type f | wc -l) 个文件"
++    else
++        log "ERROR: 等待 180s 后 $PROFILE_DIR 仍无 trace 文件，检查 --profiler-config 与 bench --profile"; FAILED=1
++    fi
++fi
+ (( FAILED == 0 )) || { log "部分失败，保留诊断：$RUN_DIR"; exit 2; }
+ 
+ log "========== 所有 case 最终结果（仅此处打印一次） =========="
+@@ -279,4 +361,9 @@
+     echo '===== LiteHost：四 rank、所有 case 的 H 与 H+G ====='
+     cat "$RUN_DIR/host_summary/report.txt"
+ fi
++if [[ "$PROFILE" == 1 ]]; then
++    echo '===== Timeline 产物 ====='
++    find "$PROFILE_DIR" -type f 2>/dev/null | head -50
++    echo "Timeline 目录(Perfetto JSON): $PROFILE_DIR"
++fi
+ log "全部完成 | benchmark=$SUMMARY_CSV | host=$([[ "$HOST_MEASURE" == lite ]] && echo "$RUN_DIR/host_summary/report.txt" || echo 'OFF/未采集')"
++ echo '== 2. 服务启动参数与 bench 客户端 =='
+== 2. 服务启动参数与 bench 客户端 ==
++ for f in "$OPT" "$TL"
++ [[ -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh ]]
++ echo '-- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh --'
+-- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh --
++ grep -nE 'SERVER_ARGS|HOST_MEASURE=|bench_driver|bench serve|num_prompts|num-warmups|max-concurrency|random_input_len|random_output_len|seed|profiler-config|LD_PRELOAD|VLLM_RPC_TIMEOUT' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
++ head -60
+19:HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
+44:[[ "$HOST_MEASURE" == lite || "$HOST_MEASURE" == off ]] || { echo 'ERROR: HOST_MEASURE=lite|off' >&2; exit 2; }
+76:CLEAN_ENV=(env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+80:SERVER_ARGS=(
+89:[[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
+150:            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/lw/gperftools/.libs/libtcmalloc.so"
+156:        "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}" >> "$SERVER_LOG" 2>&1 &
+170:        client=("$HOST_TOOLKIT/bench_driver.py")
+173:        client=(-m vllm.entrypoints.cli.main bench serve)
+179:        --num_prompts "$NUM_PROMPTS" --num-warmups "$NUM_WARMUPS" --max-concurrency "$MAX_CONCURRENCY" \
+180:        --dataset_name random --random_input_len "$input_len" --random_output_len "$output_len" \
+182:        --ignore_eos --top_p 1 --top_k -1 --temperature 0 --seed 42 \
+211:    printf 'SERVER: '; printf '%q ' "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}"; printf '\n'
++ for f in "$OPT" "$TL"
++ [[ -n /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh ]]
++ echo '-- /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh --'
+-- /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh --
++ grep -nE 'SERVER_ARGS|HOST_MEASURE=|bench_driver|bench serve|num_prompts|num-warmups|max-concurrency|random_input_len|random_output_len|seed|profiler-config|LD_PRELOAD|VLLM_RPC_TIMEOUT' /home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
++ head -60
+9:# 为什么必须 HOST_MEASURE=off：lite 测量层与 torch profiler 互斥——
+10:#   bench_driver.py:67      `if bind.arguments.get('profile'): raise ValueError('Torch profiler must be disabled')`
+12:# 所以 4K/64K 的 trace 只能用默认 worker + vllm bench serve --profile 采集：
+13:# 模型、vLLM 启动参数、SERVER_EXTRA_ENV、case、prompts、warmups、并发、seed 全部与 lite 脚本相同，
+29:HOST_MEASURE="${HOST_MEASURE:-off}"         # 本脚本要求 off；lite 与 torch profiler 互斥
+40:VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
+63:[[ "$HOST_MEASURE" == lite || "$HOST_MEASURE" == off ]] || { echo 'ERROR: HOST_MEASURE=lite|off' >&2; exit 2; }
+66:    echo 'ERROR: lite 测量层与 torch profiler 互斥（bench_driver.py 与 LightHostWorker 都会拒绝）；PROFILE=1 时必须 HOST_MEASURE=off' >&2
+101:CLEAN_ENV=(env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
+105:SERVER_ARGS=(
+122:    SERVER_ARGS+=(--profiler-config "$PROFILER_CONFIG_JSON")
+124:[[ "$HOST_MEASURE" == lite ]] && SERVER_ARGS+=(--worker-cls light_host_worker.LightHostWorker)
+199:    [[ "$PROFILE" == 1 ]] && env_args+=(VLLM_RPC_TIMEOUT="$VLLM_RPC_TIMEOUT")
+202:            LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so:/home/lw/gperftools/.libs/libtcmalloc.so"
+208:        env_args+=(LD_PRELOAD="/home/lw/gperftools/.libs/libtcmalloc.so"
+213:        "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}" >> "$SERVER_LOG" 2>&1 &
+221:            log "WARNING: server.log 里没找到 profiler 关键字，确认 --profiler-config 已生效"
+235:        client=("$HOST_TOOLKIT/bench_driver.py")
+238:        client=(-m vllm.entrypoints.cli.main bench serve)
+245:        --num_prompts "$NUM_PROMPTS" --num-warmups "$NUM_WARMUPS" --max-concurrency "$MAX_CONCURRENCY" \
+246:        --dataset_name random --random_input_len "$input_len" --random_output_len "$output_len" \
+248:        --ignore_eos --top_p 1 --top_k -1 --temperature 0 --seed 42 \
+278:    printf 'SERVER: '; printf '%q ' "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}"; printf '\n'
+334:        log "ERROR: 等待 180s 后 $PROFILE_DIR 仍无 trace 文件，检查 --profiler-config 与 bench --profile"; FAILED=1
++ echo '== 3. bench_driver.py 是什么 =='
+== 3. bench_driver.py 是什么 ==
++ HK=/home/huawei_ts_program/litehost_perf_opt
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/bench_driver.py ]]
++ ls -l --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/bench_driver.py
+-rw-r--r--. 1 root root 6513 2026-11-13 14:08 /home/huawei_ts_program/litehost_perf_opt/bench_driver.py
++ sed -n 1,90p /home/huawei_ts_program/litehost_perf_opt/bench_driver.py
+#!/usr/bin/env python3
+"""Same installed vLLM client/CLI/parameters; only instrument formal boundaries.
+Official warmups remain unchanged. Does not modify installed source files.
+"""
+from __future__ import annotations
+import ast,asyncio,inspect,os,runpy,sys,textwrap,time,hashlib
+from dataclasses import replace,is_dataclass
+from pathlib import Path
+from functools import wraps
+from lh_common import atomic_json,read_json,all_ranks
+
+def patch_tree(source):
+    tree=ast.parse(textwrap.dedent(source));fn=tree.body[0]
+    if len(tree.body)!=1 or not isinstance(fn,ast.AsyncFunctionDef) or fn.name!='benchmark' or fn.decorator_list:raise ValueError('Unsupported benchmark function')
+    def assigned(s,n):return isinstance(s,ast.Assign) and len(s.targets)==1 and isinstance(s.targets[0],ast.Name) and s.targets[0].id==n
+    starts=[i for i,s in enumerate(fn.body) if assigned(s,'benchmark_start_time')]
+    ends=[i for i,s in enumerate(fn.body) if assigned(s,'benchmark_duration')]
+    if len(starts)!=1 or len(ends)!=1 or starts[0]>=ends[0]:raise ValueError('Unknown benchmark timer layout')
+    a,b=starts[0],ends[0]
+    if ast.unparse(fn.body[a].value)!='time.perf_counter()' or ast.unparse(fn.body[b].value)!='time.perf_counter() - benchmark_start_time':raise ValueError('Timer expressions changed')
+    warm=[i for i,s in enumerate(fn.body) if isinstance(s,ast.If) and 'num_warmups' in ast.unparse(s.test)]
+    if len(warm)!=1 or warm[0]>=a or 'asyncio.gather' not in ast.unparse(fn.body[warm[0]]):raise ValueError('Warmup ordering changed')
+    test=[s for s in ast.walk(fn) if assigned(s,'test_input')]
+    if len(test)!=1 or not isinstance(test[0].value,ast.Call) or any(k.arg=='request_id' for k in test[0].value.keywords):raise ValueError('Warmup request ID forwarding changed')
+    mid='\n'.join(ast.unparse(s) for s in fn.body[a:b])
+    if 'request.request_id' not in mid or 'request_id=request_id' not in mid or 'await asyncio.gather(*tasks)' not in mid:raise ValueError('Formal request loop changed')
+    body=[]
+    for i,s in enumerate(fn.body):
+        if i==a:body.extend(ast.parse('await __lh_start()').body)
+        body.append(s)
+        if i==b:body.extend(ast.parse('await __lh_end(outputs, benchmark_duration)').body)
+    fn.body=body;fn.name='__lh_benchmark';return ast.fix_missing_locations(tree)
+
+class Boundaries:
+    def __init__(self,session_file,case_dir):
+        self.session=read_json(session_file);self.root=Path(case_dir);self.case=read_json(self.root/'case.json')
+        if self.case['session_id']!=self.session['session_id']:raise ValueError('Case/session mismatch')
+        self.window={'status':'preparing','run_id':self.case['run_id'],'case_id':self.case['case_id'],'session_id':self.case['session_id']}
+        self.calls=0;self.ended=False
+    def save(self):atomic_json(self.root/'window.json',self.window)
+    async def start(self):
+        self.window['arm_acks']=await asyncio.to_thread(all_ranks,self.session,'arm',run_id=self.case['run_id'])
+        self.window.update(status='armed',main_start_ns=time.monotonic_ns());self.save()
+        print('[litehost] 4 ranks ARMED; all ready-check/warmup scopes excluded',flush=True)
+    async def end(self,outputs,duration):
+        self.window.update(main_end_ns=time.monotonic_ns(),benchmark_duration_s=duration,successful=sum(bool(o.success) for o in outputs),failed=sum(not bool(o.success) for o in outputs))
+        if len(outputs)!=self.case['expected_requests'] or not all(o.success for o in outputs):
+            self.window['failed_errors']=[{'i':i,'error':str(getattr(o,'error',''))[:300]} for i,o in enumerate(outputs) if not o.success][:10]
+            self.save()
+            raise RuntimeError('Formal requests incomplete/failed; no valid H')
+        self.window['finalize_acks']=await asyncio.to_thread(all_ranks,self.session,'finalize',run_id=self.case['run_id'])
+        self.window['status']='finalized';self.ended=True;self.save()
+        print('[litehost] 4 ranks FINALIZED; data saved; same server ready for next case',flush=True)
+
+def install(module,b):
+    original=module.benchmark;src=inspect.getsource(original);tree=patch_tree(src)
+    ns=module.__dict__;ns['__lh_start']=b.start;ns['__lh_end']=b.end
+    exec(compile(tree,inspect.getsourcefile(original) or '<bench>','exec'),ns)
+    patched=ns['__lh_benchmark'];sig=inspect.signature(original)
+    b.window['benchmark_source_sha256']=hashlib.sha256(src.encode()).hexdigest()
+    (b.root/'benchmark_hooked.py.txt').write_text(ast.unparse(tree)+'\n')
+    @wraps(original)
+    async def wrapped(*args,**kwargs):
+        b.calls+=1
+        if b.calls!=1:raise ValueError('One benchmark call per client process required')
+        bind=sig.bind(*args,**kwargs);bind.apply_defaults()
+        if bind.arguments.get('profile'):raise ValueError('Torch profiler must be disabled')
+        if bind.arguments.get('endpoint_type') not in ('vllm','openai'):raise ValueError('Only original text completions backend supported')
+        requests=list(bind.arguments['input_requests'])
+        if len(requests)!=b.case['expected_requests']:raise ValueError('Request count mismatch')
+        new=[]
+        for i,r in enumerate(requests):
+            if not is_dataclass(r) or not isinstance(r.prompt,str):raise ValueError('Expected text SampleRequest dataclass')
+            if any(getattr(r,k,None) for k in ('multi_modal_data','chat_messages','request_overrides')):raise ValueError('Multimodal/chat/overrides unsupported')
+            new.append(replace(r,request_id='lh'+b.case['run_id']+'-'+str(i)))
+        bind.arguments['input_requests']=new
+        b.window['num_warmups']=bind.arguments.get('num_warmups');b.save()
+        return await patched(*bind.args,**bind.kwargs)
+    module.benchmark=wrapped
+
+def main():
+    b=Boundaries(os.environ['LIGHTHOST_SESSION'],os.environ['LIGHTHOST_CASE_DIR'])
+    try:
+        import vllm.benchmarks.serve as module
+        install(module,b);sys.argv=['vllm','bench','serve',*sys.argv[1:]]
+        try:runpy.run_module('vllm.entrypoints.cli.main',run_name='__main__');rc=0
+        except SystemExit as e:rc=int(e.code or 0)
+        if rc or b.calls!=1 or not b.ended:raise RuntimeError(f'Client incomplete: rc={rc},calls={b.calls},ended={b.ended}')
+        b.window['status']='complete';b.save();return 0
+    except BaseException as e:
++ grep -nE 'bench serve|vllm.entrypoints|subprocess|main\(|sys.argv|profile' /home/huawei_ts_program/litehost_perf_opt/bench_driver.py
++ head -30
+67:        if bind.arguments.get('profile'):raise ValueError('Torch profiler must be disabled')
+81:def main():
+85:        install(module,b);sys.argv=['vllm','bench','serve',*sys.argv[1:]]
+86:        try:runpy.run_module('vllm.entrypoints.cli.main',run_name='__main__');rc=0
+93:if __name__=='__main__':raise SystemExit(main())
++ RUNROOTS=("$BASE" /home/huawei_ts_program/litehost_perf_opt/vllmBench)
++ echo '== 4. 四轮 run 的实际配置对照 =='
+== 4. 四轮 run 的实际配置对照 ==
++ for B in "${RUNROOTS[@]}"
+++ ls -dt /home/qch/scripts/litehost_perf/vllmBench/base/ /home/qch/scripts/litehost_perf/vllmBench/before_reboot/ /home/qch/scripts/litehost_perf/vllmBench/opt/ /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/ /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/ /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/ /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/
+++ head -40
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k2//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/
++ echo '-- timeline4k2 [/home/qch/scripts/litehost_perf/vllmBench] --'
+-- timeline4k2 [/home/qch/scripts/litehost_perf/vllmBench] --
++ cat /home/qch/scripts/litehost_perf/vllmBench/timeline4k2//config.txt
+test_id=timeline4k2
+started=2026-11-15T15:52:09+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+host_measure=off profile=1 profile_dir=/home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline64k2//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/
++ echo '-- timeline64k2 [/home/qch/scripts/litehost_perf/vllmBench] --'
+-- timeline64k2 [/home/qch/scripts/litehost_perf/vllmBench] --
++ cat /home/qch/scripts/litehost_perf/vllmBench/timeline64k2//config.txt
+test_id=timeline64k2
+started=2026-11-15T15:41:08+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+host_measure=off profile=1 profile_dir=/home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline64k1//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/
++ echo '-- timeline64k1 [/home/qch/scripts/litehost_perf/vllmBench] --'
+-- timeline64k1 [/home/qch/scripts/litehost_perf/vllmBench] --
++ cat /home/qch/scripts/litehost_perf/vllmBench/timeline64k1//config.txt
+test_id=timeline64k1
+started=2026-11-15T15:35:53+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+host_measure=off profile=1 profile_dir=/home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k1//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/
++ echo '-- timeline4k1 [/home/qch/scripts/litehost_perf/vllmBench] --'
+-- timeline4k1 [/home/qch/scripts/litehost_perf/vllmBench] --
++ cat /home/qch/scripts/litehost_perf/vllmBench/timeline4k1//config.txt
+test_id=timeline4k1
+started=2026-11-15T15:08:26+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+host_measure=off profile=1 profile_dir=/home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/base//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/before_reboot//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/opt//config.txt ]]
++ continue
++ for B in "${RUNROOTS[@]}"
+++ head -40
+++ ls -dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_211428/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/
++ echo '-- 4k2 [/home/huawei_ts_program/litehost_perf_opt/vllmBench] --'
+-- 4k2 [/home/huawei_ts_program/litehost_perf_opt/vllmBench] --
++ cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2//config.txt
+test_id=4k2
+started=2026-11-14T13:41:54+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/
++ echo '-- 64k2 [/home/huawei_ts_program/litehost_perf_opt/vllmBench] --'
+-- 64k2 [/home/huawei_ts_program/litehost_perf_opt/vllmBench] --
++ cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2//config.txt
+test_id=64k2
+started=2026-11-14T13:34:34+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/
++ echo '-- 64k [/home/huawei_ts_program/litehost_perf_opt/vllmBench] --'
+-- 64k [/home/huawei_ts_program/litehost_perf_opt/vllmBench] --
++ cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k//config.txt
+test_id=64k
+started=2026-11-14T13:32:03+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/
++ echo '-- 4k [/home/huawei_ts_program/litehost_perf_opt/vllmBench] --'
+-- 4k [/home/huawei_ts_program/litehost_perf_opt/vllmBench] --
++ cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k//config.txt
+test_id=4k
+started=2026-11-14T13:11:44+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_211428//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216//config.txt ]]
++ continue
++ echo '== 5. bench 请求参数（从 summary/json 佐证） =='
+== 5. bench 请求参数（从 summary/json 佐证） ==
++ for B in "${RUNROOTS[@]}"
+++ ls -dt /home/qch/scripts/litehost_perf/vllmBench/base/ /home/qch/scripts/litehost_perf/vllmBench/before_reboot/ /home/qch/scripts/litehost_perf/vllmBench/opt/ /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/ /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/ /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/ /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/
+++ head -40
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k2//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/
++ echo '-- timeline4k2 [/home/qch/scripts/litehost_perf/vllmBench] --'
+-- timeline4k2 [/home/qch/scripts/litehost_perf/vllmBench] --
++ head -3 /home/qch/scripts/litehost_perf/vllmBench/timeline4k2//summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+timeline4k2,bs8_in128_out128,100,74.42024624000001,1.343720359074157,171.9962059614921,343.9924119229842,341.8720217000012,366.6082299999971,382.52514150000735,42.67899703937004,42.810615196850314,44.16771689606305,42.67899796929132,42.67753000002017,46.193000599960214
++ for j in "$R"/bs8_in128_out128*.json
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k2//bs8_in128_out128.json ]]
++ python3 - /home/qch/scripts/litehost_perf/vllmBench/timeline4k2//bs8_in128_out128.json
+{'num_prompts': 100, 'max_concurrency': 8, 'num_warmups': None, 'random_input_len': None, 'random_output_len': None, 'seed': None, 'model_id': '/home/model/Qwen3-32B-W8A8', 'date': '20261115-155718'}
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline64k2//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/
++ echo '-- timeline64k2 [/home/qch/scripts/litehost_perf/vllmBench] --'
+-- timeline64k2 [/home/qch/scripts/litehost_perf/vllmBench] --
++ head -3 /home/qch/scripts/litehost_perf/vllmBench/timeline64k2//summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+timeline64k2,bs8_in128_out128,100,72.81249930999996,1.373390570954706,175.79399308220238,351.58798616440475,328.72701529999347,347.1209649999878,366.66181350000613,41.783927300000016,41.87281574803144,43.26057567716568,41.78392830314964,41.572269999988976,48.26547100004632
++ for j in "$R"/bs8_in128_out128*.json
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline64k2//bs8_in128_out128.json ]]
++ python3 - /home/qch/scripts/litehost_perf/vllmBench/timeline64k2//bs8_in128_out128.json
+{'num_prompts': 100, 'max_concurrency': 8, 'num_warmups': None, 'random_input_len': None, 'random_output_len': None, 'seed': None, 'model_id': '/home/model/Qwen3-32B-W8A8', 'date': '20261115-154547'}
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline64k1//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/
++ echo '-- timeline64k1 [/home/qch/scripts/litehost_perf/vllmBench] --'
+-- timeline64k1 [/home/qch/scripts/litehost_perf/vllmBench] --
++ head -3 /home/qch/scripts/litehost_perf/vllmBench/timeline64k1//summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+timeline64k1,bs8_in128_out128,100,72.74212509,1.3747192548509584,175.96406462092267,351.92812924184534,329.6450102999998,353.0597000000171,371.1039731000096,41.72907192047244,41.757876771653535,43.42440421338569,41.72907289527561,41.57171499997503,45.79735089998678
++ for j in "$R"/bs8_in128_out128*.json
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline64k1//bs8_in128_out128.json ]]
++ python3 - /home/qch/scripts/litehost_perf/vllmBench/timeline64k1//bs8_in128_out128.json
+{'num_prompts': 100, 'max_concurrency': 8, 'num_warmups': None, 'random_input_len': None, 'random_output_len': None, 'seed': None, 'model_id': '/home/model/Qwen3-32B-W8A8', 'date': '20261115-154043'}
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k1//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/
++ echo '-- timeline4k1 [/home/qch/scripts/litehost_perf/vllmBench] --'
+-- timeline4k1 [/home/qch/scripts/litehost_perf/vllmBench] --
++ head -3 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1//summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+timeline4k1,bs8_in128_out128,100,74.80323111999314,1.336840648495361,171.1156030074062,342.2312060148124,322.2153135992994,343.78680500230985,376.2348241971631,43.013918450405626,43.13254748031316,44.435127850401486,43.013919366934516,43.041909993917216,46.242791805707384
++ for j in "$R"/bs8_in128_out128*.json
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k1//bs8_in128_out128.json ]]
++ python3 - /home/qch/scripts/litehost_perf/vllmBench/timeline4k1//bs8_in128_out128.json
+{'num_prompts': 100, 'max_concurrency': 8, 'num_warmups': None, 'random_input_len': None, 'random_output_len': None, 'seed': None, 'model_id': '/home/model/Qwen3-32B-W8A8', 'date': '20261115-151322'}
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/base//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/before_reboot//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/opt//config.txt ]]
++ continue
++ for B in "${RUNROOTS[@]}"
+++ head -40
+++ ls -dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_211428/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/ /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2/
++ echo '-- 4k2 [/home/huawei_ts_program/litehost_perf_opt/vllmBench] --'
+-- 4k2 [/home/huawei_ts_program/litehost_perf_opt/vllmBench] --
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2//summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+4k2,bs8_in128_out128,100,62.091080610000006,1.61053727874555,206.1487716794304,412.2975433588608,232.60562270000008,251.04363499998783,263.8145869999835,35.825388485826764,35.73681299212605,36.85785112440957,35.82538941574805,35.60652999999547,40.203913600002466
++ for j in "$R"/bs8_in128_out128*.json
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2//bs8_in128_out128.json ]]
++ python3 - /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k2//bs8_in128_out128.json
+{'num_prompts': 100, 'max_concurrency': 8, 'num_warmups': None, 'random_input_len': None, 'random_output_len': None, 'seed': None, 'model_id': '/home/model/Qwen3-32B-W8A8', 'date': '20261114-134421'}
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2/
++ echo '-- 64k2 [/home/huawei_ts_program/litehost_perf_opt/vllmBench] --'
+-- 64k2 [/home/huawei_ts_program/litehost_perf_opt/vllmBench] --
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2//summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+64k2,bs8_in128_out128,100,61.72141429999999,1.6201832238312792,207.38345265040374,414.7669053008075,229.696698599995,249.49584000000868,258.32954589996916,35.63225847480315,35.53096173228336,36.73479793700824,35.63225937401579,35.47464499996522,39.633800200045926
++ for j in "$R"/bs8_in128_out128*.json
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2//bs8_in128_out128.json ]]
++ python3 - /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k2//bs8_in128_out128.json
+{'num_prompts': 100, 'max_concurrency': 8, 'num_warmups': None, 'random_input_len': None, 'random_output_len': None, 'seed': None, 'model_id': '/home/model/Qwen3-32B-W8A8', 'date': '20261114-133640'}
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k/
++ echo '-- 64k [/home/huawei_ts_program/litehost_perf_opt/vllmBench] --'
+-- 64k [/home/huawei_ts_program/litehost_perf_opt/vllmBench] --
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k//summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+64k,bs8_in128_out128,100,62.129075890000024,1.6095523483570031,206.0227005896964,412.0454011793928,231.21504669999865,250.3202599999952,261.18953849999514,35.86458941417321,35.69102559055115,36.88074906771655,35.86459034881887,35.50956999998789,41.70131120000747
++ for j in "$R"/bs8_in128_out128*.json
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k//bs8_in128_out128.json ]]
++ python3 - /home/huawei_ts_program/litehost_perf_opt/vllmBench/64k//bs8_in128_out128.json
+{'num_prompts': 100, 'max_concurrency': 8, 'num_warmups': None, 'random_input_len': None, 'random_output_len': None, 'seed': None, 'model_id': '/home/model/Qwen3-32B-W8A8', 'date': '20261114-133423'}
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k/
++ echo '-- 4k [/home/huawei_ts_program/litehost_perf_opt/vllmBench] --'
+-- 4k [/home/huawei_ts_program/litehost_perf_opt/vllmBench] --
++ head -3 /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k//summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+4k,bs8_in128_out128,100,61.8558268400011,1.6166625701837958,206.93280898352586,413.8656179670517,220.40364089987634,256.3550249997206,273.8450478001323,35.78780213149747,35.583690275588175,36.693436807078164,35.78780307401629,35.530369999833056,38.204981899143604
++ for j in "$R"/bs8_in128_out128*.json
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k//bs8_in128_out128.json ]]
++ python3 - /home/huawei_ts_program/litehost_perf_opt/vllmBench/4k//bs8_in128_out128.json
+{'num_prompts': 100, 'max_concurrency': 8, 'num_warmups': None, 'random_input_len': None, 'random_output_len': None, 'seed': None, 'model_id': '/home/model/Qwen3-32B-W8A8', 'date': '20261114-131400'}
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/probe_140952/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_172326/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_142706/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261106_100311/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_201703/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_190235/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_163521/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_160747/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_145708/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_142111/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113//config.txt ]]
++ case "$(basename "$R")" in
+++ basename /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261105_140113/
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_211428//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_210342//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_205203//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_200710//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_192534//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_191323//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_185934//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_183652//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_150810//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_143405//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261104_093555//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_202217//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_160036//config.txt ]]
++ continue
++ for R in $(ls -dt "$B"/*/ 2> /dev/null | head -40)
++ [[ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261102_155216//config.txt ]]
++ continue
++ set +x
+
+### exit: 0
