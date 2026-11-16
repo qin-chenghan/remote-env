@@ -202,6 +202,8 @@ def main():
     swsum = [collections.defaultdict(float) for _ in range(nsteps)] if swhy else []
     swcnt = [collections.Counter() for _ in range(nsteps)] if swhy else []
     kiv = [[] for _ in range(nsteps)] if swhy else []
+    kdur = [0.0] * nsteps if swhy else []
+    kev = [0, 0.0] if swhy else [0, 0.0]
 
     def outside(ts, end, mlo, mhi):
         """[ts,end] 中不落在合并区间并集内的长度。"""
@@ -276,7 +278,7 @@ def main():
             k += 1
 
     def walk_ctx(events, sink):
-        """同 walk_self，但把每个事件的最近非自身祖先 (cat, name) 一并回调。"""
+        """同 walk_self，但把每个事件的最近非自身祖先链 (cat, name) 一并回调。"""
         by_tid = collections.defaultdict(list)
         for e in events:
             if e.get("ph") != "X":
@@ -294,14 +296,20 @@ def main():
             for ts, end, dur, name, cat in evs:
                 while stack and ts >= stack[-1][0]:
                     top = stack.pop()
-                    par = (stack[-1][3], stack[-1][4]) if stack else ("", "")
+                    par = tuple(
+                        (stack[i][4], stack[i][3])
+                        for i in range(len(stack) - 1, max(-1, len(stack) - 4), -1)
+                    )
                     sink(top[5], top[1], top[3], top[4], top[1] - top[2], key, par)
                     if stack:
                         stack[-1][2] += top[1]
                 stack.append([end, dur, 0.0, name, cat, ts])
             while stack:
                 top = stack.pop()
-                par = (stack[-1][3], stack[-1][4]) if stack else ("", "")
+                par = tuple(
+                    (stack[i][4], stack[i][3])
+                    for i in range(len(stack) - 1, max(-1, len(stack) - 4), -1)
+                )
                 sink(top[5], top[1], top[3], top[4], top[1] - top[2], key, par)
                 if stack:
                     stack[-1][2] += top[1]
@@ -311,8 +319,8 @@ def main():
             return
         end = ts + dur
         role = "main" if key[1] in main_tids else "other"
-        pn = ADDR_RE.sub("", par[1]) or "-"
-        kk = (name, role, par[0], pn, key[1])
+        chain = " < ".join(ADDR_RE.sub("", n) for _c, n in par) or "-"
+        kk = (name, role, par[0][0] if par else "", chain)
         k = bisect.bisect_right(starts, ts) - 1
         if k < 0:
             k = 0
@@ -329,6 +337,7 @@ def main():
     def ker_sink(ts, dur, name, cat, selfd, key, par):
         if cat != "kernel" or dur <= 0:
             return
+        kev[0] += 1
         end = ts + dur
         k = bisect.bisect_right(starts, ts) - 1
         if k < 0:
@@ -339,6 +348,7 @@ def main():
             b = min(end, e)
             if b > a and k >= dwarm and phase[k] == "decode":
                 kiv[k].append((a, b))
+                kdur[k] += b - a
             k += 1
 
     def iv_sink(ts, dur, name, cat, selfd, key):
@@ -422,17 +432,19 @@ def main():
             smm = sum(step[i]["Sm"] for i in dec) / ndec
             tot = sum(v[0] for v in agg.values()) / ndec
             kbusy = sum(union_len(kiv[i]) for i in dec) / ndec
+            ksum = sum(kdur[i] for i in dec) / ndec
             print(
                 f"### {label} SWHY decode_steps={ndec} S_union={sus:.1f}us/step"
                 f" S_main_union={smm:.1f}us/step sync_sum={tot:.1f}us/step"
-                f" kernel_union={kbusy:.1f}us/step"
+                f" kernel_union={kbusy:.1f}us/step kernel_sum={ksum:.1f}us/step"
+                f" kernel_events={kev[0]}"
             )
             print(f"### {label} SWCTX top20 (µs/step, calls/step)")
-            for (api, role, pcat, pn, _tid), (v, c) in sorted(
+            for (api, role, pcat, chain), (v, c) in sorted(
                 agg.items(), key=lambda kv: -kv[1][0]
             )[:20]:
                 print(
-                    f"SWCTX\t{label}\t{api}\t{role}\t{pcat}\t{pn}\t{v / ndec:.1f}\t{c / ndec:.2f}"
+                    f"SWCTX\t{label}\t{api}\t{role}\t{pcat}\t{chain}\t{v / ndec:.1f}\t{c / ndec:.2f}"
                 )
 
     print(f"### {label} FUN top60 (µs/step, calls/step)")
