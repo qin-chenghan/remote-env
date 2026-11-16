@@ -1,0 +1,140 @@
+### server: 184
+### host:   controller
+### time:   2026-11-16T06:29:44Z
+### mode:   FIX=1
+
++ echo '== 0. 状态 =='
+== 0. 状态 ==
++ uname -r
+6.6.0-145.3.38.169.oe2403sp3.aarch64
+++ getconf PAGESIZE
++ echo PAGESIZE=4096
+PAGESIZE=4096
+++ awk '$1=="iluvatar"{print $3}' /proc/modules
++ REF=0
++ echo refcount=0
+refcount=0
++ ls -l /lib/modules/6.6.0-145.3.38.169.oe2403sp3.aarch64/updates/iluvatar.ko.xz
+-rw-r--r--. 1 root root 361124 Nov 16 14:20 /lib/modules/6.6.0-145.3.38.169.oe2403sp3.aarch64/updates/iluvatar.ko.xz
+++ cat /sys/module/iluvatar/srcversion
++ LOADED_SRC=608C3BE27B26F73F34FDB88
+++ modinfo -F srcversion /lib/modules/6.6.0-145.3.38.169.oe2403sp3.aarch64/updates/iluvatar.ko.xz
++ DISK_SRC=608C3BE27B26F73F34FDB88
++ echo 'loaded srcversion: 608C3BE27B26F73F34FDB88'
+loaded srcversion: 608C3BE27B26F73F34FDB88
++ echo 'disk   srcversion: 608C3BE27B26F73F34FDB88'
+disk   srcversion: 608C3BE27B26F73F34FDB88
++ [[ -n 608C3BE27B26F73F34FDB88 ]]
++ [[ -n 608C3BE27B26F73F34FDB88 ]]
++ [[ 608C3BE27B26F73F34FDB88 == \6\0\8\C\3\B\E\2\7\B\2\6\F\7\3\F\3\4\F\D\B\8\8 ]]
++ echo 'SRCVER: same'
+SRCVER: same
++ echo '== 1. 占用预检 =='
+== 1. 占用预检 ==
++ fuser -v /dev/iluvatar0 /dev/iluvatar1 /dev/iluvatar2 /dev/iluvatar3
++ echo 'fuser: 没有进程占用（或 fuser 不可用）'
+fuser: 没有进程占用（或 fuser 不可用）
++ pgrep -af 'vllm|bench_driver|lhctl|LightHostWorker'
++ echo '没有 vllm/bench 进程'
+没有 vllm/bench 进程
++ timeout 20 /usr/local/corex-5.0.0/bin/ixsmi
++ echo 'ixsmi rc=0'
+ixsmi rc=0
++ head -20 /tmp/ixsmi.104077
+Timestamp    Mon Nov 16 14:29:45 2026
++--------------------------------------------------------------------------------+
+|  IX-ML: 5.0.0            Driver Version: 5.0.0          CUDA Version: 10.2     |
+|----------------------------------+----------------------+----------------------|
+| GPU  Name                        | Bus-Id               | Clock-SM  Clock-Mem  |
+| Fan  Temp  Perf    Pwr:Usage/Cap |      Memory-Usage    | GPU-Util  Compute M. |
+|==================================+======================+======================|
+| 0    Iluvatar BI-V150            | 00000000:45:00.0     | 1500MHz   1600MHz    |
+| N/A  42C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 1    Iluvatar BI-V150            | 00000000:48:00.0     | 1500MHz   1600MHz    |
+| N/A  42C   P0       102W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 2    Iluvatar BI-V150            | 00000000:AF:00.0     | 1500MHz   1600MHz    |
+| N/A  39C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 3    Iluvatar BI-V150            | 00000000:B2:00.0     | 1500MHz   1600MHz    |
+| N/A  40C   P0       101W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+
++ grep -i iluvatar
++ dmesg
++ tail -6
+[   15.899724] iluvatar 0000:48:00.0: enabling device (0140 -> 0142)
+[   16.602726] iluvatar 0000:48:00.0: DEV-1 is okay.
+[   16.603222] iluvatar 0000:af:00.0: enabling device (0140 -> 0142)
+[   17.315999] iluvatar 0000:af:00.0: DEV-2 is okay.
+[   17.316415] iluvatar 0000:b2:00.0: enabling device (0140 -> 0142)
+[   18.029691] iluvatar 0000:b2:00.0: DEV-3 is okay.
++ [[ 1 != 1 ]]
++ echo '== 2. 预检门禁 =='
+== 2. 预检门禁 ==
++ [[ 0 != 0 ]]
++ fuser /dev/iluvatar0 /dev/iluvatar1 /dev/iluvatar2 /dev/iluvatar3
++ pgrep -f 'vllm|bench_driver|lhctl|LightHostWorker'
++ [[ 0 == 0 ]]
++ echo '== 3. 重载模块 =='
+== 3. 重载模块 ==
++ modprobe -r iluvatar
++ echo 'rmmod rc=0'
+rmmod rc=0
++ sleep 1
++ modprobe iluvatar
++ echo 'modprobe rc=0'
+modprobe rc=0
++ sleep 3
++ echo '== 4. 验证 =='
+== 4. 验证 ==
++ awk '$1=="iluvatar"{print}' /proc/modules
+iluvatar 1675264 0 - Live 0xffffc0cbb1972000 (OE)
++ ls -l /dev/iluvatar0 /dev/iluvatar1 /dev/iluvatar2 /dev/iluvatar3
+crw-rw-rw-. 1 root root 237, 0 Nov 16 14:29 /dev/iluvatar0
+crw-rw-rw-. 1 root root 237, 1 Nov 16 14:29 /dev/iluvatar1
+crw-rw-rw-. 1 root root 237, 2 Nov 16 14:29 /dev/iluvatar2
+crw-rw-rw-. 1 root root 237, 3 Nov 16 14:29 /dev/iluvatar3
++ timeout 20 /usr/local/corex-5.0.0/bin/ixsmi
++ echo 'ixsmi rc=0'
+ixsmi rc=0
++ head -20 /tmp/ixsmi.104077
+Timestamp    Mon Nov 16 14:29:54 2026
++--------------------------------------------------------------------------------+
+|  IX-ML: 5.0.0            Driver Version: 5.0.0          CUDA Version: 10.2     |
+|----------------------------------+----------------------+----------------------|
+| GPU  Name                        | Bus-Id               | Clock-SM  Clock-Mem  |
+| Fan  Temp  Perf    Pwr:Usage/Cap |      Memory-Usage    | GPU-Util  Compute M. |
+|==================================+======================+======================|
+| 0    Iluvatar BI-V150            | 00000000:45:00.0     | 1500MHz   1600MHz    |
+| N/A  42C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 1    Iluvatar BI-V150            | 00000000:48:00.0     | 1500MHz   1600MHz    |
+| N/A  42C   P0       103W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 2    Iluvatar BI-V150            | 00000000:AF:00.0     | 1500MHz   1600MHz    |
+| N/A  39C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 3    Iluvatar BI-V150            | 00000000:B2:00.0     | 1500MHz   1600MHz    |
+| N/A  41C   P0       107W / 350W  | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+
+++ cat /sys/module/iluvatar/srcversion
++ echo 'loaded srcversion now: 608C3BE27B26F73F34FDB88'
+loaded srcversion now: 608C3BE27B26F73F34FDB88
++ dmesg
++ grep -i iluvatar
++ tail -8
+[ 1885.545095] iluvatar 0000:b2:00.0: exit
+[ 1885.891128] iluvatar 0000:af:00.0: exit
+[ 1886.240526] iluvatar 0000:48:00.0: exit
+[ 1886.588328] iluvatar 0000:45:00.0: exit
+[ 1888.426499] iluvatar 0000:45:00.0: DEV-0 is okay.
+[ 1889.123235] iluvatar 0000:48:00.0: DEV-1 is okay.
+[ 1889.820938] iluvatar 0000:af:00.0: DEV-2 is okay.
+[ 1890.518417] iluvatar 0000:b2:00.0: DEV-3 is okay.
++ rm -f /tmp/ixsmi.104077
++ set +x
+
+### exit: 0
