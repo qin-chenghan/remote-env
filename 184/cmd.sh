@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 4k1 / 4k2 / 64k1 / 64k2 四份 timeline 采集：来源核对 + TSHG（trace 口径）汇总。
-# 纯 CPU：只读日志、解析 trace，不启动 vllm、不动 GPU。
+# 对比 vllmBench_lite_opt.sh 与 vllmBench_lite_timeline.sh：启动服务/启动 bench 是否同一套。
+# 纯 CPU：只读脚本与历史 run 配置，不启动 vllm、不动 GPU。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,28 +11,6 @@ OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
 BASE=/home/qch/scripts/litehost_perf/vllmBench
-EVAL="$DIR/trace_eval_run.py"
-
-pick_trace() {
-    local r="$1"
-    local -a fs=()
-    mapfile -t fs < <(ls -1 "$r"/timeline/rank0.*.pt.trace.json.gz 2>/dev/null | sort)
-    ((${#fs[@]} == 0)) && return 1
-    ((${#fs[@]} == 1)) && { echo "${fs[0]}"; return 0; }
-    # 多个 case 各有一次 profiler 落盘：取 in128_out128 bench 日志之后最近的那份
-    local cl="$r/logs/bench_bs8_in128_out128.log"
-    if [[ -f "$cl" ]]; then
-        local t0 best="" bestd=999999 t d
-        t0=$(stat -c %Y "$cl")
-        for f in "${fs[@]}"; do
-            t=$(stat -c %Y "$f"); d=$((t - t0))
-            if ((d >= -30 && d < bestd)); then bestd=$d; best=$f; fi
-        done
-        [[ -n "$best" ]] && { echo "$best"; return 0; }
-    fi
-    echo "${fs[0]}"
-}
-
 {
     echo "### server: $SERVER"
     echo "### host:   $(hostname)"
@@ -41,53 +19,68 @@ pick_trace() {
     set -x
 
     # ---- 命令开始 ----
-    echo "== 0. 当前内核 / 页大小 / 引导表 =="
-    uname -r
-    getconf PAGE_SIZE
-    uptime -s
-    echo "-- 最近引导（run 的 started 对照这里找内核版本）--"
-    last -x reboot shutdown 2>/dev/null | head -20
-
-    echo "== 1. timeline* run 清单 =="
-    RUNS=()
-    while IFS= read -r d; do
-        RUNS+=("${d%/}")
-    done < <(ls -dt "$BASE"/*/ 2>/dev/null)
-    echo "共 ${#RUNS[@]} 个目录"
-
-    for R in "${RUNS[@]}"; do
-        [[ -f "$R/config.txt" ]] || continue
-        grep -q 'profile=1' "$R/config.txt" || continue
-        echo "-- $(basename "$R") --"
-        cat "$R/config.txt"
-        grep -oE "'enable_prefix_caching': [A-Za-z]+|'compact_greedy': [A-Za-z]+|'sample_logits_cudagraph_scope': '[a-z_]+'" \
-            "$R/logs/server.log" 2>/dev/null | sort -u
-        grep -oE "Profiler with mode '[a-z]+'|Torch profiling enabled" "$R/logs/server.log" 2>/dev/null | sort -u
-        echo "errors=$(grep -cE 'Traceback|ERROR' "$R/logs/server.log" 2>/dev/null || echo NA) tcmalloc_blocks=$(grep -c 'Tcmalloc page size' "$R/logs/server.log" 2>/dev/null || echo NA)"
-        echo "profiler_dir: $(grep -oE "torch_profiler_dir='[^']+'" "$R/logs/server.log" 2>/dev/null | head -1)"
-        echo "-- trace 文件 --"
-        find "$R/timeline" -maxdepth 1 -name 'rank*.gz' -printf '%TY-%Tm-%Td %TH:%TM %10s %f\n' 2>/dev/null | sort
-        echo "-- summary.csv --"
-        head -5 "$R/summary.csv" 2>/dev/null
-        echo
+    echo "== 0. 找到两份脚本 =="
+    find /home/qch /home/huawei_ts_program /home/lw -maxdepth 4 \
+        -name 'vllmBench_lite_opt.sh' -o -name 'vllmBench_lite_timeline.sh' 2>/dev/null
+    echo "-- 基本属性 --"
+    for f in $(find /home/qch /home/huawei_ts_program /home/lw -maxdepth 4 \
+            \( -name 'vllmBench_lite_opt.sh' -o -name 'vllmBench_lite_timeline.sh' \) 2>/dev/null | sort); do
+        ls -l --time-style=long-iso "$f"
+        sha256sum "$f"
+        wc -l "$f"
     done
 
-    echo "== 2. TSHG + 逐函数（trace 口径，rank0，warmup 16，decode 主线程） =="
-    for R in "${RUNS[@]}"; do
+    echo "== 1. 两份脚本 diff =="
+    OPT=$(find /home/qch /home/huawei_ts_program /home/lw -maxdepth 4 -name 'vllmBench_lite_opt.sh' 2>/dev/null | head -1)
+    TL=$(find /home/qch /home/huawei_ts_program /home/lw -maxdepth 4 -name 'vllmBench_lite_timeline.sh' 2>/dev/null | head -1)
+    echo "OPT=$OPT"; echo "TL=$TL"
+    if [[ -n "$OPT" && -n "$TL" ]]; then
+        diff -u "$OPT" "$TL" | head -400
+    fi
+
+    echo "== 2. 服务启动参数与 bench 客户端 =="
+    for f in "$OPT" "$TL"; do
+        [[ -n "$f" ]] || continue
+        echo "-- $f --"
+        grep -nE 'SERVER_ARGS|HOST_MEASURE=|bench_driver|bench serve|num_prompts|num-warmups|max-concurrency|random_input_len|random_output_len|seed|profiler-config|LD_PRELOAD|VLLM_RPC_TIMEOUT' "$f" | head -60
+    done
+
+    echo "== 3. bench_driver.py 是什么 =="
+    HK=/home/huawei_ts_program/litehost_perf_opt
+    [[ -f "$HK/bench_driver.py" ]] || HK=$(dirname "$OPT" 2>/dev/null)
+    ls -l --time-style=long-iso "$HK/bench_driver.py" 2>/dev/null
+    sed -n '1,90p' "$HK/bench_driver.py" 2>/dev/null
+    grep -nE 'bench serve|vllm.entrypoints|subprocess|main\(|sys.argv|profile' "$HK/bench_driver.py" 2>/dev/null | head -30
+
+    echo "== 4. 四轮 run 的实际配置对照 =="
+    for R in $(ls -dt "$BASE"/*/ 2>/dev/null | head -40); do
         [[ -f "$R/config.txt" ]] || continue
-        grep -q 'profile=1' "$R/config.txt" || continue
-        F="$(pick_trace "$R")" || { echo "### $(basename "$R") no rank0 trace"; continue; }
-        echo "### 分析 $(basename "$R") <- $(basename "$F")"
-        if command -v python3 >/dev/null 2>&1; then
-            DEEP=1 DEEP_TOPN=250 GAP=1 GAP_TOPN=250 HONLY=1 SWHY=1 TSHG_WARMUP=0,16 \
-                python3 "$EVAL" "$(basename "$R")" "$F"
-        else
-            DEEP=1 DEEP_TOPN=250 GAP=1 GAP_TOPN=250 HONLY=1 SWHY=1 TSHG_WARMUP=0,16 \
-                docker exec -e DEEP=1 -e DEEP_TOPN=250 -e GAP=1 -e GAP_TOPN=250 \
-                -e HONLY=1 -e SWHY=1 -e TSHG_WARMUP=0,16 \
-                corex5-py311 python3 "$EVAL" "$(basename "$R")" "$F"
-        fi
-        echo
+        case "$(basename "$R")" in
+            *4k*|*64k*|*timeline*) ;;
+            *) continue ;;
+        esac
+        echo "-- $(basename "$R") --"
+        cat "$R/config.txt"
+    done
+
+    echo "== 5. bench 请求参数（从 summary/json 佐证） =="
+    for R in $(ls -dt "$BASE"/*/ 2>/dev/null | head -40); do
+        [[ -f "$R/config.txt" ]] || continue
+        case "$(basename "$R")" in
+            *4k*|*64k*|*timeline*) ;;
+            *) continue ;;
+        esac
+        echo "-- $(basename "$R") --"
+        head -3 "$R/summary.csv" 2>/dev/null
+        for j in "$R"/bs8_in128_out128*.json; do
+            [[ -f "$j" ]] || continue
+            python3 - "$j" <<'PY' 2>/dev/null
+import json,sys
+d=json.load(open(sys.argv[1]))
+keys=("num_prompts","max_concurrency","num_warmups","random_input_len","random_output_len","seed","model_id","date")
+print({k:d.get(k) for k in keys})
+PY
+        done
     done
 
     # ---- 命令结束 ----
