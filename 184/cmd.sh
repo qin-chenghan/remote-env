@@ -19,20 +19,23 @@ BASE=/home/qch/scripts/litehost_perf/vllmBench
     set -x
 
     # ---- 命令开始 ----
-    echo "== 0. 找到两份脚本 =="
-    find /home/qch /home/huawei_ts_program /home/lw -maxdepth 4 \
-        -name 'vllmBench_lite_opt.sh' -o -name 'vllmBench_lite_timeline.sh' 2>/dev/null
-    echo "-- 基本属性 --"
-    for f in $(find /home/qch /home/huawei_ts_program /home/lw -maxdepth 4 \
-            \( -name 'vllmBench_lite_opt.sh' -o -name 'vllmBench_lite_timeline.sh' \) 2>/dev/null | sort); do
+    echo "== 0. 两份脚本（以 huawei_ts_program 下的为准；qch 下的是旧副本） =="
+    OPT=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
+    TL=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_timeline.sh
+    echo "-- 正式路径 --"
+    for f in "$OPT" "$TL"; do
+        ls -l --time-style=long-iso "$f" 2>&1
+        sha256sum "$f" 2>&1
+        wc -l "$f" 2>&1
+    done
+    echo "-- 其他同名副本（仅参照，不参与 diff）--"
+    find /home/qch /home/lw -maxdepth 4 \
+        \( -name 'vllmBench_lite_opt.sh' -o -name 'vllmBench_lite_timeline.sh' \) 2>/dev/null | while read -r f; do
         ls -l --time-style=long-iso "$f"
         sha256sum "$f"
-        wc -l "$f"
     done
 
     echo "== 1. 两份脚本 diff =="
-    OPT=$(find /home/qch /home/huawei_ts_program /home/lw -maxdepth 4 -name 'vllmBench_lite_opt.sh' 2>/dev/null | head -1)
-    TL=$(find /home/qch /home/huawei_ts_program /home/lw -maxdepth 4 -name 'vllmBench_lite_timeline.sh' 2>/dev/null | head -1)
     echo "OPT=$OPT"; echo "TL=$TL"
     if [[ -n "$OPT" && -n "$TL" ]]; then
         diff -u "$OPT" "$TL" | head -400
@@ -52,34 +55,39 @@ BASE=/home/qch/scripts/litehost_perf/vllmBench
     sed -n '1,90p' "$HK/bench_driver.py" 2>/dev/null
     grep -nE 'bench serve|vllm.entrypoints|subprocess|main\(|sys.argv|profile' "$HK/bench_driver.py" 2>/dev/null | head -30
 
+    RUNROOTS=("$BASE" /home/huawei_ts_program/litehost_perf_opt/vllmBench)
     echo "== 4. 四轮 run 的实际配置对照 =="
-    for R in $(ls -dt "$BASE"/*/ 2>/dev/null | head -40); do
-        [[ -f "$R/config.txt" ]] || continue
-        case "$(basename "$R")" in
-            *4k*|*64k*|*timeline*) ;;
-            *) continue ;;
-        esac
-        echo "-- $(basename "$R") --"
-        cat "$R/config.txt"
+    for B in "${RUNROOTS[@]}"; do
+        for R in $(ls -dt "$B"/*/ 2>/dev/null | head -40); do
+            [[ -f "$R/config.txt" ]] || continue
+            case "$(basename "$R")" in
+                *4k*|*64k*|*timeline*) ;;
+                *) continue ;;
+            esac
+            echo "-- $(basename "$R") [$B] --"
+            cat "$R/config.txt"
+        done
     done
 
     echo "== 5. bench 请求参数（从 summary/json 佐证） =="
-    for R in $(ls -dt "$BASE"/*/ 2>/dev/null | head -40); do
-        [[ -f "$R/config.txt" ]] || continue
-        case "$(basename "$R")" in
-            *4k*|*64k*|*timeline*) ;;
-            *) continue ;;
-        esac
-        echo "-- $(basename "$R") --"
-        head -3 "$R/summary.csv" 2>/dev/null
-        for j in "$R"/bs8_in128_out128*.json; do
-            [[ -f "$j" ]] || continue
-            python3 - "$j" <<'PY' 2>/dev/null
+    for B in "${RUNROOTS[@]}"; do
+        for R in $(ls -dt "$B"/*/ 2>/dev/null | head -40); do
+            [[ -f "$R/config.txt" ]] || continue
+            case "$(basename "$R")" in
+                *4k*|*64k*|*timeline*) ;;
+                *) continue ;;
+            esac
+            echo "-- $(basename "$R") [$B] --"
+            head -3 "$R/summary.csv" 2>/dev/null
+            for j in "$R"/bs8_in128_out128*.json; do
+                [[ -f "$j" ]] || continue
+                python3 - "$j" <<'PY' 2>/dev/null
 import json,sys
 d=json.load(open(sys.argv[1]))
 keys=("num_prompts","max_concurrency","num_warmups","random_input_len","random_output_len","seed","model_id","date")
 print({k:d.get(k) for k in keys})
 PY
+            done
         done
     done
 
