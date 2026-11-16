@@ -1,93 +1,183 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 184：比较运行中 iluvatar 与磁盘 .ko 的 srcversion；默认只读，FIX=1 才重载模块。
+# 本次：只读。找 184 仓库里的 docx，诊断为什么推不上去，转成 md 写到 184/tmp/。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$DIR/.." && pwd)"
 SERVER="$(basename "$DIR")"
 TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
-KREL=$(uname -r)
-MODDIR=/lib/modules/"$KREL"/updates
-FIX=${FIX:-0}
-FAIL=0
-
 {
     echo "### server: $SERVER"
     echo "### host:   $(hostname)"
     echo "### time:   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-    echo "### mode:   FIX=$FIX"
+    echo "### repo:   $ROOT"
     echo
     set -x
 
     # ---- 命令开始 ----
-    echo "== 0. 状态 =="
-    uname -r
-    echo "PAGESIZE=$(getconf PAGESIZE)"
-    REF=$(awk '$1=="iluvatar"{print $3}' /proc/modules)
-    echo "refcount=${REF:-not-loaded}"
-    ls -l "$MODDIR"/iluvatar.ko* 2>&1
+    echo "== 0. 找 docx =="
+    find "$ROOT" -path "$ROOT/.git" -prune -o \
+        -type f \( -iname '*.docx' -o -iname '*.doc' \) -print 2>/dev/null
 
-    LOADED_SRC=$(cat /sys/module/iluvatar/srcversion 2>/dev/null || true)
-    DISK_SRC=$(modinfo -F srcversion "$MODDIR"/iluvatar.ko* 2>/dev/null || true)
-    echo "loaded srcversion: ${LOADED_SRC:-unavailable}"
-    echo "disk   srcversion: ${DISK_SRC:-unavailable}"
-    if [[ -n "$LOADED_SRC" && -n "$DISK_SRC" ]]; then
-        if [[ "$LOADED_SRC" == "$DISK_SRC" ]]; then
-            echo "SRCVER: same"
+    DOCS=$(find "$ROOT" -path "$ROOT/.git" -prune -o \
+        -type f -iname '*.docx' -print 2>/dev/null)
+    LEGACY=$(find "$ROOT" -path "$ROOT/.git" -prune -o \
+        -type f -iname '*.doc' -print 2>/dev/null)
+
+    echo "== 1. 文件信息 =="
+    { printf '%s\n' "$DOCS"; printf '%s\n' "$LEGACY"; } | while IFS= read -r f; do
+        [ -n "$f" ] || continue
+        echo "--- $f"
+        ls -l "$f"
+        file "$f" 2>/dev/null || true
+        echo "size_bytes=$(stat -c %s "$f" 2>/dev/null)"
+    done
+
+    echo "== 2. Git 状态 / 为什么没推上去 =="
+    cd "$ROOT" || exit 1
+    git remote -v
+    git status -sb
+    echo "--- 本地领先 origin 的提交"
+    git log --oneline origin/main..HEAD 2>/dev/null
+    echo "--- 已被 git 跟踪的 doc/docx"
+    git ls-files | grep -iE '\.docx?$' || echo "（没有）"
+    echo "--- 每条 docx 的 ignore 判定"
+    { printf '%s\n' "$DOCS"; printf '%s\n' "$LEGACY"; } | while IFS= read -r f; do
+        [ -n "$f" ] || continue
+        rel=${f#"$ROOT"/}
+        git check-ignore -v "$f" 2>/dev/null || echo "$rel: 未被 ignore"
+    done
+    echo "--- hooks / 推送配置"
+    ls -l .git/hooks/pre-push .git/hooks/pre-commit .git/hooks/pre-receive 2>/dev/null || echo "（无相关 hook）"
+    echo "hooksPath=$(git config --get core.hooksPath || true)"
+    echo "push.default=$(git config --get push.default || true)"
+    echo "--- 仓库大小 / 大文件"
+    git count-objects -vH
+    echo "--- 最近一次提交"
+    git log -1 --stat --oneline
+
+    echo "== 3. 转 md =="
+    command -v pandoc || echo "pandoc: 不可用"
+    command -v python3 || echo "python3: 不可用"
+
+    i=0
+    printf '%s\n' "$DOCS" | while IFS= read -r f; do
+        [ -n "$f" ] || continue
+        i=$((i + 1))
+        base=$(basename "$f" .docx)
+        md="$DIR/tmp/$TS.$i.$base.md"
+        echo "--- 转换 $f -> $md"
+        if command -v pandoc >/dev/null 2>&1; then
+            pandoc -f docx -t gfm --wrap=none "$f" -o "$md" && echo "pandoc ok"
         else
-            echo "SRCVER: DIFFERENT"
+            python3 - "$f" "$md" <<'PY'
+import sys, zipfile, re
+from xml.etree import ElementTree as ET
+
+src, dst = sys.argv[1], sys.argv[2]
+W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+def q(t): return '{%s}%s' % (W, t)
+
+def text_of(el):
+    parts = []
+    for node in el.iter():
+        if node.tag == q('t'):
+            parts.append(node.text or '')
+        elif node.tag == q('tab'):
+            parts.append(' ')
+        elif node.tag in (q('br'), q('cr')):
+            parts.append('\n')
+    return ''.join(parts)
+
+def style_of(p):
+    ps = p.find(q('pPr'))
+    if ps is None:
+        return ''
+    st = ps.find(q('pStyle'))
+    return '' if st is None else (st.get(q('val')) or '')
+
+try:
+    z = zipfile.ZipFile(src)
+    xml = z.read('word/document.xml')
+except Exception as e:
+    print('ERROR: %s' % e, file=sys.stderr)
+    sys.exit(2)
+
+root = ET.fromstring(xml)
+body = root.find(q('body'))
+out = []
+
+def emit_para(p):
+    txt = text_of(p).strip('\n')
+    st = style_of(p)
+    m = re.match(r'Heading\s*([1-6])', st, re.I)
+    if m:
+        out.append('#' * int(m.group(1)) + ' ' + txt.replace('\n', ' '))
+        out.append('')
+        return
+    if p.find('.//' + q('drawing')) is not None and not txt.strip():
+        out.append('[图片]')
+        out.append('')
+        return
+    if not txt.strip():
+        if out and out[-1] != '':
+            out.append('')
+        return
+    if 'List' in st or 'list' in st:
+        out.append('- ' + txt.replace('\n', ' '))
+    else:
+        out.append(txt)
+        out.append('')
+
+def emit_table(tbl):
+    rows = []
+    for tr in tbl.findall(q('tr')):
+        cells = []
+        for tc in tr.findall(q('tc')):
+            cells.append(' '.join(text_of(tc).split()))
+        rows.append(cells)
+    if not rows:
+        return
+    width = max(len(r) for r in rows)
+    rows = [r + [''] * (width - len(r)) for r in rows]
+    out.append('| ' + ' | '.join(rows[0]) + ' |')
+    out.append('|' + '---|' * width)
+    for r in rows[1:]:
+        out.append('| ' + ' | '.join(r) + ' |')
+    out.append('')
+
+for el in list(body):
+    if el.tag == q('p'):
+        emit_para(el)
+    elif el.tag == q('tbl'):
+        emit_table(el)
+
+text = '\n'.join(out)
+text = re.sub(r'\n{3,}', '\n\n', text).strip() + '\n'
+with open(dst, 'w', encoding='utf-8') as fh:
+    fh.write(text)
+print('python ok, chars=%d' % len(text))
+PY
         fi
-    else
-        echo "SRCVER: 无法比较（sysfs 或 modinfo 拿不到）"
+        echo "--- 预览（前 60 行）"
+        sed -n '1,60p' "$md"
+    done
+
+    if [ -n "$LEGACY" ]; then
+        echo "注意：存在旧版 .doc（非 zip 格式），上面的 python 转换不支持，需要另想办法。"
+    fi
+    if [ -z "$DOCS$LEGACY" ]; then
+        echo "仓库里没找到 doc/docx 文件。"
     fi
 
-    echo "== 1. 占用预检 =="
-    fuser -v /dev/iluvatar* 2>&1 || echo "fuser: 没有进程占用（或 fuser 不可用）"
-    pgrep -af 'vllm|bench_driver|lhctl|LightHostWorker' || echo "没有 vllm/bench 进程"
-    timeout 20 /usr/local/corex-5.0.0/bin/ixsmi > /tmp/ixsmi.$$ 2>&1
-    echo "ixsmi rc=$?"
-    head -20 /tmp/ixsmi.$$
-    dmesg 2>/dev/null | grep -i iluvatar | tail -6
-
-    if [[ $FIX != 1 ]]; then
-        echo "== 只读：未重载（要换内存镜像：FIX=1 bash 184/cmd.sh） =="
-    else
-        echo "== 2. 预检门禁 =="
-        if [[ "${REF:-none}" != 0 ]]; then
-            echo "STOP: refcount=${REF:-none}"
-            FAIL=1
-        fi
-        if fuser /dev/iluvatar* >/dev/null 2>&1; then
-            echo "STOP: /dev/iluvatar* 有进程占用"
-            FAIL=1
-        fi
-        if pgrep -f 'vllm|bench_driver|lhctl|LightHostWorker' >/dev/null; then
-            echo "STOP: 有 vllm/bench 进程在跑"
-            FAIL=1
-        fi
-
-        if [[ $FAIL == 0 ]]; then
-            echo "== 3. 重载模块 =="
-            modprobe -r iluvatar; echo "rmmod rc=$?"
-            sleep 1
-            modprobe iluvatar; echo "modprobe rc=$?"
-            sleep 3
-        fi
-
-        echo "== 4. 验证 =="
-        awk '$1=="iluvatar"{print}' /proc/modules
-        ls -l /dev/iluvatar* 2>&1
-        timeout 20 /usr/local/corex-5.0.0/bin/ixsmi > /tmp/ixsmi.$$ 2>&1
-        echo "ixsmi rc=$?"
-        head -20 /tmp/ixsmi.$$
-        echo "loaded srcversion now: $(cat /sys/module/iluvatar/srcversion 2>/dev/null)"
-        dmesg 2>/dev/null | grep -i iluvatar | tail -8
-    fi
-
-    rm -f /tmp/ixsmi.$$
+    echo "== 4. 结论提示 =="
+    echo "如果第 2 节显示 184/docs/ 命中 .gitignore：文件不是被远端拦截，是根本没进 commit。"
+    echo "要上库有两个办法：1) 把 md 放到 184/tmp/（不被忽略）；2) 确需 docx 就 git add -f，但二进制不建议入库。"
+    echo "GitHub 单文件硬上限 100 MiB；超过会在 push 时被远端拒绝。"
     # ---- 命令结束 ----
 
     set +x
