@@ -79,12 +79,12 @@ pick_trace() {
         F="$(pick_trace "$R")" || { echo "### $(basename "$R") no rank0 trace"; continue; }
         echo "### 分析 $(basename "$R") <- $(basename "$F")"
         if command -v python3 >/dev/null 2>&1; then
-            DEEP=1 DEEP_TOPN=250 GAP=1 GAP_TOPN=250 TSHG_WARMUP=0,16 \
+            DEEP=1 DEEP_TOPN=250 GAP=1 GAP_TOPN=250 HONLY=1 TSHG_WARMUP=0,16 \
                 python3 "$EVAL" "$(basename "$R")" "$F"
         else
-            DEEP=1 DEEP_TOPN=250 GAP=1 GAP_TOPN=250 TSHG_WARMUP=0,16 \
+            DEEP=1 DEEP_TOPN=250 GAP=1 GAP_TOPN=250 HONLY=1 TSHG_WARMUP=0,16 \
                 docker exec -e DEEP=1 -e DEEP_TOPN=250 -e GAP=1 -e GAP_TOPN=250 \
-                -e TSHG_WARMUP=0,16 \
+                -e HONLY=1 -e TSHG_WARMUP=0,16 \
                 corex5-py311 python3 "$EVAL" "$(basename "$R")" "$F"
         fi
         echo

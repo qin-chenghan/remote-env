@@ -9,7 +9,8 @@
   H+G = T - S + G
 
 用法: trace_eval_run.py LABEL trace.json[.gz]
-环境: TSHG_WARMUP=0,16；DEEP=1 出 scope 内逐函数；GAP=1 出 scope 间空档归因
+环境: TSHG_WARMUP=0,16；DEEP=1 出 scope 内逐函数；GAP=1 出 scope 间空档归因；
+      HONLY=1（配合 DEEP）只统计 H 窗口（S 并集之外）的 self time
 输出行首标记：### 元信息 / TSHG 汇总 / FUN 逐函数
 """
 import bisect
@@ -168,6 +169,7 @@ def main():
     # 深挖模式：只统计 decode 步窗口内、锚点线程上的 self time，名字去掉对象地址
     deep = os.environ.get("DEEP", "") not in ("", "0")
     gap_mode = os.environ.get("GAP", "") not in ("", "0")
+    hon = os.environ.get("HONLY", "") not in ("", "0")
     dwarm = int(os.environ.get("DEEP_WARMUP", max(warmups) if warmups else 0))
     deep_topn = int(os.environ.get("DEEP_TOPN", "200"))
     gap_topn = int(os.environ.get("GAP_TOPN", "200"))
@@ -194,6 +196,21 @@ def main():
     mfunc = collections.defaultdict(int)
     msync = collections.defaultdict(float)
     msynccnt = collections.Counter()
+    hwin = []
+
+    def outside(ts, end, mlo, mhi):
+        """[ts,end] 中不落在合并区间并集内的长度。"""
+        j = bisect.bisect_right(mlo, ts) - 1
+        if j < 0:
+            j = 0
+        ov = 0.0
+        while j < len(mlo) and mlo[j] < end:
+            a = max(ts, mlo[j])
+            b = min(end, mhi[j])
+            if b > a:
+                ov += b - a
+            j += 1
+        return (end - ts) - ov
 
     def sink(ts, dur, name, cat, selfd, key):
         if selfd <= 0:
@@ -211,9 +228,16 @@ def main():
                 allcat[cat] += selfd
                 if key[1] in main_tids:
                     cn = ADDR_RE.sub("", name)
-                    mfun[(cat, cn)] += selfd
-                    mfunc[(cat, cn)] += 1
-                    mcat[cat] += selfd
+                    v = selfd
+                    if hon:
+                        if "execute_model" in cn or sync_kind(name) is not None:
+                            v = 0.0
+                        else:
+                            v = outside(ts, ts + selfd, *hwin[i])
+                    if v > 0:
+                        mfun[(cat, cn)] += v
+                        mfunc[(cat, cn)] += 1
+                        mcat[cat] += v
                     if sync_kind(name) is not None:
                         msync[cn] += selfd
                         msynccnt[cn] += 1
@@ -229,6 +253,8 @@ def main():
             return
         syncname[name] += selfd
         synccnt[name] += 1
+        if hon:
+            return
         end = ts + dur
         is_main = key[1] in main_tids
         k = bisect.bisect_right(starts, ts) - 1
@@ -243,6 +269,38 @@ def main():
                 if is_main:
                     step[k]["ivm"].append((a, b))
             k += 1
+
+    def iv_sink(ts, dur, name, cat, selfd, key):
+        if sync_kind(name) is None:
+            return
+        end = ts + dur
+        is_main = key[1] in main_tids
+        k = bisect.bisect_right(starts, ts) - 1
+        if k < 0:
+            k = 0
+        while k < nsteps and starts[k] < end:
+            s, e, _t = steps[k]
+            a = max(ts, s)
+            b = min(end, e)
+            if b > a:
+                step[k]["iv"].append((a, b))
+                if is_main:
+                    step[k]["ivm"].append((a, b))
+            k += 1
+
+    if hon:
+        walk_self(ev, iv_sink)
+        for p in step:
+            ivs = sorted(p["iv"])
+            mlo, mhi = [], []
+            for lo, hi in ivs:
+                if mhi and lo <= mhi[-1]:
+                    if hi > mhi[-1]:
+                        mhi[-1] = hi
+                else:
+                    mlo.append(lo)
+                    mhi.append(hi)
+            hwin.append((mlo, mhi))
 
     walk_self(ev, sink)
     data = ev = None
