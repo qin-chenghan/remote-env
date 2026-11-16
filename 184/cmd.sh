@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 184 sp3 内核的 iluvatar 驱动：默认只读检查；FIX=1 才构建/安装/加载。
-# 已加载模块不卸载、不重启。
+# 184：比较运行中 iluvatar 与磁盘 .ko 的 srcversion；默认只读，FIX=1 才重载模块。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,6 +10,7 @@ OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
 KREL=$(uname -r)
+MODDIR=/lib/modules/"$KREL"/updates
 FIX=${FIX:-0}
 FAIL=0
 
@@ -23,137 +23,68 @@ FAIL=0
     set -x
 
     # ---- 命令开始 ----
-    echo "== 0. 内核与系统 =="
-    uname -a
+    echo "== 0. 状态 =="
+    uname -r
     echo "PAGESIZE=$(getconf PAGESIZE)"
-    sed -n '1,4p' /etc/os-release
-    grubby --default-kernel 2>/dev/null
-    grub2-editenv list 2>/dev/null
-    df -h / | tail -1
+    REF=$(awk '$1=="iluvatar"{print $3}' /proc/modules)
+    echo "refcount=${REF:-not-loaded}"
+    ls -l "$MODDIR"/iluvatar.ko* 2>&1
 
-    echo "== 1. 驱动现状 =="
-    LOADED=0
-    grep -q '^iluvatar ' /proc/modules && LOADED=1
-    echo "LOADED=$LOADED"
-    grep '^iluvatar ' /proc/modules || echo "iluvatar: not loaded"
-    ls -l /dev/iluvatar* 2>&1 | head
-    timeout 20 /usr/local/corex-5.0.0/bin/ixsmi > /tmp/ixsmi.$$ 2>&1
-    IXRC=$?
-    echo "ixsmi rc=$IXRC"
-    head -20 /tmp/ixsmi.$$
-    dmesg 2>/dev/null | grep -i iluvatar | tail -12
-
-    echo "== 2. DKMS / 源码 / 头文件 =="
-    command -v dkms || echo "dkms: not installed"
-    dkms status 2>&1
-    ls -d /usr/src/corex-* 2>&1
-    ls -d /var/lib/dkms/corex/* 2>&1 | head
-    grep -n '_BUILDOPT\|VGPU_ENABLE' /usr/src/corex-5.0.0/dkms.conf 2>&1
-    ls -d /usr/src/kernels/* 2>&1
-    ls -l /lib/modules/"$KREL"/build 2>&1
-    ls -l /lib/modules/"$KREL"/updates/ 2>&1 | head
-    modinfo -F vermagic /lib/modules/"$KREL"/updates/iluvatar.ko* 2>&1
-
-    WORKING=0
-    if [[ $LOADED == 1 && -e /dev/iluvatar0 && $IXRC == 0 ]]; then
-        WORKING=1
+    LOADED_SRC=$(cat /sys/module/iluvatar/srcversion 2>/dev/null || true)
+    DISK_SRC=$(modinfo -F srcversion "$MODDIR"/iluvatar.ko* 2>/dev/null || true)
+    echo "loaded srcversion: ${LOADED_SRC:-unavailable}"
+    echo "disk   srcversion: ${DISK_SRC:-unavailable}"
+    if [[ -n "$LOADED_SRC" && -n "$DISK_SRC" ]]; then
+        if [[ "$LOADED_SRC" == "$DISK_SRC" ]]; then
+            echo "SRCVER: same"
+        else
+            echo "SRCVER: DIFFERENT"
+        fi
+    else
+        echo "SRCVER: 无法比较（sysfs 或 modinfo 拿不到）"
     fi
-    echo "WORKING=$WORKING"
+
+    echo "== 1. 占用预检 =="
+    fuser -v /dev/iluvatar* 2>&1 || echo "fuser: 没有进程占用（或 fuser 不可用）"
+    pgrep -af 'vllm|bench_driver|lhctl|LightHostWorker' || echo "没有 vllm/bench 进程"
+    timeout 20 /usr/local/corex-5.0.0/bin/ixsmi > /tmp/ixsmi.$$ 2>&1
+    echo "ixsmi rc=$?"
+    head -20 /tmp/ixsmi.$$
+    dmesg 2>/dev/null | grep -i iluvatar | tail -6
 
     if [[ $FIX != 1 ]]; then
-        echo "== 只读模式：不做任何改动（要修就 FIX=1 bash 184/cmd.sh） =="
-    elif [[ $WORKING == 1 ]]; then
-        echo "== 驱动已可用，跳过构建 =="
-    elif [[ $LOADED == 1 ]]; then
-        echo "== 模块已加载但不可用：不自动卸载/重装，保留现场 =="
-        dmesg 2>/dev/null | grep -i iluvatar | tail -20
+        echo "== 只读：未重载（要换内存镜像：FIX=1 bash 184/cmd.sh） =="
     else
-        echo "== 3. 源码与头文件检查 =="
-        SRC=/usr/src/corex-5.0.0
-        if [[ ! -f "$SRC/dkms.conf" ]]; then
-            echo "STOP: $SRC/dkms.conf 不存在"
-            ls -l /home/qch/transfer/*corex*5.0.0* 2>/dev/null | head
-            FAIL=2
+        echo "== 2. 预检门禁 =="
+        if [[ "${REF:-none}" != 0 ]]; then
+            echo "STOP: refcount=${REF:-none}"
+            FAIL=1
+        fi
+        if fuser /dev/iluvatar* >/dev/null 2>&1; then
+            echo "STOP: /dev/iluvatar* 有进程占用"
+            FAIL=1
+        fi
+        if pgrep -f 'vllm|bench_driver|lhctl|LightHostWorker' >/dev/null; then
+            echo "STOP: 有 vllm/bench 进程在跑"
+            FAIL=1
         fi
 
         if [[ $FAIL == 0 ]]; then
-            if [[ -d /usr/src/kernels/"$KREL" && -e /lib/modules/"$KREL"/build ]]; then
-                echo "kernel-devel present: $KREL"
-            else
-                echo "exact kernel-devel missing: $KREL"
-                dnf -q list --showduplicates kernel-devel 2>/dev/null | grep -F "$KREL" | head -5
-                if dnf -q list kernel-devel-"$KREL" >/dev/null 2>&1; then
-                    dnf install -y --setopt=install_weak_deps=False kernel-devel-"$KREL"
-                else
-                    RPM=$(find /home/l30029702/64k /home/qch/transfer -maxdepth 2 \
-                        -name "kernel-devel-*${KREL}*.rpm" 2>/dev/null | head -1)
-                    echo "local rpm: ${RPM:-none}"
-                    if [[ -n "$RPM" ]]; then
-                        dnf install -y "$RPM"
-                    else
-                        echo "STOP: 没有 $KREL 的 kernel-devel（dnf 与本地 rpm 都没有）"
-                        FAIL=3
-                    fi
-                fi
-            fi
+            echo "== 3. 重载模块 =="
+            modprobe -r iluvatar; echo "rmmod rc=$?"
+            sleep 1
+            modprobe iluvatar; echo "modprobe rc=$?"
+            sleep 3
         fi
 
-        if [[ $FAIL == 0 && ! -e /lib/modules/"$KREL"/build ]]; then
-            echo "STOP: /lib/modules/$KREL/build 仍不存在"
-            FAIL=3
-        fi
-
-        if [[ $FAIL == 0 ]]; then
-            echo "== 4. 已装过就只加载 =="
-            if dkms status 2>/dev/null | grep -F "$KREL" | grep -c installed >/dev/null; then
-                echo "dkms already installed for $KREL; modprobe only"
-                depmod -a "$KREL"
-                modprobe iluvatar; echo "modprobe rc=$?"
-                sleep 3
-            else
-                echo "== 5. VGPU_ENABLE=0（源目录） =="
-                CONF="$SRC/dkms.conf"
-                grep -n VGPU_ENABLE "$CONF"
-                if grep -q 'VGPU_ENABLE=1' "$CONF"; then
-                    cp -a "$CONF" "$CONF.bak-$TS"
-                    sed -i 's/VGPU_ENABLE=1/VGPU_ENABLE=0/g' "$CONF"
-                    echo "VGPU_ENABLE set to 0"
-                fi
-                grep -n VGPU_ENABLE "$CONF"
-
-                echo "== 6. dkms build / install =="
-                dkms build --force corex/5.0.0 -k "$KREL" || FAIL=4
-                if [[ $FAIL == 0 ]]; then
-                    dkms install corex/5.0.0 -k "$KREL" || FAIL=5
-                fi
-
-                if [[ $FAIL == 0 ]]; then
-                    echo "== 7. depmod + modprobe =="
-                    depmod -a "$KREL"
-                    modprobe iluvatar; echo "modprobe rc=$?"
-                    sleep 3
-                fi
-            fi
-        fi
-
-        echo "== 8. 验证 =="
-        grep '^iluvatar ' /proc/modules || echo "iluvatar: not loaded"
-        ls -l /dev/iluvatar* 2>&1 | head
+        echo "== 4. 验证 =="
+        awk '$1=="iluvatar"{print}' /proc/modules
+        ls -l /dev/iluvatar* 2>&1
         timeout 20 /usr/local/corex-5.0.0/bin/ixsmi > /tmp/ixsmi.$$ 2>&1
         echo "ixsmi rc=$?"
         head -20 /tmp/ixsmi.$$
-        dmesg 2>/dev/null | grep -i iluvatar | tail -15
-        dkms status 2>&1
-
-        if [[ $FAIL != 0 ]]; then
-            echo "== 9. 失败现场 =="
-            echo "FAIL=$FAIL"
-            find /var/lib/dkms/corex/5.0.0 -name 'make.log' 2>/dev/null | head -3
-            for f in $(find /var/lib/dkms/corex/5.0.0 -name 'make.log' 2>/dev/null | head -1); do
-                echo "-- $f"
-                tail -60 "$f"
-            done
-        fi
+        echo "loaded srcversion now: $(cat /sys/module/iluvatar/srcversion 2>/dev/null)"
+        dmesg 2>/dev/null | grep -i iluvatar | tail -8
     fi
 
     rm -f /tmp/ixsmi.$$
