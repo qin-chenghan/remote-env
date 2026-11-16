@@ -1,0 +1,2327 @@
+### server: 184
+### host:   controller
+### time:   2026-11-16T01:48:40Z
+
++ echo '== 0. 当前内核 / 页大小 / 引导表 =='
+== 0. 当前内核 / 页大小 / 引导表 ==
++ uname -r
+6.6.0-159.4.21.175.oe2403sp4.aarch64
++ getconf PAGE_SIZE
+4096
++ uptime -s
+2026-11-15 15:49:44
++ echo '-- 最近引导（run 的 started 对照这里找内核版本）--'
+-- 最近引导（run 的 started 对照这里找内核版本）--
++ last -x reboot shutdown
++ head -20
+reboot   system boot  6.6.0-159.4.21.1 Sun Nov 15 15:49   still running
+shutdown system down  6.6.0-159.4.3.15 Sun Nov 15 15:48 - 15:49  (00:01)
+reboot   system boot  6.6.0-159.4.3.15 Sun Nov 15 15:34 - 15:48  (00:13)
+shutdown system down  6.6.0-159.4.21.1 Sun Nov 15 15:31 - 15:34  (00:02)
+reboot   system boot  6.6.0-159.4.21.1 Sat Nov 14 16:09 - 15:31  (23:22)
+shutdown system down  6.6.0-159.4.3.15 Sat Nov 14 16:07 - 16:09  (00:01)
+reboot   system boot  6.6.0-159.4.3.15 Sat Nov 14 16:00 - 16:07  (00:07)
+shutdown system down  6.6.0-159.4.21.1 Sat Nov 14 15:57 - 16:00  (00:02)
+reboot   system boot  6.6.0-159.4.21.1 Sat Nov 14 13:40 - 15:57  (02:16)
+shutdown system down  6.6.0-159.4.3.15 Sat Nov 14 13:38 - 13:40  (00:01)
+reboot   system boot  6.6.0-159.4.3.15 Sat Nov 14 13:26 - 13:38  (00:12)
+shutdown system down  6.6.0-159.4.21.1 Sat Nov 14 13:24 - 13:26  (00:01)
+reboot   system boot  6.6.0-159.4.21.1 Sat Nov 14 13:19 - 13:24  (00:04)
+shutdown system down  6.6.0-159.4.21.1 Sat Nov 14 13:16 - 13:19  (00:02)
+reboot   system boot  6.6.0-159.4.21.1 Sat Nov 14 08:56 - 13:16  (04:20)
+shutdown system down  6.6.0-159.4.3.15 Sat Nov 14 08:54 - 08:56  (00:02)
+reboot   system boot  6.6.0-159.4.3.15 Fri Nov 13 16:46 - 08:54  (16:07)
+shutdown system down  6.6.0-159.4.21.1 Fri Nov 13 16:44 - 16:46  (00:02)
+reboot   system boot  6.6.0-159.4.21.1 Fri Nov 13 09:33 - 16:44  (07:11)
+shutdown system down  6.6.0-145.3.37.1 Fri Nov 13 09:29 - 09:33  (00:03)
++ echo '== 1. timeline* run 清单 =='
+== 1. timeline* run 清单 ==
++ RUNS=()
+++ ls -dt /home/qch/scripts/litehost_perf/vllmBench/base/ /home/qch/scripts/litehost_perf/vllmBench/before_reboot/ /home/qch/scripts/litehost_perf/vllmBench/opt/ /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/ /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/ /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/ /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/
++ IFS=
++ read -r d
++ RUNS+=("${d%/}")
++ IFS=
++ read -r d
++ RUNS+=("${d%/}")
++ IFS=
++ read -r d
++ RUNS+=("${d%/}")
++ IFS=
++ read -r d
++ RUNS+=("${d%/}")
++ IFS=
++ read -r d
++ RUNS+=("${d%/}")
++ IFS=
++ read -r d
++ RUNS+=("${d%/}")
++ IFS=
++ read -r d
++ RUNS+=("${d%/}")
++ IFS=
++ read -r d
++ echo '共 7 个目录'
+共 7 个目录
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/config.txt ]]
++ grep -q profile=1 /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/config.txt
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k2
++ echo '-- timeline4k2 --'
+-- timeline4k2 --
++ cat /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/config.txt
+test_id=timeline4k2
+started=2026-11-15T15:52:09+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+host_measure=off profile=1 profile_dir=/home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline
++ grep -oE ''\''enable_prefix_caching'\'': [A-Za-z]+|'\''compact_greedy'\'': [A-Za-z]+|'\''sample_logits_cudagraph_scope'\'': '\''[a-z_]+'\''' /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/logs/server.log
++ sort -u
+'compact_greedy': True
+'enable_prefix_caching': False
+'sample_logits_cudagraph_scope': 'decode'
++ grep -oE 'Profiler with mode '\''[a-z]+'\''|Torch profiling enabled' /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/logs/server.log
++ sort -u
+Profiler with mode 'torch'
+Torch profiling enabled
+++ grep -cE 'Traceback|ERROR' /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/logs/server.log
+++ echo NA
+++ grep -c 'Tcmalloc page size' /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/logs/server.log
++ echo 'errors=0
+NA tcmalloc_blocks=2'
+errors=0
+NA tcmalloc_blocks=2
+++ grep -oE 'torch_profiler_dir='\''[^'\'']+'\''' /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/logs/server.log
+++ head -1
++ echo 'profiler_dir: torch_profiler_dir='\''/home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline'\'''
+profiler_dir: torch_profiler_dir='/home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline'
++ echo '-- trace 文件 --'
+-- trace 文件 --
++ find /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline -maxdepth 1 -name 'rank*.gz' -printf '%TY-%Tm-%Td %TH:%TM %10s %f\n'
++ sort
+2026-11-15 15:56   73717456 rank3.1794729303854449330.pt.trace.json.gz
+2026-11-15 15:56   73937129 rank1.1794729304119974030.pt.trace.json.gz
+2026-11-15 15:56   74374207 rank2.1794729303008129540.pt.trace.json.gz
+2026-11-15 15:56   82223391 rank0.1794729305092258220.pt.trace.json.gz
++ echo '-- summary.csv --'
+-- summary.csv --
++ head -5 /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+timeline4k2,bs8_in128_out128,100,74.42024624000001,1.343720359074157,171.9962059614921,343.9924119229842,341.8720217000012,366.6082299999971,382.52514150000735,42.67899703937004,42.810615196850314,44.16771689606305,42.67899796929132,42.67753000002017,46.193000599960214
++ echo
+
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/config.txt ]]
++ grep -q profile=1 /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/config.txt
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k2
++ echo '-- timeline64k2 --'
+-- timeline64k2 --
++ cat /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/config.txt
+test_id=timeline64k2
+started=2026-11-15T15:41:08+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+host_measure=off profile=1 profile_dir=/home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline
++ grep -oE ''\''enable_prefix_caching'\'': [A-Za-z]+|'\''compact_greedy'\'': [A-Za-z]+|'\''sample_logits_cudagraph_scope'\'': '\''[a-z_]+'\''' /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/logs/server.log
++ sort -u
+'compact_greedy': True
+'enable_prefix_caching': False
+'sample_logits_cudagraph_scope': 'decode'
++ grep -oE 'Profiler with mode '\''[a-z]+'\''|Torch profiling enabled' /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/logs/server.log
++ sort -u
+Profiler with mode 'torch'
+Torch profiling enabled
+++ grep -cE 'Traceback|ERROR' /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/logs/server.log
+++ echo NA
+++ grep -c 'Tcmalloc page size' /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/logs/server.log
++ echo 'errors=0
+NA tcmalloc_blocks=2'
+errors=0
+NA tcmalloc_blocks=2
+++ grep -oE 'torch_profiler_dir='\''[^'\'']+'\''' /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/logs/server.log
+++ head -1
++ echo 'profiler_dir: torch_profiler_dir='\''/home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline'\'''
+profiler_dir: torch_profiler_dir='/home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline'
++ echo '-- trace 文件 --'
+-- trace 文件 --
++ find /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline -maxdepth 1 -name 'rank*.gz' -printf '%TY-%Tm-%Td %TH:%TM %10s %f\n'
++ sort
+2026-11-15 15:45   75496962 rank1.1794728624148380680.pt.trace.json.gz
+2026-11-15 15:45   75752883 rank3.1794728624240474120.pt.trace.json.gz
+2026-11-15 15:45   75797484 rank2.1794728624561409140.pt.trace.json.gz
+2026-11-15 15:45   83271413 rank0.1794728625069608660.pt.trace.json.gz
++ echo '-- summary.csv --'
+-- summary.csv --
++ head -5 /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+timeline64k2,bs8_in128_out128,100,72.81249930999996,1.373390570954706,175.79399308220238,351.58798616440475,328.72701529999347,347.1209649999878,366.66181350000613,41.783927300000016,41.87281574803144,43.26057567716568,41.78392830314964,41.572269999988976,48.26547100004632
++ echo
+
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/config.txt ]]
++ grep -q profile=1 /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/config.txt
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k1
++ echo '-- timeline64k1 --'
+-- timeline64k1 --
++ cat /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/config.txt
+test_id=timeline64k1
+started=2026-11-15T15:35:53+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+host_measure=off profile=1 profile_dir=/home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline
++ grep -oE ''\''enable_prefix_caching'\'': [A-Za-z]+|'\''compact_greedy'\'': [A-Za-z]+|'\''sample_logits_cudagraph_scope'\'': '\''[a-z_]+'\''' /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/logs/server.log
++ sort -u
+'compact_greedy': True
+'enable_prefix_caching': False
+'sample_logits_cudagraph_scope': 'decode'
++ grep -oE 'Profiler with mode '\''[a-z]+'\''|Torch profiling enabled' /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/logs/server.log
++ sort -u
+Profiler with mode 'torch'
+Torch profiling enabled
+++ grep -cE 'Traceback|ERROR' /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/logs/server.log
+++ echo NA
+++ grep -c 'Tcmalloc page size' /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/logs/server.log
++ echo 'errors=0
+NA tcmalloc_blocks=2'
+errors=0
+NA tcmalloc_blocks=2
+++ grep -oE 'torch_profiler_dir='\''[^'\'']+'\''' /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/logs/server.log
+++ head -1
++ echo 'profiler_dir: torch_profiler_dir='\''/home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline'\'''
+profiler_dir: torch_profiler_dir='/home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline'
++ echo '-- trace 文件 --'
+-- trace 文件 --
++ find /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline -maxdepth 1 -name 'rank*.gz' -printf '%TY-%Tm-%Td %TH:%TM %10s %f\n'
++ sort
+2026-11-15 15:40   74823746 rank3.1794728322255599370.pt.trace.json.gz
+2026-11-15 15:40   75346570 rank2.1794728321647044650.pt.trace.json.gz
+2026-11-15 15:40   75534525 rank1.1794728319730450360.pt.trace.json.gz
+2026-11-15 15:40   82690779 rank0.1794728322749583570.pt.trace.json.gz
++ echo '-- summary.csv --'
+-- summary.csv --
++ head -5 /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+timeline64k1,bs8_in128_out128,100,72.74212509,1.3747192548509584,175.96406462092267,351.92812924184534,329.6450102999998,353.0597000000171,371.1039731000096,41.72907192047244,41.757876771653535,43.42440421338569,41.72907289527561,41.57171499997503,45.79735089998678
++ echo
+
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/config.txt ]]
++ grep -q profile=1 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/config.txt
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1
++ echo '-- timeline4k1 --'
+-- timeline4k1 --
++ cat /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/config.txt
+test_id=timeline4k1
+started=2026-11-15T15:08:26+08:00
+prefix=/opt/corex311-cpython-vllm
+multi_engine=1
+cpu_range=80-159,240-319
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+host_measure=off profile=1 profile_dir=/home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline
++ grep -oE ''\''enable_prefix_caching'\'': [A-Za-z]+|'\''compact_greedy'\'': [A-Za-z]+|'\''sample_logits_cudagraph_scope'\'': '\''[a-z_]+'\''' /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/logs/server.log
++ sort -u
+'compact_greedy': True
+'enable_prefix_caching': False
+'sample_logits_cudagraph_scope': 'decode'
++ grep -oE 'Profiler with mode '\''[a-z]+'\''|Torch profiling enabled' /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/logs/server.log
++ sort -u
+Profiler with mode 'torch'
+Torch profiling enabled
+++ grep -cE 'Traceback|ERROR' /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/logs/server.log
+++ echo NA
+++ grep -c 'Tcmalloc page size' /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/logs/server.log
++ echo 'errors=0
+NA tcmalloc_blocks=2'
+errors=0
+NA tcmalloc_blocks=2
+++ grep -oE 'torch_profiler_dir='\''[^'\'']+'\''' /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/logs/server.log
+++ head -1
++ echo 'profiler_dir: torch_profiler_dir='\''/home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline'\'''
+profiler_dir: torch_profiler_dir='/home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline'
++ echo '-- trace 文件 --'
+-- trace 文件 --
++ find /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline -maxdepth 1 -name 'rank*.gz' -printf '%TY-%Tm-%Td %TH:%TM %10s %f\n'
++ sort
+2026-11-15 15:12   79767451 rank2.1794726666691112630.pt.trace.json.gz
+2026-11-15 15:12   80396332 rank1.1794726665838268240.pt.trace.json.gz
+2026-11-15 15:12   80421997 rank3.1794726666460792580.pt.trace.json.gz
+2026-11-15 15:12   86532227 rank0.1794726666779713690.pt.trace.json.gz
++ echo '-- summary.csv --'
+-- summary.csv --
++ head -5 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+timeline4k1,bs8_in128_out128,100,74.80323111999314,1.336840648495361,171.1156030074062,342.2312060148124,322.2153135992994,343.78680500230985,376.2348241971631,43.013918450405626,43.13254748031316,44.435127850401486,43.013919366934516,43.041909993917216,46.242791805707384
++ echo
+
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/base/config.txt ]]
++ continue
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/before_reboot/config.txt ]]
++ continue
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/opt/config.txt ]]
++ continue
++ echo '== 2. TSHG + 逐函数（trace 口径，rank0，warmup 16，decode 主线程） =='
+== 2. TSHG + 逐函数（trace 口径，rank0，warmup 16，decode 主线程） ==
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/config.txt ]]
++ grep -q profile=1 /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/config.txt
+++ pick_trace /home/qch/scripts/litehost_perf/vllmBench/timeline4k2
+++ local r=/home/qch/scripts/litehost_perf/vllmBench/timeline4k2
+++ fs=()
+++ local -a fs
+++ mapfile -t fs
++++ ls -1 /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline/rank0.1794729305092258220.pt.trace.json.gz
++++ sort
+++ (( 1 == 0 ))
+++ (( 1 == 1 ))
+++ echo /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline/rank0.1794729305092258220.pt.trace.json.gz
+++ return 0
++ F=/home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline/rank0.1794729305092258220.pt.trace.json.gz
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k2
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline/rank0.1794729305092258220.pt.trace.json.gz
++ echo '### 分析 timeline4k2 <- rank0.1794729305092258220.pt.trace.json.gz'
+### 分析 timeline4k2 <- rank0.1794729305092258220.pt.trace.json.gz
++ command -v python3
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k2
++ DEEP=1
++ DEEP_TOPN=250
++ GAP=1
++ GAP_TOPN=250
++ HONLY=1
++ TSHG_WARMUP=0,16
++ python3 /home/qch/tools/remote-env/184/trace_eval_run.py timeline4k2 /home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline/rank0.1794729305092258220.pt.trace.json.gz
+### timeline4k2 file=/home/qch/scripts/litehost_perf/vllmBench/timeline4k2/timeline/rank0.1794729305092258220.pt.trace.json.gz
+### timeline4k2 events=3981962 span=74479.3ms tids=8
+### timeline4k2 anchor    1692 vllm/v1/worker/worker_base.py(340): execute_model
+### timeline4k2 anchor    1692 vllm/v1/worker/gpu_worker.py(807): execute_model
+### timeline4k2 anchor    1692 vllm/v1/worker/gpu_model_runner.py(4246): execute_model
+### timeline4k2 sync_total=5073
+###       3382 次   67546.23 ms  cudaEventSynchronize
+###       1690 次   65456.91 ms  cudaStreamSynchronize
+###          1 次       0.09 ms  cudaDeviceSynchronize
+TSHG	timeline4k2	w=0	prefill	n=52	T=5129.41	S=1797.37	Sm=1708.11	H=3332.04	Hm=3421.30	G=57.88	HG=3389.92	HGm=3479.18	S_pct=35.0
+TSHG	timeline4k2	w=0	decode	n=1640	T=67559.32	S=65856.27	Sm=63752.66	H=1703.05	Hm=3806.66	G=1661.15	HG=3364.20	HGm=5467.81	S_pct=97.5
+TSHG	timeline4k2	w=16	prefill	n=48	T=4763.23	S=1701.61	Sm=1617.93	H=3061.62	Hm=3145.30	G=53.53	HG=3115.14	HGm=3198.83	S_pct=35.7
+TSHG	timeline4k2	w=16	decode	n=1628	T=67044.26	S=65353.44	Sm=63265.11	H=1690.82	Hm=3779.15	G=1649.96	HG=3340.78	HGm=5429.11	S_pct=97.5
+### timeline4k2 FUN top60 (µs/step, calls/step)
+FUN	timeline4k2	python_function	<built-in method acquire of _thread.lock object at 0xfffe3dce82c0>	85505.8	12.02
+FUN	timeline4k2	Trace	PyTorch Profiler (0)	44018.5	0.00
+FUN	timeline4k2	python_function	vllm/usage/usage_lib.py(256): _report_continuous_usage	44018.4	0.00
+FUN	timeline4k2	python_function	vllm/v1/worker/gpu_worker.py(807): execute_model	42840.8	1.00
+FUN	timeline4k2	cuda_runtime	cudaEventSynchronize	39920.9	2.00
+FUN	timeline4k2	cuda_runtime	cudaStreamSynchronize	38686.1	1.00
+FUN	timeline4k2	python_function	threading.py(331): wait	6219.5	0.00
+FUN	timeline4k2	cuda_runtime	cudaLaunchKernel	455.5	34.38
+FUN	timeline4k2	kernel	void ixformer::comm::allreduce_ring_step_sum_fused<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	451.1	3.96
+FUN	timeline4k2	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<256u, 256u, 64u, 64u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, false, 2u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	382.7	1.36
+FUN	timeline4k2	kernel	void ixformer::comm::allreduce_ring_step_copy<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	345.0	2.97
+FUN	timeline4k2	cpu_op	aten::copy_	225.7	13.04
+FUN	timeline4k2	cuda_runtime	cudaEventQuery	225.4	2.04
+FUN	timeline4k2	cpu_op	aten::empty_strided	207.0	14.89
+FUN	timeline4k2	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<128u, 256u, 64u, 32u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, false, 5u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	157.3	1.97
+FUN	timeline4k2	kernel	void ixformer::comm::allreduce_ring_step_sum<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	148.7	1.98
+FUN	timeline4k2	cuda_runtime	cudaGraphLaunch	140.7	1.97
+FUN	timeline4k2	kernel	void ixformer::comm::allreduce_ring_step_copy_fused<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	138.2	2.97
+FUN	timeline4k2	gpu_user_annotation	execute_context_1(128)_generation_0(0)	138.2	0.01
+FUN	timeline4k2	cpu_op	aten::empty	135.4	11.41
+FUN	timeline4k2	kernel	void ixformer::comm::allreduce_ring_last_step_copy<__ix_bfloat16>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, unsigned int)	131.4	1.98
+FUN	timeline4k2	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<256u, 256u, 64u, 64u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, true, 2u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	124.4	0.45
+FUN	timeline4k2	python_function	<built-in method all_reduce of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object at 0xfffe6aea61b0>	115.6	1.98
+FUN	timeline4k2	gpu_user_annotation	execute_context_7(896)_generation_1(1)	114.1	0.01
+FUN	timeline4k2	gpu_memcpy	Memcpy DtoD (Device -> Device)	111.6	4.93
+FUN	timeline4k2	python_function	<built-in method to of Tensor object at 0xff7d86f3dc70>	109.3	3.03
+FUN	timeline4k2	python_function	zmq/sugar/socket.py(623): send	105.1	2.00
+FUN	timeline4k2	cpu_op	aten::slice	96.0	40.51
+FUN	timeline4k2	cuda_runtime	cudaMemcpyAsync	83.8	11.96
+FUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(4246): execute_model	82.7	1.00
+FUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(1999): _prepare_inputs	74.7	1.00
+FUN	timeline4k2	python_function	<built-in method w8a8_gemm of PyCapsule object at 0xfffe5d45a970>	71.1	3.93
+FUN	timeline4k2	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(465): _corex_fast_build	69.4	1.00
+FUN	timeline4k2	kernel	void ixformer::kernels::infer::residual_rms_norm_kernel<__ix_bfloat16, 5u, 2u, false, true, false>(__ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16*, __ix_bfloat16*, float, unsigned int, unsigned int, unsigned int, float)	66.8	1.97
+FUN	timeline4k2	python_function	<built-in method empty of type object at 0xffff8ce2d130>	66.1	10.86
+FUN	timeline4k2	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(942): forward	63.6	0.98
+FUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(2370): _build_attention_metadata	61.2	1.00
+FUN	timeline4k2	python_function	<built-in method scaled_int8_quant of PyCapsule object at 0xfffe5d45a9d0>	60.8	3.93
+FUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(1816): _prepare_input_ids	58.3	1.00
+FUN	timeline4k2	python_function	<built-in method copy_ of Tensor object at 0xff7dab29d590>	55.8	6.98
+FUN	timeline4k2	python_function	<built-in method view of Tensor object at 0xff7d86f3ef30>	53.3	22.17
+FUN	timeline4k2	python_function	<built-in method synchronize of Stream object at 0xff7db9033930>	50.4	0.99
+FUN	timeline4k2	cpu_op	aten::index	50.2	1.01
+FUN	timeline4k2	user_annotation	execute_context_0(0)_generation_8(8)	47.0	0.89
+FUN	timeline4k2	cpu_op	aten::fill_	43.3	5.02
+FUN	timeline4k2	python_function	torch/utils/_contextlib.py(120): decorate_context	42.5	5.00
+FUN	timeline4k2	python_function	torch/nn/modules/module.py(1780): _call_impl	41.0	12.83
+FUN	timeline4k2	kernel	void ixformer::kernels::infer::scaled_int8_quant_opt1<__ix_bfloat16, true, 3>(__ix_bfloat16 const*, signed char*, float*, int)	37.3	1.97
+FUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(3775): _bookkeeping_sync	37.2	1.00
+FUN	timeline4k2	python_function	<built-in function dumps>	37.0	2.00
+FUN	timeline4k2	cpu_op	aten::sub	36.7	1.01
+FUN	timeline4k2	python_function	<built-in method replay of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object at 0xfffede861d10>	36.7	1.97
+FUN	timeline4k2	python_function	vllm/v1/executor/multiproc_executor.py(966): async_output_busy_loop	35.7	0.00
+FUN	timeline4k2	python_function	vllm/model_executor/layers/quantization/compressed_tensors/schemes/iluvatar/compressed_tensors_w8a8_int8.py(265): apply_weights	35.6	3.93
+FUN	timeline4k2	cpu_op	aten::as_strided	35.3	49.67
+FUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(4652): sample_tokens	34.9	1.00
+FUN	timeline4k2	python_function	<built-in method residual_rms_norm of PyCapsule object at 0xfffe5d45a460>	34.7	1.97
+FUN	timeline4k2	python_function	vllm/v1/attention/backends/utils.py(637): reorder_batch_to_split_decodes_and_prefills	34.5	1.00
+FUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(1169): _update_states	33.6	1.00
+FUN	timeline4k2	python_function	<built-in method reduce of numpy.ufunc object at 0xffff8e2f2140>	33.6	8.02
+### timeline4k2 DEEP decode_steps=1628 warmup=16 mean_T=41182.0us all_self=196284.7us main_self=822.2us main_sync=38860.6us
+ACAT	timeline4k2	python_function	116511.5
+ACAT	timeline4k2	cuda_runtime	79135.1
+ACAT	timeline4k2	cpu_op	514.9
+ACAT	timeline4k2	user_annotation	52.7
+ACAT	timeline4k2	gpu_memcpy	36.9
+ACAT	timeline4k2	kernel	33.5
+MCAT	timeline4k2	python_function	424.8
+MCAT	timeline4k2	cpu_op	186.4
+MCAT	timeline4k2	cuda_runtime	172.7
+MCAT	timeline4k2	user_annotation	38.3
+MSYNC	timeline4k2	cudaStreamSynchronize	38858.4	1.00
+MSYNC	timeline4k2	cudaEventSynchronize	2.3	1.00
+### timeline4k2 MFUN top250 (µs/decode-step, calls/step, anchor tid)
+MFUN	timeline4k2	cuda_runtime	cudaGraphLaunch	142.6	2.00
+MFUN	timeline4k2	cpu_op	aten::copy_	64.9	3.04
+MFUN	timeline4k2	cpu_op	aten::index	49.8	1.00
+MFUN	timeline4k2	python_function	<built-in method replay of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	37.2	2.00
+MFUN	timeline4k2	user_annotation	execute_context_0(0)_generation_8(8)	34.8	0.91
+MFUN	timeline4k2	cpu_op	aten::empty_strided	32.4	2.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/compact_greedy_backport.py(355): select	29.2	1.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(3595): _preprocess	21.6	1.00
+MFUN	timeline4k2	cpu_op	aten::slice	17.8	7.14
+MFUN	timeline4k2	cuda_runtime	cudaLaunchKernel	14.0	2.02
+MFUN	timeline4k2	python_function	<built-in method  of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	10.7	1.00
+MFUN	timeline4k2	python_function	<built-in method copy_ of Tensor object>	10.5	1.04
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu/sample_logits_graph.py(259): run	9.9	1.00
+MFUN	timeline4k2	python_function	<string>(2): __init__	9.8	5.00
+MFUN	timeline4k2	cuda_runtime	cudaMemcpyAsync	9.7	2.04
+MFUN	timeline4k2	python_function	torch/utils/_contextlib.py(120): decorate_context	9.7	2.04
+MFUN	timeline4k2	python_function	torch/autograd/grad_mode.py(289): __enter__	9.5	2.04
+MFUN	timeline4k2	python_function	vllm/v1/worker/compact_greedy_backport.py(70): metadata_reasons	8.7	1.00
+MFUN	timeline4k2	python_function	vllm/compilation/cuda_graph.py(233): __call__	8.4	1.00
+MFUN	timeline4k2	python_function	torch/autograd/profiler.py(806): __exit__	7.8	1.00
+MFUN	timeline4k2	python_function	<built-in function getattr>	7.6	20.76
+MFUN	timeline4k2	python_function	vllm/v1/utils.py(767): compute_iteration_details	7.6	1.00
+MFUN	timeline4k2	python_function	<built-in method record of torch.Event object>	7.4	1.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu/sample_logits_graph.py(80): _input_signature	7.2	1.00
+MFUN	timeline4k2	python_function	vllm/forward_context.py(249): set_forward_context	7.2	1.00
+MFUN	timeline4k2	python_function	torch/utils/_pytree.py(1462): tree_iter	6.7	4.00
+MFUN	timeline4k2	cpu_op	aten::as_strided	6.1	8.14
+MFUN	timeline4k2	cpu_op	aten::_to_copy	5.9	1.00
+MFUN	timeline4k2	python_function	<built-in method __new__ of type object>	5.2	4.04
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_worker.py(775): annotate_profile	4.9	1.00
+MFUN	timeline4k2	python_function	torch/utils/_pytree.py(694): is_namedtuple_class	4.8	6.99
+MFUN	timeline4k2	cuda_runtime	cudaEventRecord	4.7	2.00
+MFUN	timeline4k2	python_function	torch/cuda/__init__.py(1142): current_stream	4.6	1.00
+MFUN	timeline4k2	python_function	torch/autograd/grad_mode.py(279): __init__	4.4	2.04
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_input_batch.py(352): req_ids	4.3	2.13
+MFUN	timeline4k2	python_function	<built-in method get of dict object>	4.2	26.58
+MFUN	timeline4k2	python_function	contextlib.py(141): __exit__	4.2	3.00
+MFUN	timeline4k2	python_function	<built-in function any>	4.0	3.03
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(1066): _init_model_kwargs	3.9	1.00
+MFUN	timeline4k2	python_function	vllm/forward_context.py(204): create_forward_context	3.9	1.00
+MFUN	timeline4k2	python_function	<built-in function isinstance>	3.8	23.03
+MFUN	timeline4k2	python_function	vllm/v1/core/sched/output.py(163): is_context_phase	3.8	7.66
+MFUN	timeline4k2	python_function	torch/cuda/_utils.py(508): _get_device_index	3.8	1.00
+MFUN	timeline4k2	python_function	functools.py(981): __get__	3.7	1.00
+MFUN	timeline4k2	python_function	<built-in method clone of Tensor object>	3.7	1.00
+MFUN	timeline4k2	cpu_op	aten::clone	3.7	1.00
+MFUN	timeline4k2	python_function	<string>(2): __hash__	3.7	3.00
+MFUN	timeline4k2	python_function	contextlib.py(104): __init__	3.5	2.04
+MFUN	timeline4k2	python_function	torch/autograd/grad_mode.py(296): clone	3.5	2.04
+MFUN	timeline4k2	python_function	vllm/v1/worker/compact_greedy_backport.py(215): produce	3.5	1.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu/sample_logits_graph.py(72): _producer_id	3.5	1.00
+MFUN	timeline4k2	python_function	torch/cuda/streams.py(35): __new__	3.4	1.00
+MFUN	timeline4k2	python_function	torch/autograd/profiler.py(800): __enter__	3.4	1.00
+MFUN	timeline4k2	python_function	torch/autograd/profiler.py(787): __init__	3.4	1.00
+MFUN	timeline4k2	python_function	torch/utils/_pytree.py(1048): _get_node_type	3.3	6.99
+MFUN	timeline4k2	python_function	<built-in function next>	3.1	5.04
+MFUN	timeline4k2	python_function	torch/cuda/graphs.py(141): replay	3.1	2.00
+MFUN	timeline4k2	python_function	<built-in method __exit__ of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	3.0	3.00
+MFUN	timeline4k2	python_function	vllm/config/compilation.py(95): valid_runtime_modes	2.9	1.00
+MFUN	timeline4k2	user_annotation	execute_context_0(0)_generation_4(4)	2.9	0.08
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(1999): _prepare_inputs	2.8	0.04
+MFUN	timeline4k2	python_function	vllm/profiler/wrapper.py(83): step	2.8	1.00
+MFUN	timeline4k2	python_function	torch/autograd/grad_mode.py(284): __new__	2.7	2.04
+MFUN	timeline4k2	python_function	torch/_utils.py(837): _get_device_index	2.7	1.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/compact_greedy_backport.py(72): <genexpr>	2.6	8.98
+MFUN	timeline4k2	python_function	torch/utils/_pytree.py(1060): tree_is_leaf	2.6	4.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/compact_greedy_graph.py(24): decode_eligible	2.4	1.00
+MFUN	timeline4k2	python_function	vllm/v1/core/sched/output.py(153): _req_id_to_num_output_tokens	2.4	1.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(3960): _model_forward	2.4	1.00
+MFUN	timeline4k2	python_function	torch/autograd/grad_mode.py(293): __exit__	2.3	3.00
+MFUN	timeline4k2	cpu_op	aten::to	2.0	1.01
+MFUN	timeline4k2	python_function	torch/utils/_pytree.py(1784): tree_any	2.0	1.00
+MFUN	timeline4k2	python_function	torch/_ops.py(1081): _must_dispatch_in_python	2.0	1.00
+MFUN	timeline4k2	python_function	vllm/v1/utils.py(721): record_function_or_nullcontext	1.9	2.04
+MFUN	timeline4k2	python_function	vllm/distributed/parallel_state.py(539): is_first_rank	1.9	2.00
+MFUN	timeline4k2	cpu_op	aten::reshape	1.8	1.00
+MFUN	timeline4k2	python_function	enum.py(193): __get__	1.7	2.00
+MFUN	timeline4k2	python_function	<string>(2): __eq__	1.7	2.00
+MFUN	timeline4k2	python_function	torch/_ops.py(1031): __call__	1.7	1.00
+MFUN	timeline4k2	python_function	torch/utils/_pytree.py(801): _dict_flatten	1.6	1.00
+MFUN	timeline4k2	python_function	vllm/config/compilation.py(99): is_valid_runtime_mode	1.6	1.00
+MFUN	timeline4k2	python_function	contextlib.py(287): helper	1.6	2.04
+MFUN	timeline4k2	python_function	torch/utils/_pytree.py(1476): tree_iter	1.6	2.00
+MFUN	timeline4k2	cuda_runtime	cudaStreamIsCapturing	1.6	2.00
+MFUN	timeline4k2	python_function	torch/_ops.py(1083): <lambda>	1.6	1.00
+MFUN	timeline4k2	python_function	vllm/profiler/wrapper.py(305): annotate_context_manager	1.5	1.00
+MFUN	timeline4k2	python_function	<built-in method __enter__ of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	1.5	2.04
+MFUN	timeline4k2	python_function	<built-in function hasattr>	1.5	7.99
+MFUN	timeline4k2	python_function	vllm/v1/worker/kv_connector_model_runner_mixin.py(50): maybe_get_kv_connector_output	1.4	1.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/compact_greedy_backport.py(62): __post_init__	1.4	1.00
+MFUN	timeline4k2	python_function	typing.py(352): inner	1.3	1.00
+MFUN	timeline4k2	python_function	enum.py(1231): __hash__	1.3	4.00
+MFUN	timeline4k2	python_function	vllm/v1/attention/backends/utils.py(637): reorder_batch_to_split_decodes_and_prefills	1.3	0.04
+MFUN	timeline4k2	python_function	<built-in function hash>	1.3	7.00
+MFUN	timeline4k2	cpu_op	aten::view	1.3	1.00
+MFUN	timeline4k2	python_function	<built-in method stride of Parameter object>	1.2	1.00
+MFUN	timeline4k2	python_function	vllm/distributed/parallel_state.py(1364): get_pp_group	1.2	3.03
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(1169): _update_states	1.2	0.04
+MFUN	timeline4k2	python_function	vllm/forward_context.py(182): __post_init__	1.2	1.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/compact_greedy_backport.py(94): <genexpr>	1.2	2.99
+MFUN	timeline4k2	python_function	vllm/config/compilation.py(102): __str__	1.2	1.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/compact_greedy_graph.py(12): scope_eligible	1.1	1.00
+MFUN	timeline4k2	python_function	contextlib.py(132): __enter__	1.1	2.04
+MFUN	timeline4k2	python_function	vllm/distributed/parallel_state.py(529): first_rank	1.0	2.00
+MFUN	timeline4k2	python_function	<built-in function _abc_instancecheck>	1.0	1.00
+MFUN	timeline4k2	python_function	torch/_ops.py(1197): __call__	1.0	1.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_input_batch.py(1173): num_reqs	1.0	2.14
+MFUN	timeline4k2	python_function	vllm/distributed/parallel_state.py(544): is_last_rank	0.9	1.04
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(3992): _is_uniform_decode	0.9	1.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(3956): synchronize_input_prep	0.9	1.00
+MFUN	timeline4k2	python_function	vllm/forward_context.py(323): set_forward_context	0.9	1.00
+MFUN	timeline4k2	python_function	vllm/v1/utils.py(138): copy_to_gpu	0.9	0.04
+MFUN	timeline4k2	python_function	<built-in function len>	0.8	5.86
+MFUN	timeline4k2	python_function	<built-in function _cuda_getCurrentStream>	0.8	1.00
+MFUN	timeline4k2	python_function	torch/utils/_pytree.py(771): _tuple_flatten	0.8	2.00
+MFUN	timeline4k2	python_function	<built-in method reduce of numpy.ufunc object>	0.8	0.23
+MFUN	timeline4k2	python_function	<string>(1): <lambda>	0.8	1.00
+MFUN	timeline4k2	python_function	torch/cuda/__init__.py(411): _lazy_init	0.7	1.00
+MFUN	timeline4k2	python_function	<built-in function issubclass>	0.7	6.99
+MFUN	timeline4k2	python_function	contextlib.py(751): __init__	0.6	3.04
+MFUN	timeline4k2	python_function	<built-in method synchronize of torch.Event object>	0.6	0.04
+MFUN	timeline4k2	python_function	torch/cuda/__init__.py(362): is_initialized	0.6	1.00
+MFUN	timeline4k2	user_annotation	execute_context_0(0)_generation_7(7)	0.6	0.01
+MFUN	timeline4k2	python_function	contextlib.py(757): __exit__	0.6	3.99
+MFUN	timeline4k2	python_function	torch/backends/cuda/__init__.py(39): is_built	0.5	1.00
+MFUN	timeline4k2	python_function	<frozen abc>(117): __instancecheck__	0.5	1.00
+MFUN	timeline4k2	cpu_op	aten::fill_	0.5	0.03
+MFUN	timeline4k2	python_function	<built-in method rsplit of str object>	0.5	1.00
+MFUN	timeline4k2	python_function	<built-in function _cuda_isInBadFork>	0.5	1.00
+MFUN	timeline4k2	python_function	vllm/distributed/parallel_state.py(534): last_rank	0.5	1.04
+MFUN	timeline4k2	python_function	torch/_jit_internal.py(98): is_scripting	0.5	4.04
+MFUN	timeline4k2	python_function	vllm/forward_context.py(234): override_forward_context	0.5	1.00
+MFUN	timeline4k2	python_function	vllm/profiler/wrapper.py(289): _profiler_step	0.5	1.00
+MFUN	timeline4k2	python_function	enum.py(1251): name	0.4	2.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/worker_base.py(330): _apply_mm_cache	0.4	1.00
+MFUN	timeline4k2	python_function	vllm/v1/utils.py(785): <setcomp>	0.4	1.00
+MFUN	timeline4k2	python_function	vllm/model_executor/offloader/base.py(111): get_offloader	0.4	1.00
+MFUN	timeline4k2	python_function	vllm/distributed/kv_transfer/kv_transfer_state.py(26): has_kv_transfer_group	0.3	1.04
+MFUN	timeline4k2	python_function	contextlib.py(754): __enter__	0.3	3.04
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_input_batch.py(539): update_req_spec_token_ids	0.3	0.28
+MFUN	timeline4k2	python_function	<built-in method join of str object>	0.3	1.00
+MFUN	timeline4k2	python_function	vllm/forward_context.py(244): override_forward_context	0.3	1.00
+MFUN	timeline4k2	python_function	<built-in function get_ident>	0.2	1.00
+MFUN	timeline4k2	python_function	vllm/forward_context.py(191): get_forward_context	0.2	1.00
+MFUN	timeline4k2	python_function	<built-in method values of dict object>	0.2	1.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_input_batch.py(899): refresh_metadata	0.2	0.04
+MFUN	timeline4k2	python_function	<built-in method __exit__ of torch._C.DisableTorchFunctionSubclass object>	0.2	1.00
+MFUN	timeline4k2	python_function	typing.py(2256): cast	0.2	2.13
+MFUN	timeline4k2	python_function	<built-in method items of dict object>	0.2	1.00
+MFUN	timeline4k2	python_function	<built-in function array>	0.2	0.08
+MFUN	timeline4k2	python_function	<built-in method keys of dict object>	0.2	1.07
+MFUN	timeline4k2	python_function	vllm/forward_context.py(200): is_forward_context_available	0.2	1.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/block_table.py(102): append_row	0.2	0.01
+MFUN	timeline4k2	python_function	numpy/core/fromnumeric.py(40): _wrapit	0.1	0.04
+MFUN	timeline4k2	python_function	vllm/v1/worker/host_opt.py(563): host_layout	0.1	0.00
+MFUN	timeline4k2	python_function	<built-in method __exit__ of _thread.RLock object>	0.1	1.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(1107): _may_reorder_batch	0.1	0.04
+MFUN	timeline4k2	python_function	<built-in method astype of numpy.ndarray object>	0.1	0.04
+MFUN	timeline4k2	python_function	vllm/v1/worker/host_opt.py(687): stage	0.1	0.00
+MFUN	timeline4k2	cpu_op	aten::zero_	0.1	0.02
+MFUN	timeline4k2	python_function	vllm/model_executor/offloader/base.py(79): sync_prev_onload	0.1	1.00
+MFUN	timeline4k2	python_function	<built-in method sum of numpy.ndarray object>	0.1	0.15
+MFUN	timeline4k2	python_function	vllm/platforms/interface.py(1024): set_additional_forward_context	0.1	1.00
+MFUN	timeline4k2	python_function	torch/jit/__init__.py(129): annotate	0.1	1.00
+MFUN	timeline4k2	python_function	torch/utils/_pytree.py(1468): tree_iter	0.1	1.00
+MFUN	timeline4k2	python_function	<built-in method repeat of numpy.ndarray object>	0.1	0.04
+MFUN	timeline4k2	python_function	numpy/core/fromnumeric.py(53): _wrapfunc	0.1	0.04
+MFUN	timeline4k2	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(465): _corex_fast_build	0.1	0.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(1816): _prepare_input_ids	0.1	0.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_input_batch.py(756): condense	0.1	0.04
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(2370): _build_attention_metadata	0.1	0.00
+MFUN	timeline4k2	python_function	<built-in method add of type object>	0.1	0.01
+MFUN	timeline4k2	python_function	vllm/v1/worker/block_table.py(166): commit_block_table	0.1	0.04
+MFUN	timeline4k2	python_function	<built-in method zero_ of Tensor object>	0.1	0.02
+MFUN	timeline4k2	python_function	vllm/v1/sample/logits_processor/state.py(119): get_and_reset	0.1	0.04
+MFUN	timeline4k2	python_function	vllm/v1/sample/logits_processor/builtin.py(200): update_state	0.1	0.04
+MFUN	timeline4k2	python_function	<built-in method fill_ of Tensor object>	0.1	0.01
+MFUN	timeline4k2	python_function	vllm/v1/worker/block_table.py(312): commit_block_table	0.1	0.04
+MFUN	timeline4k2	python_function	<built-in method numpy of Tensor object>	0.1	0.01
+MFUN	timeline4k2	python_function	vllm/v1/worker/host_opt.py(271): prepare_inputs	0.1	0.01
+MFUN	timeline4k2	python_function	vllm/v1/attention/backends/utils.py(656): <listcomp>	0.1	0.04
+MFUN	timeline4k2	python_function	<built-in function zeros>	0.1	0.04
+MFUN	timeline4k2	python_function	vllm/v1/worker/compact_greedy_backport.py(324): update_requests	0.1	0.04
+MFUN	timeline4k2	cpu_op	aten::sub	0.1	0.00
+MFUN	timeline4k2	python_function	numpy/core/_methods.py(47): _sum	0.0	0.15
+MFUN	timeline4k2	python_function	numpy/core/fromnumeric.py(423): repeat	0.0	0.04
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(4326): <listcomp>	0.0	0.04
+MFUN	timeline4k2	user_annotation	execute_context_0(0)_generation_3(3)	0.0	0.00
+MFUN	timeline4k2	python_function	vllm/v1/sample/logits_processor/state.py(59): _ensure_removed_sorted	0.0	0.04
+MFUN	timeline4k2	python_function	<built-in function asarray>	0.0	0.04
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(3945): synchronize_input_prep	0.0	0.04
+MFUN	timeline4k2	python_function	vllm/v1/sample/logits_processor/builtin.py(135): update_state	0.0	0.04
+MFUN	timeline4k2	python_function	<built-in method any of numpy.ndarray object>	0.0	0.04
+MFUN	timeline4k2	python_function	vllm/v1/sample/logits_processor/state.py(162): all	0.0	0.04
+MFUN	timeline4k2	python_function	<built-in method empty of type object>	0.0	0.00
+MFUN	timeline4k2	cpu_op	aten::add	0.0	0.01
+MFUN	timeline4k2	python_function	<built-in method max of numpy.ndarray object>	0.0	0.04
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_input_batch.py(919): _make_sampling_metadata	0.0	0.00
+MFUN	timeline4k2	python_function	<built-in method from_numpy of type object>	0.0	0.01
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(1801): _compute_prev_positions	0.0	0.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(2153): <listcomp>	0.0	0.00
+MFUN	timeline4k2	python_function	vllm/v1/sample/logits_processor/state.py(69): removed	0.0	0.04
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(4194): _get_slot_mapping	0.0	0.00
+MFUN	timeline4k2	python_function	<built-in method clear of list object>	0.0	0.28
+MFUN	timeline4k2	python_function	numpy/core/_methods.py(55): _any	0.0	0.04
+MFUN	timeline4k2	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(650): build	0.0	0.00
+MFUN	timeline4k2	python_function	numpy/core/_methods.py(39): _amax	0.0	0.04
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(2541): _build_attn_group_metadata	0.0	0.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/host_opt.py(233): _filled_on_device	0.0	0.01
+MFUN	timeline4k2	python_function	vllm/v1/worker/block_table.py(283): append_row	0.0	0.01
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_input_batch.py(81): num_tokens	0.0	0.03
+MFUN	timeline4k2	user_annotation	execute_context_0(0)_generation_0(0)	0.0	0.00
+MFUN	timeline4k2	python_function	<built-in method sort of list object>	0.0	0.04
+MFUN	timeline4k2	python_function	vllm/distributed/ec_transfer/ec_transfer_state.py(22): has_ec_transfer	0.0	0.04
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(4163): _get_slot_mappings	0.0	0.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/host_opt.py(894): stage_computed	0.0	0.00
+MFUN	timeline4k2	python_function	vllm/v1/cudagraph_dispatcher.py(235): dispatch	0.0	0.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/host_opt.py(383): stage_positions	0.0	0.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(2411): _get_block_table	0.0	0.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_input_batch.py(566): remove_request	0.0	0.00
+MFUN	timeline4k2	python_function	<built-in method item of numpy.int32 object>	0.0	0.01
+MFUN	timeline4k2	cpu_op	aten::detach	0.0	0.01
+MFUN	timeline4k2	python_function	vllm/v1/worker/block_table.py(124): clear_row	0.0	0.00
+MFUN	timeline4k2	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(442): _corex_cpu_mirrors	0.0	0.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu/pool/late_interaction_runner.py(41): on_requests_finished	0.0	0.04
+MFUN	timeline4k2	python_function	<built-in method fill of numpy.ndarray object>	0.0	0.01
+MFUN	timeline4k2	python_function	numpy/core/numeric.py(136): ones	0.0	0.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/block_table.py(203): get_device_tensor	0.0	0.00
+MFUN	timeline4k2	python_function	vllm/v1/sample/logits_processor/builtin.py(294): process_dict_updates	0.0	0.07
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(4013): _determine_batch_execution_and_padding	0.0	0.00
+MFUN	timeline4k2	python_function	vllm/v1/sample/logits_processor/builtin.py(53): update_state	0.0	0.04
+MFUN	timeline4k2	python_function	vllm/v1/cudagraph_dispatcher.py(132): _create_padded_batch_descriptor	0.0	0.00
+MFUN	timeline4k2	cpu_op	aten::lt	0.0	0.00
+MFUN	timeline4k2	python_function	copy.py(66): copy	0.0	0.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/host_opt.py(211): _decode_templates	0.0	0.01
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(4393): <genexpr>	0.0	0.00
+MFUN	timeline4k2	cpu_op	aten::empty	0.0	0.00
+MFUN	timeline4k2	python_function	<built-in method extend of list object>	0.0	0.03
+MFUN	timeline4k2	cpu_op	aten::select	0.0	0.00
+MFUN	timeline4k2	python_function	numpy/core/fromnumeric.py(419): _repeat_dispatcher	0.0	0.04
+MFUN	timeline4k2	python_function	<built-in method __reduce_ex__ of CommonAttentionMetadata object>	0.0	0.00
+MFUN	timeline4k2	python_function	vllm/config/compilation.py(89): separate_routine	0.0	0.00
+MFUN	timeline4k2	python_function	copy.py(259): _reconstruct	0.0	0.00
+MFUN	timeline4k2	python_function	<built-in function max>	0.0	0.01
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(3576): _pad_for_sequence_parallelism	0.0	0.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/host_opt.py(901): commit	0.0	0.00
+MFUN	timeline4k2	python_function	<built-in method append of list object>	0.0	0.03
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(4058): dispatch_cudagraph	0.0	0.00
+MFUN	timeline4k2	python_function	<built-in function empty>	0.0	0.00
+MFUN	timeline4k2	python_function	vllm/v1/worker/gpu_input_batch.py(1193): no_penalties	0.0	0.00
+### timeline4k2 GAP gaps=1615 warmup=16 mean_G=1013.8us anchor_self=1002.9us all_self=1919.9us
+GCAT	timeline4k2	python_function	1525.0
+GCAT	timeline4k2	cuda_runtime	298.5
+GCAT	timeline4k2	cpu_op	96.4
+GCAT	timeline4k2	kernel	0.0
+GCAT	timeline4k2	gpu_memcpy	0.0
+### timeline4k2 GFUN top250 (µs/gap, calls/step, anchor tid)
+GFUN	timeline4k2	cuda_runtime	cudaEventQuery	226.9	2.01
+GFUN	timeline4k2	python_function	<built-in method to of Tensor object>	105.7	2.00
+GFUN	timeline4k2	cpu_op	aten::copy_	48.2	2.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(3775): _bookkeeping_sync	37.2	1.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(4652): sample_tokens	34.8	1.00
+GFUN	timeline4k2	python_function	<built-in function loads>	27.3	2.00
+GFUN	timeline4k2	cpu_op	aten::empty_strided	26.2	2.00
+GFUN	timeline4k2	cuda_runtime	cudaStreamWaitEvent	20.8	1.00
+GFUN	timeline4k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(664): acquire_read	19.0	2.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/host_opt.py(431): commit_sampled	18.1	1.00
+GFUN	timeline4k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(772): dequeue	18.0	2.00
+GFUN	timeline4k2	python_function	torch/utils/_contextlib.py(120): decorate_context	17.7	2.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/compact_greedy_backport.py(430): consume	12.4	1.00
+GFUN	timeline4k2	python_function	<built-in method unsqueeze of Tensor object>	12.1	1.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(248): __init__	10.4	1.00
+GFUN	timeline4k2	cuda_runtime	cudaMemcpyAsync	10.3	1.00
+GFUN	timeline4k2	cpu_op	aten::_to_copy	9.9	2.00
+GFUN	timeline4k2	python_function	<built-in function sched_yield>	9.2	8.01
+GFUN	timeline4k2	python_function	contextlib.py(104): __init__	8.8	6.00
+GFUN	timeline4k2	python_function	<built-in method record of Event object>	8.2	1.00
+GFUN	timeline4k2	python_function	queue.py(122): put	8.2	2.00
+GFUN	timeline4k2	cuda_runtime	cudaLaunchKernel	7.7	1.00
+GFUN	timeline4k2	python_function	<built-in method wait of Event object>	7.7	1.00
+GFUN	timeline4k2	python_function	<built-in method record of torch.Event object>	7.3	1.00
+GFUN	timeline4k2	python_function	<built-in function getattr>	7.0	15.99
+GFUN	timeline4k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(345): get_metadata	7.0	2.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/compact_greedy_backport.py(70): metadata_reasons	6.9	1.00
+GFUN	timeline4k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(713): acquire_read	6.8	2.00
+GFUN	timeline4k2	python_function	torch/cuda/__init__.py(1142): current_stream	6.7	2.00
+GFUN	timeline4k2	python_function	<built-in method __new__ of type object>	6.5	5.00
+GFUN	timeline4k2	python_function	torch/cuda/_utils.py(508): _get_device_index	6.4	3.00
+GFUN	timeline4k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(677): check	6.4	10.01
+GFUN	timeline4k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(70): memory_fence	6.2	12.01
+GFUN	timeline4k2	python_function	<built-in function _cuda_getDevice>	5.9	3.00
+GFUN	timeline4k2	python_function	contextlib.py(141): __exit__	5.6	6.00
+GFUN	timeline4k2	python_function	torch/cuda/streams.py(35): __new__	5.4	2.00
+GFUN	timeline4k2	python_function	<built-in function next>	5.3	12.00
+GFUN	timeline4k2	python_function	threading.py(366): notify	5.1	2.00
+GFUN	timeline4k2	python_function	torch/_utils.py(837): _get_device_index	5.1	3.00
+GFUN	timeline4k2	python_function	<built-in function _cuda_setStream>	4.8	2.00
+GFUN	timeline4k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(183): wait	4.8	8.01
+GFUN	timeline4k2	python_function	<built-in method release of _thread.lock object>	4.7	2.00
+GFUN	timeline4k2	cpu_op	aten::to	4.7	2.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/gpu_input_batch.py(352): req_ids	4.6	5.00
+GFUN	timeline4k2	python_function	torch/autograd/grad_mode.py(289): __enter__	4.5	2.00
+GFUN	timeline4k2	python_function	<frozen os>(674): __getitem__	4.3	3.00
+GFUN	timeline4k2	python_function	vllm/v1/utils.py(721): record_function_or_nullcontext	4.1	6.00
+GFUN	timeline4k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(621): __init__	3.9	2.00
+GFUN	timeline4k2	python_function	contextlib.py(287): helper	3.9	6.00
+GFUN	timeline4k2	python_function	torch/cuda/__init__.py(165): is_available	3.8	3.00
+GFUN	timeline4k2	python_function	vllm/utils/torch_utils.py(675): _patched_set_stream	3.6	2.00
+GFUN	timeline4k2	python_function	torch/_utils.py(795): _get_device_attr	3.5	3.00
+GFUN	timeline4k2	python_function	<built-in function commit_arrays>	3.4	1.00
+GFUN	timeline4k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(337): get_data	3.3	2.00
+GFUN	timeline4k2	python_function	<built-in function any>	3.3	3.00
+GFUN	timeline4k2	python_function	<built-in method __exit__ of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	3.2	2.00
+GFUN	timeline4k2	cuda_runtime	cudaEventRecord	3.2	2.00
+GFUN	timeline4k2	python_function	torch/cuda/__init__.py(695): __enter__	3.0	1.00
+GFUN	timeline4k2	python_function	contextlib.py(132): __enter__	2.9	6.00
+GFUN	timeline4k2	python_function	torch/cuda/__init__.py(752): set_stream	2.7	2.00
+GFUN	timeline4k2	python_function	vllm/v1/executor/multiproc_executor.py(941): handle_output	2.7	2.00
+GFUN	timeline4k2	python_function	torch/cuda/__init__.py(680): __init__	2.7	1.00
+GFUN	timeline4k2	python_function	<built-in method get of dict object>	2.7	15.35
+GFUN	timeline4k2	cpu_op	aten::slice	2.6	1.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(3739): _sample	2.6	1.00
+GFUN	timeline4k2	cpu_op	aten::unsqueeze	2.6	1.00
+GFUN	timeline4k2	python_function	<built-in method nonzero of numpy.ndarray object>	2.5	1.00
+GFUN	timeline4k2	python_function	<string>(2): __init__	2.4	2.00
+GFUN	timeline4k2	python_function	<built-in function isinstance>	2.4	27.98
+GFUN	timeline4k2	python_function	vllm/v1/worker/compact_greedy_backport.py(72): <genexpr>	2.4	8.99
+GFUN	timeline4k2	python_function	torch/autograd/grad_mode.py(279): __init__	2.3	2.00
+GFUN	timeline4k2	cpu_op	aten::as_strided	2.3	2.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(3861): <dictcomp>	2.3	1.00
+GFUN	timeline4k2	python_function	torch/cuda/__init__.py(161): _nvml_based_avail	2.2	3.00
+GFUN	timeline4k2	python_function	torch/autograd/grad_mode.py(296): clone	2.1	2.00
+GFUN	timeline4k2	python_function	torch/cuda/__init__.py(710): __exit__	2.1	1.00
+GFUN	timeline4k2	python_function	torch/cuda/__init__.py(156): _is_compiled	2.1	6.00
+GFUN	timeline4k2	python_function	torch/_utils.py(811): _get_current_device_index	2.0	3.00
+GFUN	timeline4k2	python_function	<frozen os>(756): encode	2.0	3.00
+GFUN	timeline4k2	python_function	torch/cuda/__init__.py(1110): current_device	2.0	3.00
+GFUN	timeline4k2	python_function	<built-in function hasattr>	1.9	13.99
+GFUN	timeline4k2	python_function	vllm/distributed/utils.py(46): sched_yield	1.9	8.01
+GFUN	timeline4k2	python_function	<frozen os>(773): getenv	1.9	3.00
+GFUN	timeline4k2	python_function	torch/cuda/__init__.py(411): _lazy_init	1.9	5.00
+GFUN	timeline4k2	python_function	<built-in method append of list object>	1.8	17.35
+GFUN	timeline4k2	python_function	torch/cuda/streams.py(77): record_event	1.8	1.00
+GFUN	timeline4k2	python_function	torch/autograd/grad_mode.py(284): __new__	1.8	2.00
+GFUN	timeline4k2	python_function	torch/cuda/streams.py(63): wait_stream	1.8	1.00
+GFUN	timeline4k2	python_function	torch/_utils.py(778): _get_available_device_type	1.7	3.00
+GFUN	timeline4k2	python_function	<frozen _collections_abc>(771): get	1.6	3.00
+GFUN	timeline4k2	python_function	multiprocessing/shared_memory.py(204): buf	1.6	8.00
+GFUN	timeline4k2	python_function	threading.py(271): __enter__	1.6	2.00
+GFUN	timeline4k2	python_function	torch/autograd/grad_mode.py(293): __exit__	1.6	2.00
+GFUN	timeline4k2	python_function	queue.py(213): _put	1.6	2.00
+GFUN	timeline4k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(173): record_read	1.5	2.00
+GFUN	timeline4k2	python_function	torch/cuda/__init__.py(1063): device_count	1.5	3.00
+GFUN	timeline4k2	python_function	<built-in function monotonic>	1.5	12.01
+GFUN	timeline4k2	python_function	torch/cuda/__init__.py(362): is_initialized	1.4	5.00
+GFUN	timeline4k2	python_function	<built-in method __exit__ of _thread.lock object>	1.4	14.00
+GFUN	timeline4k2	python_function	torch/_utils.py(813): <lambda>	1.3	3.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/gpu_input_batch.py(1173): num_reqs	1.3	3.00
+GFUN	timeline4k2	python_function	torch/cuda/__init__.py(737): _set_stream_by_id	1.3	2.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/gpu_worker.py(801): sample_tokens	1.2	1.00
+GFUN	timeline4k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(634): timeout_ms	1.2	8.01
+GFUN	timeline4k2	python_function	vllm/v1/worker/host_opt.py(458): <genexpr>	1.2	4.00
+GFUN	timeline4k2	python_function	threading.py(286): _is_owned	1.2	2.00
+GFUN	timeline4k2	python_function	torch/cuda/__init__.py(724): stream	1.1	1.00
+GFUN	timeline4k2	python_function	threading.py(274): __exit__	1.1	2.00
+GFUN	timeline4k2	python_function	<frozen os>(760): decode	1.1	3.00
+GFUN	timeline4k2	python_function	numpy/core/fromnumeric.py(53): _wrapfunc	1.1	1.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/gpu_input_batch.py(1089): set_async_sampled_token_ids	1.1	1.00
+GFUN	timeline4k2	python_function	numpy/core/fromnumeric.py(1881): nonzero	1.1	1.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/compact_greedy_backport.py(94): <genexpr>	1.1	3.00
+GFUN	timeline4k2	python_function	<built-in function _cuda_isInBadFork>	1.0	5.00
+GFUN	timeline4k2	python_function	contextlib.py(751): __init__	1.0	6.00
+GFUN	timeline4k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(654): should_warn	1.0	8.01
+GFUN	timeline4k2	python_function	<built-in function _cuda_getCurrentStream>	1.0	2.00
+GFUN	timeline4k2	python_function	torch/cuda/streams.py(181): __new__	1.0	1.00
+GFUN	timeline4k2	python_function	torch/_jit_internal.py(98): is_scripting	0.9	10.99
+GFUN	timeline4k2	python_function	<built-in method encode of str object>	0.9	3.00
+GFUN	timeline4k2	python_function	<built-in method decode of bytes object>	0.9	3.00
+GFUN	timeline4k2	python_function	<built-in method __enter__ of _thread.lock object>	0.8	2.00
+GFUN	timeline4k2	python_function	<built-in method __enter__ of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	0.8	2.00
+GFUN	timeline4k2	python_function	torch/cuda/streams.py(197): record	0.8	1.00
+GFUN	timeline4k2	python_function	torch/cuda/streams.py(46): wait_event	0.8	1.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/worker_base.py(327): __getattr__	0.8	1.00
+GFUN	timeline4k2	python_function	torch/cuda/streams.py(207): wait	0.8	1.00
+GFUN	timeline4k2	python_function	contextlib.py(754): __enter__	0.7	6.00
+GFUN	timeline4k2	python_function	torch/backends/cuda/__init__.py(39): is_built	0.7	2.00
+GFUN	timeline4k2	python_function	<built-in method acquire of _thread.lock object>	0.7	2.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(3480): eplb_step	0.7	1.00
+GFUN	timeline4k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(343): get_data	0.7	2.00
+GFUN	timeline4k2	python_function	<built-in function len>	0.6	4.00
+GFUN	timeline4k2	python_function	contextlib.py(757): __exit__	0.6	6.00
+GFUN	timeline4k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(351): get_metadata	0.6	2.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/gpu_input_batch.py(1106): update_async_output_token_ids	0.6	1.00
+GFUN	timeline4k2	python_function	<built-in method lower of str object>	0.5	3.00
+GFUN	timeline4k2	python_function	<built-in method __exit__ of memoryview object>	0.5	4.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(1580): _update_states_after_model_execute	0.5	1.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(5722): _get_prompt_logprobs_dict	0.4	1.00
+GFUN	timeline4k2	python_function	<built-in method tolist of numpy.ndarray object>	0.4	1.00
+GFUN	timeline4k2	python_function	typing.py(2256): cast	0.4	5.00
+GFUN	timeline4k2	python_function	<built-in method append of collections.deque object>	0.4	2.00
+GFUN	timeline4k2	python_function	vllm/distributed/parallel_state.py(1364): get_pp_group	0.4	1.00
+GFUN	timeline4k2	python_function	<built-in method copy of list object>	0.4	1.00
+GFUN	timeline4k2	python_function	vllm/v1/worker/gpu_model_runner.py(1162): _get_or_create_async_output_copy_stream	0.4	1.00
+GFUN	timeline4k2	python_function	<built-in method copy of dict object>	0.4	1.00
+GFUN	timeline4k2	python_function	<built-in method remove of collections.deque object>	0.4	2.00
+GFUN	timeline4k2	python_function	numpy/core/fromnumeric.py(1877): _nonzero_dispatcher	0.1	1.00
++ echo
+
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/config.txt ]]
++ grep -q profile=1 /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/config.txt
+++ pick_trace /home/qch/scripts/litehost_perf/vllmBench/timeline64k2
+++ local r=/home/qch/scripts/litehost_perf/vllmBench/timeline64k2
+++ fs=()
+++ local -a fs
+++ mapfile -t fs
++++ ls -1 /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline/rank0.1794728625069608660.pt.trace.json.gz
++++ sort
+++ (( 1 == 0 ))
+++ (( 1 == 1 ))
+++ echo /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline/rank0.1794728625069608660.pt.trace.json.gz
+++ return 0
++ F=/home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline/rank0.1794728625069608660.pt.trace.json.gz
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k2
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline/rank0.1794728625069608660.pt.trace.json.gz
++ echo '### 分析 timeline64k2 <- rank0.1794728625069608660.pt.trace.json.gz'
+### 分析 timeline64k2 <- rank0.1794728625069608660.pt.trace.json.gz
++ command -v python3
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k2
++ DEEP=1
++ DEEP_TOPN=250
++ GAP=1
++ GAP_TOPN=250
++ HONLY=1
++ TSHG_WARMUP=0,16
++ python3 /home/qch/tools/remote-env/184/trace_eval_run.py timeline64k2 /home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline/rank0.1794728625069608660.pt.trace.json.gz
+### timeline64k2 file=/home/qch/scripts/litehost_perf/vllmBench/timeline64k2/timeline/rank0.1794728625069608660.pt.trace.json.gz
+### timeline64k2 events=4046444 span=72938.3ms tids=8
+### timeline64k2 anchor    1692 vllm/v1/worker/worker_base.py(340): execute_model
+### timeline64k2 anchor    1692 vllm/v1/worker/gpu_worker.py(807): execute_model
+### timeline64k2 anchor    1692 vllm/v1/worker/gpu_model_runner.py(4246): execute_model
+### timeline64k2 sync_total=5073
+###       3382 次   66572.24 ms  cudaEventSynchronize
+###       1690 次   64656.88 ms  cudaStreamSynchronize
+###          1 次       0.08 ms  cudaDeviceSynchronize
+TSHG	timeline64k2	w=0	prefill	n=51	T=4950.29	S=1799.85	Sm=1724.54	H=3150.44	Hm=3225.76	G=46.69	HG=3197.14	HGm=3272.45	S_pct=36.4
+TSHG	timeline64k2	w=0	decode	n=1641	T=66381.89	S=64858.57	Sm=62935.58	H=1523.32	Hm=3446.31	G=1427.20	HG=2950.52	HGm=4873.51	S_pct=97.7
+TSHG	timeline64k2	w=16	prefill	n=48	T=4620.48	S=1690.68	Sm=1618.76	H=2929.80	Hm=3001.72	G=43.81	HG=2973.60	HGm=3045.53	S_pct=36.6
+TSHG	timeline64k2	w=16	decode	n=1628	T=65883.00	S=64373.03	Sm=62464.33	H=1509.97	Hm=3418.67	G=1415.52	HG=2925.50	HGm=4834.19	S_pct=97.7
+### timeline64k2 FUN top60 (µs/step, calls/step)
+FUN	timeline64k2	python_function	<built-in method acquire of _thread.lock object at 0xfffb4d5abd40>	81562.1	12.01
+FUN	timeline64k2	Trace	PyTorch Profiler (0)	43107.7	0.00
+FUN	timeline64k2	python_function	vllm/usage/usage_lib.py(256): _report_continuous_usage	43107.7	0.00
+FUN	timeline64k2	python_function	vllm/v1/worker/gpu_worker.py(807): execute_model	42053.3	1.00
+FUN	timeline64k2	cuda_runtime	cudaEventSynchronize	39345.3	2.00
+FUN	timeline64k2	cuda_runtime	cudaStreamSynchronize	38213.3	1.00
+FUN	timeline64k2	python_function	threading.py(331): wait	8041.7	0.00
+FUN	timeline64k2	cuda_runtime	cudaLaunchKernel	445.0	34.38
+FUN	timeline64k2	kernel	void ixformer::comm::allreduce_ring_step_sum_fused<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	435.1	3.96
+FUN	timeline64k2	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<256u, 256u, 64u, 64u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, false, 2u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	382.4	1.36
+FUN	timeline64k2	kernel	void ixformer::comm::allreduce_ring_step_copy<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	340.2	2.97
+FUN	timeline64k2	cpu_op	aten::copy_	204.5	13.04
+FUN	timeline64k2	cpu_op	aten::empty_strided	198.6	14.89
+FUN	timeline64k2	cuda_runtime	cudaEventQuery	167.6	2.04
+FUN	timeline64k2	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<128u, 256u, 64u, 32u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, false, 5u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	157.2	1.97
+FUN	timeline64k2	kernel	void ixformer::comm::allreduce_ring_step_copy_fused<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	152.3	2.97
+FUN	timeline64k2	cpu_op	aten::empty	130.9	11.41
+FUN	timeline64k2	cuda_runtime	cudaGraphLaunch	128.0	1.97
+FUN	timeline64k2	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<256u, 256u, 64u, 64u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, true, 2u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	125.1	0.45
+FUN	timeline64k2	gpu_user_annotation	execute_context_1(128)_generation_0(0)	121.7	0.01
+FUN	timeline64k2	gpu_user_annotation	execute_context_7(896)_generation_1(1)	114.1	0.01
+FUN	timeline64k2	kernel	void ixformer::comm::allreduce_ring_step_sum<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	112.1	1.98
+FUN	timeline64k2	gpu_memcpy	Memcpy DtoD (Device -> Device)	111.0	4.93
+FUN	timeline64k2	kernel	void ixformer::comm::allreduce_ring_last_step_copy<__ix_bfloat16>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, unsigned int)	106.2	1.98
+FUN	timeline64k2	python_function	<built-in method all_reduce of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object at 0xfffb7b2561b0>	101.8	1.98
+FUN	timeline64k2	python_function	<built-in method to of Tensor object at 0xff7a9f1c8c30>	99.5	3.03
+FUN	timeline64k2	python_function	zmq/sugar/socket.py(623): send	92.4	2.00
+FUN	timeline64k2	cpu_op	aten::slice	89.4	40.51
+FUN	timeline64k2	cuda_runtime	cudaMemcpyAsync	82.1	11.96
+FUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(4246): execute_model	69.9	1.00
+FUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(1999): _prepare_inputs	67.9	1.00
+FUN	timeline64k2	python_function	<built-in method w8a8_gemm of PyCapsule object at 0xfffb6d80a970>	67.3	3.93
+FUN	timeline64k2	kernel	void ixformer::kernels::infer::residual_rms_norm_kernel<__ix_bfloat16, 5u, 2u, false, true, false>(__ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16*, __ix_bfloat16*, float, unsigned int, unsigned int, unsigned int, float)	66.4	1.97
+FUN	timeline64k2	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(465): _corex_fast_build	65.9	1.00
+FUN	timeline64k2	python_function	<built-in method empty of type object at 0xfffc9d1fd130>	63.8	10.86
+FUN	timeline64k2	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(942): forward	61.7	0.98
+FUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(2370): _build_attention_metadata	56.8	1.00
+FUN	timeline64k2	python_function	<built-in method scaled_int8_quant of PyCapsule object at 0xfffb6d80a9d0>	56.2	3.93
+FUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(1816): _prepare_input_ids	52.9	1.00
+FUN	timeline64k2	python_function	<built-in method view of Tensor object at 0xff7a9f1c84b0>	52.2	22.17
+FUN	timeline64k2	python_function	<built-in method copy_ of Tensor object at 0xff7a9f1ca440>	49.5	6.98
+FUN	timeline64k2	cpu_op	aten::index	48.6	1.01
+FUN	timeline64k2	cpu_op	aten::fill_	40.6	5.02
+FUN	timeline64k2	user_annotation	execute_context_0(0)_generation_8(8)	40.2	0.89
+FUN	timeline64k2	python_function	torch/nn/modules/module.py(1780): _call_impl	39.5	12.83
+FUN	timeline64k2	python_function	<built-in method synchronize of Stream object at 0xff7aad213d90>	38.4	0.99
+FUN	timeline64k2	python_function	torch/utils/_contextlib.py(120): decorate_context	37.0	5.00
+FUN	timeline64k2	kernel	void ixformer::kernels::infer::scaled_int8_quant_opt1<__ix_bfloat16, true, 3>(__ix_bfloat16 const*, signed char*, float*, int)	36.8	1.97
+FUN	timeline64k2	python_function	<built-in method empty_like of type object at 0xfffc9d1fd130>	34.4	9.83
+FUN	timeline64k2	python_function	<built-in method replay of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object at 0xfffbeec25d10>	33.6	1.97
+FUN	timeline64k2	cpu_op	aten::sub	33.3	1.01
+FUN	timeline64k2	python_function	<built-in method reduce of numpy.ufunc object at 0xfffc9e6b6140>	32.9	8.02
+FUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(1169): _update_states	32.8	1.00
+FUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(3775): _bookkeeping_sync	32.7	1.00
+FUN	timeline64k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(664): acquire_read	32.7	2.00
+FUN	timeline64k2	python_function	<built-in function dumps>	32.7	2.00
+FUN	timeline64k2	kernel	void ixformer::kernels::infer::fused_rms_norm_qk_kernel<__ix_bfloat16, (ixformer::kernels::infer::RMSNormType)0, 2u>(__ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, float)	32.6	0.98
+FUN	timeline64k2	python_function	vllm/v1/executor/multiproc_executor.py(966): async_output_busy_loop	32.3	0.00
+FUN	timeline64k2	cpu_op	aten::as_strided	32.0	49.67
+FUN	timeline64k2	python_function	vllm/v1/attention/backends/utils.py(637): reorder_batch_to_split_decodes_and_prefills	31.9	1.00
+### timeline64k2 DEEP decode_steps=1628 warmup=16 mean_T=40468.7us all_self=190385.2us main_self=742.2us main_sync=38368.8us
+ACAT	timeline64k2	python_function	111739.0
+ACAT	timeline64k2	cuda_runtime	78061.0
+ACAT	timeline64k2	cpu_op	470.5
+ACAT	timeline64k2	user_annotation	45.6
+ACAT	timeline64k2	gpu_memcpy	36.8
+ACAT	timeline64k2	kernel	32.4
+MCAT	timeline64k2	python_function	380.1
+MCAT	timeline64k2	cpu_op	171.2
+MCAT	timeline64k2	cuda_runtime	157.1
+MCAT	timeline64k2	user_annotation	33.8
+MSYNC	timeline64k2	cudaStreamSynchronize	38366.9	1.00
+MSYNC	timeline64k2	cudaEventSynchronize	1.9	1.00
+### timeline64k2 MFUN top250 (µs/decode-step, calls/step, anchor tid)
+MFUN	timeline64k2	cuda_runtime	cudaGraphLaunch	129.6	2.00
+MFUN	timeline64k2	cpu_op	aten::copy_	58.7	3.04
+MFUN	timeline64k2	cpu_op	aten::index	48.5	1.00
+MFUN	timeline64k2	python_function	<built-in method replay of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	34.1	2.00
+MFUN	timeline64k2	user_annotation	execute_context_0(0)_generation_8(8)	30.5	0.91
+MFUN	timeline64k2	cpu_op	aten::empty_strided	29.6	2.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/compact_greedy_backport.py(355): select	25.6	1.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(3595): _preprocess	19.5	1.00
+MFUN	timeline64k2	cpu_op	aten::slice	16.2	7.10
+MFUN	timeline64k2	cuda_runtime	cudaLaunchKernel	13.1	2.01
+MFUN	timeline64k2	python_function	<built-in method copy_ of Tensor object>	9.7	1.04
+MFUN	timeline64k2	python_function	<built-in method  of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	9.2	1.00
+MFUN	timeline64k2	python_function	<string>(2): __init__	9.1	4.99
+MFUN	timeline64k2	cuda_runtime	cudaMemcpyAsync	9.1	2.04
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu/sample_logits_graph.py(259): run	8.6	1.00
+MFUN	timeline64k2	python_function	torch/utils/_contextlib.py(120): decorate_context	8.5	2.05
+MFUN	timeline64k2	python_function	torch/autograd/grad_mode.py(289): __enter__	8.1	2.05
+MFUN	timeline64k2	python_function	vllm/v1/worker/compact_greedy_backport.py(70): metadata_reasons	8.0	1.00
+MFUN	timeline64k2	python_function	vllm/compilation/cuda_graph.py(233): __call__	7.6	1.00
+MFUN	timeline64k2	python_function	<built-in method record of torch.Event object>	7.1	1.00
+MFUN	timeline64k2	python_function	vllm/v1/utils.py(767): compute_iteration_details	7.0	1.00
+MFUN	timeline64k2	python_function	<built-in function getattr>	6.7	20.77
+MFUN	timeline64k2	python_function	torch/autograd/profiler.py(806): __exit__	6.6	1.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu/sample_logits_graph.py(80): _input_signature	6.5	1.00
+MFUN	timeline64k2	python_function	vllm/forward_context.py(249): set_forward_context	6.3	1.00
+MFUN	timeline64k2	python_function	torch/utils/_pytree.py(1462): tree_iter	5.8	4.00
+MFUN	timeline64k2	cpu_op	aten::_to_copy	5.2	1.00
+MFUN	timeline64k2	cpu_op	aten::as_strided	5.2	8.09
+MFUN	timeline64k2	python_function	<built-in method __new__ of type object>	4.8	4.04
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_worker.py(775): annotate_profile	4.6	1.00
+MFUN	timeline64k2	python_function	torch/utils/_pytree.py(694): is_namedtuple_class	4.5	6.99
+MFUN	timeline64k2	python_function	torch/autograd/grad_mode.py(279): __init__	4.0	2.05
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_input_batch.py(352): req_ids	3.9	2.13
+MFUN	timeline64k2	python_function	torch/cuda/__init__.py(1142): current_stream	3.9	1.00
+MFUN	timeline64k2	cuda_runtime	cudaEventRecord	3.8	2.00
+MFUN	timeline64k2	python_function	<built-in method get of dict object>	3.8	26.66
+MFUN	timeline64k2	python_function	contextlib.py(141): __exit__	3.7	3.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(1066): _init_model_kwargs	3.6	1.00
+MFUN	timeline64k2	python_function	<built-in function any>	3.6	3.04
+MFUN	timeline64k2	python_function	functools.py(981): __get__	3.6	1.00
+MFUN	timeline64k2	python_function	<string>(2): __hash__	3.6	2.99
+MFUN	timeline64k2	python_function	vllm/v1/core/sched/output.py(163): is_context_phase	3.5	7.66
+MFUN	timeline64k2	python_function	vllm/forward_context.py(204): create_forward_context	3.4	1.00
+MFUN	timeline64k2	python_function	torch/cuda/_utils.py(508): _get_device_index	3.4	1.00
+MFUN	timeline64k2	python_function	contextlib.py(104): __init__	3.3	2.04
+MFUN	timeline64k2	python_function	torch/autograd/grad_mode.py(296): clone	3.3	2.05
+MFUN	timeline64k2	python_function	<built-in function isinstance>	3.2	23.02
+MFUN	timeline64k2	python_function	<built-in method clone of Tensor object>	3.1	1.00
+MFUN	timeline64k2	cpu_op	aten::clone	3.0	1.00
+MFUN	timeline64k2	python_function	torch/cuda/streams.py(35): __new__	3.0	1.00
+MFUN	timeline64k2	python_function	torch/utils/_pytree.py(1048): _get_node_type	3.0	6.99
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(1999): _prepare_inputs	3.0	0.04
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu/sample_logits_graph.py(72): _producer_id	2.9	1.00
+MFUN	timeline64k2	python_function	torch/autograd/profiler.py(800): __enter__	2.9	1.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/compact_greedy_backport.py(215): produce	2.9	1.00
+MFUN	timeline64k2	python_function	<built-in function next>	2.7	5.04
+MFUN	timeline64k2	python_function	torch/autograd/profiler.py(787): __init__	2.7	1.00
+MFUN	timeline64k2	python_function	<built-in method __exit__ of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	2.7	3.00
+MFUN	timeline64k2	python_function	vllm/config/compilation.py(95): valid_runtime_modes	2.7	1.00
+MFUN	timeline64k2	user_annotation	execute_context_0(0)_generation_4(4)	2.7	0.08
+MFUN	timeline64k2	python_function	torch/cuda/graphs.py(141): replay	2.6	2.00
+MFUN	timeline64k2	python_function	torch/autograd/grad_mode.py(284): __new__	2.5	2.05
+MFUN	timeline64k2	python_function	vllm/v1/core/sched/output.py(153): _req_id_to_num_output_tokens	2.5	1.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/compact_greedy_backport.py(72): <genexpr>	2.5	8.98
+MFUN	timeline64k2	python_function	vllm/v1/worker/compact_greedy_graph.py(24): decode_eligible	2.4	1.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(3960): _model_forward	2.4	1.00
+MFUN	timeline64k2	python_function	torch/_utils.py(837): _get_device_index	2.2	1.00
+MFUN	timeline64k2	python_function	torch/utils/_pytree.py(1060): tree_is_leaf	2.2	4.00
+MFUN	timeline64k2	python_function	torch/autograd/grad_mode.py(293): __exit__	1.8	3.00
+MFUN	timeline64k2	python_function	vllm/distributed/parallel_state.py(539): is_first_rank	1.8	2.00
+MFUN	timeline64k2	python_function	vllm/profiler/wrapper.py(83): step	1.8	1.00
+MFUN	timeline64k2	python_function	torch/utils/_pytree.py(1784): tree_any	1.7	1.00
+MFUN	timeline64k2	cpu_op	aten::to	1.7	1.00
+MFUN	timeline64k2	python_function	torch/utils/_pytree.py(801): _dict_flatten	1.7	1.00
+MFUN	timeline64k2	python_function	vllm/profiler/wrapper.py(305): annotate_context_manager	1.6	1.00
+MFUN	timeline64k2	python_function	vllm/v1/utils.py(721): record_function_or_nullcontext	1.6	2.04
+MFUN	timeline64k2	python_function	torch/_ops.py(1081): _must_dispatch_in_python	1.6	1.00
+MFUN	timeline64k2	python_function	<string>(2): __eq__	1.6	2.00
+MFUN	timeline64k2	cuda_runtime	cudaStreamIsCapturing	1.6	2.00
+MFUN	timeline64k2	python_function	<built-in function hasattr>	1.5	7.99
+MFUN	timeline64k2	cpu_op	aten::reshape	1.5	1.00
+MFUN	timeline64k2	python_function	contextlib.py(287): helper	1.5	2.04
+MFUN	timeline64k2	python_function	torch/utils/_pytree.py(1476): tree_iter	1.5	2.00
+MFUN	timeline64k2	python_function	vllm/v1/attention/backends/utils.py(637): reorder_batch_to_split_decodes_and_prefills	1.4	0.04
+MFUN	timeline64k2	python_function	vllm/config/compilation.py(99): is_valid_runtime_mode	1.4	1.00
+MFUN	timeline64k2	python_function	torch/_ops.py(1031): __call__	1.4	1.00
+MFUN	timeline64k2	python_function	vllm/config/compilation.py(102): __str__	1.4	1.00
+MFUN	timeline64k2	python_function	<built-in method __enter__ of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	1.3	2.05
+MFUN	timeline64k2	python_function	vllm/v1/worker/kv_connector_model_runner_mixin.py(50): maybe_get_kv_connector_output	1.3	1.00
+MFUN	timeline64k2	python_function	enum.py(1231): __hash__	1.3	3.99
+MFUN	timeline64k2	python_function	vllm/v1/worker/compact_greedy_backport.py(62): __post_init__	1.3	1.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(1169): _update_states	1.3	0.04
+MFUN	timeline64k2	python_function	enum.py(193): __get__	1.2	2.00
+MFUN	timeline64k2	python_function	torch/_ops.py(1083): <lambda>	1.2	1.00
+MFUN	timeline64k2	python_function	<built-in function hash>	1.1	6.99
+MFUN	timeline64k2	python_function	typing.py(352): inner	1.1	1.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/compact_greedy_graph.py(12): scope_eligible	1.1	1.00
+MFUN	timeline64k2	python_function	torch/_ops.py(1197): __call__	1.1	1.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/compact_greedy_backport.py(94): <genexpr>	1.1	2.99
+MFUN	timeline64k2	cpu_op	aten::view	1.0	1.00
+MFUN	timeline64k2	python_function	contextlib.py(132): __enter__	1.0	2.04
+MFUN	timeline64k2	python_function	<built-in method stride of Parameter object>	1.0	1.00
+MFUN	timeline64k2	python_function	vllm/v1/utils.py(138): copy_to_gpu	0.9	0.04
+MFUN	timeline64k2	python_function	<built-in function _abc_instancecheck>	0.9	1.00
+MFUN	timeline64k2	python_function	vllm/distributed/parallel_state.py(544): is_last_rank	0.9	1.04
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_input_batch.py(1173): num_reqs	0.9	2.17
+MFUN	timeline64k2	python_function	vllm/distributed/parallel_state.py(529): first_rank	0.9	2.00
+MFUN	timeline64k2	python_function	vllm/forward_context.py(182): __post_init__	0.9	1.00
+MFUN	timeline64k2	python_function	vllm/distributed/parallel_state.py(1364): get_pp_group	0.8	3.04
+MFUN	timeline64k2	python_function	<built-in method reduce of numpy.ufunc object>	0.8	0.26
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(3992): _is_uniform_decode	0.8	1.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(3956): synchronize_input_prep	0.8	1.00
+MFUN	timeline64k2	python_function	vllm/forward_context.py(323): set_forward_context	0.8	1.00
+MFUN	timeline64k2	python_function	torch/utils/_pytree.py(771): _tuple_flatten	0.8	2.00
+MFUN	timeline64k2	python_function	<built-in function _cuda_getCurrentStream>	0.7	1.00
+MFUN	timeline64k2	python_function	torch/cuda/__init__.py(411): _lazy_init	0.7	1.00
+MFUN	timeline64k2	python_function	<built-in function len>	0.7	5.94
+MFUN	timeline64k2	python_function	<string>(1): <lambda>	0.6	1.00
+MFUN	timeline64k2	python_function	<built-in function issubclass>	0.6	6.99
+MFUN	timeline64k2	python_function	contextlib.py(751): __init__	0.6	3.04
+MFUN	timeline64k2	python_function	torch/cuda/__init__.py(362): is_initialized	0.5	1.00
+MFUN	timeline64k2	user_annotation	execute_context_0(0)_generation_7(7)	0.5	0.01
+MFUN	timeline64k2	python_function	<frozen abc>(117): __instancecheck__	0.5	1.00
+MFUN	timeline64k2	python_function	contextlib.py(757): __exit__	0.5	3.99
+MFUN	timeline64k2	python_function	<built-in method synchronize of torch.Event object>	0.4	0.05
+MFUN	timeline64k2	python_function	<built-in method rsplit of str object>	0.4	1.00
+MFUN	timeline64k2	python_function	torch/backends/cuda/__init__.py(39): is_built	0.4	1.00
+MFUN	timeline64k2	python_function	vllm/forward_context.py(234): override_forward_context	0.4	1.00
+MFUN	timeline64k2	python_function	torch/_jit_internal.py(98): is_scripting	0.4	4.04
+MFUN	timeline64k2	python_function	<built-in function _cuda_isInBadFork>	0.4	1.00
+MFUN	timeline64k2	cpu_op	aten::fill_	0.4	0.02
+MFUN	timeline64k2	python_function	contextlib.py(754): __enter__	0.4	3.04
+MFUN	timeline64k2	python_function	vllm/distributed/parallel_state.py(534): last_rank	0.3	1.04
+MFUN	timeline64k2	python_function	enum.py(1251): name	0.3	2.00
+MFUN	timeline64k2	python_function	vllm/profiler/wrapper.py(289): _profiler_step	0.3	1.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_input_batch.py(539): update_req_spec_token_ids	0.3	0.34
+MFUN	timeline64k2	python_function	vllm/v1/worker/worker_base.py(330): _apply_mm_cache	0.3	1.00
+MFUN	timeline64k2	python_function	<built-in method join of str object>	0.3	1.00
+MFUN	timeline64k2	python_function	vllm/v1/utils.py(785): <setcomp>	0.3	1.00
+MFUN	timeline64k2	python_function	vllm/model_executor/offloader/base.py(111): get_offloader	0.3	1.00
+MFUN	timeline64k2	python_function	vllm/distributed/kv_transfer/kv_transfer_state.py(26): has_kv_transfer_group	0.3	1.05
+MFUN	timeline64k2	python_function	vllm/forward_context.py(244): override_forward_context	0.2	1.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_input_batch.py(899): refresh_metadata	0.2	0.04
+MFUN	timeline64k2	python_function	<built-in function array>	0.2	0.09
+MFUN	timeline64k2	python_function	<built-in method values of dict object>	0.2	1.00
+MFUN	timeline64k2	python_function	<built-in method items of dict object>	0.2	1.00
+MFUN	timeline64k2	python_function	<built-in method __exit__ of torch._C.DisableTorchFunctionSubclass object>	0.2	1.00
+MFUN	timeline64k2	python_function	<built-in function get_ident>	0.2	1.00
+MFUN	timeline64k2	python_function	vllm/forward_context.py(200): is_forward_context_available	0.2	1.00
+MFUN	timeline64k2	python_function	vllm/forward_context.py(191): get_forward_context	0.2	1.00
+MFUN	timeline64k2	python_function	numpy/core/fromnumeric.py(40): _wrapit	0.2	0.04
+MFUN	timeline64k2	python_function	<built-in method astype of numpy.ndarray object>	0.2	0.04
+MFUN	timeline64k2	python_function	typing.py(2256): cast	0.2	2.13
+MFUN	timeline64k2	python_function	<built-in method keys of dict object>	0.1	1.09
+MFUN	timeline64k2	python_function	<built-in method __exit__ of _thread.RLock object>	0.1	1.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(1107): _may_reorder_batch	0.1	0.04
+MFUN	timeline64k2	python_function	vllm/v1/worker/block_table.py(102): append_row	0.1	0.01
+MFUN	timeline64k2	cpu_op	aten::zero_	0.1	0.02
+MFUN	timeline64k2	python_function	<built-in method sum of numpy.ndarray object>	0.1	0.17
+MFUN	timeline64k2	python_function	<built-in method repeat of numpy.ndarray object>	0.1	0.04
+MFUN	timeline64k2	python_function	<built-in method add of type object>	0.1	0.00
+MFUN	timeline64k2	python_function	vllm/model_executor/offloader/base.py(79): sync_prev_onload	0.1	1.00
+MFUN	timeline64k2	python_function	vllm/platforms/interface.py(1024): set_additional_forward_context	0.1	1.00
+MFUN	timeline64k2	python_function	torch/utils/_pytree.py(1468): tree_iter	0.1	1.00
+MFUN	timeline64k2	python_function	numpy/core/fromnumeric.py(53): _wrapfunc	0.1	0.04
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_input_batch.py(756): condense	0.1	0.04
+MFUN	timeline64k2	python_function	vllm/v1/worker/block_table.py(166): commit_block_table	0.1	0.04
+MFUN	timeline64k2	python_function	torch/jit/__init__.py(129): annotate	0.1	1.00
+MFUN	timeline64k2	python_function	vllm/v1/sample/logits_processor/builtin.py(200): update_state	0.1	0.04
+MFUN	timeline64k2	python_function	<built-in function zeros>	0.1	0.04
+MFUN	timeline64k2	python_function	vllm/v1/attention/backends/utils.py(656): <listcomp>	0.1	0.04
+MFUN	timeline64k2	python_function	vllm/v1/sample/logits_processor/state.py(119): get_and_reset	0.1	0.04
+MFUN	timeline64k2	python_function	vllm/v1/worker/block_table.py(312): commit_block_table	0.1	0.04
+MFUN	timeline64k2	python_function	vllm/v1/sample/logits_processor/builtin.py(135): update_state	0.1	0.04
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(4326): <listcomp>	0.1	0.04
+MFUN	timeline64k2	python_function	numpy/core/_methods.py(47): _sum	0.0	0.17
+MFUN	timeline64k2	python_function	<built-in function asarray>	0.0	0.04
+MFUN	timeline64k2	python_function	numpy/core/fromnumeric.py(423): repeat	0.0	0.04
+MFUN	timeline64k2	user_annotation	execute_context_0(0)_generation_3(3)	0.0	0.00
+MFUN	timeline64k2	python_function	<built-in method zero_ of Tensor object>	0.0	0.02
+MFUN	timeline64k2	python_function	vllm/v1/worker/compact_greedy_backport.py(324): update_requests	0.0	0.04
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(3945): synchronize_input_prep	0.0	0.05
+MFUN	timeline64k2	python_function	<built-in method any of numpy.ndarray object>	0.0	0.04
+MFUN	timeline64k2	python_function	vllm/v1/sample/logits_processor/state.py(59): _ensure_removed_sorted	0.0	0.04
+MFUN	timeline64k2	python_function	vllm/v1/sample/logits_processor/state.py(162): all	0.0	0.04
+MFUN	timeline64k2	python_function	<built-in method max of numpy.ndarray object>	0.0	0.04
+MFUN	timeline64k2	python_function	vllm/v1/sample/logits_processor/state.py(69): removed	0.0	0.04
+MFUN	timeline64k2	python_function	<built-in method clear of list object>	0.0	0.34
+MFUN	timeline64k2	python_function	numpy/core/_methods.py(55): _any	0.0	0.04
+MFUN	timeline64k2	user_annotation	execute_context_0(0)_generation_0(0)	0.0	0.00
+MFUN	timeline64k2	python_function	numpy/core/_methods.py(39): _amax	0.0	0.04
+MFUN	timeline64k2	python_function	vllm/v1/worker/host_opt.py(563): host_layout	0.0	0.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/host_opt.py(687): stage	0.0	0.00
+MFUN	timeline64k2	python_function	vllm/distributed/ec_transfer/ec_transfer_state.py(22): has_ec_transfer	0.0	0.04
+MFUN	timeline64k2	python_function	<built-in method sort of list object>	0.0	0.04
+MFUN	timeline64k2	python_function	vllm/v1/worker/block_table.py(283): append_row	0.0	0.01
+MFUN	timeline64k2	python_function	vllm/v1/worker/host_opt.py(271): prepare_inputs	0.0	0.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu/pool/late_interaction_runner.py(41): on_requests_finished	0.0	0.04
+MFUN	timeline64k2	python_function	vllm/v1/sample/logits_processor/builtin.py(294): process_dict_updates	0.0	0.09
+MFUN	timeline64k2	cpu_op	aten::add	0.0	0.00
+MFUN	timeline64k2	python_function	vllm/v1/sample/logits_processor/builtin.py(53): update_state	0.0	0.04
+MFUN	timeline64k2	python_function	<built-in method from_numpy of type object>	0.0	0.00
+MFUN	timeline64k2	python_function	numpy/core/fromnumeric.py(419): _repeat_dispatcher	0.0	0.04
+MFUN	timeline64k2	python_function	<built-in method fill_ of Tensor object>	0.0	0.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(1801): _compute_prev_positions	0.0	0.00
+MFUN	timeline64k2	python_function	<built-in method numpy of Tensor object>	0.0	0.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/host_opt.py(233): _filled_on_device	0.0	0.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(2153): <listcomp>	0.0	0.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/host_opt.py(894): stage_computed	0.0	0.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_input_batch.py(81): num_tokens	0.0	0.00
+MFUN	timeline64k2	python_function	<built-in method fill of numpy.ndarray object>	0.0	0.00
+MFUN	timeline64k2	python_function	<built-in method extend of list object>	0.0	0.01
+MFUN	timeline64k2	python_function	vllm/v1/worker/host_opt.py(383): stage_positions	0.0	0.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/host_opt.py(211): _decode_templates	0.0	0.00
+MFUN	timeline64k2	python_function	<built-in method pop of dict object>	0.0	0.01
+MFUN	timeline64k2	cpu_op	aten::detach	0.0	0.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/gpu_input_batch.py(566): remove_request	0.0	0.00
+MFUN	timeline64k2	cpu_op	aten::lift_fresh	0.0	0.00
+MFUN	timeline64k2	python_function	vllm/v1/worker/host_opt.py(349): _positions_for	0.0	0.00
+MFUN	timeline64k2	python_function	<built-in method discard of set object>	0.0	0.00
+MFUN	timeline64k2	cpu_op	aten::resolve_conj	0.0	0.00
+MFUN	timeline64k2	cpu_op	aten::resolve_neg	0.0	0.00
+MFUN	timeline64k2	python_function	<built-in method append of list object>	0.0	0.00
+### timeline64k2 GAP gaps=1615 warmup=16 mean_G=869.8us anchor_self=860.5us all_self=1666.6us
+GCAT	timeline64k2	python_function	1370.1
+GCAT	timeline64k2	cuda_runtime	208.9
+GCAT	timeline64k2	cpu_op	87.6
+GCAT	timeline64k2	kernel	0.0
+GCAT	timeline64k2	gpu_memcpy	0.0
+### timeline64k2 GFUN top250 (µs/gap, calls/step, anchor tid)
+GFUN	timeline64k2	cuda_runtime	cudaEventQuery	167.6	2.02
+GFUN	timeline64k2	python_function	<built-in method to of Tensor object>	96.4	2.00
+GFUN	timeline64k2	cpu_op	aten::copy_	44.7	2.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(3775): _bookkeeping_sync	32.6	1.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(4652): sample_tokens	31.5	1.00
+GFUN	timeline64k2	python_function	<built-in function loads>	26.1	2.00
+GFUN	timeline64k2	cpu_op	aten::empty_strided	23.7	2.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/host_opt.py(431): commit_sampled	16.7	1.00
+GFUN	timeline64k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(772): dequeue	15.9	2.00
+GFUN	timeline64k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(664): acquire_read	15.8	2.00
+GFUN	timeline64k2	cuda_runtime	cudaStreamWaitEvent	15.7	1.00
+GFUN	timeline64k2	python_function	torch/utils/_contextlib.py(120): decorate_context	15.4	2.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/compact_greedy_backport.py(430): consume	10.7	1.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(248): __init__	9.9	1.00
+GFUN	timeline64k2	cuda_runtime	cudaLaunchKernel	9.6	1.00
+GFUN	timeline64k2	cpu_op	aten::_to_copy	8.6	2.00
+GFUN	timeline64k2	python_function	contextlib.py(104): __init__	8.5	6.00
+GFUN	timeline64k2	cuda_runtime	cudaMemcpyAsync	8.1	1.00
+GFUN	timeline64k2	python_function	queue.py(122): put	7.7	2.00
+GFUN	timeline64k2	python_function	<built-in method record of Event object>	7.5	1.00
+GFUN	timeline64k2	python_function	<built-in method wait of Event object>	7.4	1.00
+GFUN	timeline64k2	python_function	<built-in method record of torch.Event object>	6.8	1.00
+GFUN	timeline64k2	python_function	<built-in function getattr>	6.8	15.99
+GFUN	timeline64k2	python_function	<built-in method unsqueeze of Tensor object>	6.7	1.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/compact_greedy_backport.py(70): metadata_reasons	6.5	1.00
+GFUN	timeline64k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(345): get_metadata	6.4	2.00
+GFUN	timeline64k2	python_function	<built-in method __new__ of type object>	6.3	5.00
+GFUN	timeline64k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(713): acquire_read	6.0	2.00
+GFUN	timeline64k2	python_function	torch/cuda/__init__.py(1142): current_stream	6.0	2.00
+GFUN	timeline64k2	python_function	torch/cuda/_utils.py(508): _get_device_index	6.0	3.00
+GFUN	timeline64k2	python_function	<built-in function _cuda_getDevice>	5.7	3.00
+GFUN	timeline64k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(677): check	5.1	8.42
+GFUN	timeline64k2	python_function	contextlib.py(141): __exit__	5.1	6.00
+GFUN	timeline64k2	python_function	torch/cuda/streams.py(35): __new__	5.0	2.00
+GFUN	timeline64k2	python_function	<built-in function next>	4.9	12.00
+GFUN	timeline64k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(70): memory_fence	4.8	10.42
+GFUN	timeline64k2	python_function	threading.py(366): notify	4.7	2.00
+GFUN	timeline64k2	python_function	<built-in function _cuda_setStream>	4.5	2.00
+GFUN	timeline64k2	python_function	torch/_utils.py(837): _get_device_index	4.5	3.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/gpu_input_batch.py(352): req_ids	4.4	5.00
+GFUN	timeline64k2	python_function	<built-in method release of _thread.lock object>	4.2	1.99
+GFUN	timeline64k2	python_function	<frozen os>(674): __getitem__	4.1	3.00
+GFUN	timeline64k2	python_function	torch/autograd/grad_mode.py(289): __enter__	4.0	2.00
+GFUN	timeline64k2	cpu_op	aten::to	4.0	2.00
+GFUN	timeline64k2	python_function	<built-in function sched_yield>	3.7	6.42
+GFUN	timeline64k2	python_function	contextlib.py(287): helper	3.7	6.00
+GFUN	timeline64k2	python_function	vllm/v1/utils.py(721): record_function_or_nullcontext	3.6	6.00
+GFUN	timeline64k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(183): wait	3.5	6.42
+GFUN	timeline64k2	python_function	torch/cuda/__init__.py(165): is_available	3.5	3.00
+GFUN	timeline64k2	python_function	torch/_utils.py(795): _get_device_attr	3.5	3.00
+GFUN	timeline64k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(621): __init__	3.3	2.00
+GFUN	timeline64k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(337): get_data	3.2	2.00
+GFUN	timeline64k2	python_function	<built-in function commit_arrays>	3.1	1.00
+GFUN	timeline64k2	cuda_runtime	cudaEventRecord	3.1	2.00
+GFUN	timeline64k2	python_function	vllm/utils/torch_utils.py(675): _patched_set_stream	3.0	2.00
+GFUN	timeline64k2	python_function	<built-in function any>	3.0	3.00
+GFUN	timeline64k2	python_function	<built-in method __exit__ of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	2.9	2.00
+GFUN	timeline64k2	python_function	contextlib.py(132): __enter__	2.6	6.00
+GFUN	timeline64k2	python_function	torch/cuda/__init__.py(695): __enter__	2.5	1.00
+GFUN	timeline64k2	cpu_op	aten::slice	2.5	1.00
+GFUN	timeline64k2	python_function	<built-in method get of dict object>	2.4	15.35
+GFUN	timeline64k2	python_function	<built-in method nonzero of numpy.ndarray object>	2.4	1.00
+GFUN	timeline64k2	python_function	torch/cuda/__init__.py(680): __init__	2.3	1.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/compact_greedy_backport.py(72): <genexpr>	2.2	8.99
+GFUN	timeline64k2	cpu_op	aten::unsqueeze	2.2	1.00
+GFUN	timeline64k2	python_function	torch/autograd/grad_mode.py(279): __init__	2.2	2.00
+GFUN	timeline64k2	python_function	torch/cuda/__init__.py(752): set_stream	2.2	2.00
+GFUN	timeline64k2	python_function	vllm/v1/executor/multiproc_executor.py(941): handle_output	2.2	2.00
+GFUN	timeline64k2	python_function	<string>(2): __init__	2.1	2.00
+GFUN	timeline64k2	python_function	torch/cuda/__init__.py(161): _nvml_based_avail	2.1	3.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(3861): <dictcomp>	2.1	1.00
+GFUN	timeline64k2	python_function	<built-in function isinstance>	2.1	27.98
+GFUN	timeline64k2	python_function	<frozen os>(773): getenv	2.1	3.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(3739): _sample	2.0	1.00
+GFUN	timeline64k2	python_function	<built-in function hasattr>	2.0	13.99
+GFUN	timeline64k2	python_function	torch/autograd/grad_mode.py(296): clone	2.0	2.00
+GFUN	timeline64k2	python_function	torch/cuda/__init__.py(710): __exit__	1.9	1.00
+GFUN	timeline64k2	cpu_op	aten::as_strided	1.9	2.00
+GFUN	timeline64k2	python_function	torch/cuda/__init__.py(411): _lazy_init	1.9	5.00
+GFUN	timeline64k2	python_function	torch/cuda/__init__.py(1110): current_device	1.9	3.00
+GFUN	timeline64k2	python_function	<frozen os>(756): encode	1.8	3.00
+GFUN	timeline64k2	python_function	torch/_utils.py(811): _get_current_device_index	1.8	3.00
+GFUN	timeline64k2	python_function	torch/cuda/__init__.py(156): _is_compiled	1.8	6.00
+GFUN	timeline64k2	python_function	torch/cuda/streams.py(77): record_event	1.7	1.00
+GFUN	timeline64k2	python_function	torch/cuda/streams.py(63): wait_stream	1.7	1.00
+GFUN	timeline64k2	python_function	<frozen _collections_abc>(771): get	1.6	3.00
+GFUN	timeline64k2	python_function	torch/autograd/grad_mode.py(284): __new__	1.6	2.00
+GFUN	timeline64k2	python_function	torch/_utils.py(778): _get_available_device_type	1.6	3.00
+GFUN	timeline64k2	python_function	vllm/distributed/utils.py(46): sched_yield	1.6	6.42
+GFUN	timeline64k2	python_function	<built-in method append of list object>	1.6	17.35
+GFUN	timeline64k2	python_function	multiprocessing/shared_memory.py(204): buf	1.5	8.00
+GFUN	timeline64k2	python_function	threading.py(271): __enter__	1.5	2.00
+GFUN	timeline64k2	python_function	torch/cuda/__init__.py(1063): device_count	1.5	3.00
+GFUN	timeline64k2	python_function	torch/cuda/__init__.py(362): is_initialized	1.4	5.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/gpu_worker.py(801): sample_tokens	1.4	1.00
+GFUN	timeline64k2	python_function	torch/autograd/grad_mode.py(293): __exit__	1.3	2.00
+GFUN	timeline64k2	python_function	queue.py(213): _put	1.3	2.00
+GFUN	timeline64k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(173): record_read	1.2	2.00
+GFUN	timeline64k2	python_function	<built-in function monotonic>	1.2	10.42
+GFUN	timeline64k2	python_function	torch/_utils.py(813): <lambda>	1.2	3.00
+GFUN	timeline64k2	python_function	threading.py(286): _is_owned	1.2	2.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/gpu_input_batch.py(1173): num_reqs	1.2	3.00
+GFUN	timeline64k2	python_function	torch/cuda/__init__.py(737): _set_stream_by_id	1.2	2.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/host_opt.py(458): <genexpr>	1.1	4.00
+GFUN	timeline64k2	python_function	contextlib.py(751): __init__	1.1	6.00
+GFUN	timeline64k2	python_function	threading.py(274): __exit__	1.1	2.00
+GFUN	timeline64k2	python_function	<built-in method __exit__ of _thread.lock object>	1.1	12.42
+GFUN	timeline64k2	python_function	torch/cuda/__init__.py(724): stream	1.0	1.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/compact_greedy_backport.py(94): <genexpr>	1.0	3.00
+GFUN	timeline64k2	python_function	<frozen os>(760): decode	1.0	3.00
+GFUN	timeline64k2	python_function	<built-in function _cuda_getCurrentStream>	0.9	2.00
+GFUN	timeline64k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(634): timeout_ms	0.9	6.42
+GFUN	timeline64k2	python_function	torch/_jit_internal.py(98): is_scripting	0.9	10.99
+GFUN	timeline64k2	python_function	numpy/core/fromnumeric.py(1881): nonzero	0.9	1.00
+GFUN	timeline64k2	python_function	torch/cuda/streams.py(46): wait_event	0.9	1.00
+GFUN	timeline64k2	python_function	<built-in method encode of str object>	0.9	3.00
+GFUN	timeline64k2	python_function	numpy/core/fromnumeric.py(53): _wrapfunc	0.9	1.00
+GFUN	timeline64k2	python_function	<built-in method decode of bytes object>	0.8	3.00
+GFUN	timeline64k2	python_function	torch/cuda/streams.py(197): record	0.8	1.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/gpu_input_batch.py(1089): set_async_sampled_token_ids	0.8	1.00
+GFUN	timeline64k2	python_function	torch/cuda/streams.py(181): __new__	0.8	1.00
+GFUN	timeline64k2	python_function	<built-in function _cuda_isInBadFork>	0.8	5.00
+GFUN	timeline64k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(654): should_warn	0.7	6.42
+GFUN	timeline64k2	python_function	<built-in method __enter__ of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	0.7	2.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(1162): _get_or_create_async_output_copy_stream	0.7	1.00
+GFUN	timeline64k2	python_function	torch/cuda/streams.py(207): wait	0.7	1.00
+GFUN	timeline64k2	python_function	contextlib.py(754): __enter__	0.7	6.00
+GFUN	timeline64k2	python_function	<built-in method acquire of _thread.lock object>	0.7	2.00
+GFUN	timeline64k2	python_function	torch/backends/cuda/__init__.py(39): is_built	0.7	2.00
+GFUN	timeline64k2	python_function	<built-in method __enter__ of _thread.lock object>	0.6	2.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/worker_base.py(327): __getattr__	0.6	1.00
+GFUN	timeline64k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(343): get_data	0.6	2.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/gpu_input_batch.py(1106): update_async_output_token_ids	0.6	1.00
+GFUN	timeline64k2	python_function	vllm/distributed/device_communicators/shm_broadcast.py(351): get_metadata	0.5	2.00
+GFUN	timeline64k2	python_function	contextlib.py(757): __exit__	0.5	6.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(3480): eplb_step	0.5	1.00
+GFUN	timeline64k2	python_function	<built-in function len>	0.5	4.00
+GFUN	timeline64k2	python_function	<built-in method lower of str object>	0.5	3.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(5722): _get_prompt_logprobs_dict	0.4	1.00
+GFUN	timeline64k2	python_function	<built-in method __exit__ of memoryview object>	0.4	4.00
+GFUN	timeline64k2	python_function	<built-in method tolist of numpy.ndarray object>	0.4	1.00
+GFUN	timeline64k2	python_function	typing.py(2256): cast	0.4	5.00
+GFUN	timeline64k2	python_function	<built-in method copy of list object>	0.3	1.00
+GFUN	timeline64k2	python_function	<built-in method remove of collections.deque object>	0.3	1.99
+GFUN	timeline64k2	python_function	vllm/distributed/parallel_state.py(1364): get_pp_group	0.3	1.00
+GFUN	timeline64k2	python_function	vllm/v1/worker/gpu_model_runner.py(1580): _update_states_after_model_execute	0.3	1.00
+GFUN	timeline64k2	python_function	<built-in method copy of dict object>	0.3	1.00
+GFUN	timeline64k2	python_function	<built-in method append of collections.deque object>	0.3	2.00
+GFUN	timeline64k2	python_function	numpy/core/fromnumeric.py(1877): _nonzero_dispatcher	0.1	1.00
+GFUN	timeline64k2	cuda_runtime	cudaHostAlloc	0.1	0.00
++ echo
+
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/config.txt ]]
++ grep -q profile=1 /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/config.txt
+++ pick_trace /home/qch/scripts/litehost_perf/vllmBench/timeline64k1
+++ local r=/home/qch/scripts/litehost_perf/vllmBench/timeline64k1
+++ fs=()
+++ local -a fs
+++ mapfile -t fs
++++ ls -1 /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline/rank0.1794728322749583570.pt.trace.json.gz
++++ sort
+++ (( 1 == 0 ))
+++ (( 1 == 1 ))
+++ echo /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline/rank0.1794728322749583570.pt.trace.json.gz
+++ return 0
++ F=/home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline/rank0.1794728322749583570.pt.trace.json.gz
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k1
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline/rank0.1794728322749583570.pt.trace.json.gz
++ echo '### 分析 timeline64k1 <- rank0.1794728322749583570.pt.trace.json.gz'
+### 分析 timeline64k1 <- rank0.1794728322749583570.pt.trace.json.gz
++ command -v python3
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline64k1
++ DEEP=1
++ DEEP_TOPN=250
++ GAP=1
++ GAP_TOPN=250
++ HONLY=1
++ TSHG_WARMUP=0,16
++ python3 /home/qch/tools/remote-env/184/trace_eval_run.py timeline64k1 /home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline/rank0.1794728322749583570.pt.trace.json.gz
+### timeline64k1 file=/home/qch/scripts/litehost_perf/vllmBench/timeline64k1/timeline/rank0.1794728322749583570.pt.trace.json.gz
+### timeline64k1 events=4035371 span=72847.7ms tids=8
+### timeline64k1 anchor    1692 vllm/v1/worker/worker_base.py(340): execute_model
+### timeline64k1 anchor    1692 vllm/v1/worker/gpu_worker.py(807): execute_model
+### timeline64k1 anchor    1692 vllm/v1/worker/gpu_model_runner.py(4246): execute_model
+### timeline64k1 sync_total=5073
+###       3382 次   66574.91 ms  cudaEventSynchronize
+###       1690 次   64684.01 ms  cudaStreamSynchronize
+###          1 次       0.07 ms  cudaDeviceSynchronize
+TSHG	timeline64k1	w=0	prefill	n=51	T=4947.80	S=1837.16	Sm=1765.37	H=3110.64	Hm=3182.43	G=45.42	HG=3156.06	HGm=3227.85	S_pct=37.1
+TSHG	timeline64k1	w=0	decode	n=1641	T=66344.29	S=64825.19	Sm=62921.85	H=1519.10	Hm=3422.44	G=1397.15	HG=2916.26	HGm=4819.60	S_pct=97.7
+TSHG	timeline64k1	w=16	prefill	n=48	T=4613.09	S=1733.79	Sm=1665.12	H=2879.29	Hm=2947.97	G=42.80	HG=2922.09	HGm=2990.77	S_pct=37.6
+TSHG	timeline64k1	w=16	decode	n=1628	T=65844.20	S=64338.12	Sm=62448.87	H=1506.08	Hm=3395.33	G=1387.01	HG=2893.09	HGm=4782.34	S_pct=97.7
+### timeline64k1 FUN top60 (µs/step, calls/step)
+FUN	timeline64k1	python_function	<built-in method acquire of _thread.lock object at 0xfffe20704240>	87741.3	12.01
+FUN	timeline64k1	Trace	PyTorch Profiler (0)	43054.2	0.00
+FUN	timeline64k1	python_function	vllm/usage/usage_lib.py(256): _report_continuous_usage	43054.1	0.00
+FUN	timeline64k1	python_function	vllm/v1/worker/gpu_worker.py(807): execute_model	42030.8	1.00
+FUN	timeline64k1	cuda_runtime	cudaEventSynchronize	39346.9	2.00
+FUN	timeline64k1	cuda_runtime	cudaStreamSynchronize	38229.3	1.00
+FUN	timeline64k1	python_function	threading.py(331): wait	1682.0	0.00
+FUN	timeline64k1	cuda_runtime	cudaLaunchKernel	440.5	34.38
+FUN	timeline64k1	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<256u, 256u, 64u, 64u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, false, 2u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	382.5	1.36
+FUN	timeline64k1	kernel	void ixformer::comm::allreduce_ring_step_sum_fused<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	374.4	3.96
+FUN	timeline64k1	kernel	void ixformer::comm::allreduce_ring_step_copy<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	344.7	2.97
+FUN	timeline64k1	kernel	void ixformer::comm::allreduce_ring_step_copy_fused<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	234.4	2.97
+FUN	timeline64k1	cpu_op	aten::copy_	200.1	13.04
+FUN	timeline64k1	cpu_op	aten::empty_strided	189.4	14.89
+FUN	timeline64k1	cuda_runtime	cudaEventQuery	162.6	2.04
+FUN	timeline64k1	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<128u, 256u, 64u, 32u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, false, 5u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	157.2	1.97
+FUN	timeline64k1	gpu_user_annotation	execute_context_1(128)_generation_0(0)	144.8	0.01
+FUN	timeline64k1	cpu_op	aten::empty	128.5	11.41
+FUN	timeline64k1	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<256u, 256u, 64u, 64u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, true, 2u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	124.8	0.45
+FUN	timeline64k1	cuda_runtime	cudaGraphLaunch	124.0	1.97
+FUN	timeline64k1	gpu_memcpy	Memcpy DtoD (Device -> Device)	113.9	4.93
+FUN	timeline64k1	gpu_user_annotation	execute_context_7(896)_generation_1(1)	108.9	0.01
+FUN	timeline64k1	kernel	void ixformer::comm::allreduce_ring_last_step_copy<__ix_bfloat16>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, unsigned int)	108.7	1.98
+FUN	timeline64k1	python_function	<built-in method all_reduce of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object at 0xfffe4d7261b0>	102.0	1.98
+FUN	timeline64k1	python_function	zmq/sugar/socket.py(623): send	97.0	2.00
+FUN	timeline64k1	python_function	<built-in method to of Tensor object at 0xff7d7169a8f0>	96.5	3.03
+FUN	timeline64k1	cpu_op	aten::slice	87.9	40.51
+FUN	timeline64k1	cuda_runtime	cudaMemcpyAsync	77.7	11.96
+FUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(1999): _prepare_inputs	72.9	1.00
+FUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(4246): execute_model	69.4	1.00
+FUN	timeline64k1	python_function	<built-in method w8a8_gemm of PyCapsule object at 0xfffe3fcde970>	66.9	3.93
+FUN	timeline64k1	kernel	void ixformer::kernels::infer::residual_rms_norm_kernel<__ix_bfloat16, 5u, 2u, false, true, false>(__ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16*, __ix_bfloat16*, float, unsigned int, unsigned int, unsigned int, float)	65.8	1.97
+FUN	timeline64k1	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(465): _corex_fast_build	65.7	1.00
+FUN	timeline64k1	python_function	<built-in method empty of type object at 0xffff6f6cd130>	62.7	10.86
+FUN	timeline64k1	python_function	<built-in method scaled_int8_quant of PyCapsule object at 0xfffe3fcde9d0>	59.7	3.93
+FUN	timeline64k1	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(942): forward	59.2	0.98
+FUN	timeline64k1	kernel	void ixformer::comm::allreduce_ring_step_sum<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	57.6	1.98
+FUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(2370): _build_attention_metadata	57.1	1.00
+FUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(1816): _prepare_input_ids	52.4	1.00
+FUN	timeline64k1	python_function	<built-in method copy_ of Tensor object at 0xff7d71699360>	51.2	6.98
+FUN	timeline64k1	python_function	<built-in method view of Tensor object at 0xff7d715faa30>	50.6	22.17
+FUN	timeline64k1	cpu_op	aten::index	45.0	1.01
+FUN	timeline64k1	python_function	torch/nn/modules/module.py(1780): _call_impl	41.5	12.83
+FUN	timeline64k1	python_function	threading.py(327): wait	40.6	0.00
+FUN	timeline64k1	cpu_op	aten::fill_	39.8	5.02
+FUN	timeline64k1	python_function	<built-in method synchronize of Stream object at 0xff7d7f6e3bd0>	39.4	0.99
+FUN	timeline64k1	user_annotation	execute_context_0(0)_generation_8(8)	39.3	0.89
+FUN	timeline64k1	python_function	torch/utils/_contextlib.py(120): decorate_context	36.9	5.00
+FUN	timeline64k1	kernel	void ixformer::kernels::infer::scaled_int8_quant_opt1<__ix_bfloat16, true, 3>(__ix_bfloat16 const*, signed char*, float*, int)	36.7	1.97
+FUN	timeline64k1	python_function	<built-in method replay of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object at 0xfffec10f5d10>	34.7	1.97
+FUN	timeline64k1	python_function	<built-in method reduce of numpy.ufunc object at 0xffff70b86140>	33.3	8.02
+FUN	timeline64k1	python_function	<built-in function dumps>	33.0	2.00
+FUN	timeline64k1	kernel	void ixformer::kernels::infer::fused_rms_norm_qk_kernel<__ix_bfloat16, (ixformer::kernels::infer::RMSNormType)0, 2u>(__ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, float)	32.7	0.98
+FUN	timeline64k1	python_function	vllm/v1/attention/backends/utils.py(637): reorder_batch_to_split_decodes_and_prefills	32.6	1.00
+FUN	timeline64k1	python_function	vllm/v1/executor/multiproc_executor.py(966): async_output_busy_loop	32.6	0.00
+FUN	timeline64k1	cpu_op	aten::sub	32.6	1.01
+FUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(3775): _bookkeeping_sync	32.0	1.00
+FUN	timeline64k1	cpu_op	aten::as_strided	31.2	49.67
+FUN	timeline64k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(664): acquire_read	31.2	2.00
+FUN	timeline64k1	python_function	<built-in method empty_like of type object at 0xffff6f6cd130>	31.1	9.83
+### timeline64k1 DEEP decode_steps=1628 warmup=16 mean_T=40444.8us all_self=196817.7us main_self=739.8us main_sync=38359.3us
+ACAT	timeline64k1	python_function	118219.5
+ACAT	timeline64k1	cuda_runtime	78024.4
+ACAT	timeline64k1	cpu_op	460.5
+ACAT	timeline64k1	user_annotation	44.4
+ACAT	timeline64k1	gpu_memcpy	36.8
+ACAT	timeline64k1	kernel	32.1
+MCAT	timeline64k1	python_function	387.0
+MCAT	timeline64k1	cpu_op	166.2
+MCAT	timeline64k1	cuda_runtime	153.5
+MCAT	timeline64k1	user_annotation	33.2
+MSYNC	timeline64k1	cudaStreamSynchronize	38357.4	1.00
+MSYNC	timeline64k1	cudaEventSynchronize	1.9	1.00
+### timeline64k1 MFUN top250 (µs/decode-step, calls/step, anchor tid)
+MFUN	timeline64k1	cuda_runtime	cudaGraphLaunch	125.6	2.00
+MFUN	timeline64k1	cpu_op	aten::copy_	58.2	3.06
+MFUN	timeline64k1	cpu_op	aten::index	44.7	1.00
+MFUN	timeline64k1	python_function	<built-in method replay of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	35.2	2.00
+MFUN	timeline64k1	user_annotation	execute_context_0(0)_generation_8(8)	30.3	0.91
+MFUN	timeline64k1	cpu_op	aten::empty_strided	28.7	2.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/compact_greedy_backport.py(355): select	26.6	1.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(3595): _preprocess	19.7	1.00
+MFUN	timeline64k1	cpu_op	aten::slice	16.5	7.17
+MFUN	timeline64k1	cuda_runtime	cudaLaunchKernel	12.8	2.02
+MFUN	timeline64k1	python_function	<built-in method copy_ of Tensor object>	10.3	1.06
+MFUN	timeline64k1	cuda_runtime	cudaMemcpyAsync	9.3	2.06
+MFUN	timeline64k1	python_function	<built-in method  of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	9.2	1.00
+MFUN	timeline64k1	python_function	torch/utils/_contextlib.py(120): decorate_context	8.9	2.06
+MFUN	timeline64k1	python_function	<string>(2): __init__	8.8	5.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu/sample_logits_graph.py(259): run	8.7	1.00
+MFUN	timeline64k1	python_function	torch/autograd/grad_mode.py(289): __enter__	8.1	2.06
+MFUN	timeline64k1	python_function	vllm/v1/worker/compact_greedy_backport.py(70): metadata_reasons	8.1	1.00
+MFUN	timeline64k1	python_function	vllm/compilation/cuda_graph.py(233): __call__	7.6	1.00
+MFUN	timeline64k1	python_function	vllm/v1/utils.py(767): compute_iteration_details	7.3	1.00
+MFUN	timeline64k1	python_function	<built-in method record of torch.Event object>	7.3	1.00
+MFUN	timeline64k1	python_function	<built-in function getattr>	6.9	20.82
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu/sample_logits_graph.py(80): _input_signature	6.6	1.00
+MFUN	timeline64k1	python_function	torch/autograd/profiler.py(806): __exit__	6.4	1.00
+MFUN	timeline64k1	python_function	vllm/forward_context.py(249): set_forward_context	6.0	1.00
+MFUN	timeline64k1	python_function	torch/utils/_pytree.py(1462): tree_iter	6.0	4.00
+MFUN	timeline64k1	cpu_op	aten::as_strided	5.2	8.17
+MFUN	timeline64k1	python_function	<built-in method __new__ of type object>	5.1	4.06
+MFUN	timeline64k1	cpu_op	aten::_to_copy	4.7	1.00
+MFUN	timeline64k1	python_function	contextlib.py(141): __exit__	4.6	3.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_worker.py(775): annotate_profile	4.3	1.00
+MFUN	timeline64k1	python_function	torch/utils/_pytree.py(694): is_namedtuple_class	4.0	7.00
+MFUN	timeline64k1	cuda_runtime	cudaEventRecord	3.9	2.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(1066): _init_model_kwargs	3.9	1.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(1999): _prepare_inputs	3.8	0.05
+MFUN	timeline64k1	python_function	torch/cuda/__init__.py(1142): current_stream	3.8	1.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_input_batch.py(352): req_ids	3.8	2.18
+MFUN	timeline64k1	python_function	vllm/forward_context.py(204): create_forward_context	3.7	1.00
+MFUN	timeline64k1	python_function	torch/autograd/grad_mode.py(279): __init__	3.7	2.06
+MFUN	timeline64k1	python_function	<built-in method get of dict object>	3.6	26.86
+MFUN	timeline64k1	python_function	<built-in function any>	3.6	3.05
+MFUN	timeline64k1	python_function	functools.py(981): __get__	3.6	1.00
+MFUN	timeline64k1	python_function	vllm/v1/core/sched/output.py(163): is_context_phase	3.3	7.66
+MFUN	timeline64k1	python_function	torch/autograd/grad_mode.py(296): clone	3.3	2.06
+MFUN	timeline64k1	python_function	contextlib.py(104): __init__	3.2	2.06
+MFUN	timeline64k1	python_function	<string>(2): __hash__	3.2	3.00
+MFUN	timeline64k1	python_function	torch/cuda/_utils.py(508): _get_device_index	3.2	1.00
+MFUN	timeline64k1	cpu_op	aten::clone	3.2	1.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/compact_greedy_backport.py(215): produce	3.1	1.00
+MFUN	timeline64k1	python_function	<built-in method clone of Tensor object>	3.1	1.00
+MFUN	timeline64k1	python_function	<built-in function isinstance>	3.1	23.05
+MFUN	timeline64k1	python_function	torch/autograd/profiler.py(800): __enter__	3.0	1.00
+MFUN	timeline64k1	python_function	torch/cuda/streams.py(35): __new__	3.0	1.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu/sample_logits_graph.py(72): _producer_id	2.9	1.00
+MFUN	timeline64k1	python_function	torch/utils/_pytree.py(1048): _get_node_type	2.8	7.00
+MFUN	timeline64k1	python_function	vllm/v1/core/sched/output.py(153): _req_id_to_num_output_tokens	2.7	1.00
+MFUN	timeline64k1	python_function	<built-in function next>	2.7	5.05
+MFUN	timeline64k1	python_function	torch/autograd/profiler.py(787): __init__	2.7	1.00
+MFUN	timeline64k1	python_function	<built-in method __exit__ of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	2.6	3.00
+MFUN	timeline64k1	python_function	torch/autograd/grad_mode.py(284): __new__	2.5	2.06
+MFUN	timeline64k1	python_function	torch/cuda/graphs.py(141): replay	2.5	2.00
+MFUN	timeline64k1	python_function	vllm/config/compilation.py(95): valid_runtime_modes	2.5	1.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/compact_greedy_backport.py(72): <genexpr>	2.4	8.99
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(3960): _model_forward	2.3	1.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/compact_greedy_graph.py(24): decode_eligible	2.3	1.00
+MFUN	timeline64k1	user_annotation	execute_context_0(0)_generation_4(4)	2.3	0.08
+MFUN	timeline64k1	python_function	torch/_utils.py(837): _get_device_index	2.3	1.00
+MFUN	timeline64k1	python_function	vllm/profiler/wrapper.py(83): step	2.3	1.00
+MFUN	timeline64k1	python_function	torch/utils/_pytree.py(1060): tree_is_leaf	2.2	4.00
+MFUN	timeline64k1	python_function	torch/utils/_pytree.py(1784): tree_any	2.0	1.00
+MFUN	timeline64k1	python_function	torch/autograd/grad_mode.py(293): __exit__	1.9	3.00
+MFUN	timeline64k1	python_function	vllm/v1/attention/backends/utils.py(637): reorder_batch_to_split_decodes_and_prefills	1.8	0.06
+MFUN	timeline64k1	cpu_op	aten::to	1.7	1.01
+MFUN	timeline64k1	cuda_runtime	cudaStreamIsCapturing	1.7	2.00
+MFUN	timeline64k1	python_function	vllm/v1/utils.py(721): record_function_or_nullcontext	1.7	2.06
+MFUN	timeline64k1	python_function	torch/_ops.py(1081): _must_dispatch_in_python	1.6	1.00
+MFUN	timeline64k1	python_function	<string>(2): __eq__	1.6	2.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(1169): _update_states	1.6	0.06
+MFUN	timeline64k1	python_function	torch/utils/_pytree.py(801): _dict_flatten	1.6	1.00
+MFUN	timeline64k1	python_function	vllm/distributed/parallel_state.py(539): is_first_rank	1.5	2.00
+MFUN	timeline64k1	python_function	contextlib.py(287): helper	1.5	2.06
+MFUN	timeline64k1	cpu_op	aten::reshape	1.5	1.00
+MFUN	timeline64k1	python_function	torch/utils/_pytree.py(1476): tree_iter	1.5	2.00
+MFUN	timeline64k1	python_function	torch/_ops.py(1031): __call__	1.5	1.00
+MFUN	timeline64k1	python_function	vllm/config/compilation.py(102): __str__	1.4	1.00
+MFUN	timeline64k1	python_function	vllm/config/compilation.py(99): is_valid_runtime_mode	1.4	1.00
+MFUN	timeline64k1	python_function	vllm/profiler/wrapper.py(305): annotate_context_manager	1.4	1.00
+MFUN	timeline64k1	python_function	<built-in function hasattr>	1.4	7.99
+MFUN	timeline64k1	python_function	<built-in method __enter__ of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	1.4	2.06
+MFUN	timeline64k1	python_function	vllm/v1/worker/compact_greedy_backport.py(62): __post_init__	1.3	1.00
+MFUN	timeline64k1	python_function	torch/_ops.py(1083): <lambda>	1.2	1.00
+MFUN	timeline64k1	python_function	enum.py(193): __get__	1.2	2.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/kv_connector_model_runner_mixin.py(50): maybe_get_kv_connector_output	1.2	1.00
+MFUN	timeline64k1	python_function	vllm/v1/utils.py(138): copy_to_gpu	1.1	0.06
+MFUN	timeline64k1	python_function	<built-in function hash>	1.1	7.00
+MFUN	timeline64k1	python_function	enum.py(1231): __hash__	1.1	4.00
+MFUN	timeline64k1	cpu_op	aten::view	1.1	1.00
+MFUN	timeline64k1	python_function	<built-in method stride of Parameter object>	1.1	1.00
+MFUN	timeline64k1	python_function	<built-in method reduce of numpy.ufunc object>	1.1	0.34
+MFUN	timeline64k1	python_function	typing.py(352): inner	1.1	1.00
+MFUN	timeline64k1	python_function	vllm/forward_context.py(182): __post_init__	1.1	1.00
+MFUN	timeline64k1	python_function	contextlib.py(132): __enter__	1.0	2.06
+MFUN	timeline64k1	python_function	torch/_ops.py(1197): __call__	1.0	1.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(3956): synchronize_input_prep	1.0	1.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/compact_greedy_backport.py(94): <genexpr>	1.0	3.00
+MFUN	timeline64k1	python_function	torch/utils/_pytree.py(771): _tuple_flatten	0.9	2.00
+MFUN	timeline64k1	python_function	vllm/distributed/parallel_state.py(1364): get_pp_group	0.9	3.05
+MFUN	timeline64k1	python_function	<built-in function _abc_instancecheck>	0.9	1.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/compact_greedy_graph.py(12): scope_eligible	0.9	1.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_input_batch.py(1173): num_reqs	0.8	2.22
+MFUN	timeline64k1	python_function	vllm/forward_context.py(323): set_forward_context	0.8	1.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(3992): _is_uniform_decode	0.8	1.00
+MFUN	timeline64k1	python_function	vllm/distributed/parallel_state.py(529): first_rank	0.7	2.00
+MFUN	timeline64k1	python_function	vllm/distributed/parallel_state.py(544): is_last_rank	0.7	1.05
+MFUN	timeline64k1	python_function	<built-in function _cuda_getCurrentStream>	0.7	1.00
+MFUN	timeline64k1	python_function	<built-in function len>	0.7	6.25
+MFUN	timeline64k1	python_function	torch/cuda/__init__.py(411): _lazy_init	0.6	1.00
+MFUN	timeline64k1	python_function	<string>(1): <lambda>	0.6	1.00
+MFUN	timeline64k1	python_function	<built-in function issubclass>	0.6	7.00
+MFUN	timeline64k1	python_function	contextlib.py(751): __init__	0.5	3.06
+MFUN	timeline64k1	python_function	<built-in method synchronize of torch.Event object>	0.5	0.06
+MFUN	timeline64k1	python_function	<built-in method rsplit of str object>	0.5	1.00
+MFUN	timeline64k1	cpu_op	aten::fill_	0.5	0.03
+MFUN	timeline64k1	python_function	torch/cuda/__init__.py(362): is_initialized	0.5	1.00
+MFUN	timeline64k1	python_function	vllm/profiler/wrapper.py(289): _profiler_step	0.5	1.00
+MFUN	timeline64k1	user_annotation	execute_context_0(0)_generation_7(7)	0.4	0.01
+MFUN	timeline64k1	python_function	vllm/v1/worker/worker_base.py(330): _apply_mm_cache	0.4	1.00
+MFUN	timeline64k1	python_function	torch/backends/cuda/__init__.py(39): is_built	0.4	1.00
+MFUN	timeline64k1	python_function	<frozen abc>(117): __instancecheck__	0.4	1.00
+MFUN	timeline64k1	python_function	enum.py(1251): name	0.4	2.00
+MFUN	timeline64k1	python_function	contextlib.py(757): __exit__	0.4	4.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_input_batch.py(539): update_req_spec_token_ids	0.4	0.42
+MFUN	timeline64k1	python_function	vllm/forward_context.py(234): override_forward_context	0.4	1.00
+MFUN	timeline64k1	python_function	torch/_jit_internal.py(98): is_scripting	0.4	4.06
+MFUN	timeline64k1	python_function	<built-in function _cuda_isInBadFork>	0.4	1.00
+MFUN	timeline64k1	python_function	vllm/distributed/parallel_state.py(534): last_rank	0.3	1.05
+MFUN	timeline64k1	python_function	vllm/v1/utils.py(785): <setcomp>	0.3	1.00
+MFUN	timeline64k1	python_function	<built-in method join of str object>	0.3	1.00
+MFUN	timeline64k1	python_function	contextlib.py(754): __enter__	0.3	3.06
+MFUN	timeline64k1	python_function	vllm/distributed/kv_transfer/kv_transfer_state.py(26): has_kv_transfer_group	0.3	1.06
+MFUN	timeline64k1	python_function	vllm/model_executor/offloader/base.py(111): get_offloader	0.3	1.00
+MFUN	timeline64k1	python_function	<built-in function array>	0.3	0.11
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_input_batch.py(899): refresh_metadata	0.3	0.06
+MFUN	timeline64k1	python_function	vllm/forward_context.py(244): override_forward_context	0.2	1.00
+MFUN	timeline64k1	python_function	numpy/core/fromnumeric.py(40): _wrapit	0.2	0.06
+MFUN	timeline64k1	python_function	<built-in method astype of numpy.ndarray object>	0.2	0.06
+MFUN	timeline64k1	python_function	<built-in method items of dict object>	0.2	1.00
+MFUN	timeline64k1	python_function	<built-in method __exit__ of torch._C.DisableTorchFunctionSubclass object>	0.2	1.00
+MFUN	timeline64k1	python_function	<built-in function get_ident>	0.2	1.00
+MFUN	timeline64k1	python_function	<built-in method fill_ of Tensor object>	0.2	0.01
+MFUN	timeline64k1	python_function	<built-in method values of dict object>	0.2	1.00
+MFUN	timeline64k1	python_function	typing.py(2256): cast	0.2	2.18
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(1107): _may_reorder_batch	0.1	0.06
+MFUN	timeline64k1	python_function	vllm/forward_context.py(191): get_forward_context	0.1	1.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/block_table.py(102): append_row	0.1	0.02
+MFUN	timeline64k1	python_function	<built-in method keys of dict object>	0.1	1.11
+MFUN	timeline64k1	python_function	<built-in method sum of numpy.ndarray object>	0.1	0.22
+MFUN	timeline64k1	python_function	<built-in method __exit__ of _thread.RLock object>	0.1	1.00
+MFUN	timeline64k1	python_function	<built-in method repeat of numpy.ndarray object>	0.1	0.06
+MFUN	timeline64k1	python_function	vllm/forward_context.py(200): is_forward_context_available	0.1	1.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_input_batch.py(756): condense	0.1	0.06
+MFUN	timeline64k1	python_function	<built-in method add of type object>	0.1	0.01
+MFUN	timeline64k1	python_function	numpy/core/fromnumeric.py(53): _wrapfunc	0.1	0.06
+MFUN	timeline64k1	python_function	vllm/model_executor/offloader/base.py(79): sync_prev_onload	0.1	1.00
+MFUN	timeline64k1	cpu_op	aten::zero_	0.1	0.02
+MFUN	timeline64k1	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(465): _corex_fast_build	0.1	0.00
+MFUN	timeline64k1	python_function	vllm/platforms/interface.py(1024): set_additional_forward_context	0.1	1.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/block_table.py(166): commit_block_table	0.1	0.05
+MFUN	timeline64k1	python_function	<built-in function zeros>	0.1	0.06
+MFUN	timeline64k1	python_function	torch/utils/_pytree.py(1468): tree_iter	0.1	1.00
+MFUN	timeline64k1	python_function	vllm/v1/sample/logits_processor/builtin.py(200): update_state	0.1	0.06
+MFUN	timeline64k1	python_function	vllm/v1/worker/host_opt.py(687): stage	0.1	0.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/host_opt.py(563): host_layout	0.1	0.00
+MFUN	timeline64k1	python_function	vllm/v1/sample/logits_processor/state.py(119): get_and_reset	0.1	0.06
+MFUN	timeline64k1	python_function	vllm/v1/worker/block_table.py(312): commit_block_table	0.1	0.05
+MFUN	timeline64k1	python_function	vllm/v1/attention/backends/utils.py(656): <listcomp>	0.1	0.06
+MFUN	timeline64k1	python_function	numpy/core/_methods.py(47): _sum	0.1	0.22
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(4326): <listcomp>	0.1	0.05
+MFUN	timeline64k1	python_function	torch/jit/__init__.py(129): annotate	0.1	1.00
+MFUN	timeline64k1	python_function	<built-in function asarray>	0.1	0.06
+MFUN	timeline64k1	python_function	numpy/core/fromnumeric.py(423): repeat	0.1	0.06
+MFUN	timeline64k1	python_function	vllm/v1/worker/compact_greedy_backport.py(324): update_requests	0.1	0.06
+MFUN	timeline64k1	python_function	<built-in method zero_ of Tensor object>	0.1	0.02
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(3945): synchronize_input_prep	0.1	0.06
+MFUN	timeline64k1	python_function	vllm/v1/worker/host_opt.py(271): prepare_inputs	0.1	0.01
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_input_batch.py(919): _make_sampling_metadata	0.1	0.00
+MFUN	timeline64k1	python_function	vllm/v1/sample/logits_processor/builtin.py(135): update_state	0.1	0.06
+MFUN	timeline64k1	python_function	<built-in method any of numpy.ndarray object>	0.1	0.06
+MFUN	timeline64k1	python_function	vllm/v1/sample/logits_processor/state.py(59): _ensure_removed_sorted	0.0	0.06
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(2370): _build_attention_metadata	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/sample/logits_processor/state.py(162): all	0.0	0.06
+MFUN	timeline64k1	python_function	<built-in method max of numpy.ndarray object>	0.0	0.06
+MFUN	timeline64k1	python_function	<built-in method numpy of Tensor object>	0.0	0.01
+MFUN	timeline64k1	user_annotation	execute_context_0(0)_generation_3(3)	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/sample/logits_processor/state.py(69): removed	0.0	0.06
+MFUN	timeline64k1	cpu_op	aten::add	0.0	0.01
+MFUN	timeline64k1	python_function	<built-in method clear of list object>	0.0	0.42
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(1816): _prepare_input_ids	0.0	0.00
+MFUN	timeline64k1	python_function	<built-in method from_numpy of type object>	0.0	0.01
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_input_batch.py(566): remove_request	0.0	0.00
+MFUN	timeline64k1	python_function	numpy/core/_methods.py(55): _any	0.0	0.06
+MFUN	timeline64k1	python_function	numpy/core/_methods.py(39): _amax	0.0	0.06
+MFUN	timeline64k1	cpu_op	aten::sub	0.0	0.00
+MFUN	timeline64k1	user_annotation	execute_context_0(0)_generation_0(0)	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(1801): _compute_prev_positions	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/block_table.py(124): clear_row	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/host_opt.py(233): _filled_on_device	0.0	0.01
+MFUN	timeline64k1	python_function	<built-in method sort of list object>	0.0	0.06
+MFUN	timeline64k1	python_function	vllm/distributed/ec_transfer/ec_transfer_state.py(22): has_ec_transfer	0.0	0.06
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(4194): _get_slot_mapping	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/block_table.py(283): append_row	0.0	0.02
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu/pool/late_interaction_runner.py(41): on_requests_finished	0.0	0.06
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(2153): <listcomp>	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_input_batch.py(81): num_tokens	0.0	0.03
+MFUN	timeline64k1	python_function	<built-in method fill of numpy.ndarray object>	0.0	0.01
+MFUN	timeline64k1	python_function	vllm/v1/sample/logits_processor/builtin.py(294): process_dict_updates	0.0	0.11
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(2411): _get_block_table	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(2541): _build_attn_group_metadata	0.0	0.00
+MFUN	timeline64k1	cpu_op	aten::detach	0.0	0.01
+MFUN	timeline64k1	python_function	vllm/v1/sample/logits_processor/builtin.py(53): update_state	0.0	0.06
+MFUN	timeline64k1	python_function	vllm/v1/worker/host_opt.py(211): _decode_templates	0.0	0.01
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(4163): _get_slot_mappings	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(650): build	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(442): _corex_cpu_mirrors	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/host_opt.py(894): stage_computed	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/cudagraph_dispatcher.py(235): dispatch	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/block_table.py(203): get_device_tensor	0.0	0.00
+MFUN	timeline64k1	python_function	numpy/core/fromnumeric.py(419): _repeat_dispatcher	0.0	0.06
+MFUN	timeline64k1	python_function	vllm/v1/worker/host_opt.py(383): stage_positions	0.0	0.00
+MFUN	timeline64k1	python_function	numpy/core/numeric.py(136): ones	0.0	0.00
+MFUN	timeline64k1	python_function	<built-in method empty of type object>	0.0	0.00
+MFUN	timeline64k1	python_function	<built-in method item of numpy.int32 object>	0.0	0.00
+MFUN	timeline64k1	cpu_op	aten::lt	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(4013): _determine_batch_execution_and_padding	0.0	0.00
+MFUN	timeline64k1	python_function	copy.py(66): copy	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/cudagraph_dispatcher.py(132): _create_padded_batch_descriptor	0.0	0.00
+MFUN	timeline64k1	python_function	<built-in function arange>	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_input_batch.py(1193): no_penalties	0.0	0.00
+MFUN	timeline64k1	python_function	<built-in method extend of list object>	0.0	0.02
+MFUN	timeline64k1	python_function	vllm/v1/worker/block_table.py(130): move_row	0.0	0.00
+MFUN	timeline64k1	python_function	<built-in method pop of dict object>	0.0	0.03
+MFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(4393): <genexpr>	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/block_table.py(291): clear_row	0.0	0.00
+MFUN	timeline64k1	python_function	<built-in method discard of set object>	0.0	0.01
+MFUN	timeline64k1	cpu_op	aten::lift_fresh	0.0	0.01
+MFUN	timeline64k1	cpu_op	aten::select	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/host_opt.py(901): commit	0.0	0.00
+MFUN	timeline64k1	python_function	<built-in method to of Tensor object>	0.0	0.00
+MFUN	timeline64k1	python_function	vllm/v1/worker/block_table.py(295): move_row	0.0	0.00
+MFUN	timeline64k1	python_function	<built-in method synchronize of Stream object>	0.0	0.00
+### timeline64k1 GAP gaps=1615 warmup=16 mean_G=852.2us anchor_self=843.7us all_self=1593.7us
+GCAT	timeline64k1	python_function	1308.6
+GCAT	timeline64k1	cuda_runtime	200.5
+GCAT	timeline64k1	cpu_op	84.6
+GCAT	timeline64k1	kernel	0.0
+GCAT	timeline64k1	gpu_memcpy	0.0
+### timeline64k1 GFUN top250 (µs/gap, calls/step, anchor tid)
+GFUN	timeline64k1	cuda_runtime	cudaEventQuery	163.6	2.02
+GFUN	timeline64k1	python_function	<built-in method to of Tensor object>	93.9	2.00
+GFUN	timeline64k1	cpu_op	aten::copy_	42.6	2.00
+GFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(3775): _bookkeeping_sync	31.9	1.00
+GFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(4652): sample_tokens	30.4	1.00
+GFUN	timeline64k1	python_function	<built-in function loads>	25.7	2.00
+GFUN	timeline64k1	cpu_op	aten::empty_strided	23.3	2.00
+GFUN	timeline64k1	python_function	vllm/v1/worker/host_opt.py(431): commit_sampled	16.4	1.00
+GFUN	timeline64k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(772): dequeue	15.8	2.00
+GFUN	timeline64k1	python_function	torch/utils/_contextlib.py(120): decorate_context	15.1	2.00
+GFUN	timeline64k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(664): acquire_read	14.9	2.00
+GFUN	timeline64k1	cuda_runtime	cudaStreamWaitEvent	14.3	1.00
+GFUN	timeline64k1	python_function	vllm/v1/worker/compact_greedy_backport.py(430): consume	10.9	1.00
+GFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(248): __init__	10.0	1.00
+GFUN	timeline64k1	python_function	<built-in method unsqueeze of Tensor object>	8.9	1.00
+GFUN	timeline64k1	python_function	contextlib.py(104): __init__	8.5	6.00
+GFUN	timeline64k1	cpu_op	aten::_to_copy	8.3	2.00
+GFUN	timeline64k1	python_function	<built-in method wait of Event object>	8.1	1.00
+GFUN	timeline64k1	cuda_runtime	cudaMemcpyAsync	7.8	1.00
+GFUN	timeline64k1	python_function	<built-in method record of Event object>	7.7	1.00
+GFUN	timeline64k1	python_function	queue.py(122): put	7.3	2.00
+GFUN	timeline64k1	cuda_runtime	cudaLaunchKernel	7.1	1.00
+GFUN	timeline64k1	python_function	<built-in method record of torch.Event object>	6.9	1.00
+GFUN	timeline64k1	python_function	<built-in function getattr>	6.5	15.99
+GFUN	timeline64k1	python_function	vllm/v1/worker/compact_greedy_backport.py(70): metadata_reasons	6.5	1.00
+GFUN	timeline64k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(713): acquire_read	6.4	2.00
+GFUN	timeline64k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(345): get_metadata	6.3	2.00
+GFUN	timeline64k1	python_function	<built-in method __new__ of type object>	6.3	5.00
+GFUN	timeline64k1	python_function	<built-in function _cuda_getDevice>	5.9	3.00
+GFUN	timeline64k1	python_function	torch/cuda/__init__.py(1142): current_stream	5.9	2.00
+GFUN	timeline64k1	python_function	torch/cuda/_utils.py(508): _get_device_index	5.6	3.00
+GFUN	timeline64k1	python_function	contextlib.py(141): __exit__	5.2	6.00
+GFUN	timeline64k1	python_function	torch/cuda/streams.py(35): __new__	5.0	2.00
+GFUN	timeline64k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(677): check	4.8	8.06
+GFUN	timeline64k1	python_function	<built-in function next>	4.8	12.00
+GFUN	timeline64k1	python_function	<frozen os>(674): __getitem__	4.7	3.00
+GFUN	timeline64k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(70): memory_fence	4.6	10.06
+GFUN	timeline64k1	python_function	threading.py(366): notify	4.6	2.00
+GFUN	timeline64k1	python_function	<built-in function _cuda_setStream>	4.6	2.00
+GFUN	timeline64k1	python_function	torch/_utils.py(837): _get_device_index	4.4	3.00
+GFUN	timeline64k1	python_function	vllm/v1/worker/gpu_input_batch.py(352): req_ids	4.4	5.00
+GFUN	timeline64k1	python_function	<built-in method release of _thread.lock object>	4.2	1.99
+GFUN	timeline64k1	python_function	torch/autograd/grad_mode.py(289): __enter__	4.2	2.00
+GFUN	timeline64k1	python_function	contextlib.py(287): helper	3.9	6.00
+GFUN	timeline64k1	python_function	<built-in function sched_yield>	3.8	6.06
+GFUN	timeline64k1	python_function	vllm/v1/utils.py(721): record_function_or_nullcontext	3.8	6.00
+GFUN	timeline64k1	cpu_op	aten::to	3.8	2.00
+GFUN	timeline64k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(621): __init__	3.6	2.00
+GFUN	timeline64k1	python_function	torch/cuda/__init__.py(165): is_available	3.4	3.00
+GFUN	timeline64k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(183): wait	3.4	6.06
+GFUN	timeline64k1	python_function	torch/_utils.py(795): _get_device_attr	3.2	3.00
+GFUN	timeline64k1	cuda_runtime	cudaEventRecord	3.2	2.00
+GFUN	timeline64k1	python_function	<built-in function commit_arrays>	3.1	1.00
+GFUN	timeline64k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(337): get_data	3.0	2.00
+GFUN	timeline64k1	python_function	vllm/utils/torch_utils.py(675): _patched_set_stream	2.9	2.00
+GFUN	timeline64k1	python_function	<built-in function any>	2.9	3.00
+GFUN	timeline64k1	python_function	<built-in method __exit__ of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	2.7	2.00
+GFUN	timeline64k1	python_function	contextlib.py(132): __enter__	2.7	6.00
+GFUN	timeline64k1	python_function	torch/cuda/__init__.py(695): __enter__	2.5	1.00
+GFUN	timeline64k1	python_function	<built-in method nonzero of numpy.ndarray object>	2.5	1.00
+GFUN	timeline64k1	python_function	torch/cuda/__init__.py(752): set_stream	2.5	2.00
+GFUN	timeline64k1	cpu_op	aten::slice	2.5	1.00
+GFUN	timeline64k1	python_function	<built-in method get of dict object>	2.5	15.35
+GFUN	timeline64k1	python_function	torch/cuda/__init__.py(680): __init__	2.3	1.00
+GFUN	timeline64k1	python_function	vllm/v1/executor/multiproc_executor.py(941): handle_output	2.3	2.00
+GFUN	timeline64k1	cpu_op	aten::unsqueeze	2.1	1.00
+GFUN	timeline64k1	python_function	<string>(2): __init__	2.1	2.00
+GFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(3861): <dictcomp>	2.1	1.00
+GFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(3739): _sample	2.1	1.00
+GFUN	timeline64k1	python_function	torch/autograd/grad_mode.py(279): __init__	2.1	2.00
+GFUN	timeline64k1	python_function	vllm/v1/worker/compact_greedy_backport.py(72): <genexpr>	2.1	8.99
+GFUN	timeline64k1	python_function	<built-in function isinstance>	2.0	27.98
+GFUN	timeline64k1	python_function	torch/autograd/grad_mode.py(296): clone	2.0	2.00
+GFUN	timeline64k1	python_function	torch/cuda/__init__.py(710): __exit__	1.9	1.00
+GFUN	timeline64k1	python_function	<frozen os>(756): encode	1.9	3.00
+GFUN	timeline64k1	python_function	torch/_utils.py(811): _get_current_device_index	1.9	3.00
+GFUN	timeline64k1	cpu_op	aten::as_strided	1.9	2.00
+GFUN	timeline64k1	python_function	torch/cuda/__init__.py(1110): current_device	1.9	3.00
+GFUN	timeline64k1	python_function	torch/cuda/__init__.py(161): _nvml_based_avail	1.8	3.00
+GFUN	timeline64k1	python_function	<built-in function hasattr>	1.7	13.99
+GFUN	timeline64k1	python_function	torch/cuda/__init__.py(411): _lazy_init	1.7	5.00
+GFUN	timeline64k1	python_function	<frozen _collections_abc>(771): get	1.7	3.00
+GFUN	timeline64k1	python_function	torch/cuda/streams.py(63): wait_stream	1.7	1.00
+GFUN	timeline64k1	python_function	torch/cuda/__init__.py(156): _is_compiled	1.7	6.00
+GFUN	timeline64k1	python_function	torch/autograd/grad_mode.py(284): __new__	1.6	2.00
+GFUN	timeline64k1	python_function	torch/cuda/streams.py(77): record_event	1.6	1.00
+GFUN	timeline64k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(173): record_read	1.6	2.00
+GFUN	timeline64k1	python_function	<frozen os>(773): getenv	1.6	3.00
+GFUN	timeline64k1	python_function	<built-in method append of list object>	1.5	17.35
+GFUN	timeline64k1	python_function	torch/_utils.py(778): _get_available_device_type	1.5	3.00
+GFUN	timeline64k1	python_function	torch/autograd/grad_mode.py(293): __exit__	1.4	2.00
+GFUN	timeline64k1	python_function	torch/cuda/__init__.py(1063): device_count	1.4	3.00
+GFUN	timeline64k1	python_function	vllm/distributed/utils.py(46): sched_yield	1.4	6.06
+GFUN	timeline64k1	python_function	threading.py(271): __enter__	1.3	2.00
+GFUN	timeline64k1	python_function	torch/cuda/__init__.py(362): is_initialized	1.3	5.00
+GFUN	timeline64k1	python_function	queue.py(213): _put	1.3	2.00
+GFUN	timeline64k1	python_function	<built-in function monotonic>	1.3	10.06
+GFUN	timeline64k1	python_function	multiprocessing/shared_memory.py(204): buf	1.3	8.00
+GFUN	timeline64k1	python_function	threading.py(286): _is_owned	1.2	2.00
+GFUN	timeline64k1	python_function	vllm/v1/worker/gpu_worker.py(801): sample_tokens	1.2	1.00
+GFUN	timeline64k1	python_function	torch/cuda/__init__.py(724): stream	1.2	1.00
+GFUN	timeline64k1	python_function	torch/_utils.py(813): <lambda>	1.1	3.00
+GFUN	timeline64k1	python_function	<built-in method __exit__ of _thread.lock object>	1.1	12.06
+GFUN	timeline64k1	python_function	vllm/v1/worker/gpu_input_batch.py(1173): num_reqs	1.1	3.00
+GFUN	timeline64k1	python_function	threading.py(274): __exit__	1.1	2.00
+GFUN	timeline64k1	python_function	torch/cuda/__init__.py(737): _set_stream_by_id	1.1	2.00
+GFUN	timeline64k1	python_function	vllm/v1/worker/host_opt.py(458): <genexpr>	1.0	4.00
+GFUN	timeline64k1	python_function	vllm/v1/worker/gpu_input_batch.py(1089): set_async_sampled_token_ids	1.0	1.00
+GFUN	timeline64k1	python_function	contextlib.py(751): __init__	1.0	6.00
+GFUN	timeline64k1	python_function	vllm/v1/worker/compact_greedy_backport.py(94): <genexpr>	0.9	3.00
+GFUN	timeline64k1	python_function	<frozen os>(760): decode	0.9	3.00
+GFUN	timeline64k1	python_function	torch/cuda/streams.py(46): wait_event	0.9	1.00
+GFUN	timeline64k1	python_function	<built-in function _cuda_getCurrentStream>	0.9	2.00
+GFUN	timeline64k1	python_function	<built-in method encode of str object>	0.9	3.00
+GFUN	timeline64k1	python_function	numpy/core/fromnumeric.py(1881): nonzero	0.8	1.00
+GFUN	timeline64k1	python_function	numpy/core/fromnumeric.py(53): _wrapfunc	0.8	1.00
+GFUN	timeline64k1	python_function	torch/cuda/streams.py(181): __new__	0.8	1.00
+GFUN	timeline64k1	python_function	<built-in method decode of bytes object>	0.8	3.00
+GFUN	timeline64k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(634): timeout_ms	0.8	6.06
+GFUN	timeline64k1	python_function	<built-in function _cuda_isInBadFork>	0.8	5.00
+GFUN	timeline64k1	python_function	torch/cuda/streams.py(197): record	0.8	1.00
+GFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(3480): eplb_step	0.7	1.00
+GFUN	timeline64k1	python_function	<built-in method acquire of _thread.lock object>	0.7	2.00
+GFUN	timeline64k1	python_function	torch/_jit_internal.py(98): is_scripting	0.7	10.99
+GFUN	timeline64k1	python_function	<built-in method __enter__ of _thread.lock object>	0.7	2.00
+GFUN	timeline64k1	python_function	<built-in method __enter__ of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	0.7	2.00
+GFUN	timeline64k1	python_function	vllm/v1/worker/gpu_input_batch.py(1106): update_async_output_token_ids	0.7	1.00
+GFUN	timeline64k1	python_function	torch/cuda/streams.py(207): wait	0.7	1.00
+GFUN	timeline64k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(343): get_data	0.6	2.00
+GFUN	timeline64k1	python_function	contextlib.py(754): __enter__	0.6	6.00
+GFUN	timeline64k1	python_function	torch/backends/cuda/__init__.py(39): is_built	0.6	2.00
+GFUN	timeline64k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(654): should_warn	0.6	6.06
+GFUN	timeline64k1	python_function	vllm/v1/worker/worker_base.py(327): __getattr__	0.5	1.00
+GFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(1162): _get_or_create_async_output_copy_stream	0.5	1.00
+GFUN	timeline64k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(351): get_metadata	0.5	2.00
+GFUN	timeline64k1	python_function	<built-in method lower of str object>	0.5	3.00
+GFUN	timeline64k1	python_function	<built-in function len>	0.5	4.00
+GFUN	timeline64k1	python_function	<built-in method __exit__ of memoryview object>	0.5	4.00
+GFUN	timeline64k1	python_function	<built-in method tolist of numpy.ndarray object>	0.5	1.00
+GFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(5722): _get_prompt_logprobs_dict	0.4	1.00
+GFUN	timeline64k1	python_function	contextlib.py(757): __exit__	0.4	6.00
+GFUN	timeline64k1	python_function	<built-in method copy of list object>	0.4	1.00
+GFUN	timeline64k1	python_function	typing.py(2256): cast	0.4	5.00
+GFUN	timeline64k1	python_function	vllm/distributed/parallel_state.py(1364): get_pp_group	0.3	1.00
+GFUN	timeline64k1	python_function	<built-in method remove of collections.deque object>	0.3	1.99
+GFUN	timeline64k1	python_function	<built-in method copy of dict object>	0.3	1.00
+GFUN	timeline64k1	python_function	<built-in method append of collections.deque object>	0.3	2.00
+GFUN	timeline64k1	python_function	vllm/v1/worker/gpu_model_runner.py(1580): _update_states_after_model_execute	0.3	1.00
+GFUN	timeline64k1	cuda_runtime	cudaHostAlloc	0.1	0.00
+GFUN	timeline64k1	python_function	numpy/core/fromnumeric.py(1877): _nonzero_dispatcher	0.1	1.00
++ echo
+
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/config.txt ]]
++ grep -q profile=1 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/config.txt
+++ pick_trace /home/qch/scripts/litehost_perf/vllmBench/timeline4k1
+++ local r=/home/qch/scripts/litehost_perf/vllmBench/timeline4k1
+++ fs=()
+++ local -a fs
+++ mapfile -t fs
++++ ls -1 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank0.1794726666779713690.pt.trace.json.gz
++++ sort
+++ (( 1 == 0 ))
+++ (( 1 == 1 ))
+++ echo /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank0.1794726666779713690.pt.trace.json.gz
+++ return 0
++ F=/home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank0.1794726666779713690.pt.trace.json.gz
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank0.1794726666779713690.pt.trace.json.gz
++ echo '### 分析 timeline4k1 <- rank0.1794726666779713690.pt.trace.json.gz'
+### 分析 timeline4k1 <- rank0.1794726666779713690.pt.trace.json.gz
++ command -v python3
+++ basename /home/qch/scripts/litehost_perf/vllmBench/timeline4k1
++ DEEP=1
++ DEEP_TOPN=250
++ GAP=1
++ GAP_TOPN=250
++ HONLY=1
++ TSHG_WARMUP=0,16
++ python3 /home/qch/tools/remote-env/184/trace_eval_run.py timeline4k1 /home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank0.1794726666779713690.pt.trace.json.gz
+### timeline4k1 file=/home/qch/scripts/litehost_perf/vllmBench/timeline4k1/timeline/rank0.1794726666779713690.pt.trace.json.gz
+### timeline4k1 events=4275686 span=74854.7ms tids=8
+### timeline4k1 anchor    1692 vllm/v1/worker/worker_base.py(340): execute_model
+### timeline4k1 anchor    1692 vllm/v1/worker/gpu_worker.py(807): execute_model
+### timeline4k1 anchor    1692 vllm/v1/worker/gpu_model_runner.py(4246): execute_model
+### timeline4k1 sync_total=5073
+###       3382 次   68159.51 ms  cudaEventSynchronize
+###       1690 次   66149.40 ms  cudaStreamSynchronize
+###          1 次       0.09 ms  cudaDeviceSynchronize
+TSHG	timeline4k1	w=0	prefill	n=52	T=4849.26	S=1680.69	Sm=1599.93	H=3168.56	Hm=3249.33	G=54.60	HG=3223.16	HGm=3303.92	S_pct=34.7
+TSHG	timeline4k1	w=0	decode	n=1640	T=68152.45	S=66548.09	Sm=64553.26	H=1604.36	Hm=3599.19	G=1736.75	HG=3341.11	HGm=5335.93	S_pct=97.6
+TSHG	timeline4k1	w=16	prefill	n=48	T=4486.76	S=1588.33	Sm=1512.88	H=2898.43	Hm=2973.88	G=50.60	HG=2949.03	HGm=3024.48	S_pct=35.4
+TSHG	timeline4k1	w=16	decode	n=1628	T=67636.64	S=66044.46	Sm=64064.40	H=1592.17	Hm=3572.24	G=1725.73	HG=3317.90	HGm=5297.97	S_pct=97.6
+### timeline4k1 FUN top60 (µs/step, calls/step)
+FUN	timeline4k1	python_function	<built-in method acquire of _thread.lock object at 0xfffe5c2561c0>	85186.1	12.02
+FUN	timeline4k1	Trace	PyTorch Profiler (0)	44240.4	0.00
+FUN	timeline4k1	python_function	vllm/usage/usage_lib.py(256): _report_continuous_usage	44240.3	0.00
+FUN	timeline4k1	python_function	vllm/v1/worker/gpu_worker.py(807): execute_model	43031.7	1.00
+FUN	timeline4k1	cuda_runtime	cudaEventSynchronize	40283.4	2.00
+FUN	timeline4k1	cuda_runtime	cudaStreamSynchronize	39095.4	1.00
+FUN	timeline4k1	python_function	threading.py(331): wait	6730.7	0.00
+FUN	timeline4k1	cuda_runtime	cudaLaunchKernel	447.5	34.38
+FUN	timeline4k1	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<256u, 256u, 64u, 64u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, false, 2u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	382.7	1.36
+FUN	timeline4k1	kernel	void ixformer::comm::allreduce_ring_step_sum_fused<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	364.9	3.96
+FUN	timeline4k1	kernel	void ixformer::comm::allreduce_ring_step_copy<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	344.5	2.97
+FUN	timeline4k1	cpu_op	aten::copy_	216.5	13.04
+FUN	timeline4k1	cpu_op	aten::empty_strided	197.7	14.89
+FUN	timeline4k1	kernel	void ixformer::comm::allreduce_ring_step_copy_fused<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	195.2	2.97
+FUN	timeline4k1	cuda_runtime	cudaEventQuery	186.8	2.04
+FUN	timeline4k1	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<128u, 256u, 64u, 32u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, false, 5u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	157.3	1.97
+FUN	timeline4k1	python_function	<built-in method synchronize of torch.Event object at 0xfffe58f53e30>	147.1	2.00
+FUN	timeline4k1	cuda_runtime	cudaGraphLaunch	134.5	1.97
+FUN	timeline4k1	cpu_op	aten::empty	132.3	11.41
+FUN	timeline4k1	gpu_user_annotation	execute_context_1(128)_generation_0(0)	131.3	0.01
+FUN	timeline4k1	kernel	void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<256u, 256u, 64u, 64u, 64u, true, true, (cuinfer::impl::kernel::cuinferGEMMBoundary_t)1, false, (cuinferGEMMCustomOption_t)0, false, true, 2u, 4u, 4u, __ix_bfloat16, signed char, signed char>(__ix_bfloat16*, signed char const*, signed char const*, int, int, int, int, int, int, int, int, int, float, float, void const*, void const*, void const*, void const*, bool)	124.3	0.45
+FUN	timeline4k1	python_function	zmq/sugar/socket.py(623): send	121.1	2.00
+FUN	timeline4k1	gpu_memcpy	Memcpy DtoD (Device -> Device)	113.6	4.93
+FUN	timeline4k1	python_function	<built-in method all_reduce of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object at 0xfffe890921b0>	110.7	1.98
+FUN	timeline4k1	gpu_user_annotation	execute_context_7(896)_generation_1(1)	109.5	0.01
+FUN	timeline4k1	python_function	<built-in method to of Tensor object at 0xff7da513bc50>	102.4	3.03
+FUN	timeline4k1	kernel	void ixformer::comm::allreduce_ring_last_step_copy<__ix_bfloat16>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, unsigned int)	101.7	1.98
+FUN	timeline4k1	cpu_op	aten::slice	92.7	40.51
+FUN	timeline4k1	cuda_runtime	cudaMemcpyAsync	77.2	11.96
+FUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(4246): execute_model	75.5	1.00
+FUN	timeline4k1	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(465): _corex_fast_build	71.2	1.00
+FUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(1999): _prepare_inputs	70.0	1.00
+FUN	timeline4k1	python_function	<built-in method w8a8_gemm of PyCapsule object at 0xfffe88eba970>	69.1	3.93
+FUN	timeline4k1	kernel	void ixformer::kernels::infer::residual_rms_norm_kernel<__ix_bfloat16, 5u, 2u, false, true, false>(__ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16*, __ix_bfloat16*, float, unsigned int, unsigned int, unsigned int, float)	66.0	1.97
+FUN	timeline4k1	python_function	<built-in function sched_yield>	62.6	37.67
+FUN	timeline4k1	python_function	<built-in method empty of type object at 0xffffab01d130>	60.8	10.86
+FUN	timeline4k1	python_function	vllm/v1/attention/backends/ilu_flash_attn.py(942): forward	60.0	0.98
+FUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(2370): _build_attention_metadata	58.7	1.00
+FUN	timeline4k1	python_function	<built-in method scaled_int8_quant of PyCapsule object at 0xfffe88eba9d0>	57.0	3.93
+FUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(1816): _prepare_input_ids	54.6	1.00
+FUN	timeline4k1	kernel	void ixformer::comm::allreduce_ring_step_sum<__ix_bfloat16, 4u>(ixformer::comm::OpParams, __ix_bfloat16*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, int)	53.9	1.98
+FUN	timeline4k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(664): acquire_read	53.0	2.00
+FUN	timeline4k1	python_function	<built-in method view of Tensor object at 0xff7dd73d5090>	51.8	22.17
+FUN	timeline4k1	python_function	<built-in method copy_ of Tensor object at 0xff7dc91965d0>	51.7	6.98
+FUN	timeline4k1	cpu_op	aten::index	47.9	1.01
+FUN	timeline4k1	user_annotation	execute_context_0(0)_generation_8(8)	44.7	0.89
+FUN	timeline4k1	python_function	<built-in method synchronize of Stream object at 0xff7dd7233380>	41.5	0.99
+FUN	timeline4k1	cpu_op	aten::fill_	41.3	5.02
+FUN	timeline4k1	python_function	torch/nn/modules/module.py(1780): _call_impl	39.4	12.83
+FUN	timeline4k1	python_function	torch/utils/_contextlib.py(120): decorate_context	39.3	5.00
+FUN	timeline4k1	kernel	void ixformer::kernels::infer::scaled_int8_quant_opt1<__ix_bfloat16, true, 3>(__ix_bfloat16 const*, signed char*, float*, int)	36.8	1.97
+FUN	timeline4k1	python_function	<built-in method replay of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object at 0xfffefca51d10>	35.7	1.97
+FUN	timeline4k1	python_function	vllm/v1/executor/multiproc_executor.py(966): async_output_busy_loop	35.4	0.00
+FUN	timeline4k1	python_function	<built-in function dumps>	34.6	2.00
+FUN	timeline4k1	cpu_op	aten::sub	34.3	1.01
+FUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(3775): _bookkeeping_sync	33.8	1.00
+FUN	timeline4k1	cpu_op	aten::as_strided	33.8	49.67
+FUN	timeline4k1	python_function	vllm/v1/attention/backends/utils.py(637): reorder_batch_to_split_decodes_and_prefills	33.4	1.00
+FUN	timeline4k1	python_function	<built-in method reduce of numpy.ufunc object at 0xffffac4e2140>	33.3	8.02
+FUN	timeline4k1	kernel	void ixformer::kernels::infer::fused_rms_norm_qk_kernel<__ix_bfloat16, (ixformer::kernels::infer::RMSNormType)0, 2u>(__ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16 const*, __ix_bfloat16*, __ix_bfloat16*, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, float)	32.7	0.98
+### timeline4k1 DEEP decode_steps=1628 warmup=16 mean_T=41545.8us all_self=203611.0us main_self=775.8us main_sync=39351.6us
+ACAT	timeline4k1	python_function	122912.5
+ACAT	timeline4k1	cuda_runtime	80088.2
+ACAT	timeline4k1	cpu_op	489.7
+ACAT	timeline4k1	user_annotation	49.9
+ACAT	timeline4k1	gpu_memcpy	36.9
+ACAT	timeline4k1	kernel	33.8
+MCAT	timeline4k1	python_function	397.2
+MCAT	timeline4k1	cpu_op	177.7
+MCAT	timeline4k1	cuda_runtime	164.5
+MCAT	timeline4k1	user_annotation	36.3
+MSYNC	timeline4k1	cudaStreamSynchronize	39349.5	1.00
+MSYNC	timeline4k1	cudaEventSynchronize	2.1	1.00
+### timeline4k1 MFUN top250 (µs/decode-step, calls/step, anchor tid)
+MFUN	timeline4k1	cuda_runtime	cudaGraphLaunch	136.2	2.00
+MFUN	timeline4k1	cpu_op	aten::copy_	61.5	3.01
+MFUN	timeline4k1	cpu_op	aten::index	47.6	1.00
+MFUN	timeline4k1	python_function	<built-in method replay of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	36.2	2.00
+MFUN	timeline4k1	user_annotation	execute_context_0(0)_generation_8(8)	33.6	0.91
+MFUN	timeline4k1	cpu_op	aten::empty_strided	31.9	2.00
+MFUN	timeline4k1	python_function	vllm/v1/worker/compact_greedy_backport.py(355): select	27.5	1.00
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(3595): _preprocess	21.9	1.00
+MFUN	timeline4k1	cpu_op	aten::slice	17.1	7.05
+MFUN	timeline4k1	cuda_runtime	cudaLaunchKernel	13.6	2.01
+MFUN	timeline4k1	python_function	<built-in method  of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	9.8	1.00
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu/sample_logits_graph.py(259): run	9.6	1.00
+MFUN	timeline4k1	python_function	<string>(2): __init__	9.4	4.99
+MFUN	timeline4k1	python_function	<built-in method copy_ of Tensor object>	9.4	1.02
+MFUN	timeline4k1	python_function	torch/autograd/grad_mode.py(289): __enter__	9.2	2.02
+MFUN	timeline4k1	cuda_runtime	cudaMemcpyAsync	8.9	2.02
+MFUN	timeline4k1	python_function	vllm/v1/worker/compact_greedy_backport.py(70): metadata_reasons	8.8	1.00
+MFUN	timeline4k1	python_function	torch/utils/_contextlib.py(120): decorate_context	8.5	2.02
+MFUN	timeline4k1	python_function	torch/autograd/profiler.py(806): __exit__	7.7	1.00
+MFUN	timeline4k1	python_function	vllm/v1/utils.py(767): compute_iteration_details	7.6	1.00
+MFUN	timeline4k1	python_function	vllm/compilation/cuda_graph.py(233): __call__	7.4	1.00
+MFUN	timeline4k1	python_function	<built-in method record of torch.Event object>	7.4	1.00
+MFUN	timeline4k1	python_function	<built-in function getattr>	7.3	20.71
+MFUN	timeline4k1	python_function	vllm/forward_context.py(249): set_forward_context	6.9	1.00
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu/sample_logits_graph.py(80): _input_signature	6.7	1.00
+MFUN	timeline4k1	python_function	torch/utils/_pytree.py(1462): tree_iter	6.5	4.00
+MFUN	timeline4k1	cpu_op	aten::as_strided	5.8	8.05
+MFUN	timeline4k1	cpu_op	aten::_to_copy	5.6	1.00
+MFUN	timeline4k1	python_function	<built-in method __new__ of type object>	5.0	4.02
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu_worker.py(775): annotate_profile	4.9	1.00
+MFUN	timeline4k1	python_function	torch/utils/_pytree.py(694): is_namedtuple_class	4.5	6.99
+MFUN	timeline4k1	cuda_runtime	cudaEventRecord	4.2	2.00
+MFUN	timeline4k1	python_function	contextlib.py(141): __exit__	4.2	3.00
+MFUN	timeline4k1	python_function	torch/autograd/grad_mode.py(279): __init__	4.1	2.02
+MFUN	timeline4k1	python_function	<built-in function any>	4.0	3.02
+MFUN	timeline4k1	python_function	vllm/v1/core/sched/output.py(163): is_context_phase	3.9	7.66
+MFUN	timeline4k1	python_function	<built-in method get of dict object>	3.9	26.30
+MFUN	timeline4k1	python_function	torch/cuda/__init__.py(1142): current_stream	3.9	1.00
+MFUN	timeline4k1	python_function	torch/autograd/grad_mode.py(296): clone	3.8	2.02
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu_input_batch.py(352): req_ids	3.7	2.06
+MFUN	timeline4k1	python_function	vllm/v1/worker/compact_greedy_backport.py(215): produce	3.7	1.00
+MFUN	timeline4k1	python_function	functools.py(981): __get__	3.5	1.00
+MFUN	timeline4k1	python_function	<built-in function isinstance>	3.5	22.99
+MFUN	timeline4k1	python_function	vllm/forward_context.py(204): create_forward_context	3.5	1.00
+MFUN	timeline4k1	python_function	<string>(2): __hash__	3.5	2.99
+MFUN	timeline4k1	python_function	contextlib.py(104): __init__	3.4	2.02
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(1066): _init_model_kwargs	3.4	1.00
+MFUN	timeline4k1	python_function	torch/autograd/profiler.py(787): __init__	3.4	1.00
+MFUN	timeline4k1	python_function	torch/cuda/_utils.py(508): _get_device_index	3.3	1.00
+MFUN	timeline4k1	python_function	torch/utils/_pytree.py(1048): _get_node_type	3.3	6.99
+MFUN	timeline4k1	python_function	<built-in method clone of Tensor object>	3.2	1.00
+MFUN	timeline4k1	cpu_op	aten::clone	3.2	1.00
+MFUN	timeline4k1	python_function	torch/cuda/streams.py(35): __new__	3.2	1.00
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu/sample_logits_graph.py(72): _producer_id	3.1	1.00
+MFUN	timeline4k1	python_function	torch/autograd/profiler.py(800): __enter__	3.0	1.00
+MFUN	timeline4k1	python_function	<built-in function next>	3.0	5.02
+MFUN	timeline4k1	python_function	<built-in method __exit__ of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	2.8	3.00
+MFUN	timeline4k1	python_function	vllm/v1/worker/compact_greedy_backport.py(72): <genexpr>	2.7	8.98
+MFUN	timeline4k1	python_function	vllm/config/compilation.py(95): valid_runtime_modes	2.6	1.00
+MFUN	timeline4k1	python_function	torch/cuda/graphs.py(141): replay	2.6	2.00
+MFUN	timeline4k1	python_function	torch/autograd/grad_mode.py(284): __new__	2.5	2.02
+MFUN	timeline4k1	python_function	vllm/v1/core/sched/output.py(153): _req_id_to_num_output_tokens	2.4	1.00
+MFUN	timeline4k1	python_function	torch/utils/_pytree.py(1060): tree_is_leaf	2.4	4.00
+MFUN	timeline4k1	python_function	torch/_utils.py(837): _get_device_index	2.4	1.00
+MFUN	timeline4k1	python_function	vllm/v1/worker/compact_greedy_graph.py(24): decode_eligible	2.4	1.00
+MFUN	timeline4k1	python_function	vllm/profiler/wrapper.py(83): step	2.3	1.00
+MFUN	timeline4k1	user_annotation	execute_context_0(0)_generation_4(4)	2.2	0.08
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(3960): _model_forward	2.2	1.00
+MFUN	timeline4k1	python_function	torch/autograd/grad_mode.py(293): __exit__	2.0	3.00
+MFUN	timeline4k1	python_function	vllm/v1/utils.py(721): record_function_or_nullcontext	1.9	2.02
+MFUN	timeline4k1	python_function	torch/_ops.py(1081): _must_dispatch_in_python	1.9	1.00
+MFUN	timeline4k1	cpu_op	aten::to	1.8	1.00
+MFUN	timeline4k1	python_function	torch/utils/_pytree.py(1784): tree_any	1.8	1.00
+MFUN	timeline4k1	python_function	torch/utils/_pytree.py(801): _dict_flatten	1.7	1.00
+MFUN	timeline4k1	cuda_runtime	cudaStreamIsCapturing	1.7	2.00
+MFUN	timeline4k1	python_function	<string>(2): __eq__	1.6	2.00
+MFUN	timeline4k1	python_function	<built-in function hasattr>	1.6	7.99
+MFUN	timeline4k1	python_function	enum.py(193): __get__	1.6	2.00
+MFUN	timeline4k1	cpu_op	aten::reshape	1.6	1.00
+MFUN	timeline4k1	python_function	torch/utils/_pytree.py(1476): tree_iter	1.6	2.00
+MFUN	timeline4k1	python_function	vllm/profiler/wrapper.py(305): annotate_context_manager	1.6	1.00
+MFUN	timeline4k1	python_function	contextlib.py(287): helper	1.6	2.02
+MFUN	timeline4k1	python_function	vllm/config/compilation.py(99): is_valid_runtime_mode	1.5	1.00
+MFUN	timeline4k1	python_function	vllm/distributed/parallel_state.py(539): is_first_rank	1.5	2.00
+MFUN	timeline4k1	python_function	torch/_ops.py(1031): __call__	1.5	1.00
+MFUN	timeline4k1	python_function	<built-in method __enter__ of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	1.5	2.02
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(1999): _prepare_inputs	1.5	0.02
+MFUN	timeline4k1	python_function	vllm/v1/worker/compact_greedy_backport.py(62): __post_init__	1.4	1.00
+MFUN	timeline4k1	python_function	vllm/v1/worker/kv_connector_model_runner_mixin.py(50): maybe_get_kv_connector_output	1.3	1.00
+MFUN	timeline4k1	python_function	enum.py(1231): __hash__	1.2	3.99
+MFUN	timeline4k1	python_function	torch/_ops.py(1083): <lambda>	1.2	1.00
+MFUN	timeline4k1	python_function	typing.py(352): inner	1.2	1.00
+MFUN	timeline4k1	python_function	<built-in function hash>	1.2	6.99
+MFUN	timeline4k1	cpu_op	aten::view	1.1	1.00
+MFUN	timeline4k1	python_function	<built-in method stride of Parameter object>	1.1	1.00
+MFUN	timeline4k1	python_function	vllm/config/compilation.py(102): __str__	1.1	1.00
+MFUN	timeline4k1	python_function	contextlib.py(132): __enter__	1.1	2.02
+MFUN	timeline4k1	python_function	vllm/v1/worker/compact_greedy_backport.py(94): <genexpr>	1.1	2.99
+MFUN	timeline4k1	python_function	vllm/forward_context.py(182): __post_init__	1.0	1.00
+MFUN	timeline4k1	python_function	vllm/v1/worker/compact_greedy_graph.py(12): scope_eligible	1.0	1.00
+MFUN	timeline4k1	python_function	vllm/distributed/parallel_state.py(529): first_rank	0.9	2.00
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu_input_batch.py(1173): num_reqs	0.9	2.08
+MFUN	timeline4k1	python_function	<built-in function _abc_instancecheck>	0.9	1.00
+MFUN	timeline4k1	python_function	vllm/distributed/parallel_state.py(1364): get_pp_group	0.9	3.02
+MFUN	timeline4k1	python_function	torch/_ops.py(1197): __call__	0.9	1.00
+MFUN	timeline4k1	python_function	torch/utils/_pytree.py(771): _tuple_flatten	0.9	2.00
+MFUN	timeline4k1	python_function	vllm/forward_context.py(323): set_forward_context	0.8	1.00
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(3992): _is_uniform_decode	0.8	1.00
+MFUN	timeline4k1	python_function	vllm/distributed/parallel_state.py(544): is_last_rank	0.8	1.02
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(3956): synchronize_input_prep	0.8	1.00
+MFUN	timeline4k1	python_function	<built-in function _cuda_getCurrentStream>	0.8	1.00
+MFUN	timeline4k1	python_function	<built-in function len>	0.8	5.46
+MFUN	timeline4k1	python_function	<string>(1): <lambda>	0.7	1.00
+MFUN	timeline4k1	python_function	vllm/v1/attention/backends/utils.py(637): reorder_batch_to_split_decodes_and_prefills	0.7	0.02
+MFUN	timeline4k1	python_function	torch/cuda/__init__.py(411): _lazy_init	0.7	1.00
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(1169): _update_states	0.7	0.02
+MFUN	timeline4k1	python_function	<built-in function issubclass>	0.6	6.99
+MFUN	timeline4k1	python_function	contextlib.py(751): __init__	0.6	3.02
+MFUN	timeline4k1	python_function	contextlib.py(757): __exit__	0.6	3.99
+MFUN	timeline4k1	python_function	torch/cuda/__init__.py(362): is_initialized	0.5	1.00
+MFUN	timeline4k1	python_function	<frozen abc>(117): __instancecheck__	0.5	1.00
+MFUN	timeline4k1	python_function	enum.py(1251): name	0.5	2.00
+MFUN	timeline4k1	user_annotation	execute_context_0(0)_generation_7(7)	0.5	0.01
+MFUN	timeline4k1	python_function	<built-in method rsplit of str object>	0.4	1.00
+MFUN	timeline4k1	python_function	vllm/v1/utils.py(138): copy_to_gpu	0.4	0.02
+MFUN	timeline4k1	python_function	vllm/v1/worker/worker_base.py(330): _apply_mm_cache	0.4	1.00
+MFUN	timeline4k1	python_function	torch/_jit_internal.py(98): is_scripting	0.4	4.02
+MFUN	timeline4k1	python_function	<built-in function _cuda_isInBadFork>	0.4	1.00
+MFUN	timeline4k1	python_function	<built-in method reduce of numpy.ufunc object>	0.4	0.12
+MFUN	timeline4k1	python_function	vllm/forward_context.py(234): override_forward_context	0.4	1.00
+MFUN	timeline4k1	python_function	torch/backends/cuda/__init__.py(39): is_built	0.4	1.00
+MFUN	timeline4k1	python_function	vllm/distributed/parallel_state.py(534): last_rank	0.4	1.02
+MFUN	timeline4k1	cpu_op	aten::fill_	0.4	0.02
+MFUN	timeline4k1	python_function	contextlib.py(754): __enter__	0.4	3.02
+MFUN	timeline4k1	python_function	vllm/distributed/kv_transfer/kv_transfer_state.py(26): has_kv_transfer_group	0.3	1.02
+MFUN	timeline4k1	python_function	vllm/v1/utils.py(785): <setcomp>	0.3	1.00
+MFUN	timeline4k1	python_function	vllm/profiler/wrapper.py(289): _profiler_step	0.3	1.00
+MFUN	timeline4k1	python_function	<built-in method synchronize of torch.Event object>	0.3	0.03
+MFUN	timeline4k1	python_function	vllm/model_executor/offloader/base.py(111): get_offloader	0.3	1.00
+MFUN	timeline4k1	python_function	<built-in method join of str object>	0.3	1.00
+MFUN	timeline4k1	python_function	vllm/forward_context.py(244): override_forward_context	0.3	1.00
+MFUN	timeline4k1	python_function	<built-in method values of dict object>	0.2	1.00
+MFUN	timeline4k1	python_function	<built-in function get_ident>	0.2	1.00
+MFUN	timeline4k1	python_function	<built-in method __exit__ of torch._C.DisableTorchFunctionSubclass object>	0.2	1.00
+MFUN	timeline4k1	python_function	<built-in method items of dict object>	0.2	1.00
+MFUN	timeline4k1	python_function	typing.py(2256): cast	0.2	2.06
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu_input_batch.py(539): update_req_spec_token_ids	0.2	0.16
+MFUN	timeline4k1	python_function	vllm/forward_context.py(191): get_forward_context	0.2	1.00
+MFUN	timeline4k1	python_function	vllm/v1/worker/block_table.py(102): append_row	0.1	0.02
+MFUN	timeline4k1	python_function	vllm/forward_context.py(200): is_forward_context_available	0.1	1.00
+MFUN	timeline4k1	python_function	<built-in method keys of dict object>	0.1	1.04
+MFUN	timeline4k1	python_function	<built-in method __exit__ of _thread.RLock object>	0.1	1.00
+MFUN	timeline4k1	python_function	vllm/model_executor/offloader/base.py(79): sync_prev_onload	0.1	1.00
+MFUN	timeline4k1	cpu_op	aten::zero_	0.1	0.02
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu_input_batch.py(899): refresh_metadata	0.1	0.02
+MFUN	timeline4k1	python_function	<built-in function array>	0.1	0.04
+MFUN	timeline4k1	python_function	vllm/platforms/interface.py(1024): set_additional_forward_context	0.1	1.00
+MFUN	timeline4k1	python_function	torch/utils/_pytree.py(1468): tree_iter	0.1	1.00
+MFUN	timeline4k1	python_function	numpy/core/fromnumeric.py(40): _wrapit	0.1	0.02
+MFUN	timeline4k1	python_function	<built-in method astype of numpy.ndarray object>	0.1	0.02
+MFUN	timeline4k1	python_function	torch/jit/__init__.py(129): annotate	0.1	1.00
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(1107): _may_reorder_batch	0.1	0.02
+MFUN	timeline4k1	python_function	<built-in method zero_ of Tensor object>	0.1	0.02
+MFUN	timeline4k1	python_function	<built-in method sum of numpy.ndarray object>	0.1	0.08
+MFUN	timeline4k1	python_function	<built-in method repeat of numpy.ndarray object>	0.1	0.02
+MFUN	timeline4k1	user_annotation	execute_context_0(0)_generation_3(3)	0.0	0.00
+MFUN	timeline4k1	python_function	numpy/core/fromnumeric.py(53): _wrapfunc	0.0	0.02
+MFUN	timeline4k1	python_function	<built-in method fill_ of Tensor object>	0.0	0.00
+MFUN	timeline4k1	python_function	vllm/v1/worker/block_table.py(166): commit_block_table	0.0	0.02
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu_input_batch.py(756): condense	0.0	0.02
+MFUN	timeline4k1	python_function	<built-in function zeros>	0.0	0.02
+MFUN	timeline4k1	python_function	vllm/v1/attention/backends/utils.py(656): <listcomp>	0.0	0.02
+MFUN	timeline4k1	python_function	vllm/v1/sample/logits_processor/builtin.py(200): update_state	0.0	0.02
+MFUN	timeline4k1	python_function	vllm/v1/sample/logits_processor/builtin.py(135): update_state	0.0	0.02
+MFUN	timeline4k1	python_function	numpy/core/_methods.py(47): _sum	0.0	0.08
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(4326): <listcomp>	0.0	0.02
+MFUN	timeline4k1	python_function	vllm/v1/sample/logits_processor/state.py(119): get_and_reset	0.0	0.02
+MFUN	timeline4k1	python_function	vllm/v1/worker/block_table.py(312): commit_block_table	0.0	0.02
+MFUN	timeline4k1	python_function	<built-in function asarray>	0.0	0.02
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(3945): synchronize_input_prep	0.0	0.03
+MFUN	timeline4k1	python_function	vllm/v1/worker/compact_greedy_backport.py(324): update_requests	0.0	0.02
+MFUN	timeline4k1	python_function	numpy/core/fromnumeric.py(423): repeat	0.0	0.02
+MFUN	timeline4k1	python_function	<built-in method any of numpy.ndarray object>	0.0	0.02
+MFUN	timeline4k1	python_function	vllm/v1/sample/logits_processor/state.py(59): _ensure_removed_sorted	0.0	0.02
+MFUN	timeline4k1	python_function	vllm/v1/worker/block_table.py(283): append_row	0.0	0.02
+MFUN	timeline4k1	python_function	vllm/v1/sample/logits_processor/state.py(162): all	0.0	0.02
+MFUN	timeline4k1	user_annotation	execute_context_0(0)_generation_0(0)	0.0	0.00
+MFUN	timeline4k1	python_function	<built-in method max of numpy.ndarray object>	0.0	0.02
+MFUN	timeline4k1	python_function	vllm/v1/sample/logits_processor/state.py(69): removed	0.0	0.02
+MFUN	timeline4k1	python_function	<built-in method clear of list object>	0.0	0.16
+MFUN	timeline4k1	python_function	numpy/core/_methods.py(55): _any	0.0	0.02
+MFUN	timeline4k1	python_function	vllm/v1/worker/host_opt.py(271): prepare_inputs	0.0	0.00
+MFUN	timeline4k1	python_function	<built-in method sort of list object>	0.0	0.02
+MFUN	timeline4k1	python_function	numpy/core/_methods.py(39): _amax	0.0	0.02
+MFUN	timeline4k1	cpu_op	aten::add	0.0	0.00
+MFUN	timeline4k1	python_function	vllm/distributed/ec_transfer/ec_transfer_state.py(22): has_ec_transfer	0.0	0.02
+MFUN	timeline4k1	python_function	<built-in method from_numpy of type object>	0.0	0.00
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu/pool/late_interaction_runner.py(41): on_requests_finished	0.0	0.02
+MFUN	timeline4k1	python_function	<built-in method add of type object>	0.0	0.00
+MFUN	timeline4k1	python_function	vllm/v1/sample/logits_processor/builtin.py(294): process_dict_updates	0.0	0.04
+MFUN	timeline4k1	python_function	vllm/v1/worker/host_opt.py(233): _filled_on_device	0.0	0.00
+MFUN	timeline4k1	python_function	vllm/v1/sample/logits_processor/builtin.py(53): update_state	0.0	0.02
+MFUN	timeline4k1	python_function	<built-in method extend of list object>	0.0	0.02
+MFUN	timeline4k1	python_function	numpy/core/fromnumeric.py(419): _repeat_dispatcher	0.0	0.02
+MFUN	timeline4k1	python_function	<built-in method pop of dict object>	0.0	0.01
+MFUN	timeline4k1	python_function	<built-in method fill of numpy.ndarray object>	0.0	0.00
+MFUN	timeline4k1	python_function	vllm/v1/worker/host_opt.py(211): _decode_templates	0.0	0.00
+MFUN	timeline4k1	python_function	vllm/v1/worker/gpu_input_batch.py(566): remove_request	0.0	0.00
+MFUN	timeline4k1	python_function	<built-in method discard of set object>	0.0	0.00
+MFUN	timeline4k1	cpu_op	aten::lift_fresh	0.0	0.00
+### timeline4k1 GAP gaps=1615 warmup=16 mean_G=1061.5us anchor_self=1051.3us all_self=1862.4us
+GCAT	timeline4k1	python_function	1543.3
+GCAT	timeline4k1	cuda_runtime	227.9
+GCAT	timeline4k1	cpu_op	91.2
+GCAT	timeline4k1	kernel	0.0
+GCAT	timeline4k1	gpu_memcpy	0.0
+### timeline4k1 GFUN top250 (µs/gap, calls/step, anchor tid)
+GFUN	timeline4k1	cuda_runtime	cudaEventQuery	186.8	2.01
+GFUN	timeline4k1	python_function	<built-in method to of Tensor object>	99.4	2.00
+GFUN	timeline4k1	python_function	<built-in function sched_yield>	54.9	31.45
+GFUN	timeline4k1	cpu_op	aten::copy_	46.7	2.00
+GFUN	timeline4k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(664): acquire_read	45.7	2.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(3775): _bookkeeping_sync	33.7	1.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(4652): sample_tokens	32.4	1.00
+GFUN	timeline4k1	python_function	<built-in function loads>	26.9	2.00
+GFUN	timeline4k1	cpu_op	aten::empty_strided	24.6	2.00
+GFUN	timeline4k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(183): wait	20.1	31.45
+GFUN	timeline4k1	python_function	vllm/v1/worker/host_opt.py(431): commit_sampled	17.7	1.00
+GFUN	timeline4k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(677): check	17.4	33.45
+GFUN	timeline4k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(772): dequeue	17.3	2.00
+GFUN	timeline4k1	cuda_runtime	cudaStreamWaitEvent	17.1	1.00
+GFUN	timeline4k1	python_function	torch/utils/_contextlib.py(120): decorate_context	16.4	2.00
+GFUN	timeline4k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(70): memory_fence	15.0	35.45
+GFUN	timeline4k1	python_function	vllm/v1/worker/compact_greedy_backport.py(430): consume	11.4	1.00
+GFUN	timeline4k1	python_function	<built-in method unsqueeze of Tensor object>	9.9	1.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(248): __init__	9.8	1.00
+GFUN	timeline4k1	cpu_op	aten::_to_copy	8.8	2.00
+GFUN	timeline4k1	cuda_runtime	cudaMemcpyAsync	8.2	1.00
+GFUN	timeline4k1	python_function	<built-in method record of Event object>	7.8	1.00
+GFUN	timeline4k1	python_function	vllm/distributed/utils.py(46): sched_yield	7.8	31.45
+GFUN	timeline4k1	python_function	<built-in method wait of Event object>	7.7	1.00
+GFUN	timeline4k1	python_function	contextlib.py(104): __init__	7.6	6.00
+GFUN	timeline4k1	python_function	queue.py(122): put	7.6	2.00
+GFUN	timeline4k1	python_function	vllm/v1/utils.py(721): record_function_or_nullcontext	7.5	6.00
+GFUN	timeline4k1	cuda_runtime	cudaLaunchKernel	7.5	1.00
+GFUN	timeline4k1	python_function	<built-in method record of torch.Event object>	7.2	1.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/compact_greedy_backport.py(70): metadata_reasons	7.1	1.00
+GFUN	timeline4k1	python_function	<built-in function getattr>	6.9	15.99
+GFUN	timeline4k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(345): get_metadata	6.8	2.00
+GFUN	timeline4k1	python_function	<built-in method __new__ of type object>	6.4	5.00
+GFUN	timeline4k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(713): acquire_read	6.3	2.00
+GFUN	timeline4k1	python_function	torch/cuda/_utils.py(508): _get_device_index	6.1	3.00
+GFUN	timeline4k1	python_function	torch/cuda/__init__.py(1142): current_stream	5.9	2.00
+GFUN	timeline4k1	python_function	<built-in function _cuda_getDevice>	5.7	3.00
+GFUN	timeline4k1	python_function	contextlib.py(141): __exit__	5.5	6.00
+GFUN	timeline4k1	python_function	threading.py(366): notify	5.1	2.00
+GFUN	timeline4k1	python_function	<built-in function next>	5.1	12.00
+GFUN	timeline4k1	python_function	<frozen os>(674): __getitem__	5.0	3.00
+GFUN	timeline4k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(634): timeout_ms	4.9	31.45
+GFUN	timeline4k1	python_function	torch/autograd/grad_mode.py(289): __enter__	4.8	2.00
+GFUN	timeline4k1	python_function	torch/cuda/streams.py(35): __new__	4.8	2.00
+GFUN	timeline4k1	python_function	torch/_utils.py(837): _get_device_index	4.8	3.00
+GFUN	timeline4k1	python_function	contextlib.py(287): helper	4.8	6.00
+GFUN	timeline4k1	python_function	<built-in function _cuda_setStream>	4.7	2.00
+GFUN	timeline4k1	python_function	<built-in method release of _thread.lock object>	4.5	2.00
+GFUN	timeline4k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(621): __init__	4.3	2.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/gpu_input_batch.py(352): req_ids	4.3	5.00
+GFUN	timeline4k1	cpu_op	aten::to	4.2	2.00
+GFUN	timeline4k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(654): should_warn	3.8	31.45
+GFUN	timeline4k1	python_function	torch/cuda/__init__.py(165): is_available	3.6	3.00
+GFUN	timeline4k1	python_function	torch/_utils.py(795): _get_device_attr	3.5	3.00
+GFUN	timeline4k1	python_function	<built-in method __exit__ of _thread.lock object>	3.4	37.45
+GFUN	timeline4k1	python_function	<built-in function monotonic>	3.4	35.45
+GFUN	timeline4k1	python_function	<built-in function commit_arrays>	3.4	1.00
+GFUN	timeline4k1	python_function	<built-in function any>	3.3	3.00
+GFUN	timeline4k1	cuda_runtime	cudaEventRecord	3.3	2.00
+GFUN	timeline4k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(337): get_data	3.2	2.00
+GFUN	timeline4k1	python_function	vllm/utils/torch_utils.py(675): _patched_set_stream	3.1	2.00
+GFUN	timeline4k1	python_function	contextlib.py(132): __enter__	3.0	6.00
+GFUN	timeline4k1	python_function	<built-in method __exit__ of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	3.0	2.00
+GFUN	timeline4k1	python_function	torch/cuda/__init__.py(752): set_stream	2.6	2.00
+GFUN	timeline4k1	python_function	torch/cuda/__init__.py(695): __enter__	2.6	1.00
+GFUN	timeline4k1	python_function	<built-in method get of dict object>	2.6	15.35
+GFUN	timeline4k1	python_function	vllm/v1/executor/multiproc_executor.py(941): handle_output	2.6	2.00
+GFUN	timeline4k1	python_function	<built-in method nonzero of numpy.ndarray object>	2.5	1.00
+GFUN	timeline4k1	cpu_op	aten::slice	2.5	1.00
+GFUN	timeline4k1	python_function	<built-in function isinstance>	2.4	27.98
+GFUN	timeline4k1	python_function	torch/cuda/__init__.py(680): __init__	2.4	1.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/compact_greedy_backport.py(72): <genexpr>	2.4	8.99
+GFUN	timeline4k1	python_function	torch/autograd/grad_mode.py(279): __init__	2.4	2.00
+GFUN	timeline4k1	cpu_op	aten::unsqueeze	2.3	1.00
+GFUN	timeline4k1	python_function	torch/autograd/grad_mode.py(296): clone	2.2	2.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(3861): <dictcomp>	2.2	1.00
+GFUN	timeline4k1	python_function	<string>(2): __init__	2.2	2.00
+GFUN	timeline4k1	python_function	torch/cuda/__init__.py(161): _nvml_based_avail	2.2	3.00
+GFUN	timeline4k1	python_function	<frozen os>(756): encode	2.1	3.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(3739): _sample	2.1	1.00
+GFUN	timeline4k1	cpu_op	aten::as_strided	2.1	2.00
+GFUN	timeline4k1	python_function	<built-in function hasattr>	2.0	13.99
+GFUN	timeline4k1	python_function	torch/cuda/__init__.py(156): _is_compiled	2.0	6.00
+GFUN	timeline4k1	python_function	torch/cuda/__init__.py(411): _lazy_init	2.0	5.00
+GFUN	timeline4k1	python_function	torch/cuda/__init__.py(1110): current_device	2.0	3.00
+GFUN	timeline4k1	python_function	torch/cuda/__init__.py(710): __exit__	2.0	1.00
+GFUN	timeline4k1	python_function	torch/cuda/streams.py(63): wait_stream	1.9	1.00
+GFUN	timeline4k1	python_function	torch/_utils.py(811): _get_current_device_index	1.9	3.00
+GFUN	timeline4k1	python_function	torch/cuda/streams.py(77): record_event	1.8	1.00
+GFUN	timeline4k1	python_function	<frozen os>(773): getenv	1.8	3.00
+GFUN	timeline4k1	python_function	<built-in method append of list object>	1.7	17.35
+GFUN	timeline4k1	python_function	torch/autograd/grad_mode.py(284): __new__	1.7	2.00
+GFUN	timeline4k1	python_function	torch/_utils.py(778): _get_available_device_type	1.7	3.00
+GFUN	timeline4k1	python_function	queue.py(213): _put	1.6	2.00
+GFUN	timeline4k1	python_function	<frozen _collections_abc>(771): get	1.6	3.00
+GFUN	timeline4k1	python_function	multiprocessing/shared_memory.py(204): buf	1.5	8.00
+GFUN	timeline4k1	python_function	threading.py(271): __enter__	1.5	2.00
+GFUN	timeline4k1	python_function	torch/autograd/grad_mode.py(293): __exit__	1.4	2.00
+GFUN	timeline4k1	python_function	torch/cuda/__init__.py(362): is_initialized	1.4	5.00
+GFUN	timeline4k1	python_function	torch/cuda/__init__.py(1063): device_count	1.4	3.00
+GFUN	timeline4k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(173): record_read	1.4	2.00
+GFUN	timeline4k1	python_function	torch/_utils.py(813): <lambda>	1.3	3.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/gpu_input_batch.py(1173): num_reqs	1.2	3.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/gpu_input_batch.py(1089): set_async_sampled_token_ids	1.2	1.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/gpu_worker.py(801): sample_tokens	1.2	1.00
+GFUN	timeline4k1	python_function	threading.py(286): _is_owned	1.2	2.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/host_opt.py(458): <genexpr>	1.1	4.00
+GFUN	timeline4k1	python_function	contextlib.py(751): __init__	1.1	6.00
+GFUN	timeline4k1	python_function	threading.py(274): __exit__	1.1	2.00
+GFUN	timeline4k1	python_function	torch/cuda/__init__.py(737): _set_stream_by_id	1.1	2.00
+GFUN	timeline4k1	python_function	torch/cuda/__init__.py(724): stream	1.0	1.00
+GFUN	timeline4k1	python_function	<frozen os>(760): decode	1.0	3.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/compact_greedy_backport.py(94): <genexpr>	1.0	3.00
+GFUN	timeline4k1	python_function	<built-in method encode of str object>	1.0	3.00
+GFUN	timeline4k1	python_function	<built-in function _cuda_getCurrentStream>	1.0	2.00
+GFUN	timeline4k1	python_function	numpy/core/fromnumeric.py(1881): nonzero	0.9	1.00
+GFUN	timeline4k1	python_function	torch/_jit_internal.py(98): is_scripting	0.9	10.99
+GFUN	timeline4k1	python_function	torch/cuda/streams.py(181): __new__	0.9	1.00
+GFUN	timeline4k1	python_function	numpy/core/fromnumeric.py(53): _wrapfunc	0.9	1.00
+GFUN	timeline4k1	python_function	<built-in function _cuda_isInBadFork>	0.9	5.00
+GFUN	timeline4k1	python_function	<built-in method decode of bytes object>	0.9	3.00
+GFUN	timeline4k1	python_function	<built-in method __enter__ of pybind11_builtins.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0 object>	0.8	2.00
+GFUN	timeline4k1	python_function	torch/cuda/streams.py(197): record	0.8	1.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/gpu_input_batch.py(1106): update_async_output_token_ids	0.8	1.00
+GFUN	timeline4k1	python_function	torch/cuda/streams.py(46): wait_event	0.7	1.00
+GFUN	timeline4k1	python_function	<built-in method __enter__ of _thread.lock object>	0.7	2.00
+GFUN	timeline4k1	python_function	contextlib.py(754): __enter__	0.7	6.00
+GFUN	timeline4k1	python_function	torch/cuda/streams.py(207): wait	0.7	1.00
+GFUN	timeline4k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(343): get_data	0.7	2.00
+GFUN	timeline4k1	python_function	<built-in method acquire of _thread.lock object>	0.7	2.00
+GFUN	timeline4k1	python_function	<built-in function len>	0.6	4.00
+GFUN	timeline4k1	python_function	torch/backends/cuda/__init__.py(39): is_built	0.6	2.00
+GFUN	timeline4k1	python_function	contextlib.py(757): __exit__	0.6	6.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(3480): eplb_step	0.6	1.00
+GFUN	timeline4k1	python_function	vllm/distributed/device_communicators/shm_broadcast.py(351): get_metadata	0.6	2.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/worker_base.py(327): __getattr__	0.5	1.00
+GFUN	timeline4k1	python_function	<built-in method lower of str object>	0.5	3.00
+GFUN	timeline4k1	python_function	<built-in method __exit__ of memoryview object>	0.5	4.00
+GFUN	timeline4k1	python_function	typing.py(2256): cast	0.4	5.00
+GFUN	timeline4k1	python_function	<built-in method tolist of numpy.ndarray object>	0.4	1.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(5722): _get_prompt_logprobs_dict	0.4	1.00
+GFUN	timeline4k1	python_function	<built-in method copy of list object>	0.4	1.00
+GFUN	timeline4k1	python_function	<built-in method copy of dict object>	0.4	1.00
+GFUN	timeline4k1	python_function	<built-in method remove of collections.deque object>	0.3	2.00
+GFUN	timeline4k1	python_function	vllm/distributed/parallel_state.py(1364): get_pp_group	0.3	1.00
+GFUN	timeline4k1	python_function	<built-in method append of collections.deque object>	0.3	2.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(1580): _update_states_after_model_execute	0.3	1.00
+GFUN	timeline4k1	python_function	vllm/v1/worker/gpu_model_runner.py(1162): _get_or_create_async_output_copy_stream	0.3	1.00
+GFUN	timeline4k1	python_function	numpy/core/fromnumeric.py(1877): _nonzero_dispatcher	0.1	1.00
++ echo
+
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/base/config.txt ]]
++ continue
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/before_reboot/config.txt ]]
++ continue
++ for R in "${RUNS[@]}"
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench/opt/config.txt ]]
++ continue
++ set +x
+
+### exit: 0
