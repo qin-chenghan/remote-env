@@ -10,7 +10,8 @@
 
 用法: trace_eval_run.py LABEL trace.json[.gz]
 环境: TSHG_WARMUP=0,16；DEEP=1 出 scope 内逐函数；GAP=1 出 scope 间空档归因；
-      HONLY=1（配合 DEEP）只统计 H 窗口（S 并集之外）的 self time
+      HONLY=1（配合 DEEP）只统计 H 窗口（S 并集之外）的 self time；
+      SWHY=1 出 S 侧 sync 阻塞的调用点归因（全线程，含 kernel 并集时长）
 输出行首标记：### 元信息 / TSHG 汇总 / FUN 逐函数
 """
 import bisect
@@ -170,6 +171,7 @@ def main():
     deep = os.environ.get("DEEP", "") not in ("", "0")
     gap_mode = os.environ.get("GAP", "") not in ("", "0")
     hon = os.environ.get("HONLY", "") not in ("", "0")
+    swhy = os.environ.get("SWHY", "") not in ("", "0")
     dwarm = int(os.environ.get("DEEP_WARMUP", max(warmups) if warmups else 0))
     deep_topn = int(os.environ.get("DEEP_TOPN", "200"))
     gap_topn = int(os.environ.get("GAP_TOPN", "200"))
@@ -197,6 +199,9 @@ def main():
     msync = collections.defaultdict(float)
     msynccnt = collections.Counter()
     hwin = []
+    swsum = [collections.defaultdict(float) for _ in range(nsteps)] if swhy else []
+    swcnt = [collections.Counter() for _ in range(nsteps)] if swhy else []
+    kiv = [[] for _ in range(nsteps)] if swhy else []
 
     def outside(ts, end, mlo, mhi):
         """[ts,end] 中不落在合并区间并集内的长度。"""
@@ -270,6 +275,72 @@ def main():
                     step[k]["ivm"].append((a, b))
             k += 1
 
+    def walk_ctx(events, sink):
+        """同 walk_self，但把每个事件的最近非自身祖先 (cat, name) 一并回调。"""
+        by_tid = collections.defaultdict(list)
+        for e in events:
+            if e.get("ph") != "X":
+                continue
+            ts = e.get("ts")
+            dur = e.get("dur")
+            if ts is None or dur is None:
+                continue
+            by_tid[(e.get("pid"), e.get("tid"))].append(
+                (ts, ts + dur, dur, e.get("name", ""), e.get("cat", ""))
+            )
+        for key, evs in by_tid.items():
+            evs.sort(key=lambda x: (x[0], -x[1]))
+            stack = []
+            for ts, end, dur, name, cat in evs:
+                while stack and ts >= stack[-1][0]:
+                    top = stack.pop()
+                    par = (stack[-1][3], stack[-1][4]) if stack else ("", "")
+                    sink(top[5], top[1], top[3], top[4], top[1] - top[2], key, par)
+                    if stack:
+                        stack[-1][2] += top[1]
+                stack.append([end, dur, 0.0, name, cat, ts])
+            while stack:
+                top = stack.pop()
+                par = (stack[-1][3], stack[-1][4]) if stack else ("", "")
+                sink(top[5], top[1], top[3], top[4], top[1] - top[2], key, par)
+                if stack:
+                    stack[-1][2] += top[1]
+
+    def sw_sink(ts, dur, name, cat, selfd, key, par):
+        if sync_kind(name) is None or dur <= 0:
+            return
+        end = ts + dur
+        role = "main" if key[1] in main_tids else "other"
+        pn = ADDR_RE.sub("", par[1]) or "-"
+        kk = (name, role, par[0], pn, key[1])
+        k = bisect.bisect_right(starts, ts) - 1
+        if k < 0:
+            k = 0
+        while k < nsteps and starts[k] < end:
+            s, e, _t = steps[k]
+            a = max(ts, s)
+            b = min(end, e)
+            if b > a and k >= dwarm and phase[k] == "decode":
+                swsum[k][kk] += b - a
+                if s <= ts < e:
+                    swcnt[k][kk] += 1
+            k += 1
+
+    def ker_sink(ts, dur, name, cat, selfd, key, par):
+        if cat != "kernel" or dur <= 0:
+            return
+        end = ts + dur
+        k = bisect.bisect_right(starts, ts) - 1
+        if k < 0:
+            k = 0
+        while k < nsteps and starts[k] < end:
+            s, e, _t = steps[k]
+            a = max(ts, s)
+            b = min(end, e)
+            if b > a and k >= dwarm and phase[k] == "decode":
+                kiv[k].append((a, b))
+            k += 1
+
     def iv_sink(ts, dur, name, cat, selfd, key):
         if sync_kind(name) is None:
             return
@@ -288,7 +359,7 @@ def main():
                     step[k]["ivm"].append((a, b))
             k += 1
 
-    if hon:
+    if hon or swhy:
         walk_self(ev, iv_sink)
         for p in step:
             ivs = sorted(p["iv"])
@@ -303,6 +374,9 @@ def main():
             hwin.append((mlo, mhi))
 
     walk_self(ev, sink)
+    if swhy:
+        walk_ctx(ev, sw_sink)
+        walk_ctx(ev, ker_sink)
     data = ev = None
 
     for p in step:
@@ -334,6 +408,32 @@ def main():
                 f"\tG={G:.2f}\tHG={H + G:.2f}\tHGm={Hm + G:.2f}"
                 f"\tS_pct={(S / T * 100) if T else 0:.1f}"
             )
+
+    if swhy:
+        dec = [i for i in range(dwarm, nsteps) if phase[i] == "decode"]
+        ndec = len(dec)
+        if ndec:
+            agg = collections.defaultdict(lambda: [0.0, 0])
+            for i in dec:
+                for kk, v in swsum[i].items():
+                    agg[kk][0] += v
+                    agg[kk][1] += swcnt[i][kk]
+            sus = sum(step[i]["S"] for i in dec) / ndec
+            smm = sum(step[i]["Sm"] for i in dec) / ndec
+            tot = sum(v[0] for v in agg.values()) / ndec
+            kbusy = sum(union_len(kiv[i]) for i in dec) / ndec
+            print(
+                f"### {label} SWHY decode_steps={ndec} S_union={sus:.1f}us/step"
+                f" S_main_union={smm:.1f}us/step sync_sum={tot:.1f}us/step"
+                f" kernel_union={kbusy:.1f}us/step"
+            )
+            print(f"### {label} SWCTX top20 (µs/step, calls/step)")
+            for (api, role, pcat, pn, _tid), (v, c) in sorted(
+                agg.items(), key=lambda kv: -kv[1][0]
+            )[:20]:
+                print(
+                    f"SWCTX\t{label}\t{api}\t{role}\t{pcat}\t{pn}\t{v / ndec:.1f}\t{c / ndec:.2f}"
+                )
 
     print(f"### {label} FUN top60 (µs/step, calls/step)")
     for (cat, name), v in sorted(fun.items(), key=lambda kv: -kv[1])[:60]:
