@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 184 切 sp3 内核后：给当前内核重建并加载 iluvatar 驱动（DKMS 路径）。
-# 只动 dkms 与模块；已加载模块不卸载、不重启。
+# 184 sp3 内核的 iluvatar 驱动：默认只读检查；FIX=1 才构建/安装/加载。
+# 已加载模块不卸载、不重启。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,12 +11,14 @@ OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
 KREL=$(uname -r)
+FIX=${FIX:-0}
 FAIL=0
 
 {
     echo "### server: $SERVER"
     echo "### host:   $(hostname)"
     echo "### time:   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    echo "### mode:   FIX=$FIX"
     echo
     set -x
 
@@ -31,12 +33,13 @@ FAIL=0
 
     echo "== 1. 驱动现状 =="
     LOADED=0
-    lsmod | grep -q '^iluvatar' && LOADED=1
+    grep -q '^iluvatar ' /proc/modules && LOADED=1
     echo "LOADED=$LOADED"
-    lsmod | grep '^iluvatar' || echo "iluvatar: not loaded"
+    grep '^iluvatar ' /proc/modules || echo "iluvatar: not loaded"
     ls -l /dev/iluvatar* 2>&1 | head
     timeout 20 /usr/local/corex-5.0.0/bin/ixsmi > /tmp/ixsmi.$$ 2>&1
-    echo "ixsmi rc=$?"
+    IXRC=$?
+    echo "ixsmi rc=$IXRC"
     head -20 /tmp/ixsmi.$$
     dmesg 2>/dev/null | grep -i iluvatar | tail -12
 
@@ -52,12 +55,14 @@ FAIL=0
     modinfo -F vermagic /lib/modules/"$KREL"/updates/iluvatar.ko* 2>&1
 
     WORKING=0
-    if [[ $LOADED == 1 && -e /dev/iluvatar0 ]]; then
-        timeout 20 /usr/local/corex-5.0.0/bin/ixsmi >/dev/null 2>&1 && WORKING=1
+    if [[ $LOADED == 1 && -e /dev/iluvatar0 && $IXRC == 0 ]]; then
+        WORKING=1
     fi
     echo "WORKING=$WORKING"
 
-    if [[ $WORKING == 1 ]]; then
+    if [[ $FIX != 1 ]]; then
+        echo "== 只读模式：不做任何改动（要修就 FIX=1 bash 184/cmd.sh） =="
+    elif [[ $WORKING == 1 ]]; then
         echo "== 驱动已可用，跳过构建 =="
     elif [[ $LOADED == 1 ]]; then
         echo "== 模块已加载但不可用：不自动卸载/重装，保留现场 =="
@@ -99,32 +104,40 @@ FAIL=0
         fi
 
         if [[ $FAIL == 0 ]]; then
-            echo "== 4. VGPU_ENABLE=0（源目录） =="
-            CONF="$SRC/dkms.conf"
-            grep -n VGPU_ENABLE "$CONF"
-            if grep -q 'VGPU_ENABLE=1' "$CONF"; then
-                cp -a "$CONF" "$CONF.bak-$TS"
-                sed -i 's/VGPU_ENABLE=1/VGPU_ENABLE=0/g' "$CONF"
-                echo "VGPU_ENABLE set to 0"
-            fi
-            grep -n VGPU_ENABLE "$CONF"
-
-            echo "== 5. dkms build / install =="
-            dkms build --force corex/5.0.0 -k "$KREL" || FAIL=4
-            if [[ $FAIL == 0 ]]; then
-                dkms install --force corex/5.0.0 -k "$KREL" || FAIL=5
-            fi
-
-            if [[ $FAIL == 0 ]]; then
-                echo "== 6. depmod + modprobe =="
+            echo "== 4. 已装过就只加载 =="
+            if dkms status 2>/dev/null | grep -F "$KREL" | grep -c installed >/dev/null; then
+                echo "dkms already installed for $KREL; modprobe only"
                 depmod -a "$KREL"
                 modprobe iluvatar; echo "modprobe rc=$?"
                 sleep 3
+            else
+                echo "== 5. VGPU_ENABLE=0（源目录） =="
+                CONF="$SRC/dkms.conf"
+                grep -n VGPU_ENABLE "$CONF"
+                if grep -q 'VGPU_ENABLE=1' "$CONF"; then
+                    cp -a "$CONF" "$CONF.bak-$TS"
+                    sed -i 's/VGPU_ENABLE=1/VGPU_ENABLE=0/g' "$CONF"
+                    echo "VGPU_ENABLE set to 0"
+                fi
+                grep -n VGPU_ENABLE "$CONF"
+
+                echo "== 6. dkms build / install =="
+                dkms build --force corex/5.0.0 -k "$KREL" || FAIL=4
+                if [[ $FAIL == 0 ]]; then
+                    dkms install corex/5.0.0 -k "$KREL" || FAIL=5
+                fi
+
+                if [[ $FAIL == 0 ]]; then
+                    echo "== 7. depmod + modprobe =="
+                    depmod -a "$KREL"
+                    modprobe iluvatar; echo "modprobe rc=$?"
+                    sleep 3
+                fi
             fi
         fi
 
-        echo "== 7. 验证 =="
-        lsmod | grep '^iluvatar' || echo "iluvatar: not loaded"
+        echo "== 8. 验证 =="
+        grep '^iluvatar ' /proc/modules || echo "iluvatar: not loaded"
         ls -l /dev/iluvatar* 2>&1 | head
         timeout 20 /usr/local/corex-5.0.0/bin/ixsmi > /tmp/ixsmi.$$ 2>&1
         echo "ixsmi rc=$?"
@@ -133,7 +146,7 @@ FAIL=0
         dkms status 2>&1
 
         if [[ $FAIL != 0 ]]; then
-            echo "== 8. 失败现场 =="
+            echo "== 9. 失败现场 =="
             echo "FAIL=$FAIL"
             find /var/lib/dkms/corex/5.0.0 -name 'make.log' 2>/dev/null | head -3
             for f in $(find /var/lib/dkms/corex/5.0.0 -name 'make.log' 2>/dev/null | head -1); do
