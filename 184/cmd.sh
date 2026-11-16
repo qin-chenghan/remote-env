@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
-# 对比 vllmBench_lite_opt.sh 与 vllmBench_lite_timeline.sh：启动服务/启动 bench 是否同一套。
-# 纯 CPU：只读脚本与历史 run 配置，不启动 vllm、不动 GPU。
+# 184 切 sp3 内核后：给当前内核重建并加载 iluvatar 驱动（DKMS 路径）。
+# 只动 dkms 与模块；已加载模块不卸载、不重启。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -10,7 +10,9 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
-BASE=/home/qch/scripts/litehost_perf/vllmBench
+KREL=$(uname -r)
+FAIL=0
+
 {
     echo "### server: $SERVER"
     echo "### host:   $(hostname)"
@@ -19,79 +21,129 @@ BASE=/home/qch/scripts/litehost_perf/vllmBench
     set -x
 
     # ---- 命令开始 ----
-    echo "== 0. 两份脚本（opt 用 huawei_ts_program 下的；timeline 用 qch 下的） =="
-    OPT=/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_opt.sh
-    TL=/home/qch/scripts/litehost_perf/vllmBench_lite_timeline.sh
-    echo "-- 正式路径 --"
-    for f in "$OPT" "$TL"; do
-        ls -l --time-style=long-iso "$f" 2>&1
-        sha256sum "$f" 2>&1
-        wc -l "$f" 2>&1
-    done
-    echo "-- 其他同名副本（仅参照，不参与 diff）--"
-    find /home/qch /home/huawei_ts_program /home/lw -maxdepth 4 \
-        \( -name 'vllmBench_lite_opt.sh' -o -name 'vllmBench_lite_timeline.sh' \) \
-        ! -path "$OPT" ! -path "$TL" 2>/dev/null | while read -r f; do
-        ls -l --time-style=long-iso "$f"
-        sha256sum "$f"
-    done
+    echo "== 0. 内核与系统 =="
+    uname -a
+    echo "PAGESIZE=$(getconf PAGESIZE)"
+    sed -n '1,4p' /etc/os-release
+    grubby --default-kernel 2>/dev/null
+    grub2-editenv list 2>/dev/null
+    df -h / | tail -1
 
-    echo "== 1. 两份脚本 diff =="
-    echo "OPT=$OPT"; echo "TL=$TL"
-    if [[ -n "$OPT" && -n "$TL" ]]; then
-        diff -u "$OPT" "$TL" | head -400
+    echo "== 1. 驱动现状 =="
+    LOADED=0
+    lsmod | grep -q '^iluvatar' && LOADED=1
+    echo "LOADED=$LOADED"
+    lsmod | grep '^iluvatar' || echo "iluvatar: not loaded"
+    ls -l /dev/iluvatar* 2>&1 | head
+    timeout 20 /usr/local/corex-5.0.0/bin/ixsmi > /tmp/ixsmi.$$ 2>&1
+    echo "ixsmi rc=$?"
+    head -20 /tmp/ixsmi.$$
+    dmesg 2>/dev/null | grep -i iluvatar | tail -12
+
+    echo "== 2. DKMS / 源码 / 头文件 =="
+    command -v dkms || echo "dkms: not installed"
+    dkms status 2>&1
+    ls -d /usr/src/corex-* 2>&1
+    ls -d /var/lib/dkms/corex/* 2>&1 | head
+    grep -n '_BUILDOPT\|VGPU_ENABLE' /usr/src/corex-5.0.0/dkms.conf 2>&1
+    ls -d /usr/src/kernels/* 2>&1
+    ls -l /lib/modules/"$KREL"/build 2>&1
+    ls -l /lib/modules/"$KREL"/updates/ 2>&1 | head
+    modinfo -F vermagic /lib/modules/"$KREL"/updates/iluvatar.ko* 2>&1
+
+    WORKING=0
+    if [[ $LOADED == 1 && -e /dev/iluvatar0 ]]; then
+        timeout 20 /usr/local/corex-5.0.0/bin/ixsmi >/dev/null 2>&1 && WORKING=1
+    fi
+    echo "WORKING=$WORKING"
+
+    if [[ $WORKING == 1 ]]; then
+        echo "== 驱动已可用，跳过构建 =="
+    elif [[ $LOADED == 1 ]]; then
+        echo "== 模块已加载但不可用：不自动卸载/重装，保留现场 =="
+        dmesg 2>/dev/null | grep -i iluvatar | tail -20
+    else
+        echo "== 3. 源码与头文件检查 =="
+        SRC=/usr/src/corex-5.0.0
+        if [[ ! -f "$SRC/dkms.conf" ]]; then
+            echo "STOP: $SRC/dkms.conf 不存在"
+            ls -l /home/qch/transfer/*corex*5.0.0* 2>/dev/null | head
+            FAIL=2
+        fi
+
+        if [[ $FAIL == 0 ]]; then
+            if [[ -d /usr/src/kernels/"$KREL" && -e /lib/modules/"$KREL"/build ]]; then
+                echo "kernel-devel present: $KREL"
+            else
+                echo "exact kernel-devel missing: $KREL"
+                dnf -q list --showduplicates kernel-devel 2>/dev/null | grep -F "$KREL" | head -5
+                if dnf -q list kernel-devel-"$KREL" >/dev/null 2>&1; then
+                    dnf install -y --setopt=install_weak_deps=False kernel-devel-"$KREL"
+                else
+                    RPM=$(find /home/l30029702/64k /home/qch/transfer -maxdepth 2 \
+                        -name "kernel-devel-*${KREL}*.rpm" 2>/dev/null | head -1)
+                    echo "local rpm: ${RPM:-none}"
+                    if [[ -n "$RPM" ]]; then
+                        dnf install -y "$RPM"
+                    else
+                        echo "STOP: 没有 $KREL 的 kernel-devel（dnf 与本地 rpm 都没有）"
+                        FAIL=3
+                    fi
+                fi
+            fi
+        fi
+
+        if [[ $FAIL == 0 && ! -e /lib/modules/"$KREL"/build ]]; then
+            echo "STOP: /lib/modules/$KREL/build 仍不存在"
+            FAIL=3
+        fi
+
+        if [[ $FAIL == 0 ]]; then
+            echo "== 4. VGPU_ENABLE=0（源目录） =="
+            CONF="$SRC/dkms.conf"
+            grep -n VGPU_ENABLE "$CONF"
+            if grep -q 'VGPU_ENABLE=1' "$CONF"; then
+                cp -a "$CONF" "$CONF.bak-$TS"
+                sed -i 's/VGPU_ENABLE=1/VGPU_ENABLE=0/g' "$CONF"
+                echo "VGPU_ENABLE set to 0"
+            fi
+            grep -n VGPU_ENABLE "$CONF"
+
+            echo "== 5. dkms build / install =="
+            dkms build --force corex/5.0.0 -k "$KREL" || FAIL=4
+            if [[ $FAIL == 0 ]]; then
+                dkms install --force corex/5.0.0 -k "$KREL" || FAIL=5
+            fi
+
+            if [[ $FAIL == 0 ]]; then
+                echo "== 6. depmod + modprobe =="
+                depmod -a "$KREL"
+                modprobe iluvatar; echo "modprobe rc=$?"
+                sleep 3
+            fi
+        fi
+
+        echo "== 7. 验证 =="
+        lsmod | grep '^iluvatar' || echo "iluvatar: not loaded"
+        ls -l /dev/iluvatar* 2>&1 | head
+        timeout 20 /usr/local/corex-5.0.0/bin/ixsmi > /tmp/ixsmi.$$ 2>&1
+        echo "ixsmi rc=$?"
+        head -20 /tmp/ixsmi.$$
+        dmesg 2>/dev/null | grep -i iluvatar | tail -15
+        dkms status 2>&1
+
+        if [[ $FAIL != 0 ]]; then
+            echo "== 8. 失败现场 =="
+            echo "FAIL=$FAIL"
+            find /var/lib/dkms/corex/5.0.0 -name 'make.log' 2>/dev/null | head -3
+            for f in $(find /var/lib/dkms/corex/5.0.0 -name 'make.log' 2>/dev/null | head -1); do
+                echo "-- $f"
+                tail -60 "$f"
+            done
+        fi
     fi
 
-    echo "== 2. 服务启动参数与 bench 客户端 =="
-    for f in "$OPT" "$TL"; do
-        [[ -n "$f" ]] || continue
-        echo "-- $f --"
-        grep -nE 'SERVER_ARGS|HOST_MEASURE=|bench_driver|bench serve|num_prompts|num-warmups|max-concurrency|random_input_len|random_output_len|seed|profiler-config|LD_PRELOAD|VLLM_RPC_TIMEOUT' "$f" | head -60
-    done
-
-    echo "== 3. bench_driver.py 是什么 =="
-    HK=/home/huawei_ts_program/litehost_perf_opt
-    [[ -f "$HK/bench_driver.py" ]] || HK=$(dirname "$OPT" 2>/dev/null)
-    ls -l --time-style=long-iso "$HK/bench_driver.py" 2>/dev/null
-    sed -n '1,90p' "$HK/bench_driver.py" 2>/dev/null
-    grep -nE 'bench serve|vllm.entrypoints|subprocess|main\(|sys.argv|profile' "$HK/bench_driver.py" 2>/dev/null | head -30
-
-    RUNROOTS=("$BASE" /home/huawei_ts_program/litehost_perf_opt/vllmBench)
-    echo "== 4. 四轮 run 的实际配置对照 =="
-    for B in "${RUNROOTS[@]}"; do
-        for R in $(ls -dt "$B"/*/ 2>/dev/null | head -40); do
-            [[ -f "$R/config.txt" ]] || continue
-            case "$(basename "$R")" in
-                *4k*|*64k*|*timeline*) ;;
-                *) continue ;;
-            esac
-            echo "-- $(basename "$R") [$B] --"
-            cat "$R/config.txt"
-        done
-    done
-
-    echo "== 5. bench 请求参数（从 summary/json 佐证） =="
-    for B in "${RUNROOTS[@]}"; do
-        for R in $(ls -dt "$B"/*/ 2>/dev/null | head -40); do
-            [[ -f "$R/config.txt" ]] || continue
-            case "$(basename "$R")" in
-                *4k*|*64k*|*timeline*) ;;
-                *) continue ;;
-            esac
-            echo "-- $(basename "$R") [$B] --"
-            head -3 "$R/summary.csv" 2>/dev/null
-            for j in "$R"/bs8_in128_out128*.json; do
-                [[ -f "$j" ]] || continue
-                python3 - "$j" <<'PY' 2>/dev/null
-import json,sys
-d=json.load(open(sys.argv[1]))
-keys=("num_prompts","max_concurrency","num_warmups","random_input_len","random_output_len","seed","model_id","date")
-print({k:d.get(k) for k in keys})
-PY
-            done
-        done
-    done
-
+    rm -f /tmp/ixsmi.$$
     # ---- 命令结束 ----
 
     set +x
