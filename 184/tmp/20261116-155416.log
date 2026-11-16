@@ -1,0 +1,200 @@
+### server: 184
+### host:   controller
+### time:   2026-11-16T07:54:16Z
+### repo:   /home/qch/tools/remote-env
+
++ echo '== 0. 找 docx =='
+== 0. 找 docx ==
++ find /home/qch/tools/remote-env -path /home/qch/tools/remote-env/.git -prune -o -type f '(' -iname '*.docx' -o -iname '*.doc' ')' -print
+/home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx
+++ find /home/qch/tools/remote-env -path /home/qch/tools/remote-env/.git -prune -o -type f -iname '*.docx' -print
++ DOCS=/home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx
+++ find /home/qch/tools/remote-env -path /home/qch/tools/remote-env/.git -prune -o -type f -iname '*.doc' -print
++ LEGACY=
++ echo '== 1. 文件信息 =='
+== 1. 文件信息 ==
++ printf '%s\n' /home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx
++ printf '%s\n' ''
++ IFS=
++ read -r f
++ '[' -n /home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx ']'
++ echo '--- /home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx'
+--- /home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx
++ ls -l /home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx
+-rw-r--r--. 1 root root 14521674 Nov 16 15:54 /home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx
++ file /home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx
+/home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx: Microsoft Word 2007+
+++ stat -c %s /home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx
++ echo size_bytes=14521674
+size_bytes=14521674
++ IFS=
++ read -r f
++ '[' -n '' ']'
++ continue
++ IFS=
++ read -r f
++ echo '== 2. Git 状态 / 为什么没推上去 =='
+== 2. Git 状态 / 为什么没推上去 ==
++ cd /home/qch/tools/remote-env
++ git remote -v
+origin	https://github.com/qin-chenghan/remote-env.git (fetch)
+origin	https://github.com/qin-chenghan/remote-env.git (push)
++ git status -sb
+## main...origin/main
+?? 184/tmp/20261116-155416.log
+?? docs/
++ echo '--- 本地领先 origin 的提交'
+--- 本地领先 origin 的提交
++ git log --oneline origin/main..HEAD
++ echo '--- 已被 git 跟踪的 doc/docx'
+--- 已被 git 跟踪的 doc/docx
++ git ls-files
++ grep -iE '\.docx?$'
++ echo （没有）
+（没有）
++ echo '--- 每条 docx 的 ignore 判定'
+--- 每条 docx 的 ignore 判定
++ printf '%s\n' /home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx
++ printf '%s\n' ''
++ IFS=
++ read -r f
++ '[' -n /home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx ']'
++ rel=docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx
++ git check-ignore -v /home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx
++ echo 'docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx: 未被 ignore'
+docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx: 未被 ignore
++ IFS=
++ read -r f
++ '[' -n '' ']'
++ continue
++ IFS=
++ read -r f
++ echo '--- hooks / 推送配置'
+--- hooks / 推送配置
++ ls -l .git/hooks/pre-push .git/hooks/pre-commit .git/hooks/pre-receive
++ echo '（无相关 hook）'
+（无相关 hook）
+++ git config --get core.hooksPath
+++ true
++ echo hooksPath=
+hooksPath=
+++ git config --get push.default
+++ true
++ echo push.default=
+push.default=
++ echo '--- 仓库大小 / 大文件'
+--- 仓库大小 / 大文件
++ git count-objects -vH
+count: 534
+size: 15.08 MiB
+in-pack: 1637
+packs: 1
+size-pack: 842.87 KiB
+prune-packable: 0
+garbage: 0
+size-garbage: 0 bytes
++ echo '--- 最近一次提交'
+--- 最近一次提交
++ git log -1 --stat --oneline
+be074d0 cmd: locate docx, diagnose push blockers, convert to markdown
+ 184/cmd.sh | 220 +++++++++++++++++++++++++++++++++++++++++++------------------
+ 1 file changed, 155 insertions(+), 65 deletions(-)
++ echo '== 3. 转 md =='
+== 3. 转 md ==
++ command -v pandoc
++ echo 'pandoc: 不可用'
+pandoc: 不可用
++ command -v python3
+/root/miniconda3/bin/python3
++ i=0
++ printf '%s\n' /home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx
++ IFS=
++ read -r f
++ '[' -n /home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx ']'
++ i=1
+++ basename /home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx .docx
++ base=llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释
++ md=/home/qch/tools/remote-env/184/tmp/20261116-155416.1.llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.md
++ echo '--- 转换 /home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx -> /home/qch/tools/remote-env/184/tmp/20261116-155416.1.llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.md'
+--- 转换 /home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx -> /home/qch/tools/remote-env/184/tmp/20261116-155416.1.llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.md
++ command -v pandoc
++ python3 - /home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx /home/qch/tools/remote-env/184/tmp/20261116-155416.1.llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.md
+python ok, chars=26514
++ echo '--- 预览（前 60 行）'
+--- 预览（前 60 行）
++ sed -n 1,60p /home/qch/tools/remote-env/184/tmp/20261116-155416.1.llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.md
+【详设文档】llama.cpp 鲲鹏920B 优化
+
+1 文档信息
+
+| 项目 | 内容 |
+|---|---|
+| 文档标题 | llama.cpp 鲲鹏920B 优化详细设计文档 |
+| 文档版本 | v1.0 |
+| 作者 | 刘凯欣 梁鑫嵘 |
+| 创建日期 | 2026.7.15 |
+| 适用产品 | 鲲鹏 920B (7280Z) 处理器 |
+| 适用场景 | CPU小模型推理 |
+| 优化目标 | llama.cpp 推理引擎 CPU 侧 ARM 矩阵乘法与注意力算子性能优化 |
+
+2 引言
+
+2.1 编写目的
+
+本文档针对 llama.cpp 推理引擎在鲲鹏 ARM 平台上的 CPU 算子性能瓶颈，进行详细的优化设计。llama.cpp 是大模型推理的核心引擎之一，其 CPU 后端的矩阵乘法和注意力机制（SDPA）算子的性能直接影响推理端到端的时延。
+
+文档明确各优化点的功能、算法、接口、实现方案和测试标准，为 llama.cpp 在鲲鹏平台的适配、开发、测试提供统一依据。
+
+利益相关人
+
+软件设计人员：关注架构合理性、后期演进、鲲鹏硬件亲和性
+
+软件开发人员：关注功能符合度、优化方案落地性
+
+软件测试人员：关注可测试性、集成性、性能达标情况
+
+2.2 需求背景
+
+2.2.1 需求价值
+
+为支撑鲲鹏920B在国计民生场景作为Agent一体机、AI机头场景时的竞争力，对主流大模型推理框架 llama.cpp 进行 CPU 算子深度优化，充分发挥鲲鹏920B的 NEON/SVE/i8mm 指令集能力，提升矩阵乘法和注意力计算性能。
+
+2.2.2 需求信息
+
+需求来源：内部改进
+
+需求类别：II-C 开源
+
+目标硬件：鲲鹏 920B
+
+优化范围：llama.cpp CPU Backend 矩阵乘法 (F32/F16/Q8_0) + Fused SDPA 注意力计算
+
+2.2.3 详细需求
+
+功能需求
+
+在鲲鹏920B上针对 llama.cpp CPU 后端的矩阵乘法和注意力计算，使用 ARM NEON/SVE 指令集进行鲲鹏亲和优化，实现以下优化：
+
+FP16 矩阵乘法：SVE 1×8 内积 kernel + NEON 4×4/8×16 外积 tile kernel，fp16×fp16→fp32
+
+FP32 矩阵乘法：SVE 4×4 tile 微内核，256-bit 向量并行
+
+Q8_0 量化矩阵乘法：MMLA (i8mm) + spack 数据打包，8×8 tile
+
+Fused SDPA：FlashAttention v2 NEON 融合 kernel，QKV pack+transpose，对角分块 64×64(实验中，精度待测)
+
++ IFS=
++ read -r f
++ '[' -n '' ']'
++ '[' -z /home/qch/tools/remote-env/docs/llamacpp_鲲鹏920B优化_详设文档_v1.0-补充接口注释.docx ']'
++ echo '== 4. 结论提示 =='
+== 4. 结论提示 ==
++ echo '如果第 2 节显示 184/docs/ 命中 .gitignore：文件不是被远端拦截，是根本没进 commit。'
+如果第 2 节显示 184/docs/ 命中 .gitignore：文件不是被远端拦截，是根本没进 commit。
++ echo '要上库有两个办法：1) 把 md 放到 184/tmp/（不被忽略）；2) 确需 docx 就 git add -f，但二进制不建议入库。'
+要上库有两个办法：1) 把 md 放到 184/tmp/（不被忽略）；2) 确需 docx 就 git add -f，但二进制不建议入库。
++ echo 'GitHub 单文件硬上限 100 MiB；超过会在 push 时被远端拒绝。'
+GitHub 单文件硬上限 100 MiB；超过会在 push 时被远端拒绝。
++ set +x
+
+### exit: 0
