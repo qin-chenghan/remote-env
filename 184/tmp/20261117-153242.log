@@ -1,0 +1,51 @@
+### server: 184
+### host:   controller
+### time:   2026-11-17T07:32:42Z
+### repo:   /home/qch/tools/remote-env
+
++ echo '== 1. base venv: grep / hash / context =='
+== 1. base venv: grep / hash / context ==
++ docker exec corex5-py311 bash -lc '
+        f=/opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+        ls -l "$f"
+        echo "-- grep -c --"
+        grep -c VLLM_DISABLE_DECODE_FASTPATH "$f" || true
+        echo "-- sha256 --"
+        sha256sum "$f"
+        echo "-- context --"
+        grep -n -B4 -A8 VLLM_DISABLE_DECODE_FASTPATH "$f" | head -40
+    '
+-rw-r--r--. 1 root root 355005 Nov 10 10:18 /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+-- grep -c --
+0
+-- sha256 --
+b1bc3b00a8c09cceeb49111c864584018f84ea10440ef400d6dd2c8fb6e24a5e  /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+-- context --
++ echo '== 2. PGO venv: grep / hash =='
+== 2. PGO venv: grep / hash ==
++ docker exec corex5-py311 bash -lc '
+        f=/opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+        if [ -f "$f" ]; then
+            ls -l "$f"
+            echo "-- grep -c --"
+            grep -c VLLM_DISABLE_DECODE_FASTPATH "$f" || true
+            echo "-- sha256 --"
+            sha256sum "$f"
+        else
+            echo "missing: $f"
+        fi
+    '
+-rw-r--r--. 1 root root 355632 Nov 12 19:35 /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
+-- grep -c --
+0
+-- sha256 --
+4d5ea12ff1654da58be7f1c6aa891be31251c8c176388d1e2e04d38e2605b6a1  /opt/corex311-cpython-vllm/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py
++ echo '== 3. 对照 hash =='
+== 3. 对照 hash ==
++ echo 'with-fastpath  : b869bfb1e34bb48b6fe9333a734bb96d97585bd2017bef5ab21a4e36b5370fbe'
+with-fastpath  : b869bfb1e34bb48b6fe9333a734bb96d97585bd2017bef5ab21a4e36b5370fbe
++ echo 'stock-no-patch : ff9f2df42976347b85fbd6e12623b217e1beda6d5248a5662b3cf397eacaef59'
+stock-no-patch : ff9f2df42976347b85fbd6e12623b217e1beda6d5248a5662b3cf397eacaef59
++ set +x
+
+### exit: 0
