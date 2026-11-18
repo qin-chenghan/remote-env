@@ -17,62 +17,58 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 只读诊断：ixsmi 找不到，区分是 PATH/符号链接问题还是驱动掉了。
+  # 内核升级到 6.6.0-159 后重建 iluvatar.ko（kernel-devel 已装）。
 
-  echo "== 1. PATH 与二进制 =="
-  echo "PATH=$PATH"
-  command -v ixsmi || echo "ixsmi 不在 PATH"
-  ls -l /usr/local/corex/bin/ixsmi /usr/local/corex-5.0.0/bin/ixsmi /usr/local/corex-4.4.0/bin/ixsmi 2>&1
-  ls -ld /usr/local/corex /usr/local/corex-5.0.0 /usr/local/corex-4.4.0 2>&1
-  readlink -f /usr/local/corex 2>&1
-  ls /usr/local/corex 2>&1 | head
+  K=$(uname -r)
+  RUN=/home/qch/transfer/corex-driver-linux64-5.0.0_x86_64.run
+  SRC=/home/qch/transfer/corex-drv-5.0.0-x86_64
 
-  echo "== 2. 当前内核 =="
-  uname -r
-  uname -m
-  getconf PAGE_SIZE
-  ls /lib/modules 2>&1
-  rpm -qa 2>/dev/null | grep -E '^kernel(-devel|-headers)?-' | sort
+  echo "== 1. 前置 =="
+  echo "kernel=$K"
+  ls -ld "/lib/modules/$K/build" 2>&1
+  readlink -f "/lib/modules/$K/build" 2>&1
+  df -h / /home | tail -2
 
-  echo "== 3. 模块状态 =="
-  lsmod | grep iluvatar || echo "iluvatar 未加载"
-  for k in /lib/modules/*; do
-    ls -l "$k/updates/iluvatar.ko" 2>/dev/null
-    ls -l "$k/kernel/drivers/misc/iluvatar.ko" 2>/dev/null
-  done
-  modinfo -F vermagic /lib/modules/"$(uname -r)"/updates/iluvatar.ko 2>&1
-  cat /etc/modules-load.d/iluvatar.conf 2>&1
-  cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>/dev/null || echo "無参数文件"
+  echo "== 2. 解包驱动（持久化到 /home，供后续内核升级复用）=="
+  if [ ! -d "$SRC/kernel" ]; then
+    rm -rf "$SRC"
+    sh "$RUN" --noexec --keep --target "$SRC" 2>&1 | tail -4
+  else
+    echo "已存在，复用 $SRC"
+  fi
+  ls "$SRC" 2>&1 | head -8
 
-  echo "== 4. 设备节点 =="
-  ls -l /dev/iluvatar* 2>&1 | head -6
+  echo "== 3. 编译 =="
+  cd "$SRC/kernel" || exit 1
+  make KERNEL_UNAME="$K" -j"$(nproc)" > "$SRC/build-$K.log" 2>&1
+  RC=$?
+  echo "build rc=$RC"
+  tail -20 "$SRC/build-$K.log"
+  KO="$SRC/kernel/iluvatar.ko"
 
-  echo "== 5. 尝试加载 =="
-  modprobe iluvatar 2>&1
-  echo "modprobe rc=$?"
-  lsmod | grep iluvatar || echo "仍未加载"
-  ls -l /dev/iluvatar* 2>&1 | head -6
+  if [ "$RC" -eq 0 ] && [ -f "$KO" ]; then
+    echo "== 4. 安装模块 =="
+    install -D -m 644 "$KO" "/lib/modules/$K/updates/iluvatar.ko"
+    echo "install rc=$?"
+    modinfo -F vermagic "/lib/modules/$K/updates/iluvatar.ko" 2>&1
 
-  echo "== 6. 内核日志 =="
-  dmesg 2>/dev/null | grep -iE 'iluvatar|version magic|unknown symbol|module verification' | tail -20
+    echo "== 5. depmod + modprobe =="
+    depmod -a "$K"
+    modprobe iluvatar
+    echo "modprobe rc=$?"
+    lsmod | grep iluvatar || echo "仍未加载"
+    ls -l /dev/iluvatar* 2>&1 | head -6
 
-  echo "== 7. ixsmi 直跑 =="
-  timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | head -25
-  echo "ixsmi rc=$?"
+    echo "== 6. 验证 =="
+    dmesg 2>/dev/null | grep -iE 'iluvatar' | tail -10
+    timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | head -20
+    echo "ixsmi rc=$?"
+  else
+    echo "!! 编译失败，未安装。日志: $SRC/build-$K.log"
+  fi
 
-  echo "== 8. 重启历史 =="
-  uptime
-  last -x reboot 2>/dev/null | head -5
-
-  echo "== 9. 容器内 ixsmi =="
-  docker exec corex5-py311 bash -lc '
-    command -v ixsmi || echo "容器内无 ixsmi"
-    ls /usr/local/corex/bin 2>&1 | head -8
-    ls /dev/iluvatar* 2>&1 | wc -l
-  ' 2>&1 | head -15
-
-  echo "== 10. 空间 =="
-  df -h / /home | tail -3
+  echo "== 7. 收尾 =="
+  df -h / | tail -1
 
   # ---- 命令结束 ----
 
