@@ -1,0 +1,134 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-18T07:16:52Z
+
+++ uname -r
++ K=6.6.0-159.4.21.175.oe2403sp4.x86_64
++ RUN=/home/qch/transfer/corex-driver-linux64-5.0.0_x86_64.run
++ SRC=/home/qch/transfer/corex-drv-5.0.0-x86_64
++ echo '== 1. 前置 =='
+== 1. 前置 ==
++ echo kernel=6.6.0-159.4.21.175.oe2403sp4.x86_64
+kernel=6.6.0-159.4.21.175.oe2403sp4.x86_64
++ ls -ld /lib/modules/6.6.0-159.4.21.175.oe2403sp4.x86_64/build
+lrwxrwxrwx. 1 root root 52 Nov  9 19:40 /lib/modules/6.6.0-159.4.21.175.oe2403sp4.x86_64/build -> /usr/src/kernels/6.6.0-159.4.21.175.oe2403sp4.x86_64
++ readlink -f /lib/modules/6.6.0-159.4.21.175.oe2403sp4.x86_64/build
+/usr/src/kernels/6.6.0-159.4.21.175.oe2403sp4.x86_64
++ df -h / /home
++ tail -2
+/dev/mapper/openeuler-root   69G   58G  7.0G  90% /
+/dev/mapper/openeuler-home  804G  746G   18G  98% /home
++ echo '== 2. 解包驱动（持久化到 /home，供后续内核升级复用）=='
+== 2. 解包驱动（持久化到 /home，供后续内核升级复用）==
++ '[' '!' -d /home/qch/transfer/corex-drv-5.0.0-x86_64/kernel ']'
++ rm -rf /home/qch/transfer/corex-drv-5.0.0-x86_64
++ sh /home/qch/transfer/corex-driver-linux64-5.0.0_x86_64.run --noexec --keep --target /home/qch/transfer/corex-drv-5.0.0-x86_64
++ tail -4
+Creating directory /home/qch/transfer/corex-drv-5.0.0-x86_64
+Verifying archive integrity...     0%    46%    93%  100%   All good.
+Uncompressing Corex Driver     0%    46%    93%  100%  
++ ls /home/qch/transfer/corex-drv-5.0.0-x86_64
++ head -8
+bin
+conf
+corex
+corex-driver-installer
+firmware
+kernel
++ echo '== 3. 编译 =='
+== 3. 编译 ==
++ cd /home/qch/transfer/corex-drv-5.0.0-x86_64/kernel
+++ nproc
++ make KERNEL_UNAME=6.6.0-159.4.21.175.oe2403sp4.x86_64 -j255
++ RC=0
++ echo 'build rc=0'
+build rc=0
++ tail -20 /home/qch/transfer/corex-drv-5.0.0-x86_64/build-6.6.0-159.4.21.175.oe2403sp4.x86_64.log
+/home/qch/transfer/corex-drv-5.0.0-x86_64/kernel/itr/itr_peer_mem.h:70:40: warning: ‘struct sg_table’ declared inside parameter list will not be visible outside of this definition or declaration
+   70 |                                 struct sg_table *sg_head, void *client_ctx, u64 core_ctx);
+      |                                        ^~~~~~~~
+/home/qch/transfer/corex-drv-5.0.0-x86_64/kernel/itr/itr_peer_mem.h:71:36: warning: ‘struct sg_table’ declared inside parameter list will not be visible outside of this definition or declaration
+   71 | void itr_peer_mem_put_pages(struct sg_table *sg_head, void *cc);
+      |                                    ^~~~~~~~
+/home/qch/transfer/corex-drv-5.0.0-x86_64/kernel/itr/itr_peer_mem.h:73:33: warning: ‘struct sg_table’ declared inside parameter list will not be visible outside of this definition or declaration
+   73 | int itr_peer_mem_dma_map(struct sg_table *sg_head, void *cc,
+      |                                 ^~~~~~~~
+/home/qch/transfer/corex-drv-5.0.0-x86_64/kernel/itr/itr_peer_mem.h:75:35: warning: ‘struct sg_table’ declared inside parameter list will not be visible outside of this definition or declaration
+   75 | int itr_peer_mem_dma_unmap(struct sg_table *sg_head, void *cc,
+      |                                   ^~~~~~~~
+  LD [M]  /home/qch/transfer/corex-drv-5.0.0-x86_64/kernel/itr/iluvatar.o
+  MODPOST /home/qch/transfer/corex-drv-5.0.0-x86_64/kernel/itr/Module.symvers
+  CC [M]  /home/qch/transfer/corex-drv-5.0.0-x86_64/kernel/itr/iluvatar.mod.o
+  LD [M]  /home/qch/transfer/corex-drv-5.0.0-x86_64/kernel/itr/iluvatar.ko
+  BTF [M] /home/qch/transfer/corex-drv-5.0.0-x86_64/kernel/itr/iluvatar.ko
+Skipping BTF generation for /home/qch/transfer/corex-drv-5.0.0-x86_64/kernel/itr/iluvatar.ko due to unavailability of vmlinux
+make[2]: Leaving directory '/usr/src/kernels/6.6.0-159.4.21.175.oe2403sp4.x86_64'
+make[1]: Leaving directory '/home/qch/transfer/corex-drv-5.0.0-x86_64/kernel/itr'
++ KO=/home/qch/transfer/corex-drv-5.0.0-x86_64/kernel/iluvatar.ko
++ '[' 0 -eq 0 ']'
++ '[' -f /home/qch/transfer/corex-drv-5.0.0-x86_64/kernel/iluvatar.ko ']'
++ echo '== 4. 安装模块 =='
+== 4. 安装模块 ==
++ install -D -m 644 /home/qch/transfer/corex-drv-5.0.0-x86_64/kernel/iluvatar.ko /lib/modules/6.6.0-159.4.21.175.oe2403sp4.x86_64/updates/iluvatar.ko
++ echo 'install rc=0'
+install rc=0
++ modinfo -F vermagic /lib/modules/6.6.0-159.4.21.175.oe2403sp4.x86_64/updates/iluvatar.ko
+6.6.0-159.4.21.175.oe2403sp4.x86_64 SMP mod_unload modversions 
++ echo '== 5. depmod + modprobe =='
+== 5. depmod + modprobe ==
++ depmod -a 6.6.0-159.4.21.175.oe2403sp4.x86_64
++ modprobe iluvatar
++ echo 'modprobe rc=0'
+modprobe rc=0
++ lsmod
++ grep iluvatar
+iluvatar             1802240  0
++ head -6
++ ls -l /dev/iluvatar0 /dev/iluvatar1 /dev/iluvatar2 /dev/iluvatar3
+crw-rw-rw-. 1 root root 239, 0 Nov 18 15:17 /dev/iluvatar0
+crw-rw-rw-. 1 root root 239, 1 Nov 18 15:17 /dev/iluvatar1
+crw-rw-rw-. 1 root root 239, 2 Nov 18 15:17 /dev/iluvatar2
+crw-rw-rw-. 1 root root 239, 3 Nov 18 15:17 /dev/iluvatar3
++ echo '== 6. 验证 =='
+== 6. 验证 ==
++ dmesg
++ grep -iE iluvatar
++ tail -10
+[   26.126245] systemd[1]: Created slice Slice /system/iluvatarcorex-init.
+[450574.275546] iluvatar: loading out-of-tree module taints kernel.
+[450574.687522] iluvatar 0000:10:00.0: DEV-0 is okay.
+[450575.077463] iluvatar 0000:13:00.0: DEV-1 is okay.
+[450575.467476] iluvatar 0000:19:00.0: DEV-2 is okay.
+[450575.859474] iluvatar 0000:1c:00.0: DEV-3 is okay.
++ timeout 20 /usr/local/corex-5.0.0/bin/ixsmi
++ head -20
+Timestamp    Wed Nov 18 15:17:08 2026
++--------------------------------------------------------------------------------+
+|  IX-ML: 5.0.0            Driver Version: 5.0.0          CUDA Version: 10.2     |
+|----------------------------------+----------------------+----------------------|
+| GPU  Name                        | Bus-Id               | Clock-SM  Clock-Mem  |
+| Fan  Temp  Perf    Pwr:Usage/Cap |      Memory-Usage    | GPU-Util  Compute M. |
+|==================================+======================+======================|
+| 0    Iluvatar BI-V150            | 00000000:10:00.0     | 1600MHz   1600MHz    |
+| N/A  41C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 1    Iluvatar BI-V150            | 00000000:13:00.0     | 1600MHz   1600MHz    |
+| N/A  40C   P0       77W / 350W   | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 2    Iluvatar BI-V150            | 00000000:19:00.0     | 1600MHz   1600MHz    |
+| N/A  37C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 3    Iluvatar BI-V150            | 00000000:1C:00.0     | 1600MHz   1600MHz    |
+| N/A  36C   P0       62W / 350W   | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+
++ echo 'ixsmi rc=0'
+ixsmi rc=0
++ echo '== 7. 收尾 =='
+== 7. 收尾 ==
++ df -h /
++ tail -1
+/dev/mapper/openeuler-root   69G   58G  7.0G  90% /
++ set +x
+
+### exit: 0
