@@ -1,0 +1,153 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-18T07:15:18Z
+
++ echo '== 1. PATH 与二进制 =='
+== 1. PATH 与二进制 ==
++ echo PATH=/root/.cargo/bin:/usr/local/corex/bin:/root/.nvm/versions/node/v24.19.0/bin:/usr/local/cuda-13.3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
+PATH=/root/.cargo/bin:/usr/local/corex/bin:/root/.nvm/versions/node/v24.19.0/bin:/usr/local/cuda-13.3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
++ command -v ixsmi
+/usr/local/corex/bin/ixsmi
++ ls -l /usr/local/corex/bin/ixsmi /usr/local/corex-5.0.0/bin/ixsmi /usr/local/corex-4.4.0/bin/ixsmi
+ls: cannot access '/usr/local/corex-4.4.0/bin/ixsmi': No such file or directory
+-rwxr-xr-x. 1 root root 1410544 Sep 24 15:59 /usr/local/corex-5.0.0/bin/ixsmi
+-rwxr-xr-x. 1 root root 1410544 Sep 24 15:59 /usr/local/corex/bin/ixsmi
++ ls -ld /usr/local/corex /usr/local/corex-5.0.0 /usr/local/corex-4.4.0
+ls: cannot access '/usr/local/corex-4.4.0': No such file or directory
+lrwxrwxrwx. 1 root root   23 Sep 24 15:59 /usr/local/corex -> /usr/local/corex-5.0.0/
+drwxr-xr-x. 4 root root 4096 Sep 24 15:59 /usr/local/corex-5.0.0
++ readlink -f /usr/local/corex
+/usr/local/corex-5.0.0
++ ls /usr/local/corex
++ head
+bin
+copyright
+EULA.txt
+lib
+lib64
++ echo '== 2. 当前内核 =='
+== 2. 当前内核 ==
++ uname -r
+6.6.0-159.4.21.175.oe2403sp4.x86_64
++ uname -m
+x86_64
++ getconf PAGE_SIZE
+4096
++ ls /lib/modules
+6.6.0-132.0.0.111.oe2403sp3.x86_64
+6.6.0-145.0.2.142.oe2403sp1.x86_64
+6.6.0-145.3.38.169.oe2403sp3.x86_64
+6.6.0-159.4.21.175.oe2403sp4.x86_64
+6.6.0-72.0.0.76.oe2403sp1.x86_64
++ rpm -qa
++ grep -E '^kernel(-devel|-headers)?-'
++ sort
+kernel-6.6.0-132.0.0.111.oe2403sp3.x86_64
+kernel-6.6.0-145.3.38.169.oe2403sp3.x86_64
+kernel-6.6.0-159.4.21.175.oe2403sp4.x86_64
+kernel-devel-6.6.0-159.4.21.175.oe2403sp4.x86_64
+kernel-headers-6.6.0-159.4.21.175.oe2403sp4.x86_64
+kernel-source-6.6.0-159.4.21.175.oe2403sp4.x86_64
+kernel-tools-6.6.0-159.4.21.175.oe2403sp4.x86_64
++ echo '== 3. 模块状态 =='
+== 3. 模块状态 ==
++ lsmod
++ grep iluvatar
++ echo 'iluvatar 未加载'
+iluvatar 未加载
++ for k in /lib/modules/*
++ ls -l /lib/modules/6.6.0-132.0.0.111.oe2403sp3.x86_64/updates/iluvatar.ko
+-rw-r--r--. 1 root root 15589280 Nov 10 09:07 /lib/modules/6.6.0-132.0.0.111.oe2403sp3.x86_64/updates/iluvatar.ko
++ ls -l /lib/modules/6.6.0-132.0.0.111.oe2403sp3.x86_64/kernel/drivers/misc/iluvatar.ko
++ for k in /lib/modules/*
++ ls -l /lib/modules/6.6.0-145.0.2.142.oe2403sp1.x86_64/updates/iluvatar.ko
++ ls -l /lib/modules/6.6.0-145.0.2.142.oe2403sp1.x86_64/kernel/drivers/misc/iluvatar.ko
++ for k in /lib/modules/*
++ ls -l /lib/modules/6.6.0-145.3.38.169.oe2403sp3.x86_64/updates/iluvatar.ko
++ ls -l /lib/modules/6.6.0-145.3.38.169.oe2403sp3.x86_64/kernel/drivers/misc/iluvatar.ko
++ for k in /lib/modules/*
++ ls -l /lib/modules/6.6.0-159.4.21.175.oe2403sp4.x86_64/updates/iluvatar.ko
++ ls -l /lib/modules/6.6.0-159.4.21.175.oe2403sp4.x86_64/kernel/drivers/misc/iluvatar.ko
++ for k in /lib/modules/*
++ ls -l /lib/modules/6.6.0-72.0.0.76.oe2403sp1.x86_64/updates/iluvatar.ko
++ ls -l /lib/modules/6.6.0-72.0.0.76.oe2403sp1.x86_64/kernel/drivers/misc/iluvatar.ko
+-rw-r--r--. 1 root root 16955176 Sep 24 15:59 /lib/modules/6.6.0-72.0.0.76.oe2403sp1.x86_64/kernel/drivers/misc/iluvatar.ko
+++ uname -r
++ modinfo -F vermagic /lib/modules/6.6.0-159.4.21.175.oe2403sp4.x86_64/updates/iluvatar.ko
+modinfo: ERROR: Module /lib/modules/6.6.0-159.4.21.175.oe2403sp4.x86_64/updates/iluvatar.ko not found.
++ cat /etc/modules-load.d/iluvatar.conf
+iluvatar
++ cat /sys/module/iluvatar/parameters/itr_multi_compute_engine
++ echo 無参数文件
+無参数文件
++ echo '== 4. 设备节点 =='
+== 4. 设备节点 ==
++ head -6
++ ls -l '/dev/iluvatar*'
+ls: cannot access '/dev/iluvatar*': No such file or directory
++ echo '== 5. 尝试加载 =='
+== 5. 尝试加载 ==
++ modprobe iluvatar
+modprobe: FATAL: Module iluvatar not found in directory /lib/modules/6.6.0-159.4.21.175.oe2403sp4.x86_64
++ echo 'modprobe rc=1'
+modprobe rc=1
++ lsmod
++ grep iluvatar
++ echo 仍未加载
+仍未加载
++ ls -l '/dev/iluvatar*'
++ head -6
+ls: cannot access '/dev/iluvatar*': No such file or directory
++ echo '== 6. 内核日志 =='
+== 6. 内核日志 ==
++ dmesg
++ grep -iE 'iluvatar|version magic|unknown symbol|module verification'
++ tail -20
+[   19.761544] ublk_drv: module verification failed: signature and/or required key missing - tainting kernel
+[   26.126245] systemd[1]: Created slice Slice /system/iluvatarcorex-init.
++ echo '== 7. ixsmi 直跑 =='
+== 7. ixsmi 直跑 ==
++ timeout 20 /usr/local/corex-5.0.0/bin/ixsmi
++ head -25
+Iluvatar-SMI has failed because it couldn't communicate with the Iluvatar driver. Make sure that the latest Iluvatar driver is installed and running.
++ echo 'ixsmi rc=255'
+ixsmi rc=255
++ echo '== 8. 重启历史 =='
+== 8. 重启历史 ==
++ uptime
+ 15:15:18 up 5 days,  5:07,  8 users,  load average: 6.46, 6.58, 7.10
++ last -x reboot
++ head -5
+reboot   system boot  6.6.0-159.4.21.1 Fri Nov 13 09:42   still running
+reboot   system boot  6.6.0-145.3.38.1 Fri Nov 13 08:49 - 09:35  (00:46)
+reboot   system boot  6.6.0-132.0.0.11 Mon Nov  9 14:08 - 08:41 (3+18:32)
+reboot   system boot  6.6.0-72.0.0.76. Tue Nov  3 10:07 - 14:00 (6+03:53)
+
++ echo '== 9. 容器内 ixsmi =='
+== 9. 容器内 ixsmi ==
++ docker exec corex5-py311 bash -lc '
+    command -v ixsmi || echo "容器内无 ixsmi"
+    ls /usr/local/corex/bin 2>&1 | head -8
+    ls /dev/iluvatar* 2>&1 | wc -l
+  '
++ head -15
+容器内无 ixsmi
+add-soft
+analyze-build
+bugpoint
+c-index-test
+clang
+clang++
+clang-22
+clang-check
+1
++ echo '== 10. 空间 =='
+== 10. 空间 ==
++ df -h / /home
++ tail -3
+Filesystem                  Size  Used Avail Use% Mounted on
+/dev/mapper/openeuler-root   69G   58G  7.0G  90% /
+/dev/mapper/openeuler-home  804G  746G   18G  98% /home
++ set +x
+
+### exit: 0
