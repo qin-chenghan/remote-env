@@ -22,13 +22,17 @@ mkdir -p "$DIR/tmp"
 
   IMG=/home/qch/transfer/corex5-py311-py3116-20261029.tar.zst
   TAR=/home/qch/transfer/corex5-py311-py3116-20261029.tar
-  EXPECT=d76cd175
   EXPECT_ZST=dc479721103811984b4f08a397da6f78825a5457a8773f35995b44a80e29f5ff
 
-  echo "== 1. 文件与空间 =="
+  echo "== 1. 文件与校验 =="
   ls -lh "$IMG" 2>/dev/null || { echo "!! 缺 $IMG，先拷文件"; exit 3; }
-  sha256sum "$IMG"
-  echo "期望 sha256=$EXPECT_ZST"
+  ACTUAL=$(sha256sum "$IMG" | cut -d' ' -f1)
+  echo "actual=$ACTUAL"
+  echo "expect=$EXPECT_ZST"
+  if [ "$ACTUAL" != "$EXPECT_ZST" ]; then
+    echo "!! sha256 不一致，停止（不要 load 半个镜像）"
+    exit 4
+  fi
   df -h /home | tail -1
 
   echo "== 2. 解压 =="
@@ -50,10 +54,15 @@ mkdir -p "$DIR/tmp"
   docker images | grep -E "corex5-py311|REPOSITORY" | head -5
 
   echo "== 4. 起 mock 容器（无特权、无设备、label=disable）=="
-  docker rm -f corex5-py311-mock 2>/dev/null
-  docker run -d --name corex5-py311-mock --network host \
-    --security-opt label=disable -v /home:/home \
-    corex5-py311:py3116-20261029 sleep infinity || exit 1
+  echo "-- 端口 8948 是否被占（被占则跳过启动）--"
+  if ss -ltn 2>/dev/null | grep -q ':8948 '; then
+    echo "8948 已被占用，不启动容器"
+  else
+    docker rm -f corex5-py311-mock 2>/dev/null
+    docker run -d --name corex5-py311-mock --network host \
+      --security-opt label=disable -v /home:/home \
+      corex5-py311:py3116-20261029 sleep infinity || exit 1
+  fi
   sleep 3
   docker ps --filter name=corex5-py311-mock --format '{{.Names}} {{.Status}}'
 
