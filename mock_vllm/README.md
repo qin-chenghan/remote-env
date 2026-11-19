@@ -6,6 +6,20 @@
 
 设计口径、逐项处置表和帧对齐结果见 blue-dev 仓的 `docs/mock-vllm-design.md`。
 
+## 权威版本
+
+**唯一权威源是本仓库的 `mock_vllm/`**，各服务器一律部署这一份：
+
+```bash
+cd <remote-env 克隆> && git pull      # 更新
+```
+
+- 服务器上的路径 `/home/qch/mock_vllm` 建议软链到克隆内的 `mock_vllm`（145 与 32 都是这样）。
+  不要在服务器副本上直接改代码，否则会和本仓分叉。
+- 启动日志里的 `id=xxxxxxxxxx` 是 `mock_gpu/*.py` 的内容哈希，**H 数据只与同一 id 的结果可比**；
+  结果目录（`config.txt` 或 `logs/server.log`）里应能看到该 id。
+- 冻结基线时记录当时的 commit（`git rev-parse HEAD`）与 id。
+
 ## 兼容性
 
 - Linux x86_64，Python 3.11，装有 Iluvatar 版 vLLM 和 torch 的 venv（开发机上是 `/opt/corex311`）。

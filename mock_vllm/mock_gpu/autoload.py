@@ -1,4 +1,23 @@
+import hashlib
 import os
+from pathlib import Path
+
+
+def version_id() -> str:
+    """Content hash of the package, printed at activation.
+
+    H results are only comparable between runs of the same mock code, so every
+    server.log should say which version produced it; the id is derived from
+    the files themselves and needs no manual bookkeeping.
+    """
+    h = hashlib.sha1()
+    for p in sorted(Path(__file__).resolve().parent.glob("*.py")):
+        h.update(p.name.encode())
+        h.update(p.read_bytes())
+    return h.hexdigest()[:10]
+
+
+VERSION_ID = version_id()
 
 
 def _no_gpu() -> bool:
@@ -63,7 +82,9 @@ def install() -> bool:
     _patch_platform()
     patch_worker(gw)
 
-    print("[mock_gpu] activated: no Iluvatar device visible")
+    print(
+        f"[mock_gpu] activated: no Iluvatar device visible (id={VERSION_ID})"
+    )
     return True
 
 
