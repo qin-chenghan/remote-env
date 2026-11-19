@@ -53,15 +53,22 @@ mkdir -p "$DIR/tmp"
   lsmod 2>/dev/null | grep -i iluvatar || echo "no iluvatar module"
   ls -l /dev/iluvatar* 2>&1 | head -3
 
-  echo "== 6. 独立 dockerd 方案可行性（不动现有 daemon）=="
-  command -v dockerd; dockerd --version 2>&1 | head -1
+  echo "== 6. 独立 dockerd + containerd 全部落 /home 的可行性 =="
+  command -v dockerd containerd runc 2>&1
+  dockerd --version 2>&1 | head -1; containerd --version 2>&1 | head -1
   systemctl is-active docker 2>&1
   ls -l /etc/docker/daemon.json 2>/dev/null && cat /etc/docker/daemon.json
-  ls -l /var/run/docker.sock
-  echo "-- sudo 免密？ --"
-  sudo -n true 2>&1 && echo "sudo-nopasswd OK" || echo "sudo 需要密码或无权限"
-  echo "-- /home 可用空间（镜像 28G，解开约 35-40G）--"
-  df -h /home | tail -1
+  echo "-- 各分区：/ 很紧，确认 /var /run /tmp 是否独立 --"
+  df -h / /var /var/lib /var/lib/containerd /var/lib/docker /run /tmp /home 2>/dev/null | sort -u
+  echo "-- 挂载分区表 --"
+  findmnt -T /home 2>/dev/null; findmnt -T /var/lib 2>/dev/null
+  echo "-- /home 文件系统（overlay2 需要 d_type）--"
+  stat -f -c '%n %T' /home 2>/dev/null
+  xfs_info /home 2>/dev/null | head -3 || true
+
+  echo "== 7. squashfs/overlay 内核支持（容器运行必需）=="
+  grep -E "CONFIG_OVERLAY_FS|CONFIG_BRIDGE|CONFIG_VETH" /boot/config-$(uname -r) 2>/dev/null | head -4
+  ls /proc/filesystems | grep -E "overlay|squashfs" 2>/dev/null
 
   # ---- 命令结束 ----
 
