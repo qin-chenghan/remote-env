@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。为搬运 aarch64 天数镜像做准备：docker 落盘/容量、已有镜像、SELinux/文件系统、
-#       以及“独立 dockerd（data-root 放 /home）”方案的可行性。
+# 本次：部署天数 mock 环境（解压镜像 → docker load → 起容器 → 冒烟）。
+# 前置：把 corex5-py311-py3116-20261029.tar.zst 放到 /home/qch/transfer/。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,55 +20,60 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
 
-  echo "== 1. docker 落盘与容量 =="
-  docker info 2>&1 | grep -iE "Docker Root Dir|Storage Driver|Server Version|Cgroup Driver" | head -6
-  ROOT=$(docker info 2>/dev/null | awk -F': ' '/Docker Root Dir/{print $2}')
-  echo "root=$ROOT"
-  df -h "$ROOT" 2>/dev/null | tail -1
-  echo "-- 已有容器的数量与运行状态 --"
-  docker ps -q | wc -l; docker ps -a -q | wc -l
-  du -sh "$ROOT" 2>/dev/null | tail -1
+  IMG=/home/qch/transfer/corex5-py311-py3116-20261029.tar.zst
+  TAR=/home/qch/transfer/corex5-py311-py3116-20261029.tar
+  EXPECT=d76cd175
+  EXPECT_ZST=dc479721103811984b4f08a397da6f78825a5457a8773f35995b44a80e29f5ff
 
-  echo "== 2. /home 文件系统与权限 =="
-  stat -f -c '%n %T blocks=%b bsize=%S' /home 2>/dev/null
+  echo "== 1. 文件与空间 =="
+  ls -lh "$IMG" 2>/dev/null || { echo "!! 缺 $IMG，先拷文件"; exit 3; }
+  sha256sum "$IMG"
+  echo "期望 sha256=$EXPECT_ZST"
   df -h /home | tail -1
-  ls -ld /home /home/qch
-  echo "-- SELinux --"
-  command -v getenforce >/dev/null 2>&1 && getenforce || echo "no getenforce"
-  ls /etc/selinux/config 2>/dev/null && grep -E "^SELINUX=" /etc/selinux/config
 
-  echo "== 3. 已有镜像（找 aarch64 天数/corex 镜像）=="
-  docker images --format '{{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.Size}}' 2>&1 | head -25
-  docker images 2>/dev/null | grep -iE "corex|iluvatar|ixrt|天数|bi-v" | head -10
+  echo "== 2. 解压 =="
+  if [ -f "$TAR" ]; then
+    echo "已存在 $TAR，跳过"
+  else
+    if command -v zstd >/dev/null 2>&1; then
+      zstd -d "$IMG" -o "$TAR" || exit 1
+    else
+      echo "宿主无 zstd，用镜像解压"
+      docker run --rm --security-opt label=disable -v /home:/home zstd:latest \
+        zstd -d "$IMG" -o "$TAR" || exit 1
+    fi
+  fi
+  ls -lh "$TAR"
 
-  echo "== 4. 本地是否已有镜像 tar / 迁移包 =="
-  ls -la /home/qch/transfer 2>/dev/null | head -15
-  ls -lh /home/qch/*.tar /home/qch/*.tar.gz /home/qch/transfer/*.tar* 2>/dev/null | head -10
-  du -sh /home/qch/transfer 2>/dev/null
+  echo "== 3. docker load =="
+  docker load -i "$TAR" || exit 1
+  docker images | grep -E "corex5-py311|REPOSITORY" | head -5
 
-  echo "== 5. 宿主是否已装天数 userspace SDK（无内核模块也应该有这套）=="
-  ls -d /usr/local/corex-5.0.0 /usr/local/corex* 2>&1 | head -5
-  ls /usr/local/corex-5.0.0/lib 2>/dev/null | head -8
-  rpm -qa 2>/dev/null | grep -iE "corex|iluvatar|ixrt" | head -10
-  lsmod 2>/dev/null | grep -i iluvatar || echo "no iluvatar module"
-  ls -l /dev/iluvatar* 2>&1 | head -3
+  echo "== 4. 起 mock 容器（无特权、无设备、label=disable）=="
+  docker rm -f corex5-py311-mock 2>/dev/null
+  docker run -d --name corex5-py311-mock --network host \
+    --security-opt label=disable -v /home:/home \
+    corex5-py311:py3116-20261029 sleep infinity || exit 1
+  sleep 3
+  docker ps --filter name=corex5-py311-mock --format '{{.Names}} {{.Status}}'
 
-  echo "== 6. 独立 dockerd + containerd 全部落 /home 的可行性 =="
-  command -v dockerd containerd runc 2>&1
-  dockerd --version 2>&1 | head -1; containerd --version 2>&1 | head -1
-  systemctl is-active docker 2>&1
-  ls -l /etc/docker/daemon.json 2>/dev/null && cat /etc/docker/daemon.json
-  echo "-- 各分区：/ 很紧，确认 /var /run /tmp 是否独立 --"
-  df -h / /var /var/lib /var/lib/containerd /var/lib/docker /run /tmp /home 2>/dev/null | sort -u
-  echo "-- 挂载分区表 --"
-  findmnt -T /home 2>/dev/null; findmnt -T /var/lib 2>/dev/null
-  echo "-- /home 文件系统（overlay2 需要 d_type）--"
-  stat -f -c '%n %T' /home 2>/dev/null
-  xfs_info /home 2>/dev/null | head -3 || true
+  echo "== 5. 容器内环境自检 =="
+  docker exec corex5-py311-mock bash -lc '
+    uname -m
+    /opt/corex311/bin/python3 -V
+    ls -l /usr/local/corex/lib64/libcuda.so.1
+    /opt/corex311/bin/python3 -c "import torch; print(torch.__version__)"
+    ls -d /dev/iluvatar* 2>/dev/null || echo "no device (expected)"
+  ' 2>&1 | tail -12
 
-  echo "== 7. squashfs/overlay 内核支持（容器运行必需）=="
-  grep -E "CONFIG_OVERLAY_FS|CONFIG_BRIDGE|CONFIG_VETH" /boot/config-$(uname -r) 2>/dev/null | head -4
-  ls /proc/filesystems | grep -E "overlay|squashfs" 2>/dev/null
+  echo "== 6. mock 激活冒烟（需要 /home/qch/mock_vllm 已就位）=="
+  docker exec corex5-py311-mock bash -lc '
+    if [ -d /home/qch/mock_vllm/mock_gpu ]; then
+      PYTHONPATH=/home/qch/mock_vllm /opt/corex311/bin/python3 -c "import mock_gpu.autoload" 2>&1 | tail -3
+    else
+      echo "缺 /home/qch/mock_vllm/mock_gpu：cd remote-env 后拷过去"
+    fi
+  ' 2>&1 | tail -6
 
   # ---- 命令结束 ----
 
