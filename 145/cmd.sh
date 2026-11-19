@@ -105,12 +105,35 @@ STAGE="${STAGE:-}"
     echo "== STAGE 4 完成：出现 [mock_gpu] activated ... (id=...) 即部署成功 =="
     ;;
 
+  5)
+    echo "== STAGE 5：模型冒烟（真实权重，CPU 上跑一次生成）=="
+    MODEL=/home/model/Qwen3-32B-W8A8
+    [ -f "$MODEL/config.json" ] || { echo "!! 缺 $MODEL，先传模型（184 同路径）"; exit 3; }
+    du -sh "$MODEL" 2>/dev/null
+    free -g | head -1
+    docker exec corex5-py311-mock bash -lc '
+      cd /tmp && PYTHONPATH=/home/qch/mock_vllm MOCK_PREFILL=1 \
+      /opt/corex311/bin/python3 - <<"PY" 2>&1 | tail -12
+from vllm import LLM, SamplingParams
+llm = LLM(model="/home/model/Qwen3-32B-W8A8", trust_remote_code=True,
+          max_model_len=512, tensor_parallel_size=1, gpu_memory_utilization=0.2,
+          disable_log_stats=True,
+          compilation_config={"cudagraph_mode": "NONE", "mode": 0})
+out = llm.generate(["hi"], SamplingParams(max_tokens=8, temperature=0.0,
+                                           top_p=1.0, top_k=-1))
+print("SMOKE OK, tokens:", out[0].outputs[0].token_ids)
+PY
+    '
+    echo "== STAGE 5 完成：出现 SMOKE OK 即模型+engine 可用 =="
+    ;;
+
   *)
-    echo "用法：STAGE=1|2|3|4 bash 145/cmd.sh"
+    echo "用法：STAGE=1|2|3|4|5 bash 145/cmd.sh"
     echo "  1 = 校验 sha256 + 解压（需 27G 空闲，当前）"
     echo "  2 = docker load（再占约 28G）"
     echo "  3 = 起容器 + 自检"
     echo "  4 = mock 激活冒烟"
+    echo "  5 = 模型冒烟（需要 /home/model/Qwen3-32B-W8A8）"
     echo
     echo "当前状态："
     ls -lh "$IMG" "$TAR" 2>/dev/null || echo "  镜像文件尚未就位"
