@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：安装 mock-only 工具包 → 适配自检 → 后台跑 lite(H/G) bench。
+# 本次：等待 lite145_1438 结束，打印 H/G 汇总（只读）。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -10,16 +10,10 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
+TEST_ID=lite145_1438
 TOOLS=/home/huawei_ts_program/litehost_perf_opt
-CONTAINER=corex5-py311-mock
-MODEL=/home/model/Qwen3-32B-W8A8
-MOCK=/home/qch/mock_vllm
-TEST_ID="lite145_$(date +%H%M)"
-FAIL=0
-
-check() {  # check <描述> <命令>
-  if eval "$2" >/dev/null 2>&1; then echo "  OK   $1"; else echo "  FAIL $1"; FAIL=1; fi
-}
+RUN_DIR="$TOOLS/vllmBench/$TEST_ID"
+LOG=/home/qch/transfer/run_${TEST_ID}.log
 
 {
   echo "### server: $SERVER"
@@ -30,62 +24,27 @@ check() {  # check <描述> <命令>
 
   # ---- 命令开始 ----
 
-  echo "== 1. 从 repo 同步 litehost 工具包 =="
-  SRC="$DIR/../litehost_toolkit"
-  if [ -d "$SRC" ]; then
-    mkdir -p "$TOOLS"
-    cp -a "$SRC"/. "$TOOLS"/ || exit 1
-    echo "已从 $SRC 同步"
-  else
-    echo "!! 仓里没有 litehost_toolkit/，先 git pull"
-    exit 3
-  fi
-  ls -1 "$TOOLS"/vllmBench_lite_*.sh 2>/dev/null
-  ls -l "$TOOLS"/liblitehost.so "$TOOLS"/liblitehost.build.json 2>/dev/null
+  echo "== 1. 等待完成（最多 8 分钟）=="
+  for i in $(seq 1 16); do
+    [ -f "$RUN_DIR/summary.csv" ] && { echo "summary.csv 已生成"; break; }
+    [ "$i" -eq 1 ] && echo "开始等待（30s/轮）"
+    sleep 30
+  done
+  [ -f "$RUN_DIR/summary.csv" ] || echo "!! 仍未完成"
 
-  echo "-- 校验 litehost 文件（repo 里的 sha256 清单）--"
-  if [ -f "$SRC/litehost.sha256" ]; then
-    (cd "$TOOLS" && sha256sum -c "$SRC/litehost.sha256" 2>&1 | grep -v ': OK$' || true)
-    (cd "$TOOLS" && sha256sum -c "$SRC/litehost.sha256" >/dev/null 2>&1) \
-      && echo "  全部文件匹配" || echo "  !! 有文件缺失或不匹配（看上一条）"
-  else
-    echo "  无 sha256 清单，跳过"
-  fi
+  echo "== 2. 运行日志尾部 =="
+  tail -20 "$LOG" 2>/dev/null
 
-  echo "== 2. 适配自检 =="
-  check "容器在跑"            "docker ps --filter name=$CONTAINER --format '{{.Status}}' | grep -q Up"
-  check "模型就位"            "[ -f $MODEL/config.json ]"
-  check "mock 目录存在"       "[ -d $MOCK/mock_gpu ]"
-  check "mock_ix.so 是 aarch64" "file $MOCK/mock_ix.so | grep -q 'ARM aarch64'"
-  check "liblitehost.so 是 aarch64" "file $TOOLS/liblitehost.so | grep -q 'ARM aarch64'"
-  check "容器内 py3.11"       "docker exec $CONTAINER /opt/corex311/bin/python3 -V 2>&1 | grep -q 3.11"
-  check "容器内 taskset"      "docker exec $CONTAINER bash -lc 'command -v taskset'"
-  check "8948 空闲"           "! ss -ltn | grep -q ':8948 '"
-  check "CPU 0-63 在同一个 NUMA node" \
-        "[ \"\$(lscpu | awk -F: '/NUMA node0/{print \$2}' | tr -d ' ')\" = '0-63' ]"
-  check "build.json 存在"       "[ -f $TOOLS/liblitehost.build.json ]"
-  check "mock 版 harness 存在"  "[ -x $TOOLS/vllmBench_lite_base_mock.sh ]"
-  check "harness 里 MOCK_DIR 固定" \
-        "grep -q 'MOCK_DIR=/home/qch/mock_vllm' $TOOLS/vllmBench_lite_base_mock.sh"
-  if [ "$FAIL" -ne 0 ]; then
-    echo "!! 适配检查未通过，不启动 bench"
-    exit 6
-  fi
-  echo "  全部通过"
+  echo "== 3. 吞吐与延迟 =="
+  [ -f "$RUN_DIR/summary.csv" ] && cat "$RUN_DIR/summary.csv"
 
-  echo "== 3. 启动 lite(H/G) bench（后台）=="
-  echo "TEST_ID=$TEST_ID"
-  docker exec -d "$CONTAINER" bash -lc "cd $TOOLS && \
-    MODEL_PATH=$MODEL TEST_ID=$TEST_ID HOST_MEASURE=lite \
-    nohup bash vllmBench_lite_base_mock.sh \
-    > /home/qch/transfer/run_$TEST_ID.log 2>&1"
-  sleep 25
-  echo "-- 启动日志 --"
-  tail -10 "/home/qch/transfer/run_$TEST_ID.log" 2>/dev/null || echo "(日志未出现)"
+  echo "== 4. H / H+G 报告 =="
+  [ -f "$RUN_DIR/host_summary/report.txt" ] && cat "$RUN_DIR/host_summary/report.txt"
+  ls -lh "$RUN_DIR/host_summary" 2>/dev/null | head -8
 
-  echo "== 4. 后续查看 =="
-  echo "日志：/home/qch/transfer/run_$TEST_ID.log"
-  echo "结果：$TOOLS/vllmBench/$TEST_ID/host_summary/report.txt"
+  echo "== 5. 状态 =="
+  docker exec corex5-py311-mock bash -lc 'pgrep -af "vllm.entrypoints.openai.api_server" | head -2' 2>/dev/null
+  free -g | sed -n 2p
 
   # ---- 命令结束 ----
 
