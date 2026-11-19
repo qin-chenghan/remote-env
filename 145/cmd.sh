@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：等待 lite145_1438 结束，打印 H/G 汇总（只读）。
+# 本次：清理 145 上的镜像搬运产物（tar + zst）。镜像已在 docker 中，删前先校验。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -10,10 +10,9 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
-TEST_ID=lite145_1438
-TOOLS=/home/huawei_ts_program/litehost_perf_opt
-RUN_DIR="$TOOLS/vllmBench/$TEST_ID"
-LOG=/home/qch/transfer/run_${TEST_ID}.log
+TAR=/home/qch/transfer/corex5-py311-py3116-20261029.tar
+ZST=/home/qch/transfer/corex5-py311-py3116-20261029.tar.zst
+IMAGE=corex5-py311:py3116-20261029
 
 {
   echo "### server: $SERVER"
@@ -24,27 +23,27 @@ LOG=/home/qch/transfer/run_${TEST_ID}.log
 
   # ---- 命令开始 ----
 
-  echo "== 1. 等待完成（最多 8 分钟）=="
-  for i in $(seq 1 16); do
-    [ -f "$RUN_DIR/summary.csv" ] && { echo "summary.csv 已生成"; break; }
-    [ "$i" -eq 1 ] && echo "开始等待（30s/轮）"
-    sleep 30
-  done
-  [ -f "$RUN_DIR/summary.csv" ] || echo "!! 仍未完成"
+  echo "== 1. 清理前确认镜像仍在 docker 中 =="
+  docker image inspect "$IMAGE" --format '{{.Id}}' || { echo "!! 镜像不存在，拒绝删除文件"; exit 3; }
+  docker ps --filter name=corex5-py311-mock --format '{{.Names}} {{.Status}}'
 
-  echo "== 2. 运行日志尾部 =="
-  tail -20 "$LOG" 2>/dev/null
+  echo "== 2. 删除前空间 =="
+  ls -lh "$TAR" "$ZST" 2>/dev/null
+  df -h /home | tail -1
 
-  echo "== 3. 吞吐与延迟 =="
-  [ -f "$RUN_DIR/summary.csv" ] && cat "$RUN_DIR/summary.csv"
+  echo "== 3. 删除 =="
+  rm -f "$TAR" "$ZST"
+  ls -lh "$TAR" "$ZST" 2>/dev/null || echo "已删除"
 
-  echo "== 4. H / H+G 报告 =="
-  [ -f "$RUN_DIR/host_summary/report.txt" ] && cat "$RUN_DIR/host_summary/report.txt"
-  ls -lh "$RUN_DIR/host_summary" 2>/dev/null | head -8
+  echo "== 4. 删除后空间 =="
+  df -h /home | tail -1
+  echo "-- transfer 目录剩余 --"
+  ls -lh /home/qch/transfer 2>/dev/null | head -10
 
-  echo "== 5. 状态 =="
-  docker exec corex5-py311-mock bash -lc 'pgrep -af "vllm.entrypoints.openai.api_server" | head -2' 2>/dev/null
-  free -g | sed -n 2p
+  echo "== 5. 镜像与容器仍可用 =="
+  docker images | grep -E "corex5-py311|REPOSITORY" | head -3
+  docker exec corex5-py311-mock bash -lc \
+    'PYTHONPATH=/home/qch/mock_vllm /opt/corex311/bin/python3 -c "import mock_gpu.autoload"' 2>&1 | tail -3
 
   # ---- 命令结束 ----
 
