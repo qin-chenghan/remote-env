@@ -1,0 +1,49 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-19T05:55:18Z
+
++ echo '== 1. 前置检查 =='
+== 1. 前置检查 ==
++ docker ps --filter name=corex5-py311-mock --format '{{.Names}} {{.Status}}'
++ grep -q Up
++ '[' -f /home/model/Qwen3-32B-W8A8/config.json ']'
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh ']'
++ '[' -f /home/qch/mock_vllm/mock_ix.so ']'
++ ss -ltn
++ grep -q ':8948 '
++ free -g
++ sed -n 2p
+Mem:             502         127          45           4         336         374
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  6.9T  6.2T  668G  91% /home
++ echo '== 2. 启动 bench（后台，日志留在 /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355）=='
+== 2. 启动 bench（后台，日志留在 /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355）==
++ echo TEST_ID=mock145_1355
+TEST_ID=mock145_1355
++ docker exec -d corex5-py311-mock bash -lc 'cd /home/huawei_ts_program/litehost_perf_opt &&     MODEL_PATH=/home/model/Qwen3-32B-W8A8 MOCK_DIR=/home/qch/mock_vllm TEST_ID=mock145_1355     nohup bash vllmBench_lite_base_timeline.sh     > /home/qch/transfer/run_mock145_1355.log 2>&1'
++ sleep 25
++ echo '-- 启动 25 秒后的日志 --'
+-- 启动 25 秒后的日志 --
++ tail -12 /home/qch/transfer/run_mock145_1355.log
+[2026-11-19 13:55:18] PREFIX=/opt/corex311
+[2026-11-19 13:55:18] TEST_ID=mock145_1355 | MODE=off | PROFILE=1 | WARMUP=16 | CPU_RANGE=0-63
+[2026-11-19 13:55:18] prefix cache=OFF | backend=vllm | 同一服务运行 1 个 case | RUN_DIR=/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355
+[2026-11-19 13:55:18] WARNING: ixsmi 不可用，跳过显存预检
+[2026-11-19 13:55:18] 服务 PID=682；所有 case 复用；日志=/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/logs/server.log
++ echo '-- 服务进程 --'
+-- 服务进程 --
++ docker exec corex5-py311-mock bash -lc 'pgrep -af "vllm.entrypoints.openai.api_server" | head -2'
+682 /opt/corex311/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8948 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --dtype auto --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1 --tensor_parallel_size 4 --data_parallel_size 1 --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto --enable_chunked_prefill --compilation-config {"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0} --async-scheduling --no-enable-prefix-caching --profiler-config {"profiler":"torch","torch_profiler_dir":"/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/timeline","delay_iterations":0,"max_iterations":0,"warmup_iterations":0,"active_iterations":2000,"ignore_frontend":true}
+1493 bash -lc pgrep -af "vllm.entrypoints.openai.api_server" | head -2
++ echo '== 3. 后续查看 =='
+== 3. 后续查看 ==
++ echo 日志：/home/qch/transfer/run_mock145_1355.log
+日志：/home/qch/transfer/run_mock145_1355.log
++ echo 结果：/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/summary.csv
+结果：/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/summary.csv
++ echo trace：/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/timeline/
+trace：/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/timeline/
++ set +x
+
+### exit: 0
