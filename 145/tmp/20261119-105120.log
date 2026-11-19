@@ -1,0 +1,174 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-19T02:51:20Z
+
++ echo '== 1. docker 落盘与容量 =='
+== 1. docker 落盘与容量 ==
++ docker info
++ grep -iE 'Docker Root Dir|Storage Driver|Server Version|Cgroup Driver'
++ head -6
+Server Version: 18.09.0
+Storage Driver: overlay2
+Cgroup Driver: cgroupfs
+Docker Root Dir: /home/docker-data
+++ docker info
+++ awk '-F: ' '/Docker Root Dir/{print $2}'
++ ROOT=/home/docker-data
++ echo root=/home/docker-data
+root=/home/docker-data
++ df -h /home/docker-data
++ tail -1
+/dev/mapper/openeuler-home  6.9T  6.6T  239G  97% /home
++ echo '-- 已有容器的数量与运行状态 --'
+-- 已有容器的数量与运行状态 --
++ docker ps -q
++ wc -l
+16
++ docker ps -a -q
++ wc -l
+69
++ du -sh /home/docker-data
++ tail -1
+4.7T	/home/docker-data
++ echo '== 2. /home 文件系统与权限 =='
+== 2. /home 文件系统与权限 ==
++ stat -f -c '%n %T blocks=%b bsize=%S' /home
+/home ext2/ext3 blocks=1840637558 bsize=4096
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  6.9T  6.6T  239G  97% /home
++ ls -ld /home /home/qch
+drwxr-xr-x. 44 root root 4096 Nov 18 23:14 /home
+drwxr-xr-x.  7 root root 4096 Nov 19 10:07 /home/qch
++ echo '-- SELinux --'
+-- SELinux --
++ command -v getenforce
++ getenforce
+Enforcing
++ ls /etc/selinux/config
+/etc/selinux/config
++ grep -E '^SELINUX=' /etc/selinux/config
+SELINUX=enforcing
++ echo '== 3. 已有镜像（找 aarch64 天数/corex 镜像）=='
+== 3. 已有镜像（找 aarch64 天数/corex 镜像）==
++ docker images --format '{{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.Size}}'
++ head -25
+db-svc-rollback-1113_1027:latest	38e1402f6444	1.44GB
+api-svc-rollback-1113_1027:latest	ad15ce835d5f	1.44GB
+mysql-ks-restored-1113:latest	8cff382291a6	1.32GB
+dctax-memops-container-aarch64:latest	6a5f00c35ff4	4.24GB
+faiss:latest	67e745f77571	46.2GB
+nginx:latest	18878d9c60c9	6.27GB
+<none>:<none>	ca035cdc14d1	6.27GB
+agent_doc:latest	6d51f9d56488	14.5GB
+nginx_old:latest	c42042607a71	35.5GB
+sonic-go:v1	1ee1c6c44ad2	1.97GB
+feedinfo:dragonwell17	468daf216f86	2.74GB
+feedinfo:latest	468daf216f86	2.74GB
+redis-ks:latest	0dbcc21c3166	124MB
+db-service:latest	888ee168246a	1.43GB
+mysql-ks:latest	e64f5869c351	581MB
+api-service:latest	3891e215a357	2.44GB
+zstd:latest	a8c12fd3fc9d	3.59GB
+feedinfo:pre-instrument-backup	49a0b0c95757	1.44GB
+unixbench:latest	55cd8d46e552	4.3GB
+paotest11:latest	a06868107225	3.99GB
+dxy_test_0922:latest	82a136a48610	3.79GB
+lh_slice_model:latest	ecdb26b27f5e	4.32GB
+paotest9:latest	1d099ed1cc5f	3.95GB
+<none>:<none>	4e536606e18d	2.84GB
+kitex_test:v1	52656a2c93c8	20.1GB
++ docker images
++ grep -iE 'corex|iluvatar|ixrt|天数|bi-v'
++ head -10
++ echo '== 4. 本地是否已有镜像 tar / 迁移包 =='
+== 4. 本地是否已有镜像 tar / 迁移包 ==
++ ls -la /home/qch/transfer
++ head -15
+total 9436036
+drwxr-xr-x. 2 root root       4096 Nov 19 10:41 .
+drwxr-xr-x. 7 root root       4096 Nov 19 10:07 ..
+-rw-r--r--. 1 root root 9662480586 Nov 19 10:47 corex5-py311-py3116-20261029.tar.zst
+-rw-r--r--. 1 root root        122 Nov 19 10:41 corex5-py311-py3116-20261029.tar.zst.sha256
++ ls -lh '/home/qch/*.tar' '/home/qch/*.tar.gz' /home/qch/transfer/corex5-py311-py3116-20261029.tar.zst /home/qch/transfer/corex5-py311-py3116-20261029.tar.zst.sha256
++ head -10
+-rw-r--r--. 1 root root 9.0G Nov 19 10:47 /home/qch/transfer/corex5-py311-py3116-20261029.tar.zst
+-rw-r--r--. 1 root root  122 Nov 19 10:41 /home/qch/transfer/corex5-py311-py3116-20261029.tar.zst.sha256
++ du -sh /home/qch/transfer
+9.0G	/home/qch/transfer
++ echo '== 5. 宿主是否已装天数 userspace SDK（无内核模块也应该有这套）=='
+== 5. 宿主是否已装天数 userspace SDK（无内核模块也应该有这套）==
++ ls -d /usr/local/corex-5.0.0 '/usr/local/corex*'
++ head -5
+ls: cannot access '/usr/local/corex-5.0.0': No such file or directory
+ls: cannot access '/usr/local/corex*': No such file or directory
++ ls /usr/local/corex-5.0.0/lib
++ head -8
++ rpm -qa
++ grep -iE 'corex|iluvatar|ixrt'
++ head -10
++ lsmod
++ grep -i iluvatar
++ echo 'no iluvatar module'
+no iluvatar module
++ head -3
++ ls -l '/dev/iluvatar*'
+ls: cannot access '/dev/iluvatar*': No such file or directory
++ echo '== 6. 独立 dockerd + containerd 全部落 /home 的可行性 =='
+== 6. 独立 dockerd + containerd 全部落 /home 的可行性 ==
++ command -v dockerd containerd runc
+/usr/bin/dockerd
+/usr/bin/containerd
+/usr/bin/runc
++ dockerd --version
++ head -1
+Docker version 18.09.0, build 270f890
++ containerd --version
++ head -1
+containerd  1.6.22.25.oe2403sp3 0fdeab0487276d925a94c57518ae31d731742462
++ systemctl is-active docker
+active
++ ls -l /etc/docker/daemon.json
+-rw-r--r--. 1 root root 39 Jan 11  2026 /etc/docker/daemon.json
++ cat /etc/docker/daemon.json
+{
+  "data-root": "/home/docker-data"
+}
++ echo '-- 各分区：/ 很紧，确认 /var /run /tmp 是否独立 --'
+-- 各分区：/ 很紧，确认 /var /run /tmp 是否独立 --
++ df -h / /var /var/lib /var/lib/containerd /var/lib/docker /run /tmp /home
++ sort -u
+/dev/mapper/openeuler-home  6.9T  6.6T  239G  97% /home
+/dev/mapper/openeuler-root   69G   65G  609M 100% /
+Filesystem                  Size  Used Avail Use% Mounted on
+tmpfs                       101G  2.0G   99G   2% /run
+tmpfs                       252G  2.9G  249G   2% /tmp
++ echo '-- 挂载分区表 --'
+-- 挂载分区表 --
++ findmnt -T /home
+TARGET SOURCE                     FSTYPE OPTIONS
+/home  /dev/mapper/openeuler-home ext4   rw,relatime,seclabel
++ findmnt -T /var/lib
+TARGET SOURCE                     FSTYPE OPTIONS
+/      /dev/mapper/openeuler-root ext4   rw,relatime,seclabel
++ echo '-- /home 文件系统（overlay2 需要 d_type）--'
+-- /home 文件系统（overlay2 需要 d_type）--
++ stat -f -c '%n %T' /home
+/home ext2/ext3
++ xfs_info /home
++ head -3
++ true
++ echo '== 7. squashfs/overlay 内核支持（容器运行必需）=='
+== 7. squashfs/overlay 内核支持（容器运行必需）==
++ head -4
+++ uname -r
++ grep -E 'CONFIG_OVERLAY_FS|CONFIG_BRIDGE|CONFIG_VETH' /boot/config-6.6.0-132.0.0.111.oe2403sp3.aarch64
+CONFIG_BRIDGE_NETFILTER=m
+CONFIG_BRIDGE_NF_EBTABLES=m
+CONFIG_BRIDGE_EBT_BROUTE=m
+CONFIG_BRIDGE_EBT_T_FILTER=m
++ ls /proc/filesystems
++ grep -E 'overlay|squashfs'
++ set +x
+
+### exit: 0
