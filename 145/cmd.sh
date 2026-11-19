@@ -49,6 +49,7 @@ check() {  # check <描述> <命令>
   check "8948 空闲"           "! ss -ltn | grep -q ':8948 '"
   check "CPU 0-63 在同一个 NUMA node" \
         "[ \"\$(lscpu | awk -F: '/NUMA node0/{print \$2}' | tr -d ' ')\" = '0-63' ]"
+  check "build.json 存在"       "[ -f $TOOLS/liblitehost.build.json ]"
   check "mock 版 harness 存在"  "[ -x $TOOLS/vllmBench_lite_base_mock.sh ]"
   check "harness 里 MOCK_DIR 固定" \
         "grep -q 'MOCK_DIR=/home/qch/mock_vllm' $TOOLS/vllmBench_lite_base_mock.sh"
