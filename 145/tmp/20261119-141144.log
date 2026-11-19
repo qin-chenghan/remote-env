@@ -1,0 +1,92 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-19T06:11:44Z
+
++ echo '== 1. 安装 mock-only 工具包 =='
+== 1. 安装 mock-only 工具包 ==
++ '[' -f /home/qch/transfer/litehost_tools.tgz ']'
++ ls -lh /home/qch/transfer/litehost_tools.tgz
+-rw-r--r--. 1 root root 33K Nov 19 14:11 /home/qch/transfer/litehost_tools.tgz
++ tar xzf /home/qch/transfer/litehost_tools.tgz -C /home/huawei_ts_program/litehost_perf_opt
++ echo '-- 解包后实际脚本 --'
+-- 解包后实际脚本 --
++ ls -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh
++ echo '== 2. 适配自检 =='
+== 2. 适配自检 ==
++ check 容器在跑 'docker ps --filter name=corex5-py311-mock --format '\''{{.Status}}'\'' | grep -q Up'
++ eval 'docker ps --filter name=corex5-py311-mock --format '\''{{.Status}}'\'' | grep -q Up'
++ echo '  OK   容器在跑'
+  OK   容器在跑
++ check 模型就位 '[ -f /home/model/Qwen3-32B-W8A8/config.json ]'
++ eval '[ -f /home/model/Qwen3-32B-W8A8/config.json ]'
++ echo '  OK   模型就位'
+  OK   模型就位
++ check 'mock 目录存在' '[ -d /home/qch/mock_vllm/mock_gpu ]'
++ eval '[ -d /home/qch/mock_vllm/mock_gpu ]'
++ echo '  OK   mock 目录存在'
+  OK   mock 目录存在
++ check 'mock_ix.so 是 aarch64' 'file /home/qch/mock_vllm/mock_ix.so | grep -q '\''ARM aarch64'\'''
++ eval 'file /home/qch/mock_vllm/mock_ix.so | grep -q '\''ARM aarch64'\'''
++ echo '  OK   mock_ix.so 是 aarch64'
+  OK   mock_ix.so 是 aarch64
++ check 'liblitehost.so 是 aarch64' 'file /home/huawei_ts_program/litehost_perf_opt/liblitehost.so | grep -q '\''ARM aarch64'\'''
++ eval 'file /home/huawei_ts_program/litehost_perf_opt/liblitehost.so | grep -q '\''ARM aarch64'\'''
++ echo '  OK   liblitehost.so 是 aarch64'
+  OK   liblitehost.so 是 aarch64
++ check '容器内 py3.11' 'docker exec corex5-py311-mock /opt/corex311/bin/python3 -V 2>&1 | grep -q 3.11'
++ eval 'docker exec corex5-py311-mock /opt/corex311/bin/python3 -V 2>&1 | grep -q 3.11'
++ echo '  OK   容器内 py3.11'
+  OK   容器内 py3.11
++ check '容器内 taskset' 'docker exec corex5-py311-mock bash -lc '\''command -v taskset'\'''
++ eval 'docker exec corex5-py311-mock bash -lc '\''command -v taskset'\'''
++ echo '  OK   容器内 taskset'
+  OK   容器内 taskset
++ check '8948 空闲' '! ss -ltn | grep -q '\'':8948 '\'''
++ eval '! ss -ltn | grep -q '\'':8948 '\'''
++ echo '  OK   8948 空闲'
+  OK   8948 空闲
++ check 'CPU 0-63 在同一个 NUMA node' '[ "$(lscpu | awk -F: '\''/NUMA node0/{print $2}'\'' | tr -d '\'' '\'')" = '\''0-63'\'' ]'
++ eval '[ "$(lscpu | awk -F: '\''/NUMA node0/{print $2}'\'' | tr -d '\'' '\'')" = '\''0-63'\'' ]'
++ echo '  OK   CPU 0-63 在同一个 NUMA node'
+  OK   CPU 0-63 在同一个 NUMA node
++ check 'mock 版 harness 存在' '[ -x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh ]'
++ eval '[ -x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh ]'
++ echo '  OK   mock 版 harness 存在'
+  OK   mock 版 harness 存在
++ check 'harness 里 MOCK_DIR 固定' 'grep -q '\''MOCK_DIR=/home/qch/mock_vllm'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'
++ eval 'grep -q '\''MOCK_DIR=/home/qch/mock_vllm'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'
++ echo '  OK   harness 里 MOCK_DIR 固定'
+  OK   harness 里 MOCK_DIR 固定
++ '[' 0 -ne 0 ']'
++ echo '  全部通过'
+  全部通过
++ echo '== 3. 启动 lite(H/G) bench（后台）=='
+== 3. 启动 lite(H/G) bench（后台）==
++ echo TEST_ID=lite145_1411
+TEST_ID=lite145_1411
++ docker exec -d corex5-py311-mock bash -lc 'cd /home/huawei_ts_program/litehost_perf_opt &&     MODEL_PATH=/home/model/Qwen3-32B-W8A8 TEST_ID=lite145_1411 HOST_MEASURE=lite     nohup bash vllmBench_lite_base_mock.sh     > /home/qch/transfer/run_lite145_1411.log 2>&1'
++ sleep 25
++ echo '-- 启动日志 --'
+-- 启动日志 --
++ tail -10 /home/qch/transfer/run_lite145_1411.log
+INFO 11-19 14:11:59 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-19 14:11:59 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/opt/corex311/lib/python3.11/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/opt/corex311/lib/python3.11/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+ERROR: FileNotFoundError: [Errno 2] No such file or directory: '/home/huawei_ts_program/litehost_perf_opt/liblitehost.build.json'
+[mock_gpu] activated: no Iluvatar device visible (id=a89f9a6721)
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ echo '== 4. 后续查看 =='
+== 4. 后续查看 ==
++ echo 日志：/home/qch/transfer/run_lite145_1411.log
+日志：/home/qch/transfer/run_lite145_1411.log
++ echo 结果：/home/huawei_ts_program/litehost_perf_opt/vllmBench/lite145_1411/host_summary/report.txt
+结果：/home/huawei_ts_program/litehost_perf_opt/vllmBench/lite145_1411/host_summary/report.txt
++ set +x
+
+### exit: 0
