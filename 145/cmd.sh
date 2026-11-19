@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。从 mock145_1355 的 rank0 trace 里提取 prefill/decode 一个 step 的
-#       python_function 帧名与次数，用于和 32 同配置数据做帧级对齐。
+# 本次：安装 lite 版 bench 脚本 → 先做一次帧级检查（只读）→ 后台启动 lite(H/G) bench。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,6 +10,11 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
+TGZ=/home/qch/transfer/litehost_tools.tgz
+TOOLS=/home/huawei_ts_program/litehost_perf_opt
+CONTAINER=corex5-py311-mock
+MODEL=/home/model/Qwen3-32B-W8A8
+TEST_ID="lite145_$(date +%H%M)"
 TRACE=$(ls /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/timeline/rank0.*.gz 2>/dev/null | head -1)
 
 {
@@ -22,55 +26,69 @@ TRACE=$(ls /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/time
 
   # ---- 命令开始 ----
 
-  [ -n "$TRACE" ] || { echo "!! 找不到 rank0 trace"; exit 3; }
-  ls -lh "$TRACE"
+  echo "== 1. 安装 lite 版 bench 脚本 =="
+  [ -f "$TGZ" ] || { echo "!! 缺 $TGZ"; exit 3; }
+  tar xzf "$TGZ" -C "$TOOLS" || exit 1
+  ls -lh "$TOOLS/vllmBench_lite_base.sh" "$TOOLS/vllmBench_lite_base_mock.sh" \
+          "$TOOLS/vllmBench_lite_base_timeline.sh"
+  grep -m1 -n "MOCK_DIR=/home" "$TOOLS/vllmBench_lite_base_mock.sh"
 
-  python3.11 - "$TRACE" <<'PY'
+  echo "== 2. 帧级检查（mock145_1355 rank0，只读）=="
+  if [ -n "$TRACE" ]; then
+    python3.11 - "$TRACE" <<'PY'
 import collections, gzip, json, re, sys
-
-trace = sys.argv[1]
-with gzip.open(trace, "rt", encoding="utf-8") as f:
+with gzip.open(sys.argv[1], "rt", encoding="utf-8") as f:
     ev = json.load(f)["traceEvents"]
-
-def norm(name):
-    name = re.sub(r" object at 0x[0-9a-f]+", "", name)
-    name = re.sub(r"pybind11_builtins\.pybind11_detail_function_record_v1_"
-                  r"system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0",
-                  "pybind11_method", name)
-    name = re.sub(r"/tmp/torchinductor_root/[0-9a-z]+/[0-9a-z]+\.py",
-                  "/tmp/torchinductor_root/X/kernel.py", name)
-    return name
-
+def norm(n):
+    n = re.sub(r" object at 0x[0-9a-f]+", "", n)
+    n = re.sub(r"/tmp/torchinductor_root/[0-9a-z]+/[0-9a-z]+\.py",
+               "/tmp/torchinductor_root/X/kernel.py", n)
+    return n
 em = [e for e in ev if e.get("cat") == "python_function"
       and e.get("name", "").endswith(": execute_model")
       and "gpu_model_runner.py" in e.get("name", "")]
-
 for scope in ("execute_context_1(128)_generation_0(0)",
               "execute_context_0(0)_generation_8(8)"):
-    scopes = [e for e in ev if e.get("name") == scope and e.get("cat") == "user_annotation"]
-    scopes.sort(key=lambda e: e["ts"])
-    if not scopes:
-        print(f"{scope}: NOT FOUND")
-        continue
-    sev = scopes[len(scopes) // 2]
+    s = sorted([e for e in ev if e.get("name") == scope and e.get("cat") == "user_annotation"],
+               key=lambda e: e["ts"])
+    if not s:
+        print(scope, "NOT FOUND"); continue
+    sev = s[len(s) // 2]
     near = min(em, key=lambda e: abs(e["ts"] - sev["ts"]))
     t0, t1 = near["ts"], near["ts"] + near["dur"]
     key = (near.get("pid"), near.get("tid"))
-    fr = collections.Counter()
-    for e in ev:
-        if (e.get("cat") == "python_function"
-                and (e.get("pid"), e.get("tid")) == key
-                and t0 <= e["ts"] < t1):
-            fr[norm(e["name"])] += 1
-    print(f"\n=== {scope}  occurrences={len(scopes)} idx={len(scopes)//2}")
-    print(f"    anchor_dur_us={near['dur']:.1f}  frames={len(fr)}  calls={sum(fr.values())}")
-    for n, c in sorted(fr.items(), key=lambda kv: -kv[1])[:12]:
-        print(f"    {c:6d}  {n}")
-    print("    -- mock 特有帧 --")
-    for n, c in sorted(fr.items()):
-        if "worker_patch" in n or "fake_graph" in n or "torchinductor" in n:
-            print(f"    {c:6d}  {n}")
+    fr = collections.Counter(norm(e["name"]) for e in ev
+        if e.get("cat") == "python_function"
+        and (e.get("pid"), e.get("tid")) == key and t0 <= e["ts"] < t1)
+    print(f"{scope}: occurrences={len(s)} frames={len(fr)} calls={sum(fr.values())}")
+    for n in sorted(fr):
+        if "worker_patch" in n or "fake_graph" in n:
+            print(f"   {fr[n]:6d}  {n}")
 PY
+  else
+    echo "找不到 trace，跳过"
+  fi
+
+  echo "== 3. 前置检查 =="
+  docker ps --filter "name=$CONTAINER" --format '{{.Names}} {{.Status}}' | grep -q Up \
+    || { echo "!! 容器没在跑"; exit 3; }
+  [ -f "$MODEL/config.json" ] || { echo "!! 缺模型"; exit 3; }
+  if ss -ltn 2>/dev/null | grep -q ':8948 '; then
+    echo "!! 8948 被占用"; exit 5
+  fi
+
+  echo "== 4. 启动 lite(H/G) bench（后台）=="
+  echo "TEST_ID=$TEST_ID"
+  docker exec -d "$CONTAINER" bash -lc "cd $TOOLS && \
+    MODEL_PATH=$MODEL TEST_ID=$TEST_ID HOST_MEASURE=lite \
+    nohup bash vllmBench_lite_base_mock.sh \
+    > /home/qch/transfer/run_$TEST_ID.log 2>&1"
+  sleep 25
+  tail -10 "/home/qch/transfer/run_$TEST_ID.log" 2>/dev/null || echo "(日志未出现)"
+
+  echo "== 5. 后续查看 =="
+  echo "日志：/home/qch/transfer/run_$TEST_ID.log"
+  echo "结果：$TOOLS/vllmBench/$TEST_ID/host_summary/report.txt"
 
   # ---- 命令结束 ----
 
