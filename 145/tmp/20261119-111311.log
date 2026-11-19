@@ -1,0 +1,45 @@
+### server: 145  stage=none
+### host:   localhost.localdomain
+### time:   2026-11-19T03:13:11Z
+
++ case "$STAGE" in
++ echo '用法：STAGE=1|2|3|4 bash 145/cmd.sh'
+用法：STAGE=1|2|3|4 bash 145/cmd.sh
++ echo '  1 = 校验 sha256 + 解压（需 27G 空闲，当前）'
+  1 = 校验 sha256 + 解压（需 27G 空闲，当前）
++ echo '  2 = docker load（再占约 28G）'
+  2 = docker load（再占约 28G）
++ echo '  3 = 起容器 + 自检'
+  3 = 起容器 + 自检
++ echo '  4 = mock 激活冒烟'
+  4 = mock 激活冒烟
++ echo
+
++ echo 当前状态：
+当前状态：
++ ls -lh /home/qch/transfer/corex5-py311-py3116-20261029.tar.zst /home/qch/transfer/corex5-py311-py3116-20261029.tar
+-rw-r--r--. 1 root root  27G Nov 19 10:47 /home/qch/transfer/corex5-py311-py3116-20261029.tar
+-rw-r--r--. 1 root root 9.0G Nov 19 10:47 /home/qch/transfer/corex5-py311-py3116-20261029.tar.zst
++ echo '-- images 里 corex 相关 --'
+-- images 里 corex 相关 --
++ docker images
++ grep -iE 'corex|REPOSITORY'
++ head -6
+REPOSITORY                       TAG                        IMAGE ID            CREATED             SIZE
+corex5-py311                     py3116-20261029            9dacda4dbfe3        2 weeks ago         28.3GB
++ echo '-- 容器的镜像引用 --'
+-- 容器的镜像引用 --
++ docker inspect corex5-py311-mock --format '  container image: {{.Config.Image}}  id={{.Image}}  started={{.State.StartedAt}}'
+  container image: corex5-py311:py3116-20261029  id=sha256:9dacda4dbfe3b1cb2876367c881296beb16ed6c0dd2a5d7304aebe121445ee3c  started=2026-11-19T03:04:19.28195104Z
+++ docker inspect corex5-py311-mock --format '{{.Image}}'
++ CID=sha256:9dacda4dbfe3b1cb2876367c881296beb16ed6c0dd2a5d7304aebe121445ee3c
++ '[' -n sha256:9dacda4dbfe3b1cb2876367c881296beb16ed6c0dd2a5d7304aebe121445ee3c ']'
++ docker images --filter id=sha256:9dacda4dbfe3b1cb2876367c881296beb16ed6c0dd2a5d7304aebe121445ee3c --format '  image row: {{.Repository}}:{{.Tag}} {{.Size}}'
++ docker ps -a --filter name=corex5-py311-mock --format '  容器: {{.Names}} {{.Status}}'
+容器: corex5-py311-mock Up 8 minutes
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  6.9T  6.2T  702G  90% /home
++ set +x
+
+### exit: 0
