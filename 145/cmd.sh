@@ -114,7 +114,16 @@ STAGE="${STAGE:-}"
     echo
     echo "当前状态："
     ls -lh "$IMG" "$TAR" 2>/dev/null || echo "  镜像文件尚未就位"
-    docker images 2>/dev/null | grep -E "$IMAGE_TAG" || echo "  镜像尚未载入"
+    echo "-- images 里 corex 相关 --"
+    docker images 2>/dev/null | grep -iE "corex|REPOSITORY" | head -6
+    echo "-- 容器的镜像引用 --"
+    docker inspect corex5-py311-mock \
+      --format '  container image: {{.Config.Image}}  id={{.Image}}  started={{.State.StartedAt}}' 2>/dev/null \
+      || echo "  无容器"
+    CID=$(docker inspect corex5-py311-mock --format '{{.Image}}' 2>/dev/null || true)
+    if [ -n "${CID:-}" ]; then
+      docker images --filter "id=$CID" --format '  image row: {{.Repository}}:{{.Tag}} {{.Size}}' 2>/dev/null
+    fi
     docker ps -a --filter name=corex5-py311-mock --format '  容器: {{.Names}} {{.Status}}' 2>/dev/null
     df -h /home | tail -1
     ;;
