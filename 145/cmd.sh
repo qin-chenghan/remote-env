@@ -66,12 +66,16 @@ mkdir -p "$DIR/tmp"
     ls -d /dev/iluvatar* 2>/dev/null || echo "no device (expected)"
   ' 2>&1 | tail -12
 
-  echo "== 6. mock 激活冒烟（需要 /home/qch/mock_vllm 已就位）=="
+  echo "== 6. mock 激活冒烟 =="
+  if [ ! -d /home/qch/mock_vllm/mock_gpu ] && [ -d /home/qch/tools/remote-env/mock_vllm/mock_gpu ]; then
+    ln -sfn /home/qch/tools/remote-env/mock_vllm /home/qch/mock_vllm
+    echo "已软链 /home/qch/mock_vllm -> remote-env/mock_vllm"
+  fi
   docker exec corex5-py311-mock bash -lc '
     if [ -d /home/qch/mock_vllm/mock_gpu ]; then
       PYTHONPATH=/home/qch/mock_vllm /opt/corex311/bin/python3 -c "import mock_gpu.autoload" 2>&1 | tail -3
     else
-      echo "缺 /home/qch/mock_vllm/mock_gpu：cd remote-env 后拷过去"
+      echo "缺 /home/qch/mock_vllm/mock_gpu"
     fi
   ' 2>&1 | tail -6
 
