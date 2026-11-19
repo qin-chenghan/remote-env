@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。评估能否在 145 上部署 vLLM 无卡 mock（需要 python3.11 + torch + vLLM + 模型）。
+# 本次：只读。为搬运 aarch64 天数镜像做准备：docker 落盘位置/容量、已有镜像、是否已装 userspace SDK。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,51 +19,35 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
 
-  echo "== 1. 机器与容量 =="
-  uname -a
-  nproc; lscpu | grep -E "Model name|Socket|Core|Thread|NUMA|Architecture" | head -10
+  echo "== 1. docker 落盘与容量 =="
+  docker info 2>&1 | grep -iE "Docker Root Dir|Storage Driver|Server Version|Cgroup" | head -6
+  ROOT=$(docker info 2>/dev/null | awk -F': ' '/Docker Root Dir/{print $2}')
+  echo "root=$ROOT"
+  df -h "$ROOT" 2>/dev/null | tail -1
+  df -h /home | tail -1
+
+  echo "== 2. 已有镜像（找 aarch64 天数/corex 镜像）=="
+  docker images --format '{{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.Size}}' 2>&1 | head -25
+  echo "-- 是否有 corex/iluvatar 相关 --"
+  docker images 2>/dev/null | grep -iE "corex|iluvatar|ixrt|天数|bi-v" | head -10
+
+  echo "== 3. 本地是否已有镜像 tar / 迁移包 =="
+  ls -la /home/qch/transfer 2>/dev/null | head -15
+  ls -lh /home/qch/*.tar /home/qch/*.tar.gz /home/qch/transfer/*.tar* 2>/dev/null | head -10
+  du -sh /home/qch/transfer 2>/dev/null
+
+  echo "== 4. 宿主是否已装天数 userspace SDK（无内核模块也应该有这套）=="
+  ls -d /usr/local/corex-5.0.0 /usr/local/corex* 2>&1 | head -5
+  ls /usr/local/corex-5.0.0/lib 2>/dev/null | head -8
+  rpm -qa 2>/dev/null | grep -iE "corex|iluvatar|ixrt" | head -10
+  echo "-- 内核模块（预期没有）--"
+  lsmod 2>/dev/null | grep -i iluvatar || echo "no iluvatar module"
+  ls -l /dev/iluvatar* 2>&1 | head -3
+
+  echo "== 5. 传输条件 =="
+  df -h /home | tail -1
   free -g | head -2
-  df -h / /home 2>/dev/null | tail -2
-  echo "-- 容器 --"
-  docker ps --format '{{.Names}}\t{{.Image}}\t{{.Status}}' 2>&1 | head -6
-
-  echo "== 2. 宿主机 python 与包 =="
-  command -v python3.11 python3 python3.9 2>&1
-  for p in python3.11 python3; do
-    if command -v $p >/dev/null 2>&1; then
-      echo "-- $p: $($p -V 2>&1)"
-      $p -m pip list 2>/dev/null | grep -iE "^(torch|triton|vllm|numpy|transformers|safetensors|pillow|ray)\b" | head -12
-      echo "   (以上为空则未装 torch/vllm)"
-    fi
-  done
-
-  echo "== 3. 容器内 python 与包 =="
-  docker exec fusionv1 bash -lc '
-python3 -V 2>&1
-ls /usr/bin/python* /usr/local/bin/python* 2>/dev/null | head -6
-echo "-- pip --"
-command -v pip pip3 2>&1 | head -2
-python3 -m pip list 2>/dev/null | grep -iE "^(torch|triton|vllm|numpy|transformers|pillow)\b" | head -12
-echo "-- /opt --"
-ls /opt 2>/dev/null | head -10
-' 2>&1 | head -30
-
-  echo "== 4. 是否已有 vLLM / torch 安装痕迹 =="
-  ls -d /opt/corex311 /opt/corex311-cpython-vllm /opt/python-3.11.6 2>&1
-  ls -l /home/model /home/model/ts 2>&1 | head -8
-  ls -l /home/huawei_ts_program 2>&1 | head -5
-  grep -rIl "import vllm" /home/qch --include=*.py 2>/dev/null | head -5
-
-  echo "== 5. 能否联网拉 aarch64 wheel（只解析，不安装）=="
-  timeout 20 python3.11 - <<'PY' 2>&1 | tail -5
-import urllib.request
-for url in ("https://pypi.org/simple/torch/", "https://mirrors.aliyun.com/pypi/simple/torch/"):
-    try:
-        r = urllib.request.urlopen(url, timeout=8)
-        print(url, "OK", r.status)
-    except Exception as e:
-        print(url, "FAIL", type(e).__name__, e)
-PY
+  ls -d /data /nfs /mnt 2>/dev/null | head -5
 
   # ---- 命令结束 ----
 
