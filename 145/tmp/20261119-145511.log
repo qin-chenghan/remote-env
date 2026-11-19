@@ -1,0 +1,54 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-19T06:55:11Z
+
++ echo '== 1. 清理前确认镜像仍在 docker 中 =='
+== 1. 清理前确认镜像仍在 docker 中 ==
++ docker image inspect corex5-py311:py3116-20261029 --format '{{.Id}}'
+sha256:9dacda4dbfe3b1cb2876367c881296beb16ed6c0dd2a5d7304aebe121445ee3c
++ docker ps --filter name=corex5-py311-mock --format '{{.Names}} {{.Status}}'
+corex5-py311-mock Up 4 hours
++ echo '== 2. 删除前空间 =='
+== 2. 删除前空间 ==
++ ls -lh /home/qch/transfer/corex5-py311-py3116-20261029.tar /home/qch/transfer/corex5-py311-py3116-20261029.tar.zst
+-rw-r--r--. 1 root root  27G Nov 19 10:47 /home/qch/transfer/corex5-py311-py3116-20261029.tar
+-rw-r--r--. 1 root root 9.0G Nov 19 10:47 /home/qch/transfer/corex5-py311-py3116-20261029.tar.zst
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  6.9T  6.2T  664G  91% /home
++ echo '== 3. 删除 =='
+== 3. 删除 ==
++ rm -f /home/qch/transfer/corex5-py311-py3116-20261029.tar /home/qch/transfer/corex5-py311-py3116-20261029.tar.zst
++ ls -lh /home/qch/transfer/corex5-py311-py3116-20261029.tar /home/qch/transfer/corex5-py311-py3116-20261029.tar.zst
++ echo 已删除
+已删除
++ echo '== 4. 删除后空间 =='
+== 4. 删除后空间 ==
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  6.9T  6.2T  700G  90% /home
++ echo '-- transfer 目录剩余 --'
+-- transfer 目录剩余 --
++ ls -lh /home/qch/transfer
++ head -10
+total 76K
+-rw-r--r--. 1 root root  122 Nov 19 10:41 corex5-py311-py3116-20261029.tar.zst.sha256
+-rw-r--r--. 1 root root  33K Nov 19 14:11 litehost_tools.tgz
+-rw-r--r--. 1 root root 4.1K Nov 19 14:12 run_lite145_1411.log
+-rw-r--r--. 1 root root  19K Nov 19 14:41 run_lite145_1438.log
+-rw-r--r--. 1 root root 2.5K Nov 19 13:59 run_mock145_1355.log
++ echo '== 5. 镜像与容器仍可用 =='
+== 5. 镜像与容器仍可用 ==
++ docker images
++ grep -E 'corex5-py311|REPOSITORY'
++ head -3
+REPOSITORY                       TAG                        IMAGE ID            CREATED             SIZE
+corex5-py311                     py3116-20261029            9dacda4dbfe3        3 weeks ago         28.3GB
++ docker exec corex5-py311-mock bash -lc 'PYTHONPATH=/home/qch/mock_vllm /opt/corex311/bin/python3 -c "import mock_gpu.autoload"'
++ tail -3
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=a89f9a6721)
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ set +x
+
+### exit: 0
