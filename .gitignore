@@ -8,3 +8,8 @@
 
 # 本地留档的部署脚本（不入库）
 *.local.sh
+
+# 构建产物（服务器现场生成，不入库）
+__pycache__/
+*.pyc
+mock_vllm/mock_ix.so
