@@ -1,0 +1,82 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-19T05:48:54Z
+
++ echo '== 1. 解包 litehost 工具 =='
+== 1. 解包 litehost 工具 ==
++ '[' -f /home/qch/transfer/litehost_tools.tgz ']'
++ mkdir -p /home/huawei_ts_program/litehost_perf_opt
++ tar xzf /home/qch/transfer/litehost_tools.tgz -C /home/huawei_ts_program/litehost_perf_opt
++ ls -lh /home/huawei_ts_program/litehost_perf_opt/liblitehost.so /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh
+-rwxr-xr-x. 1 root root 71K Oct 29 20:35 /home/huawei_ts_program/litehost_perf_opt/liblitehost.so
+-rwxr-xr-x. 1 root root 19K Nov 17 16:39 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh
++ file /home/huawei_ts_program/litehost_perf_opt/liblitehost.so
++ cut -c1-110
+/home/huawei_ts_program/litehost_perf_opt/liblitehost.so: ELF 64-bit LSB shared object, ARM aarch64, version 1
++ ls /home/huawei_ts_program/litehost_perf_opt
++ wc -l
+16
++ echo '== 2. 编 mock_ix.so（litehost 的符号垫片）=='
+== 2. 编 mock_ix.so（litehost 的符号垫片）==
++ '[' -d /home/qch/mock_vllm ']'
++ gcc -shared -fPIC -o /home/qch/mock_vllm/mock_ix.so /home/qch/mock_vllm/mock_ix.c
++ ls -lh /home/qch/mock_vllm/mock_ix.so
+-rwxr-xr-x. 1 root root 69K Nov 19 13:48 /home/qch/mock_vllm/mock_ix.so
++ file /home/qch/mock_vllm/mock_ix.so
++ cut -c1-110
+/home/qch/mock_vllm/mock_ix.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linke
++ echo '== 3. 容器内依赖检查 =='
+== 3. 容器内依赖检查 ==
++ docker ps --filter name=corex5-py311-mock --format '{{.Names}} {{.Status}}'
+corex5-py311-mock Up 3 hours
++ docker exec corex5-py311-mock bash -lc '
+    command -v taskset python3 gcc 2>&1
+    ls -l /home/huawei_ts_program/litehost_perf_opt/liblitehost.so /home/qch/mock_vllm/mock_ix.so 2>&1
+    nproc
+  '
++ tail -8
+/usr/bin/taskset
+/opt/corex311/bin/python3
+/usr/bin/gcc
+-rwxr-xr-x. 1 root root 72152 Oct 29 20:35 /home/huawei_ts_program/litehost_perf_opt/liblitehost.so
+-rwxr-xr-x. 1 root root 69928 Nov 19 13:48 /home/qch/mock_vllm/mock_ix.so
+256
++ echo '== 4. CPU / NUMA 拓扑（决定 taskset 绑核范围）=='
+== 4. CPU / NUMA 拓扑（决定 taskset 绑核范围）==
++ lscpu
++ grep -E 'NUMA node\(s\)|NUMA node[0-9]'
++ head -6
+NUMA node(s):                         4
+NUMA node0 CPU(s):                    0-63
+NUMA node1 CPU(s):                    64-127
+NUMA node2 CPU(s):                    128-191
+NUMA node3 CPU(s):                    192-255
++ nproc
+256
++ echo '== 5. 端口与余量 =='
+== 5. 端口与余量 ==
++ ss -ltn
++ grep ':8948 '
++ echo '8948 空闲'
+8948 空闲
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  6.9T  6.2T  668G  91% /home
++ free -g
++ head -1
+               total        used        free      shared  buff/cache   available
++ echo '== 6. harness 参数确认（不改，只打印）=='
+== 6. harness 参数确认（不改，只打印）==
++ grep -nE 'MODEL_PATH|_timeline_cpu_range|_timeline_port|MOCK_DIR' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh
++ head -8
+15:MODEL_PATH="${MODEL_PATH:-/home/model/ts/Qwen3-32B-W8A8}"
+16:if [[ -z "${MOCK_DIR:-}" && ! -e /dev/iluvatar0 ]]; then
+17:    MOCK_DIR=/home/qch/mock_vllm
+20:_timeline_port=8848
+21:_timeline_cpu_range=192-255
+22:if [[ -n "${MOCK_DIR:-}" ]]; then
+24:    _timeline_port=8948
+25:    _timeline_cpu_range=0-63
++ set +x
+
+### exit: 0
