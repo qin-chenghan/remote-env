@@ -1,0 +1,34 @@
+### server: 145  stage=5
+### host:   localhost.localdomain
+### time:   2026-11-19T03:06:07Z
+
++ case "$STAGE" in
++ echo '用法：STAGE=1|2|3|4 bash 145/cmd.sh'
+用法：STAGE=1|2|3|4 bash 145/cmd.sh
++ echo '  1 = 校验 sha256 + 解压（需 27G 空闲，当前）'
+  1 = 校验 sha256 + 解压（需 27G 空闲，当前）
++ echo '  2 = docker load（再占约 28G）'
+  2 = docker load（再占约 28G）
++ echo '  3 = 起容器 + 自检'
+  3 = 起容器 + 自检
++ echo '  4 = mock 激活冒烟'
+  4 = mock 激活冒烟
++ echo
+
++ echo 当前状态：
+当前状态：
++ ls -lh /home/qch/transfer/corex5-py311-py3116-20261029.tar.zst /home/qch/transfer/corex5-py311-py3116-20261029.tar
+-rw-r--r--. 1 root root  27G Nov 19 10:47 /home/qch/transfer/corex5-py311-py3116-20261029.tar
+-rw-r--r--. 1 root root 9.0G Nov 19 10:47 /home/qch/transfer/corex5-py311-py3116-20261029.tar.zst
++ docker images
++ grep -E corex5-py311:py3116-20261029
++ echo '  镜像尚未载入'
+  镜像尚未载入
++ docker ps -a --filter name=corex5-py311-mock --format '  容器: {{.Names}} {{.Status}}'
+容器: corex5-py311-mock Up About a minute
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  6.9T  6.2T  702G  90% /home
++ set +x
+
+### exit: 0

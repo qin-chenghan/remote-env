@@ -1,0 +1,25 @@
+### server: 145  stage=4
+### host:   localhost.localdomain
+### time:   2026-11-19T03:05:51Z
+
++ case "$STAGE" in
++ echo '== STAGE 4：mock 激活冒烟 =='
+== STAGE 4：mock 激活冒烟 ==
++ '[' '!' -d /home/qch/mock_vllm/mock_gpu ']'
++ '[' -d /home/qch/tools/remote-env/mock_vllm/mock_gpu ']'
++ ln -sfn /home/qch/tools/remote-env/mock_vllm /home/qch/mock_vllm
++ echo '已软链 /home/qch/mock_vllm -> remote-env/mock_vllm'
+已软链 /home/qch/mock_vllm -> remote-env/mock_vllm
++ '[' -d /home/qch/mock_vllm/mock_gpu ']'
++ docker exec corex5-py311-mock bash -lc '
+      PYTHONPATH=/home/qch/mock_vllm /opt/corex311/bin/python3 -c "import mock_gpu.autoload" 2>&1 | tail -4
+    '
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=a89f9a6721)
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ echo '== STAGE 4 完成：出现 [mock_gpu] activated ... (id=...) 即部署成功 =='
+== STAGE 4 完成：出现 [mock_gpu] activated ... (id=...) 即部署成功 ==
++ set +x
+
+### exit: 0

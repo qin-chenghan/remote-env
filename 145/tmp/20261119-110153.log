@@ -1,0 +1,26 @@
+### server: 145  stage=2
+### host:   localhost.localdomain
+### time:   2026-11-19T03:01:53Z
+
++ case "$STAGE" in
++ echo '== STAGE 2：docker load =='
+== STAGE 2：docker load ==
++ '[' -f /home/qch/transfer/corex5-py311-py3116-20261029.tar ']'
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  6.9T  6.1T  729G  90% /home
++ docker load -i /home/qch/transfer/corex5-py311-py3116-20261029.tar
+Loaded image: corex5-py311:py3116-20261029
++ docker images
++ grep -E 'corex5-py311|REPOSITORY'
++ head -5
+REPOSITORY                       TAG                        IMAGE ID            CREATED             SIZE
+corex5-py311                     py3116-20261029            9dacda4dbfe3        2 weeks ago         28.3GB
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  6.9T  6.2T  702G  90% /home
++ echo '== STAGE 2 完成：镜像已载入，再跑 STAGE=3 =='
+== STAGE 2 完成：镜像已载入，再跑 STAGE=3 ==
++ set +x
+
+### exit: 0

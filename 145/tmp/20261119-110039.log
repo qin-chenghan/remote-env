@@ -1,0 +1,34 @@
+### server: 145  stage=1
+### host:   localhost.localdomain
+### time:   2026-11-19T03:00:39Z
+
++ case "$STAGE" in
++ echo '== STAGE 1：校验 + 解压 =='
+== STAGE 1：校验 + 解压 ==
++ ls -lh /home/qch/transfer/corex5-py311-py3116-20261029.tar.zst
+-rw-r--r--. 1 root root 9.0G Nov 19 10:47 /home/qch/transfer/corex5-py311-py3116-20261029.tar.zst
+++ sha256sum /home/qch/transfer/corex5-py311-py3116-20261029.tar.zst
+++ cut '-d ' -f1
++ ACTUAL=dc479721103811984b4f08a397da6f78825a5457a8773f35995b44a80e29f5ff
++ echo actual=dc479721103811984b4f08a397da6f78825a5457a8773f35995b44a80e29f5ff
+actual=dc479721103811984b4f08a397da6f78825a5457a8773f35995b44a80e29f5ff
++ echo expect=dc479721103811984b4f08a397da6f78825a5457a8773f35995b44a80e29f5ff
+expect=dc479721103811984b4f08a397da6f78825a5457a8773f35995b44a80e29f5ff
++ '[' dc479721103811984b4f08a397da6f78825a5457a8773f35995b44a80e29f5ff = dc479721103811984b4f08a397da6f78825a5457a8773f35995b44a80e29f5ff ']'
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  6.9T  6.6T  257G  97% /home
++ '[' -f /home/qch/transfer/corex5-py311-py3116-20261029.tar ']'
++ command -v zstd
++ zstd -d /home/qch/transfer/corex5-py311-py3116-20261029.tar.zst -o /home/qch/transfer/corex5-py311-py3116-20261029.tar
+/home/qch/transfer/corex5-py311-py3116-20261029.tar.zst: 28408928256 bytes 
++ ls -lh /home/qch/transfer/corex5-py311-py3116-20261029.tar
+-rw-r--r--. 1 root root 27G Nov 19 10:47 /home/qch/transfer/corex5-py311-py3116-20261029.tar
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  6.9T  6.6T  231G  97% /home
++ echo '== STAGE 1 完成，检查上面 sha256 一致、tar 27G 左右，再跑 STAGE=2 =='
+== STAGE 1 完成，检查上面 sha256 一致、tar 27G 左右，再跑 STAGE=2 ==
++ set +x
+
+### exit: 0

@@ -1,0 +1,36 @@
+### server: 145  stage=3
+### host:   localhost.localdomain
+### time:   2026-11-19T03:04:19Z
+
++ case "$STAGE" in
++ echo '== STAGE 3：起容器 + 自检 =='
+== STAGE 3：起容器 + 自检 ==
++ docker image inspect corex5-py311:py3116-20261029
++ ss -ltn
++ grep -q ':8948 '
++ docker rm -f corex5-py311-mock
++ docker run -d --name corex5-py311-mock --network host --security-opt label=disable -v /home:/home corex5-py311:py3116-20261029 sleep infinity
+4048eb32f0a59a6deac33dc5e484e618f84dd44cd16dee8fca4539be25192b00
++ sleep 3
++ docker ps --filter name=corex5-py311-mock --format '{{.Names}} {{.Status}}'
+corex5-py311-mock Up 3 seconds
++ echo '-- 容器内自检 --'
+-- 容器内自检 --
++ docker exec corex5-py311-mock bash -lc '
+      uname -m
+      /opt/corex311/bin/python3 -V
+      ls -l /usr/local/corex/lib64/libcuda.so.1
+      /opt/corex311/bin/python3 -c "import torch; print(torch.__version__)"
+      ls -d /dev/iluvatar* 2>/dev/null || echo "no device (expected)"
+    '
++ tail -8
+aarch64
+Python 3.11.6
+-rwxr-xr-x. 2 root root 14968008 Sep 23 09:36 /usr/local/corex/lib64/libcuda.so.1
+2.10.0
+no device (expected)
++ echo '== STAGE 3 完成：aarch64 / py3.11 / libcuda / torch 都正常，再跑 STAGE=4 =='
+== STAGE 3 完成：aarch64 / py3.11 / libcuda / torch 都正常，再跑 STAGE=4 ==
++ set +x
+
+### exit: 0
