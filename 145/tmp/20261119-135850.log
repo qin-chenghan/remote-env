@@ -1,0 +1,92 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-19T05:58:50Z
+
++ echo '== 1. 等待完成（最多 8 分钟）=='
+== 1. 等待完成（最多 8 分钟）==
+++ seq 1 16
++ for i in $(seq 1 16)
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/summary.csv ']'
++ pgrep -f vllm.entrypoints.openai.api_server
++ '[' 1 -eq 1 ']'
++ echo 开始等待...
+开始等待...
++ sleep 30
++ for i in $(seq 1 16)
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/summary.csv ']'
++ pgrep -f vllm.entrypoints.openai.api_server
++ '[' 2 -eq 1 ']'
++ sleep 30
++ for i in $(seq 1 16)
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/summary.csv ']'
++ echo 'summary.csv 已生成'
+summary.csv 已生成
++ break
++ echo '== 2. 运行日志尾部 =='
+== 2. 运行日志尾部 ==
++ tail -25 /home/qch/transfer/run_mock145_1355.log
+[2026-11-19 13:55:18] PREFIX=/opt/corex311
+[2026-11-19 13:55:18] TEST_ID=mock145_1355 | MODE=off | PROFILE=1 | WARMUP=16 | CPU_RANGE=0-63
+[2026-11-19 13:55:18] prefix cache=OFF | backend=vllm | 同一服务运行 1 个 case | RUN_DIR=/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355
+[2026-11-19 13:55:18] WARNING: ixsmi 不可用，跳过显存预检
+[2026-11-19 13:55:18] 服务 PID=682；所有 case 复用；日志=/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/logs/server.log
+[2026-11-19 13:56:48] 服务就绪 (90s)
+[2026-11-19 13:56:48] profiler 已生效：{"profiler":"torch","torch_profiler_dir":"/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/timeline","delay_iterations":0,"max_iterations":0,"warmup_iterations":0,"active_iterations":2000,"ignore_frontend":true}
+[2026-11-19 13:56:48] ==== bs8_in128_out128 | mode=off | profile=1 | warmup=16 | 同一服务 ====
+[2026-11-19 13:59:24] 完成 bs8_in128_out128 → /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/bs8_in128_out128.json
+[2026-11-19 13:59:24] 停止本次服务 PID=682（不使用全局 pkill）
+[2026-11-19 13:59:27] trace 已产出：8 个文件
+[2026-11-19 13:59:27] ========== 所有 case 最终结果（仅此处打印一次） ==========
+===== Benchmark：吞吐与延迟（全部 case）=====
+bs8_in128_out128: output_tok/s=2611.089 TTFT_mean=85.666ms TPOT_mean=2.299ms ITL_mean=2.299ms
+===== Timeline 产物 =====
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/timeline/profiler_out_0.txt
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/timeline/rank1.1795067843652140110.pt.trace.json.gz
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/timeline/rank3.1795067842422261530.pt.trace.json.gz
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/timeline/profiler_out_2.txt
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/timeline/rank0.1795067840391963110.pt.trace.json.gz
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/timeline/profiler_out_1.txt
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/timeline/rank2.1795067843063264580.pt.trace.json.gz
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/timeline/profiler_out_3.txt
+Timeline 目录(Perfetto JSON): /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/timeline
+[2026-11-19 13:59:28] 全部完成 | benchmark=/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/summary.csv | host=OFF/未采集
++ echo '== 3. 结果 =='
+== 3. 结果 ==
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/summary.csv ']'
++ cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+mock145_1355,bs8_in128_out128,100,4.902170100016519,20.399128948965483,2611.088505467582,5222.177010935164,85.66593699972145,89.93720501894131,105.30719299102202,2.2988591535112226,2.2657083858017204,2.6419905792668783,2.298860189790918,2.249549957923591,2.810479233739898
++ ls -lh /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/bench.process.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/bs8_in128_out128.json /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/server.process.json
++ tail -3
+-rw-------. 1 root root   76 Nov 19 13:56 /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/bench.process.json
+-rw-r--r--. 1 root root 1.1K Nov 19 13:59 /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/bs8_in128_out128.json
+-rw-------. 1 root root   73 Nov 19 13:55 /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/server.process.json
++ echo '== 4. trace 产物 =='
+== 4. trace 产物 ==
++ ls -lh /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/timeline
++ head -12
+total 283M
+-rw-r--r--. 1 root root 9.8K Nov 19 13:59 profiler_out_0.txt
+-rw-r--r--. 1 root root 9.8K Nov 19 13:59 profiler_out_1.txt
+-rw-r--r--. 1 root root 9.8K Nov 19 13:59 profiler_out_2.txt
+-rw-r--r--. 1 root root 9.8K Nov 19 13:59 profiler_out_3.txt
+-rw-r--r--. 1 root root  67M Nov 19 13:58 rank0.1795067840391963110.pt.trace.json.gz
+-rw-r--r--. 1 root root  74M Nov 19 13:58 rank1.1795067843652140110.pt.trace.json.gz
+-rw-r--r--. 1 root root  72M Nov 19 13:58 rank2.1795067843063264580.pt.trace.json.gz
+-rw-r--r--. 1 root root  71M Nov 19 13:58 rank3.1795067842422261530.pt.trace.json.gz
++ du -sh /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355
+283M	/home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355
++ echo '== 5. 进程与资源 =='
+== 5. 进程与资源 ==
++ docker exec corex5-py311-mock bash -lc 'pgrep -af "vllm.entrypoints.openai.api_server" | head -2'
+3086 bash -lc pgrep -af "vllm.entrypoints.openai.api_server" | head -2
++ free -g
++ sed -n 1,2p
+               total        used        free      shared  buff/cache   available
+Mem:             502         127          76           4         305         374
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  6.9T  6.2T  667G  91% /home
++ set +x
+
+### exit: 0
