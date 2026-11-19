@@ -1,0 +1,64 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-19T05:37:49Z
+
++ echo '== 1. 前置检查 =='
+== 1. 前置检查 ==
++ docker ps --filter name=corex5-py311-mock --format '{{.Names}} {{.Status}}'
++ grep -q Up
++ '[' -f /home/model/Qwen3-32B-W8A8/config.json ']'
++ du -sh /home/model/Qwen3-32B-W8A8
+32G	/home/model/Qwen3-32B-W8A8
++ ls /home/model/Qwen3-32B-W8A8
++ head -8
+added_tokens.json
+config.json
+generation_config.json
+index.html
+merges.txt
+model-00001-of-00007.safetensors
+model-00002-of-00007.safetensors
+model-00003-of-00007.safetensors
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  6.9T  6.2T  668G  91% /home
++ free -g
++ head -1
+               total        used        free      shared  buff/cache   available
++ echo '== 2. 模型冒烟（真实权重，CPU 上一次生成）=='
+== 2. 模型冒烟（真实权重，CPU 上一次生成）==
++ docker exec corex5-py311-mock bash -lc '
+    cd /tmp && PYTHONPATH=/home/qch/mock_vllm MOCK_PREFILL=1 \
+    /opt/corex311/bin/python3 - <<"PY" 2>&1 | tail -15
+from vllm import LLM, SamplingParams
+llm = LLM(model="/home/model/Qwen3-32B-W8A8", trust_remote_code=True,
+          max_model_len=512, tensor_parallel_size=1, gpu_memory_utilization=0.2,
+          disable_log_stats=True,
+          compilation_config={"cudagraph_mode": "NONE", "mode": 0})
+out = llm.generate(["hi"], SamplingParams(max_tokens=8, temperature=0.0,
+                                           top_p=1.0, top_k=-1))
+print("SMOKE OK, tokens:", out[0].outputs[0].token_ids)
+PY
+  '
+Rendering prompts:   0%|          | 0/1 [00:00<?, ?it/s]Rendering prompts: 100%|██████████| 1/1 [00:00<00:00, 42.76it/s]
+Processed prompts:   0%|          | 0/1 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]Processed prompts: 100%|██████████| 1/1 [00:00<00:00,  5.51it/s, est. speed input: 5.51 toks/s, output: 44.09 toks/s]Processed prompts: 100%|██████████| 1/1 [00:00<00:00,  5.51it/s, est. speed input: 5.51 toks/s, output: 44.09 toks/s]Processed prompts: 100%|██████████| 1/1 [00:00<00:00,  5.50it/s, est. speed input: 5.51 toks/s, output: 44.09 toks/s]
+SMOKE OK, tokens: [0, 0, 0, 0, 0, 0, 0, 0]
+(EngineCore pid=374) INFO 11-19 13:38:21 [core.py:1218] [shutdown] EngineCore: trigger received signal=SIGTERM
+(EngineCore pid=374) INFO 11-19 13:38:21 [core.py:1337] [shutdown] EngineCore: start mode=abort timeout=0s
+(EngineCore pid=374) INFO 11-19 13:38:21 [core.py:1368] [shutdown] EngineCore: request processing complete; starting resource teardown
+(EngineCore pid=374) INFO 11-19 13:38:21 [core.py:1231] [shutdown] EngineCore: exiting busy loop
+WARNING 11-19 13:38:22 [core_client.py:702] [shutdown] MPClient: engine core exited unexpectedly; starting cleanup
+WARNING 11-19 13:38:22 [utils.py:607] [shutdown] Process manager: force killing remaining processes count=1
+INFO 11-19 13:38:22 [core_client.py:655] [shutdown] MPClient: start timeout=default
+INFO 11-19 13:38:22 [core_client.py:657] [shutdown] MPClient: stopping engine manager
+INFO 11-19 13:38:22 [core_client.py:659] [shutdown] MPClient: engine manager stopped
+INFO 11-19 13:38:22 [core_client.py:660] [shutdown] MPClient: cleaning up background resources
+INFO 11-19 13:38:22 [core_client.py:662] [shutdown] MPClient: complete
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ echo '== 3. 结果 =='
+== 3. 结果 ==
++ echo '出现 SMOKE OK 即模型 + engine + mock 路径可用'
+出现 SMOKE OK 即模型 + engine + mock 路径可用
++ set +x
+
+### exit: 0
