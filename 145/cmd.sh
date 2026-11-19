@@ -33,8 +33,10 @@ check() {  # check <描述> <命令>
 
   echo "== 1. 安装 mock-only 工具包 =="
   [ -f "$TGZ" ] || { echo "!! 缺 $TGZ"; exit 3; }
+  ls -lh "$TGZ"
   tar xzf "$TGZ" -C "$TOOLS" || exit 1
-  ls "$TOOLS"/vllmBench_lite_*.sh
+  echo "-- 解包后实际脚本 --"
+  ls -1 "$TOOLS"/vllmBench_lite_*.sh
 
   echo "== 2. 适配自检 =="
   check "容器在跑"            "docker ps --filter name=$CONTAINER --format '{{.Status}}' | grep -q Up"
@@ -43,11 +45,13 @@ check() {  # check <描述> <命令>
   check "mock_ix.so 是 aarch64" "file $MOCK/mock_ix.so | grep -q 'ARM aarch64'"
   check "liblitehost.so 是 aarch64" "file $TOOLS/liblitehost.so | grep -q 'ARM aarch64'"
   check "容器内 py3.11"       "docker exec $CONTAINER /opt/corex311/bin/python3 -V 2>&1 | grep -q 3.11"
-  check "容器内 taskset"      "docker exec $CONTAINER command -v taskset"
+  check "容器内 taskset"      "docker exec $CONTAINER bash -lc 'command -v taskset'"
   check "8948 空闲"           "! ss -ltn | grep -q ':8948 '"
   check "CPU 0-63 在同一个 NUMA node" \
         "[ \"\$(lscpu | awk -F: '/NUMA node0/{print \$2}' | tr -d ' ')\" = '0-63' ]"
-  check "harness 里 MOCK_DIR 固定" "grep -q 'MOCK_DIR=/home/qch/mock_vllm' $TOOLS/vllmBench_lite_base_mock.sh"
+  check "mock 版 harness 存在"  "[ -x $TOOLS/vllmBench_lite_base_mock.sh ]"
+  check "harness 里 MOCK_DIR 固定" \
+        "grep -q 'MOCK_DIR=/home/qch/mock_vllm' $TOOLS/vllmBench_lite_base_mock.sh"
   if [ "$FAIL" -ne 0 ]; then
     echo "!! 适配检查未通过，不启动 bench"
     exit 6
