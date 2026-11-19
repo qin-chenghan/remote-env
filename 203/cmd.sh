@@ -65,6 +65,8 @@ mkdir -p "$DIR/tmp"
   ls -d "$DST_DIR/vllmBench" 2>&1
   docker exec "$CONTAINER" bash -lc 'ls -l /opt/corex311/bin/python3'
   docker exec "$CONTAINER" bash -lc '/opt/corex311/bin/python3 -c "import vllm,torch,triton;print(vllm.__version__,torch.__version__,triton.__version__)"' 2>&1 | tail -3
+  echo "-- 脚本运行时依赖（容器内需有 bash/curl/taskset）"
+  docker exec "$CONTAINER" bash -lc 'for c in bash curl taskset; do printf "%s: %s\n" "$c" "$(command -v $c || echo MISSING)"; done'
   echo "-- 容器内能看到模型与工具包吗"
   docker exec "$CONTAINER" bash -lc 'ls -ld /home/hc/modules/Qwen3-32B-W8A8 2>&1; ls -l /home/qch/transfer/litehost_perf/procutil.py 2>&1; ls /home/qch/transfer/litehost_perf/lhctl.py 2>&1'
 
