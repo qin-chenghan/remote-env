@@ -1,13 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-#
-# 天数 mock 环境部署，**分阶段执行**，一次只跑一步：
-#   STAGE=1 bash 145/cmd.sh   # 校验 + 解压（9G -> 27G tar）
-#   STAGE=2 bash 145/cmd.sh   # docker load
-#   STAGE=3 bash 145/cmd.sh   # 起容器 + 容器内自检
-#   STAGE=4 bash 145/cmd.sh   # mock 激活冒烟
-# 不带 STAGE 时只打印用法，不做任何事。
+# 本次：145 上 mock 环境已就绪（镜像已载入、容器在跑、mock 已激活），只做模型冒烟。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -16,15 +10,11 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
-IMG=/home/qch/transfer/corex5-py311-py3116-20261029.tar.zst
-TAR=/home/qch/transfer/corex5-py311-py3116-20261029.tar
-EXPECT_ZST=dc479721103811984b4f08a397da6f78825a5457a8773f35995b44a80e29f5ff
-IMAGE_TAG=corex5-py311:py3116-20261029
-
-STAGE="${STAGE:-}"
+MODEL=/home/model/Qwen3-32B-W8A8
+CONTAINER=corex5-py311-mock
 
 {
-  echo "### server: $SERVER  stage=${STAGE:-none}"
+  echo "### server: $SERVER"
   echo "### host:   $(hostname)"
   echo "### time:   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo
@@ -32,88 +22,19 @@ STAGE="${STAGE:-}"
 
   # ---- 命令开始 ----
 
-  case "$STAGE" in
-  1)
-    echo "== STAGE 1：校验 + 解压 =="
-    ls -lh "$IMG" 2>/dev/null || { echo "!! 缺 $IMG，先拷文件到 /home/qch/transfer/"; exit 3; }
-    ACTUAL=$(sha256sum "$IMG" | cut -d' ' -f1)
-    echo "actual=$ACTUAL"
-    echo "expect=$EXPECT_ZST"
-    [ "$ACTUAL" = "$EXPECT_ZST" ] || { echo "!! sha256 不一致，停止（不 load 半个镜像）"; exit 4; }
-    df -h /home | tail -1
-    if [ -f "$TAR" ]; then
-      echo "== tar 已存在，跳过解压 =="
-    else
-      if command -v zstd >/dev/null 2>&1; then
-        zstd -d "$IMG" -o "$TAR" || exit 1
-      else
-        echo "宿主无 zstd，用 zstd:latest 镜像解压"
-        docker run --rm --security-opt label=disable -v /home:/home zstd:latest \
-          zstd -d "$IMG" -o "$TAR" || exit 1
-      fi
-    fi
-    ls -lh "$TAR"
-    df -h /home | tail -1
-    echo "== STAGE 1 完成，检查上面 sha256 一致、tar 27G 左右，再跑 STAGE=2 =="
-    ;;
+  echo "== 1. 前置检查 =="
+  docker ps --filter "name=$CONTAINER" --format '{{.Names}} {{.Status}}' | grep -q Up \
+    || { echo "!! 容器 $CONTAINER 没在跑"; exit 3; }
+  [ -f "$MODEL/config.json" ] || { echo "!! 缺 $MODEL，模型还没传完"; exit 3; }
+  du -sh "$MODEL"
+  ls "$MODEL" | head -8
+  df -h /home | tail -1
+  free -g | head -1
 
-  2)
-    echo "== STAGE 2：docker load =="
-    [ -f "$TAR" ] || { echo "!! 缺 $TAR，先跑 STAGE=1"; exit 3; }
-    df -h /home | tail -1
-    docker load -i "$TAR" || exit 1
-    docker images | grep -E "corex5-py311|REPOSITORY" | head -5
-    df -h /home | tail -1
-    echo "== STAGE 2 完成：镜像已载入，再跑 STAGE=3 =="
-    ;;
-
-  3)
-    echo "== STAGE 3：起容器 + 自检 =="
-    docker image inspect "$IMAGE_TAG" >/dev/null 2>&1 || { echo "!! 镜像未载入，先跑 STAGE=2"; exit 3; }
-    if ss -ltn 2>/dev/null | grep -q ':8948 '; then
-      echo "!! 8948 已被占用，不启动容器；先确认是谁在用"
-      ss -ltnp 2>/dev/null | grep ':8948 ' | head -2
-      exit 5
-    fi
-    docker rm -f corex5-py311-mock 2>/dev/null
-    docker run -d --name corex5-py311-mock --network host \
-      --security-opt label=disable -v /home:/home \
-      "$IMAGE_TAG" sleep infinity || exit 1
-    sleep 3
-    docker ps --filter name=corex5-py311-mock --format '{{.Names}} {{.Status}}'
-    echo "-- 容器内自检 --"
-    docker exec corex5-py311-mock bash -lc '
-      uname -m
-      /opt/corex311/bin/python3 -V
-      ls -l /usr/local/corex/lib64/libcuda.so.1
-      /opt/corex311/bin/python3 -c "import torch; print(torch.__version__)"
-      ls -d /dev/iluvatar* 2>/dev/null || echo "no device (expected)"
-    ' 2>&1 | tail -8
-    echo "== STAGE 3 完成：aarch64 / py3.11 / libcuda / torch 都正常，再跑 STAGE=4 =="
-    ;;
-
-  4)
-    echo "== STAGE 4：mock 激活冒烟 =="
-    if [ ! -d /home/qch/mock_vllm/mock_gpu ] && [ -d /home/qch/tools/remote-env/mock_vllm/mock_gpu ]; then
-      ln -sfn /home/qch/tools/remote-env/mock_vllm /home/qch/mock_vllm
-      echo "已软链 /home/qch/mock_vllm -> remote-env/mock_vllm"
-    fi
-    [ -d /home/qch/mock_vllm/mock_gpu ] || { echo "!! 缺 mock_vllm：先 cd /home/qch/tools/remote-env && git pull"; exit 3; }
-    docker exec corex5-py311-mock bash -lc '
-      PYTHONPATH=/home/qch/mock_vllm /opt/corex311/bin/python3 -c "import mock_gpu.autoload" 2>&1 | tail -4
-    '
-    echo "== STAGE 4 完成：出现 [mock_gpu] activated ... (id=...) 即部署成功 =="
-    ;;
-
-  5)
-    echo "== STAGE 5：模型冒烟（真实权重，CPU 上跑一次生成）=="
-    MODEL=/home/model/Qwen3-32B-W8A8
-    [ -f "$MODEL/config.json" ] || { echo "!! 缺 $MODEL，先传模型（184 同路径）"; exit 3; }
-    du -sh "$MODEL" 2>/dev/null
-    free -g | head -1
-    docker exec corex5-py311-mock bash -lc '
-      cd /tmp && PYTHONPATH=/home/qch/mock_vllm MOCK_PREFILL=1 \
-      /opt/corex311/bin/python3 - <<"PY" 2>&1 | tail -12
+  echo "== 2. 模型冒烟（真实权重，CPU 上一次生成）=="
+  docker exec "$CONTAINER" bash -lc '
+    cd /tmp && PYTHONPATH=/home/qch/mock_vllm MOCK_PREFILL=1 \
+    /opt/corex311/bin/python3 - <<"PY" 2>&1 | tail -15
 from vllm import LLM, SamplingParams
 llm = LLM(model="/home/model/Qwen3-32B-W8A8", trust_remote_code=True,
           max_model_len=512, tensor_parallel_size=1, gpu_memory_utilization=0.2,
@@ -123,34 +44,10 @@ out = llm.generate(["hi"], SamplingParams(max_tokens=8, temperature=0.0,
                                            top_p=1.0, top_k=-1))
 print("SMOKE OK, tokens:", out[0].outputs[0].token_ids)
 PY
-    '
-    echo "== STAGE 5 完成：出现 SMOKE OK 即模型+engine 可用 =="
-    ;;
+  '
 
-  *)
-    echo "用法：STAGE=1|2|3|4|5 bash 145/cmd.sh"
-    echo "  1 = 校验 sha256 + 解压（需 27G 空闲，当前）"
-    echo "  2 = docker load（再占约 28G）"
-    echo "  3 = 起容器 + 自检"
-    echo "  4 = mock 激活冒烟"
-    echo "  5 = 模型冒烟（需要 /home/model/Qwen3-32B-W8A8）"
-    echo
-    echo "当前状态："
-    ls -lh "$IMG" "$TAR" 2>/dev/null || echo "  镜像文件尚未就位"
-    echo "-- images 里 corex 相关 --"
-    docker images 2>/dev/null | grep -iE "corex|REPOSITORY" | head -6
-    echo "-- 容器的镜像引用 --"
-    docker inspect corex5-py311-mock \
-      --format '  container image: {{.Config.Image}}  id={{.Image}}  started={{.State.StartedAt}}' 2>/dev/null \
-      || echo "  无容器"
-    CID=$(docker inspect corex5-py311-mock --format '{{.Image}}' 2>/dev/null || true)
-    if [ -n "${CID:-}" ]; then
-      docker images --filter "id=$CID" --format '  image row: {{.Repository}}:{{.Tag}} {{.Size}}' 2>/dev/null
-    fi
-    docker ps -a --filter name=corex5-py311-mock --format '  容器: {{.Names}} {{.Status}}' 2>/dev/null
-    df -h /home | tail -1
-    ;;
-  esac
+  echo "== 3. 结果 =="
+  echo "出现 SMOKE OK 即模型 + engine + mock 路径可用"
 
   # ---- 命令结束 ----
 
