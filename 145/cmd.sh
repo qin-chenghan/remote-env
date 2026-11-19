@@ -10,7 +10,6 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
-TGZ=/home/qch/transfer/litehost_tools.tgz
 TOOLS=/home/huawei_ts_program/litehost_perf_opt
 CONTAINER=corex5-py311-mock
 MODEL=/home/model/Qwen3-32B-W8A8
@@ -31,20 +30,23 @@ check() {  # check <描述> <命令>
 
   # ---- 命令开始 ----
 
-  echo "== 1. 工具文件检查（tgz 有就解包，没有就只校验现有文件）=="
-  if [ -f "$TGZ" ]; then
-    ls -lh "$TGZ"
-    tar xzf "$TGZ" -C "$TOOLS" || exit 1
+  echo "== 1. 从 repo 同步 litehost 工具包 =="
+  SRC="$DIR/../litehost_toolkit"
+  if [ -d "$SRC" ]; then
+    mkdir -p "$TOOLS"
+    cp -a "$SRC"/. "$TOOLS"/ || exit 1
+    echo "已从 $SRC 同步"
   else
-    echo "未提供 tgz，按单文件更新方式校验"
+    echo "!! 仓里没有 litehost_toolkit/，先 git pull"
+    exit 3
   fi
   ls -1 "$TOOLS"/vllmBench_lite_*.sh 2>/dev/null
   ls -l "$TOOLS"/liblitehost.so "$TOOLS"/liblitehost.build.json 2>/dev/null
 
   echo "-- 校验 litehost 文件（repo 里的 sha256 清单）--"
-  if [ -f "$DIR/litehost.sha256" ]; then
-    (cd "$TOOLS" && sha256sum -c "$DIR/litehost.sha256" 2>&1 | grep -v ': OK$' || true)
-    (cd "$TOOLS" && sha256sum -c "$DIR/litehost.sha256" >/dev/null 2>&1) \
+  if [ -f "$SRC/litehost.sha256" ]; then
+    (cd "$TOOLS" && sha256sum -c "$SRC/litehost.sha256" 2>&1 | grep -v ': OK$' || true)
+    (cd "$TOOLS" && sha256sum -c "$SRC/litehost.sha256" >/dev/null 2>&1) \
       && echo "  全部文件匹配" || echo "  !! 有文件缺失或不匹配（看上一条）"
   else
     echo "  无 sha256 清单，跳过"
