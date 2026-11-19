@@ -1,0 +1,267 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-19T03:40:05Z
+
++ SRC=/home/qch/tools/remote-env/203/scripts/vllmBench_lite_base_timeline.sh
++ DST_DIR=/home/qch/scripts/litehost_perf
++ DST=/home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh
++ CONTAINER=corex5-py311
++ SMOKE=1
++ echo '== 1. 安装脚本 =='
+== 1. 安装脚本 ==
++ ls -l /home/qch/tools/remote-env/203/scripts/vllmBench_lite_base_timeline.sh
+-rwxr-xr-x. 1 root root 18192 Nov 19 11:40 /home/qch/tools/remote-env/203/scripts/vllmBench_lite_base_timeline.sh
++ mkdir -p /home/qch/scripts/litehost_perf
++ '[' -f /home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh ']'
++ install -m 644 /home/qch/tools/remote-env/203/scripts/vllmBench_lite_base_timeline.sh /home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh
++ sha256sum /home/qch/tools/remote-env/203/scripts/vllmBench_lite_base_timeline.sh /home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh
+66bae9710c41a9672d905921246125428a28c69387eb21d025fb4532447afc7e  /home/qch/tools/remote-env/203/scripts/vllmBench_lite_base_timeline.sh
+66bae9710c41a9672d905921246125428a28c69387eb21d025fb4532447afc7e  /home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh
++ bash -n /home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh
++ echo 'syntax ok'
+syntax ok
++ echo '== 2. 主机侧前置 =='
+== 2. 主机侧前置 ==
++ echo '-- 模型目录'
+-- 模型目录
++ ls -ld /home/hc/modules/Qwen3-32B-W8A8
+drwx---rwx. 2 root root 4096 Apr 18  2026 /home/hc/modules/Qwen3-32B-W8A8
++ ls /home/hc/modules/Qwen3-32B-W8A8
++ head -8
+added_tokens.json
+config.json
+generation_config.json
+index.html
+merges.txt
+model-00001-of-00007.safetensors
+model-00002-of-00007.safetensors
+model-00003-of-00007.safetensors
++ echo '-- 工具包'
+-- 工具包
++ ls -d /home/qch/transfer/litehost_perf
+/home/qch/transfer/litehost_perf
++ ls /home/qch/transfer/litehost_perf
++ head -12
+analyze_litehost.py
+bench_driver.py
+build_corex.py
+docs
+lh_common.py
+lhctl.py
+lh_runtime.py
+liblitehost.build.json
+liblitehost.build.log
+liblitehost.exports.txt
+liblitehost.so
+liblitehost.wrappers.cpp
++ echo '-- 驱动与设备'
+-- 驱动与设备
++ uname -r
+6.6.0-159.4.21.175.oe2403sp4.x86_64
++ head -6
++ ls -l /dev/iluvatar0 /dev/iluvatar1 /dev/iluvatar2 /dev/iluvatar3
+crw-rw-rw-. 1 root root 239, 0 Nov 18 15:17 /dev/iluvatar0
+crw-rw-rw-. 1 root root 239, 1 Nov 18 15:17 /dev/iluvatar1
+crw-rw-rw-. 1 root root 239, 2 Nov 18 15:17 /dev/iluvatar2
+crw-rw-rw-. 1 root root 239, 3 Nov 18 15:17 /dev/iluvatar3
++ cat /sys/module/iluvatar/parameters/itr_multi_compute_engine
+1
+++ command -v ixsmi
++ IXSMI=/usr/local/corex/bin/ixsmi
++ echo ixsmi=/usr/local/corex/bin/ixsmi
+ixsmi=/usr/local/corex/bin/ixsmi
++ /usr/local/corex/bin/ixsmi
++ grep -E 'Iluvatar|MiB /'
++ head -10
+| 0    Iluvatar BI-V150            | 00000000:10:00.0     | 500MHz    1600MHz    |
+| N/A  37C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
+| 1    Iluvatar BI-V150            | 00000000:13:00.0     | 500MHz    1600MHz    |
+| N/A  37C   P0       53W / 350W   | 66MiB / 32768MiB     | 0%        Default    |
+| 2    Iluvatar BI-V150            | 00000000:19:00.0     | 500MHz    1600MHz    |
+| N/A  33C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
+| 3    Iluvatar BI-V150            | 00000000:1C:00.0     | 500MHz    1600MHz    |
+| N/A  34C   P0       54W / 350W   | 66MiB / 32768MiB     | 0%        Default    |
++ echo '-- GPU 的 NUMA 节点与绑核核对'
+-- GPU 的 NUMA 节点与绑核核对
++ for d in /sys/bus/pci/drivers/iluvatar/*/
++ '[' -e /sys/bus/pci/drivers/iluvatar/0000:10:00.0//numa_node ']'
+++ basename /sys/bus/pci/drivers/iluvatar/0000:10:00.0/
+++ cat /sys/bus/pci/drivers/iluvatar/0000:10:00.0//numa_node
++ echo '0000:10:00.0 numa_node=0'
+0000:10:00.0 numa_node=0
++ for d in /sys/bus/pci/drivers/iluvatar/*/
++ '[' -e /sys/bus/pci/drivers/iluvatar/0000:13:00.0//numa_node ']'
+++ basename /sys/bus/pci/drivers/iluvatar/0000:13:00.0/
+++ cat /sys/bus/pci/drivers/iluvatar/0000:13:00.0//numa_node
++ echo '0000:13:00.0 numa_node=0'
+0000:13:00.0 numa_node=0
++ for d in /sys/bus/pci/drivers/iluvatar/*/
++ '[' -e /sys/bus/pci/drivers/iluvatar/0000:19:00.0//numa_node ']'
+++ basename /sys/bus/pci/drivers/iluvatar/0000:19:00.0/
+++ cat /sys/bus/pci/drivers/iluvatar/0000:19:00.0//numa_node
++ echo '0000:19:00.0 numa_node=0'
+0000:19:00.0 numa_node=0
++ for d in /sys/bus/pci/drivers/iluvatar/*/
++ '[' -e /sys/bus/pci/drivers/iluvatar/0000:1c:00.0//numa_node ']'
+++ basename /sys/bus/pci/drivers/iluvatar/0000:1c:00.0/
+++ cat /sys/bus/pci/drivers/iluvatar/0000:1c:00.0//numa_node
++ echo '0000:1c:00.0 numa_node=0'
+0000:1c:00.0 numa_node=0
++ for d in /sys/bus/pci/drivers/iluvatar/*/
++ '[' -e /sys/bus/pci/drivers/iluvatar/module//numa_node ']'
++ cat /sys/devices/system/node/node0/cpulist
+0-15,128-143
++ echo '-- 磁盘'
+-- 磁盘
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  804G  756G  7.5G 100% /home
++ echo '== 3. 容器内环境 =='
+== 3. 容器内环境 ==
++ docker ps --filter name=corex5-py311 --format '{{.Names}} {{.Status}}'
+corex5-py311 Up 43 hours
++ docker ps --filter name=corex5-py311 --format '{{.Names}}'
++ grep -q corex5-py311
++ ls -d /home/qch/scripts/litehost_perf/vllmBench
+/home/qch/scripts/litehost_perf/vllmBench
++ docker exec corex5-py311 bash -lc 'ls -l /opt/corex311/bin/python3'
+lrwxrwxrwx. 1 root root 10 Nov  5 19:33 /opt/corex311/bin/python3 -> python3.11
++ docker exec corex5-py311 bash -lc '/opt/corex311/bin/python3 -c "import vllm,torch,triton;print(vllm.__version__,torch.__version__,triton.__version__)"'
++ tail -3
+0.23.0 2.10.0 3.2.0
++ echo '-- 脚本运行时依赖（容器内需有 bash/curl/taskset）'
+-- 脚本运行时依赖（容器内需有 bash/curl/taskset）
++ docker exec corex5-py311 bash -lc 'for c in bash curl taskset; do printf "%s: %s\n" "$c" "$(command -v $c || echo MISSING)"; done'
+bash: /usr/bin/bash
+curl: /usr/bin/curl
+taskset: /usr/bin/taskset
++ echo '-- 容器内能看到模型与工具包吗'
+-- 容器内能看到模型与工具包吗
++ docker exec corex5-py311 bash -lc 'ls -ld /home/hc/modules/Qwen3-32B-W8A8 2>&1; ls -l /home/qch/transfer/litehost_perf/procutil.py 2>&1; ls /home/qch/transfer/litehost_perf/lhctl.py 2>&1'
+drwx---rwx. 2 root root 4096 Apr 18  2026 /home/hc/modules/Qwen3-32B-W8A8
+ls: cannot access '/home/qch/transfer/litehost_perf/procutil.py': No such file or directory
+/home/qch/transfer/litehost_perf/lhctl.py
++ echo '== 4. dry-run（不启动服务）=='
+== 4. dry-run（不启动服务）==
++ docker exec corex5-py311 bash -lc 'cd /home/qch/scripts/litehost_perf && HOST_DRY_RUN=1 TEST_ID=usability-dryrun bash /home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh'
++ tail -6
+[2026-11-19 11:40:18] PREFIX=/opt/corex311 | HOST_TOOLKIT=/home/qch/scripts/litehost_perf
+[2026-11-19 11:40:18] TEST_ID=usability-dryrun | MODE=off | PROFILE=1 | WARMUP=16 | CPU_RANGE=0-15,128-143
+[2026-11-19 11:40:18] prefix cache=OFF | backend=vllm | 同一服务运行 1 个 case | RUN_DIR=/home/qch/scripts/litehost_perf/vllmBench/usability-dryrun
+SERVER: taskset -c 0-15\,128-143 /opt/corex311/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8848 --model /home/hc/modules/Qwen3-32B-W8A8 --trust_remote_code --dtype auto --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1 --tensor_parallel_size 4 --data_parallel_size 1 --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto --enable_chunked_prefill --compilation-config \{\"cudagraph_mode\":\"FULL_DECODE_ONLY\"\,\ \"mode\":0\} --async-scheduling --no-enable-prefix-caching --profiler-config \{\"profiler\":\"torch\"\,\"torch_profiler_dir\":\"/home/qch/scripts/litehost_perf/vllmBench/usability-dryrun/timeline\"\,\"delay_iterations\":0\,\"max_iterations\":0\,\"warmup_iterations\":0\,\"active_iterations\":2000\,\"ignore_frontend\":true\} 
+CASES: 128 128; 
++ echo '== 5. 端口与卡的状态 =='
+== 5. 端口与卡的状态 ==
++ docker exec corex5-py311 bash -lc 'ss -ltn 2>/dev/null | grep -E ":8848" || echo "no listener on 8848 (或容器内无 ss)"'
+no listener on 8848 (或容器内无 ss)
++ pgrep -af vllm.entrypoints.openai.api_server
++ grep -v 'bash -c'
++ head -3
++ true
++ '[' 1 = 1 ']'
++ echo '== 6. 小规模冒烟（128/64，8 prompts，0 warmup，产出小 trace）=='
+== 6. 小规模冒烟（128/64，8 prompts，0 warmup，产出小 trace）==
++ FREE_OK=1
++ for g in 0 1 2 3
+++ /usr/local/corex/bin/ixsmi --query-gpu=memory.free --format=csv,noheader,nounits -i 0
+++ tr -d ' '
++ FREE=32702
++ echo 'GPU 0 free=32702 MiB'
+GPU 0 free=32702 MiB
++ '[' -n 32702 ']'
++ '[' 32702 -lt 20480 ']'
++ for g in 0 1 2 3
+++ /usr/local/corex/bin/ixsmi --query-gpu=memory.free --format=csv,noheader,nounits -i 1
+++ tr -d ' '
++ FREE=32702
++ echo 'GPU 1 free=32702 MiB'
+GPU 1 free=32702 MiB
++ '[' -n 32702 ']'
++ '[' 32702 -lt 20480 ']'
++ for g in 0 1 2 3
+++ /usr/local/corex/bin/ixsmi --query-gpu=memory.free --format=csv,noheader,nounits -i 2
+++ tr -d ' '
++ FREE=32702
++ echo 'GPU 2 free=32702 MiB'
+GPU 2 free=32702 MiB
++ '[' -n 32702 ']'
++ '[' 32702 -lt 20480 ']'
++ for g in 0 1 2 3
+++ /usr/local/corex/bin/ixsmi --query-gpu=memory.free --format=csv,noheader,nounits -i 3
+++ tr -d ' '
++ FREE=32702
++ echo 'GPU 3 free=32702 MiB'
+GPU 3 free=32702 MiB
++ '[' -n 32702 ']'
++ '[' 32702 -lt 20480 ']'
++ '[' -e /dev/iluvatar0 ']'
++ '[' 1 = 1 ']'
++ docker exec corex5-py311 bash -lc 'echo "128 64" > /tmp/smoke_cases.txt'
++ docker exec corex5-py311 bash -lc 'cd /home/qch/scripts/litehost_perf && TEST_ID=smoke-timeline-20261119-114005 NUM_PROMPTS=8 NUM_WARMUPS=0 CASES_FILE=/tmp/smoke_cases.txt bash /home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh'
++ tail -25
+[2026-11-19 11:40:19] PREFIX=/opt/corex311 | HOST_TOOLKIT=/home/qch/scripts/litehost_perf
+[2026-11-19 11:40:19] TEST_ID=smoke-timeline-20261119-114005 | MODE=off | PROFILE=1 | WARMUP=0 | CPU_RANGE=0-15,128-143
+[2026-11-19 11:40:19] prefix cache=OFF | backend=vllm | 同一服务运行 1 个 case | RUN_DIR=/home/qch/scripts/litehost_perf/vllmBench/smoke-timeline-20261119-114005
+[2026-11-19 11:40:19] WARNING: ixsmi 不可用，跳过显存预检
+[2026-11-19 11:40:19] 服务 PID=135464；所有 case 复用；日志=/home/qch/scripts/litehost_perf/vllmBench/smoke-timeline-20261119-114005/logs/server.log
+[2026-11-19 11:41:19] 服务就绪 (60s)
+[2026-11-19 11:41:19] ==== bs8_in128_out64 | mode=off | profile=1 | warmup=0 | 同一服务 ====
+[2026-11-19 11:41:57] 完成 bs8_in128_out64 → /home/qch/scripts/litehost_perf/vllmBench/smoke-timeline-20261119-114005/bs8_in128_out64.json
+[2026-11-19 11:41:57] 停止本次服务 PID=135464（不使用全局 pkill）
+[2026-11-19 11:42:09] trace 已产出：8 个文件
+[2026-11-19 11:42:09] ========== 所有 case 最终结果（仅此处打印一次） ==========
+===== Benchmark：吞吐与延迟（全部 case）=====
+bs8_in128_out64: output_tok/s=269.583 TTFT_mean=421.943ms TPOT_mean=23.329ms ITL_mean=23.329ms
+===== Timeline 产物 =====
+/home/qch/scripts/litehost_perf/vllmBench/smoke-timeline-20261119-114005/timeline/rank2.1795059694573351626.pt.trace.json.gz
+/home/qch/scripts/litehost_perf/vllmBench/smoke-timeline-20261119-114005/timeline/rank0.1795059694592731955.pt.trace.json.gz
+/home/qch/scripts/litehost_perf/vllmBench/smoke-timeline-20261119-114005/timeline/profiler_out_2.txt
+/home/qch/scripts/litehost_perf/vllmBench/smoke-timeline-20261119-114005/timeline/profiler_out_1.txt
+/home/qch/scripts/litehost_perf/vllmBench/smoke-timeline-20261119-114005/timeline/profiler_out_3.txt
+/home/qch/scripts/litehost_perf/vllmBench/smoke-timeline-20261119-114005/timeline/rank3.1795059694392137831.pt.trace.json.gz
+/home/qch/scripts/litehost_perf/vllmBench/smoke-timeline-20261119-114005/timeline/profiler_out_0.txt
+/home/qch/scripts/litehost_perf/vllmBench/smoke-timeline-20261119-114005/timeline/rank1.1795059694643153500.pt.trace.json.gz
+Timeline 目录(Perfetto JSON): /home/qch/scripts/litehost_perf/vllmBench/smoke-timeline-20261119-114005/timeline
+[2026-11-19 11:42:09] 全部完成 | benchmark=/home/qch/scripts/litehost_perf/vllmBench/smoke-timeline-20261119-114005/summary.csv | host=OFF/未采集
++ echo '-- 冒烟产物'
+-- 冒烟产物
++ ls -la /home/qch/scripts/litehost_perf/vllmBench/smoke-timeline-20261119-114005/timeline
++ head -10
+total 29092
+drwxr-xr-x. 2 root root    4096 Nov 19 11:41 .
+drwxr-xr-x. 4 root root    4096 Nov 19 11:42 ..
+-rw-r--r--. 1 root root   20654 Nov 19 11:41 profiler_out_0.txt
+-rw-r--r--. 1 root root   20654 Nov 19 11:41 profiler_out_1.txt
+-rw-r--r--. 1 root root   20654 Nov 19 11:41 profiler_out_2.txt
+-rw-r--r--. 1 root root   20654 Nov 19 11:41 profiler_out_3.txt
+-rw-r--r--. 1 root root 7547498 Nov 19 11:41 rank0.1795059694592731955.pt.trace.json.gz
+-rw-r--r--. 1 root root 7622586 Nov 19 11:41 rank1.1795059694643153500.pt.trace.json.gz
+-rw-r--r--. 1 root root 7555784 Nov 19 11:41 rank2.1795059694573351626.pt.trace.json.gz
++ du -sh /home/qch/scripts/litehost_perf/vllmBench/smoke-timeline-20261119-114005
+29M	/home/qch/scripts/litehost_perf/vllmBench/smoke-timeline-20261119-114005
++ echo '-- 服务端日志尾部（查错误）'
+-- 服务端日志尾部（查错误）
++ grep -inE 'ERROR|Traceback|OOM|CUDA' /home/qch/scripts/litehost_perf/vllmBench/smoke-timeline-20261119-114005/logs/server.log
++ head -8
+13:(APIServer pid=135464) INFO 11-19 11:40:27 [api_utils.py:273] non-default args: {'host': '127.0.0.1', 'port': 8848, 'model': '/home/hc/modules/Qwen3-32B-W8A8', 'trust_remote_code': True, 'max_model_len': 4096, 'quantization': 'compressed-tensors', 'distributed_executor_backend': 'mp', 'tensor_parallel_size': 4, 'gpu_memory_utilization': 0.9, 'enable_prefix_caching': False, 'enable_chunked_prefill': True, 'async_scheduling': True, 'compilation_config': {'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': None, 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}, 'profiler_config': ProfilerConfig(profiler='torch', torch_profiler_dir='/home/qch/scripts/litehost_perf/vllmBench/smoke-timeline-20261119-114005/timeline', torch_profiler_with_stack=True, torch_profiler_with_flops=False, torch_profiler_use_gzip=True, torch_profiler_dump_cuda_time_total=True, torch_profiler_record_shapes=False, torch_profiler_with_memory=False, ignore_frontend=True, delay_iterations=0, max_iterations=0, warmup_iterations=0, active_iterations=2000, wait_iterations=0)}
+32:(EngineCore pid=143385) INFO 11-19 11:40:41 [core.py:114] Initializing a V1 LLM engine (v0.23.0) with config: model='/home/hc/modules/Qwen3-32B-W8A8', speculative_config=None, tokenizer='/home/hc/modules/Qwen3-32B-W8A8', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=4096, download_dir=None, load_format=auto, tensor_parallel_size=4, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=compressed-tensors, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_verbose=False), seed=0, served_model_name=/home/hc/modules/Qwen3-32B-W8A8, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [2048], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_rope_kvcache_cat_mla': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': True, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native']), enable_flashinfer_autotune=True, moe_backend='auto', linear_backend='auto')
+76:(Worker pid=149163) INFO 11-19 11:40:54 [cuda_communicator.py:245] Using ['PYNCCL'] all-reduce backends (in dispatch order) for group 'tp:0' out of potential backends: ['NCCL_SYMM_MEM', 'QUICK_REDUCE', 'FLASHINFER', 'CUSTOM', 'SYMM_MEM', 'PYNCCL'].
+107:(Worker_TP2 pid=149167) INFO 11-19 11:41:05 [gpu_model_runner.py:6612] Profiling CUDA graph memory: FULL=35 (largest=256)
+108:(Worker_TP3 pid=149169) INFO 11-19 11:41:05 [gpu_model_runner.py:6612] Profiling CUDA graph memory: FULL=35 (largest=256)
+109:(Worker_TP0 pid=149163) INFO 11-19 11:41:05 [gpu_model_runner.py:6612] Profiling CUDA graph memory: FULL=35 (largest=256)
+110:(Worker_TP1 pid=149166) INFO 11-19 11:41:05 [gpu_model_runner.py:6612] Profiling CUDA graph memory: FULL=35 (largest=256)
+111:(Worker_TP2 pid=149167) INFO 11-19 11:41:06 [gpu_model_runner.py:6717] Estimated CUDA graph memory: 0.27 GiB total
++ echo '-- 冒烟后残留进程（本脚本不会自动杀，需人工确认）'
+-- 冒烟后残留进程（本脚本不会自动杀，需人工确认）
++ pgrep -af vllm.entrypoints.openai.api_server
++ grep -v 'bash -c'
++ head -5
++ echo 无残留
+无残留
++ echo '== 7. 正式采集命令（确认无误后手动执行）=='
+== 7. 正式采集命令（确认无误后手动执行）==
++ echo 'docker exec corex5-py311 bash -lc '\''cd /home/qch/scripts/litehost_perf && TEST_ID=base-timeline-1119 bash /home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh'\'''
+docker exec corex5-py311 bash -lc 'cd /home/qch/scripts/litehost_perf && TEST_ID=base-timeline-1119 bash /home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh'
++ set +x
+
+### exit: 0
