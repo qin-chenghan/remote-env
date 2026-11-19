@@ -1,0 +1,78 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-19T06:42:37Z
+
++ echo '== 1. 等待完成（最多 8 分钟）=='
+== 1. 等待完成（最多 8 分钟）==
+++ seq 1 16
++ for i in $(seq 1 16)
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/lite145_1438/summary.csv ']'
++ echo 'summary.csv 已生成'
+summary.csv 已生成
++ break
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/lite145_1438/summary.csv ']'
++ echo '== 2. 运行日志尾部 =='
+== 2. 运行日志尾部 ==
++ tail -20 /home/qch/transfer/run_lite145_1438.log
+===== Benchmark：吞吐与延迟（全部 case）=====
+bs8_in128_out128: output_tok/s=4142.115 TTFT_mean=53.092ms TPOT_mean=1.457ms ITL_mean=1.457ms
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+===== LiteHost：四 rank、所有 case 的 H 与 H+G =====
+H = T - S + S * 0/100. Formal scopes only. Unit = SECONDS.
+G = sum(start_next - end_current) across adjacent formal scopes on EACH rank.
+H+G = H_total + G_total (gap wall time included; sync/idle within G NOT removed).
+Primary H remains unchanged; four-rank means are TOTAL seconds, NOT per iteration or instance latency.
+
+CASE: bs8_in128_out128  run_id=baf797c518824715996e56249923835f
+  rank0 pid=4397 formal=1716 warmup_excluded=264 T_total=2.376149s S_total=0.000248s H_total=2.375901s G_total=0.706466s H+G=3.082367s
+  rank1 pid=4398 formal=1716 warmup_excluded=264 T_total=2.319116s S_total=0.000246s H_total=2.318870s G_total=0.763513s H+G=3.082383s
+  rank2 pid=4399 formal=1716 warmup_excluded=264 T_total=2.243448s S_total=0.000221s H_total=2.243227s G_total=0.839184s H+G=3.082411s
+  rank3 pid=4400 formal=1716 warmup_excluded=264 T_total=2.222982s S_total=0.000241s H_total=2.222741s G_total=0.859646s H+G=3.082388s
+  all_formal       four_rank_mean_total_H_s=2.290185
+  graph_formal     four_rank_mean_total_H_s=1.656473
+  no_graph_formal  four_rank_mean_total_H_s=0.633712
+FINAL [bs8_in128_out128]: four_rank_mean_total_H_s = 2.290185 s G_total=0.792202s H+G=3.082387s (all_formal, no warmup, gap sync NOT subtracted)
+
+[2026-11-19 14:41:51] 全部完成 | benchmark=/home/huawei_ts_program/litehost_perf_opt/vllmBench/lite145_1438/summary.csv | host=/home/huawei_ts_program/litehost_perf_opt/vllmBench/lite145_1438/host_summary/report.txt
++ echo '== 3. 吞吐与延迟 =='
+== 3. 吞吐与延迟 ==
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/lite145_1438/summary.csv ']'
++ cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/lite145_1438/summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+lite145_1438,bs8_in128_out128,100,3.090208790032193,32.36027297655775,4142.114940999392,8284.229881998785,53.091926091583446,56.31616496248171,60.565916607156396,1.4568359370794381,1.4282111018918102,1.6432267906397262,1.456836885864311,1.4302100171335042,1.8580572924111043
++ echo '== 4. H / H+G 报告 =='
+== 4. H / H+G 报告 ==
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/lite145_1438/host_summary/report.txt ']'
++ cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/lite145_1438/host_summary/report.txt
+H = T - S + S * 0/100. Formal scopes only. Unit = SECONDS.
+G = sum(start_next - end_current) across adjacent formal scopes on EACH rank.
+H+G = H_total + G_total (gap wall time included; sync/idle within G NOT removed).
+Primary H remains unchanged; four-rank means are TOTAL seconds, NOT per iteration or instance latency.
+
+CASE: bs8_in128_out128  run_id=baf797c518824715996e56249923835f
+  rank0 pid=4397 formal=1716 warmup_excluded=264 T_total=2.376149s S_total=0.000248s H_total=2.375901s G_total=0.706466s H+G=3.082367s
+  rank1 pid=4398 formal=1716 warmup_excluded=264 T_total=2.319116s S_total=0.000246s H_total=2.318870s G_total=0.763513s H+G=3.082383s
+  rank2 pid=4399 formal=1716 warmup_excluded=264 T_total=2.243448s S_total=0.000221s H_total=2.243227s G_total=0.839184s H+G=3.082411s
+  rank3 pid=4400 formal=1716 warmup_excluded=264 T_total=2.222982s S_total=0.000241s H_total=2.222741s G_total=0.859646s H+G=3.082388s
+  all_formal       four_rank_mean_total_H_s=2.290185
+  graph_formal     four_rank_mean_total_H_s=1.656473
+  no_graph_formal  four_rank_mean_total_H_s=0.633712
+FINAL [bs8_in128_out128]: four_rank_mean_total_H_s = 2.290185 s G_total=0.792202s H+G=3.082387s (all_formal, no warmup, gap sync NOT subtracted)
+
++ ls -lh /home/huawei_ts_program/litehost_perf_opt/vllmBench/lite145_1438/host_summary
++ head -8
+total 24K
+-rw-r--r--. 1 root root  657 Nov 19 14:41 four_rank_totals.csv
+-rw-r--r--. 1 root root 2.2K Nov 19 14:41 per_rank.csv
+-rw-r--r--. 1 root root 1.3K Nov 19 14:41 report.txt
+-rw-------. 1 root root 9.5K Nov 19 14:41 summary.json
++ echo '== 5. 状态 =='
+== 5. 状态 ==
++ docker exec corex5-py311-mock bash -lc 'pgrep -af "vllm.entrypoints.openai.api_server" | head -2'
+6716 bash -lc pgrep -af "vllm.entrypoints.openai.api_server" | head -2
++ free -g
++ sed -n 2p
+Mem:             502          47         125           4         336         454
++ set +x
+
+### exit: 0
