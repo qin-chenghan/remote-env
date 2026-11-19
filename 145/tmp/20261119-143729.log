@@ -1,0 +1,77 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-19T06:37:29Z
+
++ echo '== 1. 工具文件检查（tgz 有就解包，没有就只校验现有文件）=='
+== 1. 工具文件检查（tgz 有就解包，没有就只校验现有文件）==
++ '[' -f /home/qch/transfer/litehost_tools.tgz ']'
++ ls -lh /home/qch/transfer/litehost_tools.tgz
+-rw-r--r--. 1 root root 33K Nov 19 14:11 /home/qch/transfer/litehost_tools.tgz
++ tar xzf /home/qch/transfer/litehost_tools.tgz -C /home/huawei_ts_program/litehost_perf_opt
++ ls -1 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh
++ ls -l /home/huawei_ts_program/litehost_perf_opt/liblitehost.so /home/huawei_ts_program/litehost_perf_opt/liblitehost.build.json
+-rwxr-xr-x. 1 root root 72152 Oct 29 20:35 /home/huawei_ts_program/litehost_perf_opt/liblitehost.so
++ echo '-- 校验 litehost 文件（repo 里的 sha256 清单）--'
+-- 校验 litehost 文件（repo 里的 sha256 清单）--
++ '[' -f /home/qch/tools/remote-env/145/litehost.sha256 ']'
++ echo '  无 sha256 清单，跳过'
+  无 sha256 清单，跳过
++ echo '== 2. 适配自检 =='
+== 2. 适配自检 ==
++ check 容器在跑 'docker ps --filter name=corex5-py311-mock --format '\''{{.Status}}'\'' | grep -q Up'
++ eval 'docker ps --filter name=corex5-py311-mock --format '\''{{.Status}}'\'' | grep -q Up'
++ echo '  OK   容器在跑'
+  OK   容器在跑
++ check 模型就位 '[ -f /home/model/Qwen3-32B-W8A8/config.json ]'
++ eval '[ -f /home/model/Qwen3-32B-W8A8/config.json ]'
++ echo '  OK   模型就位'
+  OK   模型就位
++ check 'mock 目录存在' '[ -d /home/qch/mock_vllm/mock_gpu ]'
++ eval '[ -d /home/qch/mock_vllm/mock_gpu ]'
++ echo '  OK   mock 目录存在'
+  OK   mock 目录存在
++ check 'mock_ix.so 是 aarch64' 'file /home/qch/mock_vllm/mock_ix.so | grep -q '\''ARM aarch64'\'''
++ eval 'file /home/qch/mock_vllm/mock_ix.so | grep -q '\''ARM aarch64'\'''
++ echo '  OK   mock_ix.so 是 aarch64'
+  OK   mock_ix.so 是 aarch64
++ check 'liblitehost.so 是 aarch64' 'file /home/huawei_ts_program/litehost_perf_opt/liblitehost.so | grep -q '\''ARM aarch64'\'''
++ eval 'file /home/huawei_ts_program/litehost_perf_opt/liblitehost.so | grep -q '\''ARM aarch64'\'''
++ echo '  OK   liblitehost.so 是 aarch64'
+  OK   liblitehost.so 是 aarch64
++ check '容器内 py3.11' 'docker exec corex5-py311-mock /opt/corex311/bin/python3 -V 2>&1 | grep -q 3.11'
++ eval 'docker exec corex5-py311-mock /opt/corex311/bin/python3 -V 2>&1 | grep -q 3.11'
++ echo '  OK   容器内 py3.11'
+  OK   容器内 py3.11
++ check '容器内 taskset' 'docker exec corex5-py311-mock bash -lc '\''command -v taskset'\'''
++ eval 'docker exec corex5-py311-mock bash -lc '\''command -v taskset'\'''
++ echo '  OK   容器内 taskset'
+  OK   容器内 taskset
++ check '8948 空闲' '! ss -ltn | grep -q '\'':8948 '\'''
++ eval '! ss -ltn | grep -q '\'':8948 '\'''
++ echo '  OK   8948 空闲'
+  OK   8948 空闲
++ check 'CPU 0-63 在同一个 NUMA node' '[ "$(lscpu | awk -F: '\''/NUMA node0/{print $2}'\'' | tr -d '\'' '\'')" = '\''0-63'\'' ]'
++ eval '[ "$(lscpu | awk -F: '\''/NUMA node0/{print $2}'\'' | tr -d '\'' '\'')" = '\''0-63'\'' ]'
++ echo '  OK   CPU 0-63 在同一个 NUMA node'
+  OK   CPU 0-63 在同一个 NUMA node
++ check 'build.json 存在' '[ -f /home/huawei_ts_program/litehost_perf_opt/liblitehost.build.json ]'
++ eval '[ -f /home/huawei_ts_program/litehost_perf_opt/liblitehost.build.json ]'
++ echo '  FAIL build.json 存在'
+  FAIL build.json 存在
++ FAIL=1
++ check 'mock 版 harness 存在' '[ -x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh ]'
++ eval '[ -x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh ]'
++ echo '  OK   mock 版 harness 存在'
+  OK   mock 版 harness 存在
++ check 'harness 里 MOCK_DIR 固定' 'grep -q '\''MOCK_DIR=/home/qch/mock_vllm'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'
++ eval 'grep -q '\''MOCK_DIR=/home/qch/mock_vllm'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'
++ echo '  OK   harness 里 MOCK_DIR 固定'
+  OK   harness 里 MOCK_DIR 固定
++ '[' 1 -ne 0 ']'
++ echo '!! 适配检查未通过，不启动 bench'
+!! 适配检查未通过，不启动 bench
++ exit 6
+
+### exit: 6
