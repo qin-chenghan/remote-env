@@ -1,0 +1,115 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-19T00:42:47Z
+
++ echo '== 1. 机器与容量 =='
+== 1. 机器与容量 ==
++ uname -a
+Linux localhost.localdomain 6.6.0-132.0.0.111.oe2403sp3.aarch64 #1 SMP Mon Dec 29 23:09:17 CST 2025 aarch64 aarch64 aarch64 GNU/Linux
++ nproc
+256
++ lscpu
++ grep -E 'Model name|Socket|Core|Thread|NUMA|Architecture'
++ head -10
+Architecture:                         aarch64
+Model name:                           Kunpeng 920 7270Z To be filled by O.E.M. CPU @ 2.9GHz
+BIOS Model name:                      Kunpeng 920 7270Z To be filled by O.E.M. CPU @ 2.9GHz
+Thread(s) per core:                   2
+Core(s) per socket:                   64
+Socket(s):                            2
+NUMA node(s):                         4
+NUMA node0 CPU(s):                    0-63
+NUMA node1 CPU(s):                    64-127
+NUMA node2 CPU(s):                    128-191
++ free -g
++ head -2
+               total        used        free      shared  buff/cache   available
+Mem:             502          39         206           3         262         462
++ df -h / /home
++ tail -2
+/dev/mapper/openeuler-root   69G   65G  645M 100% /
+/dev/mapper/openeuler-home  6.9T  6.6T  247G  97% /home
++ echo '-- 容器 --'
+-- 容器 --
++ docker ps --format '{{.Names}}\t{{.Image}}\t{{.Status}}'
++ head -6
+faiss	faiss:latest	Up 40 hours
+elated_dewdney	nginx	Up 2 days
+api-service	feedinfo:dragonwell17	Up 5 days
+db-service	feedinfo:dragonwell17	Up 5 days
+mysql-ks	mysql-ks-restored-1113	Up 5 days (healthy)
+redis-ks	redis:6.0.20	Up 5 days (healthy)
++ echo '== 2. 宿主机 python 与包 =='
+== 2. 宿主机 python 与包 ==
++ command -v python3.11 python3 python3.9
+/usr/bin/python3.11
+/usr/bin/python3
++ for p in python3.11 python3
++ command -v python3.11
+++ python3.11 -V
++ echo '-- python3.11: Python 3.11.6'
+-- python3.11: Python 3.11.6
++ python3.11 -m pip list
++ grep -iE '^(torch|triton|vllm|numpy|transformers|safetensors|pillow|ray)\b'
++ head -12
+numpy                     2.4.2
+pillow                    12.2.0
+torch                     2.11.0
+triton                    3.6.0
++ echo '   (以上为空则未装 torch/vllm)'
+   (以上为空则未装 torch/vllm)
++ for p in python3.11 python3
++ command -v python3
+++ python3 -V
++ echo '-- python3: Python 3.11.6'
+-- python3: Python 3.11.6
++ python3 -m pip list
++ grep -iE '^(torch|triton|vllm|numpy|transformers|safetensors|pillow|ray)\b'
++ head -12
+numpy                     2.4.2
+pillow                    12.2.0
+torch                     2.11.0
+triton                    3.6.0
++ echo '   (以上为空则未装 torch/vllm)'
+   (以上为空则未装 torch/vllm)
++ echo '== 3. 容器内 python 与包 =='
+== 3. 容器内 python 与包 ==
++ head -30
++ docker exec fusionv1 bash -lc '
+python3 -V 2>&1
+ls /usr/bin/python* /usr/local/bin/python* 2>/dev/null | head -6
+echo "-- pip --"
+command -v pip pip3 2>&1 | head -2
+python3 -m pip list 2>/dev/null | grep -iE "^(torch|triton|vllm|numpy|transformers|pillow)\b" | head -12
+echo "-- /opt --"
+ls /opt 2>/dev/null | head -10
+'
+Error response from daemon: Container 36bd035920511f219bec69bfd4634f73e0797969c7028c2a648e98f23e0468d9 is not running
++ echo '== 4. 是否已有 vLLM / torch 安装痕迹 =='
+== 4. 是否已有 vLLM / torch 安装痕迹 ==
++ ls -d /opt/corex311 /opt/corex311-cpython-vllm /opt/python-3.11.6
+ls: cannot access '/opt/corex311': No such file or directory
+ls: cannot access '/opt/corex311-cpython-vllm': No such file or directory
+ls: cannot access '/opt/python-3.11.6': No such file or directory
++ ls -l /home/model /home/model/ts
++ head -8
+ls: cannot access '/home/model': No such file or directory
+ls: cannot access '/home/model/ts': No such file or directory
++ ls -l /home/huawei_ts_program
++ head -5
+ls: cannot access '/home/huawei_ts_program': No such file or directory
++ grep -rIl 'import vllm' /home/qch '--include=*.py'
++ head -5
+/home/qch/projects/vllm/test_openvla_kernel.py
+/home/qch/projects/vllm/vllm/vllm/transformers_utils/processors/openvla.py
+/home/qch/tools/remote-env/mock_vllm/mock_gpu/autoload.py
+/home/qch/tools/remote-env/mock_vllm/mock_gpu/worker_patch.py
++ echo '== 5. 能否联网拉 aarch64 wheel（只解析，不安装）=='
+== 5. 能否联网拉 aarch64 wheel（只解析，不安装）==
++ timeout 20 python3.11 -
++ tail -5
+https://pypi.org/simple/torch/ OK 200
+https://mirrors.aliyun.com/pypi/simple/torch/ OK 200
++ set +x
+
+### exit: 0
