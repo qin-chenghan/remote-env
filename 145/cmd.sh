@@ -31,12 +31,15 @@ check() {  # check <描述> <命令>
 
   # ---- 命令开始 ----
 
-  echo "== 1. 安装 mock-only 工具包 =="
-  [ -f "$TGZ" ] || { echo "!! 缺 $TGZ"; exit 3; }
-  ls -lh "$TGZ"
-  tar xzf "$TGZ" -C "$TOOLS" || exit 1
-  echo "-- 解包后实际脚本 --"
-  ls -1 "$TOOLS"/vllmBench_lite_*.sh
+  echo "== 1. 工具文件检查（tgz 有就解包，没有就只校验现有文件）=="
+  if [ -f "$TGZ" ]; then
+    ls -lh "$TGZ"
+    tar xzf "$TGZ" -C "$TOOLS" || exit 1
+  else
+    echo "未提供 tgz，按单文件更新方式校验"
+  fi
+  ls -1 "$TOOLS"/vllmBench_lite_*.sh 2>/dev/null
+  ls -l "$TOOLS"/liblitehost.so "$TOOLS"/liblitehost.build.json 2>/dev/null
 
   echo "== 2. 适配自检 =="
   check "容器在跑"            "docker ps --filter name=$CONTAINER --format '{{.Status}}' | grep -q Up"
