@@ -539,6 +539,38 @@ def _tune_threads():
     torch.set_num_threads(int(os.environ.get("MOCK_THREADS", "1")))
 
 
+def _pin_worker(rank):
+    """Pin one TP worker to the core chosen for it.
+
+    MOCK_TP_CPUS is a comma list indexed by rank, e.g. "8,10,11,12". The
+    point is to leave a core free for an external sampler: exclude that core
+    from the harness CPU range and pin the sampler to it.
+
+    A worker has many threads (gloo, torch, runtime pools); affinity is set
+    on all of them here and inherited by threads created later, which only
+    works because this runs before the model is built.
+    """
+    spec = os.environ.get("MOCK_TP_CPUS", "").strip()
+    if not spec:
+        return
+    try:
+        cpus = [int(x) for x in spec.split(",") if x.strip()]
+        cpu = cpus[rank]
+    except (IndexError, ValueError):
+        print(f"[mock_gpu] MOCK_TP_CPUS invalid for rank {rank}: {spec}", flush=True)
+        return
+    try:
+        os.sched_setaffinity(0, {cpu})
+        for tid in os.listdir("/proc/self/task"):
+            try:
+                os.sched_setaffinity(int(tid), {cpu})
+            except OSError:
+                pass
+        print(f"[mock_gpu] rank {rank} pinned to cpu {cpu}", flush=True)
+    except OSError as exc:
+        print(f"[mock_gpu] rank {rank} pin to cpu {cpu} failed: {exc}", flush=True)
+
+
 def patch_worker(gw):
     _tune_threads()
     from mock_gpu.dispatch import install_method_stubs
@@ -558,6 +590,7 @@ def patch_worker(gw):
 
     def init_device(self):
         self.device = torch.device("cpu")
+        _pin_worker(self.rank)
         self.parallel_config.disable_custom_all_reduce = True
         try:
             gw.set_custom_all_reduce(False)
