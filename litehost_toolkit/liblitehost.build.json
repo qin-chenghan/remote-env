@@ -1,0 +1,29 @@
+{
+  "version": "0.4.0-compat",
+  "library_sha256": "b70d07e38c4e1f2665d6aa407a82e751209fb9af67e0ca70a5a74e0bd1e3048d",
+  "header": "/usr/local/corex-5.0.0/include/cuda_runtime_api.h",
+  "header_sha256": "39aab426c74d43d5e82348668561aea15f757db1e804caa541cbd36049ccd751",
+  "runtime": "/usr/local/corex-5.0.0/lib64/libcudart.so.10.2.89",
+  "mapping": {
+    "ixStreamSynchronize": [
+      "ixStreamSynchronize",
+      1,
+      1
+    ],
+    "ixEventSynchronize": [
+      "ixEventSynchronize",
+      1,
+      2
+    ],
+    "ixDeviceSynchronize": [
+      "ixDeviceSynchronize",
+      0,
+      3
+    ],
+    "ixGraphLaunch": [
+      "ixGraphLaunch",
+      2,
+      0
+    ]
+  }
+}
