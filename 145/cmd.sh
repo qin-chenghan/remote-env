@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：等待 mock145_1355 跑完并汇总结果（只读，不启动任何东西）。
+# 本次：只读。从 mock145_1355 的 rank0 trace 里提取 prefill/decode 一个 step 的
+#       python_function 帧名与次数，用于和 32 同配置数据做帧级对齐。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -10,11 +11,7 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
-TEST_ID=mock145_1355
-TOOLS=/home/huawei_ts_program/litehost_perf_opt
-RUN_DIR="$TOOLS/vllmBench/$TEST_ID"
-LOG=/home/qch/transfer/run_${TEST_ID}.log
-CONTAINER=corex5-py311-mock
+TRACE=$(ls /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/timeline/rank0.*.gz 2>/dev/null | head -1)
 
 {
   echo "### server: $SERVER"
@@ -25,40 +22,55 @@ CONTAINER=corex5-py311-mock
 
   # ---- 命令开始 ----
 
-  echo "== 1. 等待完成（最多 8 分钟）=="
-  for i in $(seq 1 16); do
-    if [ -f "$RUN_DIR/summary.csv" ]; then
-      echo "summary.csv 已生成"
-      break
-    fi
-    if ! pgrep -f "vllm.entrypoints.openai.api_server" >/dev/null 2>&1 \
-       && [ "$i" -gt 1 ]; then
-      echo "服务已退出但没有 summary.csv，可能失败"
-      break
-    fi
-    [ "$i" -eq 1 ] && echo "开始等待..."
-    sleep 30
-  done
+  [ -n "$TRACE" ] || { echo "!! 找不到 rank0 trace"; exit 3; }
+  ls -lh "$TRACE"
 
-  echo "== 2. 运行日志尾部 =="
-  tail -25 "$LOG" 2>/dev/null || echo "(缺 $LOG)"
+  python3.11 - "$TRACE" <<'PY'
+import collections, gzip, json, re, sys
 
-  echo "== 3. 结果 =="
-  if [ -f "$RUN_DIR/summary.csv" ]; then
-    cat "$RUN_DIR/summary.csv"
-    ls -lh "$RUN_DIR"/*.json 2>/dev/null | tail -3
-  else
-    echo "还没有 summary.csv"
-  fi
+trace = sys.argv[1]
+with gzip.open(trace, "rt", encoding="utf-8") as f:
+    ev = json.load(f)["traceEvents"]
 
-  echo "== 4. trace 产物 =="
-  ls -lh "$RUN_DIR/timeline" 2>/dev/null | head -12
-  du -sh "$RUN_DIR" 2>/dev/null
+def norm(name):
+    name = re.sub(r" object at 0x[0-9a-f]+", "", name)
+    name = re.sub(r"pybind11_builtins\.pybind11_detail_function_record_v1_"
+                  r"system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_0",
+                  "pybind11_method", name)
+    name = re.sub(r"/tmp/torchinductor_root/[0-9a-z]+/[0-9a-z]+\.py",
+                  "/tmp/torchinductor_root/X/kernel.py", name)
+    return name
 
-  echo "== 5. 进程与资源 =="
-  docker exec "$CONTAINER" bash -lc 'pgrep -af "vllm.entrypoints.openai.api_server" | head -2' 2>/dev/null
-  free -g | sed -n 1,2p
-  df -h /home | tail -1
+em = [e for e in ev if e.get("cat") == "python_function"
+      and e.get("name", "").endswith(": execute_model")
+      and "gpu_model_runner.py" in e.get("name", "")]
+
+for scope in ("execute_context_1(128)_generation_0(0)",
+              "execute_context_0(0)_generation_8(8)"):
+    scopes = [e for e in ev if e.get("name") == scope and e.get("cat") == "user_annotation"]
+    scopes.sort(key=lambda e: e["ts"])
+    if not scopes:
+        print(f"{scope}: NOT FOUND")
+        continue
+    sev = scopes[len(scopes) // 2]
+    near = min(em, key=lambda e: abs(e["ts"] - sev["ts"]))
+    t0, t1 = near["ts"], near["ts"] + near["dur"]
+    key = (near.get("pid"), near.get("tid"))
+    fr = collections.Counter()
+    for e in ev:
+        if (e.get("cat") == "python_function"
+                and (e.get("pid"), e.get("tid")) == key
+                and t0 <= e["ts"] < t1):
+            fr[norm(e["name"])] += 1
+    print(f"\n=== {scope}  occurrences={len(scopes)} idx={len(scopes)//2}")
+    print(f"    anchor_dur_us={near['dur']:.1f}  frames={len(fr)}  calls={sum(fr.values())}")
+    for n, c in sorted(fr.items(), key=lambda kv: -kv[1])[:12]:
+        print(f"    {c:6d}  {n}")
+    print("    -- mock 特有帧 --")
+    for n, c in sorted(fr.items()):
+        if "worker_patch" in n or "fake_graph" in n or "torchinductor" in n:
+            print(f"    {c:6d}  {n}")
+PY
 
   # ---- 命令结束 ----
 
