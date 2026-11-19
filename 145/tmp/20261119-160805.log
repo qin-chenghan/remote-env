@@ -1,0 +1,53 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-19T08:08:05Z
+
++ echo '== 1. 容器状态（存在就复用，不重建）=='
+== 1. 容器状态（存在就复用，不重建）==
++ docker inspect corex5-py311-mock
++ docker ps -a --filter name=corex5-py311-mock --format '{{.Names}} {{.Status}}'
+corex5-py311-mock Up About a minute
++ docker inspect corex5-py311-mock --format 'CapAdd={{.HostConfig.CapAdd}} SecurityOpt={{.HostConfig.SecurityOpt}} Pid={{.HostConfig.PidMode}}'
+CapAdd=[SYS_NICE] SecurityOpt=[label=disable] Pid=
++ docker start corex5-py311-mock
++ docker ps --filter name=corex5-py311-mock --format '{{.Names}} {{.Status}}'
+corex5-py311-mock Up About a minute
++ echo '== 2. 代码与前置检查 =='
+== 2. 代码与前置检查 ==
++ grep -q 'def _pin_worker' /home/qch/mock_vllm/mock_gpu/worker_patch.py
++ '[' -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh ']'
++ '[' -f /home/model/Qwen3-32B-W8A8/config.json ']'
++ ss -ltn
++ grep -q ':8948 '
++ echo 'CPU_RANGE=1-63  MOCK_TP_CPUS=2,3,4,5'
+CPU_RANGE=1-63  MOCK_TP_CPUS=2,3,4,5
++ echo '== 3. 启动绑核 bench（后台）=='
+== 3. 启动绑核 bench（后台）==
++ echo TEST_ID=pin145_1608
+TEST_ID=pin145_1608
++ docker exec -d corex5-py311-mock bash -lc 'cd /home/huawei_ts_program/litehost_perf_opt &&     MODEL_PATH=/home/model/Qwen3-32B-W8A8 TEST_ID=pin145_1608 HOST_MEASURE=lite     CPU_RANGE=1-63 MOCK_TP_CPUS=2,3,4,5     nohup bash vllmBench_lite_base_mock.sh     > /home/qch/transfer/run_pin145_1608.log 2>&1'
++ sleep 30
++ echo '-- 启动日志（应出现四行 pinned）--'
+-- 启动日志（应出现四行 pinned）--
++ grep -E 'pinned to cpu|activated|ERROR' /home/qch/transfer/run_pin145_1608.log
++ head -10
+INFO 11-19 16:08:08 [__init__.py:238] Platform plugin iluvatar is activated
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+INFO 11-19 16:08:28 [__init__.py:238] Platform plugin iluvatar is activated
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
++ tail -4 /home/qch/transfer/run_pin145_1608.log
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+[2026-11-19 16:08:35] WARNING: ixsmi 不可用，跳过显存预检
+[2026-11-19 16:08:35] 服务 PID=576；所有 case 复用；日志=/home/huawei_ts_program/litehost_perf_opt/vllmBench/pin145_1608/logs/server.log
++ echo '== 4. 后续 =='
+== 4. 后续 ==
++ echo 日志：/home/qch/transfer/run_pin145_1608.log
+日志：/home/qch/transfer/run_pin145_1608.log
++ echo 结果：/home/huawei_ts_program/litehost_perf_opt/vllmBench/pin145_1608/host_summary/report.txt
+结果：/home/huawei_ts_program/litehost_perf_opt/vllmBench/pin145_1608/host_summary/report.txt
++ echo '采样器请自行 taskset -c 0 绑到 0 号核'
+采样器请自行 taskset -c 0 绑到 0 号核
++ set +x
+
+### exit: 0
