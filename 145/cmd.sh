@@ -41,6 +41,15 @@ check() {  # check <描述> <命令>
   ls -1 "$TOOLS"/vllmBench_lite_*.sh 2>/dev/null
   ls -l "$TOOLS"/liblitehost.so "$TOOLS"/liblitehost.build.json 2>/dev/null
 
+  echo "-- 校验 litehost 文件（repo 里的 sha256 清单）--"
+  if [ -f "$DIR/litehost.sha256" ]; then
+    (cd "$TOOLS" && sha256sum -c "$DIR/litehost.sha256" 2>&1 | grep -v ': OK$' || true)
+    (cd "$TOOLS" && sha256sum -c "$DIR/litehost.sha256" >/dev/null 2>&1) \
+      && echo "  全部文件匹配" || echo "  !! 有文件缺失或不匹配（看上一条）"
+  else
+    echo "  无 sha256 清单，跳过"
+  fi
+
   echo "== 2. 适配自检 =="
   check "容器在跑"            "docker ps --filter name=$CONTAINER --format '{{.Status}}' | grep -q Up"
   check "模型就位"            "[ -f $MODEL/config.json ]"
