@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：在 145 上跑第一次 mock bench（torch profiler 口径，128/128，与 32 同配置）。
+# 本次：等待 mock145_1355 跑完并汇总结果（只读，不启动任何东西）。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -10,11 +10,11 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
+TEST_ID=mock145_1355
 TOOLS=/home/huawei_ts_program/litehost_perf_opt
-MODEL=/home/model/Qwen3-32B-W8A8
-MOCK=/home/qch/mock_vllm
+RUN_DIR="$TOOLS/vllmBench/$TEST_ID"
+LOG=/home/qch/transfer/run_${TEST_ID}.log
 CONTAINER=corex5-py311-mock
-TEST_ID="mock145_$(date +%H%M)"
 
 {
   echo "### server: $SERVER"
@@ -25,34 +25,40 @@ TEST_ID="mock145_$(date +%H%M)"
 
   # ---- 命令开始 ----
 
-  echo "== 1. 前置检查 =="
-  docker ps --filter "name=$CONTAINER" --format '{{.Names}} {{.Status}}' | grep -q Up \
-    || { echo "!! 容器没在跑"; exit 3; }
-  [ -f "$MODEL/config.json" ] || { echo "!! 缺模型"; exit 3; }
-  [ -f "$TOOLS/vllmBench_lite_base_timeline.sh" ] || { echo "!! 缺 harness"; exit 3; }
-  [ -f "$MOCK/mock_ix.so" ] || { echo "!! 缺 mock_ix.so"; exit 3; }
-  if ss -ltn 2>/dev/null | grep -q ':8948 '; then
-    echo "!! 8948 被占用，可能已有服务在跑"; exit 5
+  echo "== 1. 等待完成（最多 8 分钟）=="
+  for i in $(seq 1 16); do
+    if [ -f "$RUN_DIR/summary.csv" ]; then
+      echo "summary.csv 已生成"
+      break
+    fi
+    if ! pgrep -f "vllm.entrypoints.openai.api_server" >/dev/null 2>&1 \
+       && [ "$i" -gt 1 ]; then
+      echo "服务已退出但没有 summary.csv，可能失败"
+      break
+    fi
+    [ "$i" -eq 1 ] && echo "开始等待..."
+    sleep 30
+  done
+
+  echo "== 2. 运行日志尾部 =="
+  tail -25 "$LOG" 2>/dev/null || echo "(缺 $LOG)"
+
+  echo "== 3. 结果 =="
+  if [ -f "$RUN_DIR/summary.csv" ]; then
+    cat "$RUN_DIR/summary.csv"
+    ls -lh "$RUN_DIR"/*.json 2>/dev/null | tail -3
+  else
+    echo "还没有 summary.csv"
   fi
-  free -g | sed -n 2p
-  df -h /home | tail -1
 
-  echo "== 2. 启动 bench（后台，日志留在 $TOOLS/vllmBench/$TEST_ID）=="
-  echo "TEST_ID=$TEST_ID"
-  docker exec -d "$CONTAINER" bash -lc "cd $TOOLS && \
-    MODEL_PATH=$MODEL MOCK_DIR=$MOCK TEST_ID=$TEST_ID \
-    nohup bash vllmBench_lite_base_timeline.sh \
-    > /home/qch/transfer/run_$TEST_ID.log 2>&1"
-  sleep 25
-  echo "-- 启动 25 秒后的日志 --"
-  tail -12 "/home/qch/transfer/run_$TEST_ID.log" 2>/dev/null || echo "(日志未出现)"
-  echo "-- 服务进程 --"
+  echo "== 4. trace 产物 =="
+  ls -lh "$RUN_DIR/timeline" 2>/dev/null | head -12
+  du -sh "$RUN_DIR" 2>/dev/null
+
+  echo "== 5. 进程与资源 =="
   docker exec "$CONTAINER" bash -lc 'pgrep -af "vllm.entrypoints.openai.api_server" | head -2' 2>/dev/null
-
-  echo "== 3. 后续查看 =="
-  echo "日志：/home/qch/transfer/run_$TEST_ID.log"
-  echo "结果：$TOOLS/vllmBench/$TEST_ID/summary.csv"
-  echo "trace：$TOOLS/vllmBench/$TEST_ID/timeline/"
+  free -g | sed -n 1,2p
+  df -h /home | tail -1
 
   # ---- 命令结束 ----
 
