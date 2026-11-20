@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。定位 kperf_start_type 的来源与缺失原因。
+# 本次：修 vllm:latest 镜像里那行未定义的 kperf_start_type 埋点（先备份，可回滚）。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,7 +11,8 @@ OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
 C=vllm
-VLLM=/opt/corex311/lib/python3.11/site-packages/vllm
+F=/opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py
+BAK="$F.bak-kperf-$(date +%Y%m%d%H%M%S)"
 
 {
   echo "### server: $SERVER"
@@ -22,34 +23,25 @@ VLLM=/opt/corex311/lib/python3.11/site-packages/vllm
 
   # ---- 命令开始 ----
 
-  echo "== 1. worker_busy_loop 附近的插桩代码 =="
-  docker exec "$C" bash -lc "sed -n '955,1000p' $VLLM/v1/executor/multiproc_executor.py" 2>&1
+  echo "== 1. 修改前 =="
+  docker exec "$C" bash -lc "grep -n 'kperf_start_type' $F" 2>&1
+  docker exec "$C" bash -lc "sha256sum $F" 2>&1
 
-  echo "== 2. 全 site-packages 里 kperf_start_type 的定义/引用 =="
-  docker exec "$C" bash -lc "grep -rn 'kperf_start_type' /opt/corex311/lib/python3.11/site-packages/ 2>/dev/null | head -8" 2>&1
+  echo "== 2. 备份并删除该行 =="
+  docker exec "$C" bash -lc "cp -a $F $BAK && sed -i '/kperf_start_type(103)/d' $F" 2>&1
+  docker exec "$C" bash -lc "ls -l $BAK; echo '-- 删除后检索 --'; grep -n 'kperf_start_type' $F || echo '无残留'"
 
-  echo "== 3. 文件头部有没有 import =="
-  docker exec "$C" bash -lc "sed -n '1,60p' $VLLM/v1/executor/multiproc_executor.py | grep -nE 'import|kperf'" 2>&1 | head -20
+  echo "== 3. 语法校验 =="
+  docker exec "$C" bash -lc "/opt/corex311/bin/python3 -m py_compile $F && echo 'py_compile OK'" 2>&1
 
-  echo "== 4. kperf 模块 / 库是否存在 =="
-  docker exec "$C" bash -lc '
-    /opt/corex311/bin/python3 -c "import kperf; print(\"kperf ok\", kperf.__file__)" 2>&1 | tail -2
-    ldconfig -p 2>/dev/null | grep -i kperf | head -3
-    ls /usr/local/lib/libkperf* /usr/lib/libkperf* 2>/dev/null | head -3
-  ' 2>&1 | head -10
+  echo "== 4. 修改后上下文 =="
+  docker exec "$C" bash -lc "sed -n '975,985p' $F" 2>&1
 
-  echo "== 5. 相关环境变量 =="
-  docker exec "$C" bash -lc 'env | grep -iE "kperf|hotspot|host_opt" | head -8; echo "(空则未设置)"' 2>&1
+  echo "== 5. sha256 变化 =="
+  docker exec "$C" bash -lc "sha256sum $F" 2>&1
 
-  echo "== 6. light_host_worker 是否有 kperf 依赖 =="
-  docker exec "$C" bash -lc '
-    f=$(/opt/corex311/bin/python3 -c "import light_host_worker; print(light_host_worker.__file__)" 2>/dev/null)
-    echo "file=$f"; grep -n "kperf" "$f" 2>/dev/null | head -5 || echo "无 kperf 引用"
-  ' 2>&1 | head -8
-
-  echo "== 7. 与 mock 镜像对比：同一文件的 diff 摘要 =="
-  docker exec corex5-py311-mock bash -lc \
-    "sed -n '955,985p' $VLLM/v1/executor/multiproc_executor.py" 2>&1 | head -20
+  echo "== 6. 回滚方法（记录在日志里） =="
+  echo "docker exec $C cp -a $BAK $F"
 
   # ---- 命令结束 ----
 
