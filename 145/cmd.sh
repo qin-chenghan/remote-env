@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。补齐版本对比（上次 docker exec 漏了 -i），并看测试人员的 kperf 接法。
+# 本次：只读。读 3.12/3.11 的真实模块版本，并检查 libkperf.so 与插桩可行性。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,9 +9,6 @@ SERVER="$(basename "$DIR")"
 TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
-
-LK=/home/l00946765/workspace/performance-tools/libkperf
-F311=/opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py
 
 {
   echo "### server: $SERVER"
@@ -22,52 +19,58 @@ F311=/opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_execu
 
   # ---- 命令开始 ----
 
-  echo "== 1. 3.12 关键包版本 =="
-  docker exec -i vllm python3 - <<'PY' 2>&1 | tail -10
-import importlib.metadata as md
-for n in ("vllm", "torch", "triton", "ixformer", "transformers", "numpy"):
-    try:
-        print(f"{n:13s} {md.version(n)}")
-    except Exception as e:
-        print(f"{n:13s} MISSING")
+  echo "== 1. 3.12 模块版本（从模块属性读）=="
+  docker exec -i vllm python3 - <<'PY' 2>&1 | tail -8
+import torch, vllm, triton
+print("torch     ", getattr(torch, "__version__", "?"))
+print("vllm      ", getattr(vllm, "__version__", "?"))
+print("triton    ", getattr(triton, "__version__", "?"))
+try:
+    import ixformer; print("ixformer  ", getattr(ixformer, "__version__", "?"))
+except Exception as e:
+    print("ixformer  ", type(e).__name__)
 PY
 
-  echo "== 2. 3.11 关键包版本（对照）=="
-  docker exec -i vllm /opt/corex311/bin/python3 - <<'PY' 2>&1 | tail -10
-import importlib.metadata as md
-for n in ("vllm", "torch", "triton", "ixformer", "transformers", "numpy"):
-    try:
-        print(f"{n:13s} {md.version(n)}")
-    except Exception as e:
-        print(f"{n:13s} MISSING")
+  echo "== 2. 3.11 模块版本（对照）=="
+  docker exec -i vllm /opt/corex311/bin/python3 - <<'PY' 2>&1 | tail -8
+import torch, vllm, triton
+print("torch     ", getattr(torch, "__version__", "?"))
+print("vllm      ", getattr(vllm, "__version__", "?"))
+print("triton    ", getattr(triton, "__version__", "?"))
+try:
+    import ixformer; print("ixformer  ", getattr(ixformer, "__version__", "?"))
+except Exception as e:
+    print("ixformer  ", type(e).__name__)
 PY
 
-  echo "== 3. libkperf.py 里 kperf_start_type 的定义 =="
-  grep -n "def kperf_start_type\|kperf_start_type" "$LK/libkperf.py" 2>/dev/null | head -6
-  grep -rn "def kperf_start_type" "$LK" 2>/dev/null | head -4
-
-  echo "== 4. 测试人员在 3.11 里最终怎么接的 =="
-  docker exec vllm bash -lc "grep -n 'kperf' $F311" 2>&1 | head -6
-  docker exec vllm bash -lc "sed -n '1,40p' $F311 | grep -nE 'import|kperf'" 2>&1 | head -10
-  docker exec vllm bash -lc "sed -n '972,988p' $F311" 2>&1
-
-  echo "== 5. 3.11 套里 kperf 模块从哪来 =="
+  echo "== 3. 3.12 的 vllm 是否与 3.11 同一份源码（比 sha256）=="
   docker exec vllm bash -lc '
-    /opt/corex311/bin/python3 -c "import kperf; print(kperf.__file__)" 2>&1 | tail -2
-    ls -d /opt/corex311/lib/python3.11/site-packages/kperf* /opt/corex311/lib/python3.11/site-packages/libkperf* 2>/dev/null
-    /opt/corex311/bin/python3 -m pip list 2>/dev/null | grep -i kperf | head -3
+    for f in vllm/v1/executor/multiproc_executor.py vllm/v1/worker/gpu_worker.py; do
+      printf "%-45s " "$f"
+      sha256sum /usr/local/lib/python3.12/site-packages/$f /opt/corex311/lib/python3.11/site-packages/$f 2>/dev/null | awk "{print \$1}" | uniq | wc -l | tr -d "\n"
+      echo " (1=相同 2=不同)"
+    done
+  ' 2>&1
+
+  echo "== 4. libkperf.so 是否存在、架构、导出符号 =="
+  docker exec vllm bash -lc '
+    ls -l /home2/libkperf/libkperf.so 2>&1
+    file /home2/libkperf/libkperf.so 2>&1 | cut -c1-110
+    nm -D --defined-only /home2/libkperf/libkperf.so 2>/dev/null | grep -i kperf_start_type | head -3
   ' 2>&1 | head -8
 
-  echo "== 6. 3.12 下 mock 激活后再 import vLLM 关键类（补丁是否真的落地）=="
-  docker exec -i vllm bash -lc '
-    PYTHONPATH=/home/qch/mock_vllm python3 - <<PY 2>&1 | tail -6
-import mock_gpu.autoload
-from vllm.v1.worker.gpu_model_runner import GPUModelRunner
-import vllm.v1.worker.gpu_worker as gw
-print("Worker patched:", gw.Worker.init_device.__module__, gw.Worker.init_device.__qualname__)
-print("vllm import ok")
+  echo "== 5. ctypes 加载测试（3.12 解释器）=="
+  docker exec -i vllm python3 - <<'PY' 2>&1 | tail -4
+import ctypes
+try:
+    lib = ctypes.CDLL("/home2/libkperf/libkperf.so")
+    print("CDLL ok; symbol:", hasattr(lib, "kperf_start_type"))
+except Exception as e:
+    print("CDLL failed:", type(e).__name__, e)
 PY
-  '
+
+  echo "== 6. 3.12 的 multiproc_executor 是否已有 ctypes import =="
+  docker exec vllm bash -lc "grep -n 'import ctypes\|libkperf' /usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py | head -4" 2>&1
 
   # ---- 命令结束 ----
 
