@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：不动容器，验证给 vllm 容器补 LD_LIBRARY_PATH 后 torch/mock 是否正常。
+# 本次：在 vllm 容器里安装 shell 启动文件，使 LD_LIBRARY_PATH 自动生效（不重建容器）。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -21,31 +21,35 @@ LIB=/usr/local/corex/lib64:/usr/local/openmpi/lib:/usr/local/lib
 
   # ---- 命令开始 ----
 
-  echo "== 1. vllm 容器：补 LD_LIBRARY_PATH 后 import torch =="
-  docker exec -e LD_LIBRARY_PATH="$LIB" vllm \
-    /opt/corex311/bin/python3 -c \
-    'import torch; print("torch", torch.__version__, "cuda_available", torch.cuda.is_available())' 2>&1 | tail -4
+  echo "== 1. 安装 /etc/profile.d/corex-path.sh（登录 shell）=="
+  docker exec vllm bash -c "printf '%s\n' \
+    '# added for corex runtime libs' \
+    'export LD_LIBRARY_PATH=$LIB\${LD_LIBRARY_PATH:+:\$LD_LIBRARY_PATH}' \
+    > /etc/profile.d/corex-path.sh"
+  docker exec vllm bash -c 'cat /etc/profile.d/corex-path.sh'
 
-  echo "== 2. 同环境下 mock 是否能激活 =="
-  docker exec -e LD_LIBRARY_PATH="$LIB" \
-    -e PYTHONPATH=/home/qch/mock_vllm vllm \
-    /opt/corex311/bin/python3 -c 'import mock_gpu.autoload' 2>&1 | tail -4
+  echo "== 2. 追加到 /etc/bash.bashrc（交互式非登录 shell，幂等）=="
+  docker exec vllm bash -c "
+    if ! grep -q corex-path /etc/bash.bashrc 2>/dev/null; then
+      printf '%s\n' '' '. /etc/profile.d/corex-path.sh  # corex-path' >> /etc/bash.bashrc
+      echo added
+    else
+      echo already-present
+    fi"
+  docker exec vllm bash -c 'tail -3 /etc/bash.bashrc'
 
-  echo "== 3. 容器内模型与工具是否就绪 =="
-  docker exec vllm bash -lc '
-    du -sh /home/model/Qwen3-32B-W8A8 2>/dev/null
-    ls /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh 2>/dev/null || echo "缺 mock 版 harness"
-  ' 2>&1 | head -4
+  echo "== 3. 两种进入方式验证 =="
+  echo "-- 登录 shell（脚本用 bash -lc）"
+  docker exec vllm bash -lc 'echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"'
+  echo "-- 交互式 shell（docker exec -it bash）"
+  docker exec vllm bash -ic 'echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"' 2>/dev/null
 
-  echo "== 4. 端口 =="
-  ss -ltn 2>/dev/null | grep -E ':(8948|8848)\b' || echo "8948/8848 空闲"
+  echo "== 4. 实际效果：登录 shell 里 import torch / mock =="
+  docker exec vllm bash -lc \
+    'PYTHONPATH=/home/qch/mock_vllm /opt/corex311/bin/python3 -c "import torch; import mock_gpu.autoload"' 2>&1 | tail -4
 
-  echo "== 5. 建议的运行方式（不重建容器） =="
-  echo "docker exec vllm bash -lc '"
-  echo "  export LD_LIBRARY_PATH=$LIB"
-  echo "  cd /home/huawei_ts_program/litehost_perf_opt"
-  echo "  MODEL_PATH=/home/model/Qwen3-32B-W8A8 TEST_ID=lite_vllm_xxx HOST_MEASURE=lite \\"
-  echo "    bash vllmBench_lite_base_mock.sh'"
+  echo "== 5. 直接 exec 二进制（不经过 shell）仍无环境，属预期 =="
+  docker exec vllm /opt/corex311/bin/python3 -c 'import torch' 2>&1 | tail -2
 
   # ---- 命令结束 ----
 
