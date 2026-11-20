@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：修补 kperf 调用——保留 `kperf_start_type(103)`，补一个“有则用、无则空”的导入回退。
+# 本次：只读。检查 /home/l00946765 —— 找 kperf 模块/插桩来源与相关脚本。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -10,9 +10,7 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
-C=vllm
-F=/opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py
-BAK="$F.bak-kperf-$(date +%Y%m%d%H%M%S)"
+U=/home/l00946765
 
 {
   echo "### server: $SERVER"
@@ -23,48 +21,31 @@ BAK="$F.bak-kperf-$(date +%Y%m%d%H%M%S)"
 
   # ---- 命令开始 ----
 
-  echo "== 1. 修改前 =="
-  docker exec "$C" bash -lc "sha256sum $F; grep -n 'kperf_start_type' $F" 2>&1
+  echo "== 1. 目录概览 =="
+  ls -ld "$U" 2>&1; du -sh "$U" 2>/dev/null
+  ls -lat "$U" 2>&1 | head -20
 
-  echo "== 2. 备份并插入导入回退（幂等）=="
-  docker exec -i "$C" /opt/corex311/bin/python3 - "$F" "$BAK" <<'PY'
-import pathlib, shutil, sys
+  echo "== 2. 两层目录树 =="
+  find "$U" -maxdepth 2 -type d 2>/dev/null | head -25
 
-path, bak = pathlib.Path(sys.argv[1]), sys.argv[2]
-src = path.read_text()
-if "from kperf import kperf_start_type" in src or "def kperf_start_type" in src:
-    print("already patched")
-    raise SystemExit
-shutil.copy2(path, bak)
-anchor = "from threading import Thread\n"
-block = (
-    "\ntry:  # kperf instrumentation hook is optional\n"
-    "    from kperf import kperf_start_type  # noqa: F401\n"
-    "except Exception:  # noqa: BLE001\n"
-    "    def kperf_start_type(*args, **kwargs):\n"
-    "        return None\n"
-)
-idx = src.index(anchor) + len(anchor)
-path.write_text(src[:idx] + block + src[idx:])
-print("patched, backup:", bak)
-PY
+  echo "== 3. 找 kperf 相关文件 =="
+  find "$U" -maxdepth 5 \( -iname "*kperf*" -o -iname "*kperf*" \) 2>/dev/null | head -15
+  grep -rIl "kperf_start_type" "$U" 2>/dev/null | head -10
 
-  echo "== 3. 修改后上下文与语法 =="
-  docker exec "$C" bash -lc "sed -n '17,30p' $F" 2>&1
-  docker exec "$C" bash -lc "/opt/corex311/bin/python3 -m py_compile $F && echo 'py_compile OK'" 2>&1
+  echo "== 4. 找 python 环境与 wheel =="
+  find "$U" -maxdepth 4 -name "pyvenv.cfg" 2>/dev/null | head -6
+  find "$U" -maxdepth 4 \( -name "*.whl" -o -name "*.tar.gz" -o -name "*.zip" \) 2>/dev/null | head -12
+  find "$U" -maxdepth 5 -path "*site-packages/kperf*" 2>/dev/null | head -6
 
-  echo "== 4. 真实导入验证（登录 shell，带 corex 库）=="
-  docker exec "$C" bash -lc '
-    /opt/corex311/bin/python3 - <<PY
-from vllm.v1.executor import multiproc_executor as m
-print("callable:", callable(m.kperf_start_type))
-m.kperf_start_type(103)
-print("call ok")
-PY' 2>&1 | tail -4
+  echo "== 5. 找脚本与 dockerfile =="
+  find "$U" -maxdepth 4 \( -name "*.sh" -o -name "Dockerfile*" -o -name "*.py" \) 2>/dev/null | head -20
 
-  echo "== 5. 结果与回滚 =="
-  docker exec "$C" bash -lc "sha256sum $F; grep -n 'kperf_start_type' $F" 2>&1
-  echo "回滚：docker exec $C cp -a $BAK $F"
+  echo "== 6. 最近改动 =="
+  find "$U" -maxdepth 4 -type f -mtime -10 2>/dev/null | head -15
+
+  echo "== 7. 与该 run 相关的线索（zzy_dryrun 等）=="
+  ls -lat /tmp/zzy_dryrun_* 2>/dev/null | head -6
+  grep -l "kperf" /tmp/zzy_dryrun_*.log 2>/dev/null | head -3
 
   # ---- 命令结束 ----
 
