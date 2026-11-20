@@ -1,0 +1,90 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T02:09:18Z
+
++ echo '== 1. 容器状态 =='
+== 1. 容器状态 ==
++ docker ps --filter name=vllm --format '{{.Names}} {{.Status}}'
+vllm Up 11 minutes
++ echo '== 2. 容器内进程（含运行时长和 CPU）=='
+== 2. 容器内进程（含运行时长和 CPU）==
++ docker exec vllm bash -lc 'ps -eo pid,ppid,etime,pcpu,nlwp,args | grep -E "vllm.entrypoints|VLLM::|bench_driver|vllmBench" | grep -v grep | cut -c1-150'
++ head -12
+    769       1       10:37  2.0    1 [VLLM::EngineCor] <defunct>
++ echo '== 3. 宿主整机负载与热点进程 =='
+== 3. 宿主整机负载与热点进程 ==
++ uptime
+ 10:09:18 up 7 days,  1:09, 42 users,  load average: 3.87, 4.39, 4.34
++ ps -eo pcpu,pmem,etime,args --sort=-pcpu
++ head -6
++ cut -c1-140
+%CPU %MEM     ELAPSED COMMAND
+ 600  0.0       00:00 ps -eo pcpu,pmem,etime,args --sort=-pcpu
+ 337  2.6       38:41 /spark_trace/paoding/server/tool/qemu-system-aarch64-lh -nographic -m 65536 -cpu max,sve=on,sve256=on,sme=off,pauth=of
+30.1  0.0    17:40:09 [java] <defunct>
+10.8  0.0  6-22:55:58 htop
+ 8.6  1.3  3-23:51:19 /home/h30054940/.vscode-server/cli/servers/Stable-6bab64e2d12b04d04c0d99c27ff166023efd1dda/server/node --dns-result-or
++ echo '== 4. 端口 =='
+== 4. 端口 ==
++ ss -ltnp
++ grep -E ':(8948|8848)\b'
++ echo '8948/8848 空闲'
+8948/8848 空闲
++ echo '== 5. 服务健康 =='
+== 5. 服务健康 ==
++ curl --noproxy '*' -s -o /dev/null -w 'health http_code=%{http_code}\n' --max-time 3 http://127.0.0.1:8948/health
+health http_code=000
++ true
++ curl --noproxy '*' -s -o /dev/null -w 'health8848 http_code=%{http_code}\n' --max-time 3 http://127.0.0.1:8848/health
+health8848 http_code=000
++ true
++ echo '== 6. 最新 run 目录与日志 =='
+== 6. 最新 run 目录与日志 ==
++ docker exec vllm bash -lc '
+    d=$(ls -dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ 2>/dev/null | head -1)
+    echo "latest: $d"
+    ls -lt "$d" 2>/dev/null | head -8
+    echo "-- server.log 尾部"
+    tail -12 "$d/logs/server.log" 2>/dev/null
+    echo "-- bench 日志"
+    ls "$d/logs" 2>/dev/null
+    tail -12 "$d"/logs/bench_*.log 2>/dev/null
+    echo "-- litehost case 状态"
+    ls "$d/litehost" 2>/dev/null | head -3
+    cat "$d"/litehost/*/case.json 2>/dev/null | head -20
+    cat "$d"/litehost/*/window.json 2>/dev/null | head -10
+  '
++ head -45
+latest: /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261120_095754/
+total 20
+drwxr-xr-x. 2 root root 4096 Nov 20 09:58 control
+-rw-------. 1 root root   73 Nov 20 09:58 server.process.json
+drwxr-xr-x. 2 root root 4096 Nov 20 09:58 logs
+-rw-------. 1 root root  879 Nov 20 09:58 session.json
+-rw-r--r--. 1 root root  239 Nov 20 09:58 config.txt
+-- server.log 尾部
+(EngineCore pid=769)                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=769)   File "/opt/corex311/lib/python3.11/site-packages/vllm/distributed/device_communicators/shm_broadcast.py", line 779, in dequeue
+(EngineCore pid=769)     with self.acquire_read(timeout, indefinite) as buf:
+(EngineCore pid=769)   File "/opt/python-3.11.6/lib/python3.11/contextlib.py", line 137, in __enter__
+(EngineCore pid=769)     return next(self.gen)
+(EngineCore pid=769)            ^^^^^^^^^^^^^^
+(EngineCore pid=769)   File "/opt/corex311/lib/python3.11/site-packages/vllm/distributed/device_communicators/shm_broadcast.py", line 701, in acquire_read
+(EngineCore pid=769)     raise RuntimeError("cancelled")
+(EngineCore pid=769) RuntimeError: cancelled
+(EngineCore pid=769) /opt/corex311/lib/python3.11/site-packages/ray/dag/dag_node.py:19: ResourceWarning: Unclosed context <zmq.Context(4 sockets) at 0xfffd5ffd8890>
+(EngineCore pid=769)   from ray.dag.compiled_dag_node import build_compiled_dag_from_ray_dag
+(EngineCore pid=769) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+-- bench 日志
+preflight.log
+server.log
+-- litehost case 状态
++ echo '== 7. 最近 5 分钟内被修改的文件（该 run 目录）=='
+== 7. 最近 5 分钟内被修改的文件（该 run 目录）==
++ docker exec vllm bash -lc '
+    find /home/huawei_ts_program/litehost_perf_opt/vllmBench -maxdepth 3 -mmin -5 -type f 2>/dev/null | head -10
+  '
++ head -12
++ set +x
+
+### exit: 0
