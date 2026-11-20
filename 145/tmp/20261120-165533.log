@@ -1,0 +1,52 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T08:55:33Z
+
++ echo '== 1. 是否完成 =='
+== 1. 是否完成 ==
++ docker exec vllm bash -lc '
+    [ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_128_cached/summary.csv ] && echo done || echo running
+    tail -6 /tmp/run_prime_py312_128_cached.log 2>/dev/null
+  '
++ tail -9
+done
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+===== Benchmark：吞吐与延迟（全部 case）=====
+bs8_in128_out128: output_tok/s=4204.986 TTFT_mean=50.265ms TPOT_mean=1.449ms ITL_mean=1.449ms
+[2026-11-20 16:53:32] 全部完成 | benchmark=/home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_128_cached/summary.csv | host=OFF/未采集
++ echo '== 2. 吞吐 =='
+== 2. 吞吐 ==
++ docker exec vllm bash -lc 'cut -d, -f2,5,6,8,11 /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_128_cached/summary.csv 2>/dev/null'
+case,request_throughput_req_s,output_token_throughput_tok_s,mean_ttft_ms,mean_tpot_ms
+bs8_in128_out128,32.851454186580014,4204.986135882242,50.26537969475612,1.4493625323145143
++ echo '== 3. 新缓存目录 =='
+== 3. 新缓存目录 ==
++ docker exec vllm bash -lc '
+    echo "new cache files=$(find /home/huawei_ts_program/inductor_cache_py312 -name '\''*.py'\'' 2>/dev/null | wc -l)"
+    du -sh /home/huawei_ts_program/inductor_cache_py312 2>/dev/null
+    echo '\''-- AOT ID 分布 --'\''
+    for f in /home/huawei_ts_program/inductor_cache_py312/*/*.py; do head -1 $f 2>/dev/null; done | sort | uniq -c | head -8
+  '
++ head -14
+new cache files=5
+872K	/home/huawei_ts_program/inductor_cache_py312
+-- AOT ID 分布 --
+      4 # AOT ID: ['0_inference']
+      1 # AOT ID: ['1_inference']
++ echo '== 4. 旧 /tmp 缓存（保留未动）=='
+== 4. 旧 /tmp 缓存（保留未动）==
++ docker exec vllm bash -lc 'echo "/tmp files=$(find /tmp/torchinductor_root -name '\''*.py'\'' 2>/dev/null | wc -l)"'
+/tmp files=34
++ echo '== 5. 残留与端口 =='
+== 5. 残留与端口 ==
++ docker exec vllm bash -lc 'pgrep -af "vllm.entrypoints.openai.api_server|bench_driver" | grep -v pgrep || echo "no leftover"'
+no leftover
++ ss -ltn
++ grep -E ':(8948|8848)\b'
++ echo '8948/8848 free'
+8948/8848 free
++ set +x
+
+### exit: 0
