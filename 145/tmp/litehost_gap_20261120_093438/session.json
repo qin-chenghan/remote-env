@@ -1,0 +1,19 @@
+{
+  "version": "0.4.0-compat",
+  "session_id": "29b8128aa5e040ab9227597ac88d9e67",
+  "token": "af3186bbdde44cfdb61e6806b79a3cd41125f9537d924c8c86462ce866f1c850",
+  "run_dir": "/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261120_093438",
+  "control_dir": "/tmp/lhc-3vxnxokt",
+  "timeout": 120.0,
+  "max_scopes": 200000,
+  "native_hash": "b70d07e38c4e1f2665d6aa407a82e751209fb9af67e0ca70a5a74e0bd1e3048d",
+  "source_check": {
+    "status": "pass",
+    "source_root": "/opt/corex311/lib/python3.11/site-packages/vllm",
+    "files": {
+      "benchmarks/serve.py": "b09e85eed6f5f7a9075b40a19fc1dd8e94a1c449665c2c6510f349e0409e77b7",
+      "benchmarks/lib/endpoint_request_func.py": "5fd4b66d9ac6a88a278c2b7d65dcd17b8a9424279859ade14bddb69e342a312d",
+      "v1/worker/gpu_worker.py": "b27283da058a1329be317fad2d58ce32ea850478a97bb7c2af0934bbaa88165a"
+    }
+  }
+}

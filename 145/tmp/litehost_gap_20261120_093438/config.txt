@@ -1,0 +1,9 @@
+test_id=litehost_gap_20261120_093438
+started=2026-11-20T09:34:38+08:00
+prefix=/opt/corex311
+multi_engine=unknown
+cpu_range=0-63
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16

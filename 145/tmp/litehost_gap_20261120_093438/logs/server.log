@@ -1,0 +1,28 @@
+Traceback (most recent call last):
+  File "/opt/corex311/lib/python3.11/site-packages/torch/__init__.py", line 372, in _load_global_deps
+    ctypes.CDLL(global_deps_lib_path, mode=ctypes.RTLD_GLOBAL)
+  File "/opt/python-3.11.6/lib/python3.11/ctypes/__init__.py", line 376, in __init__
+    self._handle = _dlopen(self._name, mode)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: libcudart.so.10.2: cannot open shared object file: No such file or directory
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 189, in _run_module_as_main
+  File "<frozen runpy>", line 112, in _get_module_details
+  File "/opt/corex311/lib/python3.11/site-packages/vllm/__init__.py", line 24, in <module>
+    import vllm.env_override  # noqa: F401
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/corex311/lib/python3.11/site-packages/vllm/env_override.py", line 87, in <module>
+    import torch
+  File "/opt/corex311/lib/python3.11/site-packages/torch/__init__.py", line 436, in <module>
+    _load_global_deps()
+  File "/opt/corex311/lib/python3.11/site-packages/torch/__init__.py", line 394, in _load_global_deps
+    _preload_cuda_deps(err)
+  File "/opt/corex311/lib/python3.11/site-packages/torch/__init__.py", line 354, in _preload_cuda_deps
+    _preload_cuda_lib(lib_folder, lib_name)
+  File "/opt/corex311/lib/python3.11/site-packages/torch/__init__.py", line 322, in _preload_cuda_lib
+    raise ValueError(f"{lib_name} not found in the system path {sys.path}")
+ValueError: libcublas.so.*[0-9] not found in the system path ['/home/huawei_ts_program/litehost_perf_opt', '/home/huawei_ts_program/litehost_perf_opt', '/home/qch/mock_vllm', '/opt/python-3.11.6/lib/python311.zip', '/opt/python-3.11.6/lib/python3.11', '/opt/python-3.11.6/lib/python3.11/lib-dynload', '/opt/corex311/lib/python3.11/site-packages']
+[mock_gpu] skipped: libcublas.so.*[0-9] not found in the system path ['/home/huawei_ts_program/litehost_perf_opt', '/home/qch/mock_vllm', '/opt/python-3.11.6/lib/python311.zip', '/opt/python-3.11.6/lib/python3.11', '/opt/python-3.11.6/lib/python3.11/lib-dynload', '/opt/corex311/lib/python3.11/site-packages']
