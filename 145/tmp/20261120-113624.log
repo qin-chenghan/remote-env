@@ -1,0 +1,97 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T03:36:24Z
+
++ echo '== 1. 解释器 =='
+== 1. 解释器 ==
++ docker exec vllm bash -lc 'command -v python3; python3 -V; /opt/corex311/bin/python3 -V'
+/usr/local/bin/python3
+Python 3.12.11
+Python 3.11.6
++ echo '== 2. 3.12 侧关键包版本（vllm/torch/triton/ixformer）=='
+== 2. 3.12 侧关键包版本（vllm/torch/triton/ixformer）==
++ docker exec vllm python3 -
++ tail -12
++ echo '== 3. 3.11 侧同项（对照）=='
+== 3. 3.11 侧同项（对照）==
++ docker exec vllm /opt/corex311/bin/python3 -
++ tail -12
++ echo '== 4. 3.12 套里 mock 依赖的文件是否存在 =='
+== 4. 3.12 套里 mock 依赖的文件是否存在 ==
++ docker exec vllm bash -lc '
+    for f in vllm/v1/worker/gpu_worker.py vllm/v1/worker/gpu_model_runner.py                vllm/v1/executor/multiproc_executor.py vllm/v1/worker/block_table.py                vllm/utils/torch_utils.py vllm/compilation/cuda_graph.py; do
+      printf '\''%-46s '\'' $f; [ -f /usr/local/lib/python3.12/site-packages/$f ] && echo present || echo MISSING
+    done
+  '
+vllm/v1/worker/gpu_worker.py                   present
+vllm/v1/worker/gpu_model_runner.py             present
+vllm/v1/executor/multiproc_executor.py         present
+vllm/v1/worker/block_table.py                  present
+vllm/utils/torch_utils.py                      present
+vllm/compilation/cuda_graph.py                 present
++ echo '== 5. 插桩在 3.12 套里的现状 =='
+== 5. 插桩在 3.12 套里的现状 ==
++ docker exec vllm bash -lc 'grep -c kperf_start_type /usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py 2>/dev/null || echo 0'
+0
+0
++ echo '== 6. libkperf.py 是纯 python 还是扩展 =='
+== 6. libkperf.py 是纯 python 还是扩展 ==
++ grep -n 'ctypes\|CDLL\|import ' /home/l00946765/workspace/performance-tools/libkperf/libkperf.py
++ head -12
+1:from email import parser
+2:from contextlib import ExitStack
+4:import subprocess
+5:import re
+6:import os
+7:import time
+8:import fnmatch
+9:import argparse
+11:from pathlib import Path
+12:from avg_tmp import merge_tmp_files
+13:from pmu import PmuBase, KperfBaseError, KperfBaseWarning, parser_command, kpmu
+14:from pmu.util import *
++ ls -l '/home/l00946765/workspace/performance-tools/libkperf/*.so'
++ head -4
++ file '/home/l00946765/workspace/performance-tools/libkperf/*.so'
++ cut -c1-110
++ head -3
+/home/l00946765/workspace/performance-tools/libkperf/*.so: cannot open `/home/l00946765/workspace/performance-
++ echo '== 7. harness 与 worker 脚本对解释器的依赖 =='
+== 7. harness 与 worker 脚本对解释器的依赖 ==
++ docker exec vllm bash -lc '
+    grep -n "PYTHON_BIN\|PREFIX=" /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh | head -3
+    head -12 /home/huawei_ts_program/litehost_perf_opt/light_host_worker.py 2>/dev/null
+    /opt/corex311/bin/python3 -m pip list 2>/dev/null | grep -iE "aiohttp|requests|numpy|pillow" | head -6
+  '
++ head -22
+9:PREFIX="${PREFIX:-/opt/corex311}"
+10:PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
+30:[[ -x "$PYTHON_BIN" && -f "$HOST_TOOLKIT/lhctl.py" ]] || { echo 'ERROR: Python 或配套文件缺失' >&2; exit 2; }
+from __future__ import annotations
+from contextlib import contextmanager
+import ctypes,logging,os
+from vllm.v1.worker.gpu_worker import Worker
+from vllm.v1.utils import compute_iteration_details
+from lh_common import VERSION,NATIVE,digest
+from lh_runtime import Controller
+class Result(ctypes.Structure):_fields_=[(k,ctypes.c_uint64) for k in NATIVE]
+class LightHostWorker(Worker):
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        if getattr(self,'profiler',None):raise RuntimeError('Disable Torch Profiler for Lite measurement')
+aiohttp                                  3.13.3
+numpy                                    1.26.4
+pillow                                   12.1.1
+requests                                 2.32.5
++ echo '== 8. mock 在 3.12 下能否 activate（只 import，不起服务）=='
+== 8. mock 在 3.12 下能否 activate（只 import，不起服务）==
++ docker exec vllm bash -lc 'PYTHONPATH=/home/qch/mock_vllm python3 -c "import mock_gpu.autoload" 2>&1 | tail -5'
++ head -7
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
++ set +x
+
+### exit: 0
