@@ -1,0 +1,101 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T02:12:17Z
+
++ echo '== 1. 容器时间线 =='
+== 1. 容器时间线 ==
++ docker inspect vllm --format 'created={{.Created}} startedAt={{.State.StartedAt}} finished={{.State.FinishedAt}} restarts={{.RestartCount}} status={{.State.Status}}'
+created=2026-11-20T00:54:34.80469884Z startedAt=2026-11-20T01:57:24.49004018Z finished=2026-11-20T01:57:24.32422826Z restarts=0 status=running
++ docker inspect vllm --format 'env LD_LIBRARY_PATH = {{range .Config.Env}}{{println .}}{{end}}'
++ grep -i ld_library
+env LD_LIBRARY_PATH = 
++ stat -c '%n  mtime=%y' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261120_095754 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261120_095754/logs/server.log
++ echo '== 2. server.log 头部（真正的第一个错误）=='
+== 2. server.log 头部（真正的第一个错误）==
++ docker exec vllm bash -lc 'head -60 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261120_095754/logs/server.log'
++ grep -vE '^\s*$'
++ head -40
+/opt/corex311/lib/python3.11/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-20 09:58:27 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-20 09:58:27 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-20 09:58:27 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-20 09:58:27 [__init__.py:238] Platform plugin iluvatar is activated
+/opt/corex311/lib/python3.11/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+/opt/corex311/lib/python3.11/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-20 09:58:29 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-20 09:58:29 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/opt/corex311/lib/python3.11/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/opt/corex311/lib/python3.11/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+/opt/corex311/lib/python3.11/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-20 09:58:33 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-20 09:58:33 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-20 09:58:33 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-20 09:58:33 [__init__.py:238] Platform plugin iluvatar is activated
+/opt/corex311/lib/python3.11/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+/opt/corex311/lib/python3.11/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-20 09:58:35 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-20 09:58:35 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/opt/corex311/lib/python3.11/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/opt/corex311/lib/python3.11/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+(APIServer pid=485) INFO 11-20 09:58:37 [api_utils.py:339] 
++ echo '== 3. preflight.log =='
+== 3. preflight.log ==
++ docker exec vllm bash -lc 'cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261120_095754/logs/preflight.log'
++ head -10
+/opt/corex311/lib/python3.11/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-20 09:58:07 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-20 09:58:07 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-20 09:58:07 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-20 09:58:07 [__init__.py:238] Platform plugin iluvatar is activated
+/opt/corex311/lib/python3.11/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
++ echo '== 4. harness 进程是否还活着 =='
+== 4. harness 进程是否还活着 ==
++ docker exec vllm bash -lc 'ps -eo pid,ppid,etime,stat,args | grep -E "vllmBench|litehost_gap|procutil|bench_driver" | grep -v grep | cut -c1-140'
++ head -8
++ echo '-- 容器内 bash 进程 --'
+-- 容器内 bash 进程 --
++ docker exec vllm bash -lc 'ps -eo pid,ppid,etime,stat,args | grep -E "bash -lc" | grep -v grep | head -5 | cut -c1-140'
++ echo '== 5. OOM / 内核日志 =='
+== 5. OOM / 内核日志 ==
++ dmesg
++ tail -20
++ grep -iE 'oom|killed process|vllm'
++ tail -6
++ echo '无 OOM 记录'
+无 OOM 记录
++ free -g
++ sed -n 1,2p
+               total        used        free      shared  buff/cache   available
+Mem:             502          63          47           5         399         438
++ echo '== 6. 容器内 /home 是不是镜像副本 =='
+== 6. 容器内 /home 是不是镜像副本 ==
++ docker exec vllm bash -lc 'findmnt -T /home 2>/dev/null | tail -2; ls -ld /home/huawei_ts_program /home/model 2>/dev/null'
++ head -6
+TARGET SOURCE  FSTYPE  OPTIONS
+/      overlay overlay rw,relatime,seclabel,lowerdir=/home/docker-data/overlay2/l/GATY6U63MA7BXHE4UGLDVJI523:/home/docker-data/overlay2/l/RGIU6U44TE3JBN6CNKT3NSKJ32,upperdir=/home/docker-data/overlay2/427dfb1474d260de58c332ae157c88202d44efa6c4fb152a0c4f08e007ea25b0/diff,workdir=/home/docker-data/overlay2/427dfb1474d260de58c332ae157c88202d44efa6c4fb152a0c4f08e007ea25b0/work
+drwxr-xr-x. 3 root root 4096 Nov 19 13:48 /home/huawei_ts_program
+drwxr-xr-x. 3 root root 4096 Nov 19 11:52 /home/model
++ set +x
+
+### exit: 0
