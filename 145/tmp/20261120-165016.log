@@ -1,0 +1,56 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T08:50:16Z
+
++ echo '== 1. 同步脚本（宿主 + 容器）=='
+== 1. 同步脚本（宿主 + 容器）==
++ cp -f /home/qch/tools/remote-env/145/../litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/qch/tools/remote-env/145/../litehost_toolkit/vllmBench_lite_base_timeline_py312.sh /home/huawei_ts_program/litehost_perf_opt/
++ chmod +x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh
++ for f in $FILES
++ docker cp /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh vllm:/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ for f in $FILES
++ docker cp /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh vllm:/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh
++ docker exec vllm chmod +x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh
++ docker exec vllm bash -lc 'grep -n '\''TORCHINDUCTOR_CACHE_DIR\|inductor_cache='\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh | head -4'
+11:export TORCHINDUCTOR_CACHE_DIR="${TORCHINDUCTOR_CACHE_DIR:-/home/huawei_ts_program/inductor_cache_py312}"
+12:mkdir -p "$TORCHINDUCTOR_CACHE_DIR" 2>/dev/null || true
+110:log "inductor_cache=$TORCHINDUCTOR_CACHE_DIR files=$(find "$TORCHINDUCTOR_CACHE_DIR" -name '*.py' 2>/dev/null | wc -l)"
++ docker exec vllm bash -lc 'bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh && echo mock-ok'
+mock-ok
++ docker exec vllm bash -lc 'bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh && echo timeline-ok'
+timeline-ok
++ echo '== 2. 新缓存目录状态 =='
+== 2. 新缓存目录状态 ==
++ docker exec vllm bash -lc 'ls -d /home/huawei_ts_program/inductor_cache_py312 2>/dev/null && echo "files=$(find /home/huawei_ts_program/inductor_cache_py312 -name '\''*.py'\'' | wc -l)" || echo '\''not created yet'\'''
+not created yet
++ echo '-- 旧目录（/tmp，先保留不动）--'
+-- 旧目录（/tmp，先保留不动）--
++ docker exec vllm bash -lc 'echo "/tmp files=$(find /tmp/torchinductor_root -name '\''*.py'\'' 2>/dev/null | wc -l)"'
+/tmp files=34
++ echo '== 3. 前置检查 =='
+== 3. 前置检查 ==
++ docker exec vllm bash -lc 'pgrep -af "vllm.entrypoints.openai.api_server|bench_driver" | grep -v pgrep || echo "no server/bench running"'
+no server/bench running
++ ss -ltn
++ grep -E ':(8948|8848)\b'
++ echo '8948/8848 free'
+8948/8848 free
++ echo '== 4. 启动预热（新缓存目录）=='
+== 4. 启动预热（新缓存目录）==
++ docker exec -d vllm bash -lc 'cd /home/huawei_ts_program/litehost_perf_opt &&     TEST_ID=prime_py312_128_cached HOST_MEASURE=off MODEL_PATH=/home/model/Qwen3-32B-W8A8     nohup bash vllmBench_lite_base_mock_py312.sh > /tmp/run_prime_py312_128_cached.log 2>&1'
++ sleep 25
++ docker exec vllm bash -lc 'grep -E '\''inductor_cache=|PREFIX=|全部完成'\'' /tmp/run_prime_py312_128_cached.log 2>/dev/null; tail -3 /tmp/run_prime_py312_128_cached.log 2>/dev/null'
+[2026-11-20 16:50:17] PREFIX=/usr/local
+[2026-11-20 16:50:17] inductor_cache=/home/huawei_ts_program/inductor_cache_py312 files=0
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+[2026-11-20 16:50:40] WARNING: ixsmi 不可用，跳过显存预检
+[2026-11-20 16:50:40] 服务 PID=22256；所有 case 复用；日志=/home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_128_cached/logs/server.log
++ echo '== 5. 后续 =='
+== 5. 后续 ==
++ echo 日志：/tmp/run_prime_py312_128_cached.log（容器内）
+日志：/tmp/run_prime_py312_128_cached.log（容器内）
++ echo 缓存：/home/huawei_ts_program/inductor_cache_py312（容器内）
+缓存：/home/huawei_ts_program/inductor_cache_py312（容器内）
++ set +x
+
+### exit: 0
