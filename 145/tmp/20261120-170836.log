@@ -1,0 +1,64 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T09:08:36Z
+
++ echo '== 1. 确认没有服务在跑 =='
+== 1. 确认没有服务在跑 ==
++ docker exec vllm bash -lc 'pgrep -f "vllm[.]entrypoints[.]openai[.]api_server" >/dev/null 2>&1'
++ ss -ltn
++ grep -qE ':(8948|8848)\b'
++ echo '无 api_server，端口空闲'
+无 api_server，端口空闲
++ echo '== 2. 清理前 =='
+== 2. 清理前 ==
++ docker exec vllm bash -lc '
+    du -sh /tmp/torchinductor_root 2>/dev/null || echo '\''旧缓存已不存在'\''
+    echo "keep cache files=$(find /home/huawei_ts_program/inductor_cache_py312 -name '\''*.py'\'' 2>/dev/null | wc -l)"
+    for d in prime_py312_128 prime_py312_128_cached confirm_py312_128; do du -sh /home/huawei_ts_program/litehost_perf_opt/vllmBench/$d 2>/dev/null; done
+  '
+276M	/tmp/torchinductor_root
+keep cache files=5
+88K	/home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_128
+96K	/home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_128_cached
+92K	/home/huawei_ts_program/litehost_perf_opt/vllmBench/confirm_py312_128
++ echo '== 3. 删除 =='
+== 3. 删除 ==
++ docker exec vllm bash -lc 'rm -rf /tmp/torchinductor_root; echo '\''old cache removed'\'''
+old cache removed
++ for d in $RUNS
++ docker exec vllm bash -lc 'rm -rf /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_128'
++ for d in $RUNS
++ docker exec vllm bash -lc 'rm -rf /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_128_cached'
++ for d in $RUNS
++ docker exec vllm bash -lc 'rm -rf /home/huawei_ts_program/litehost_perf_opt/vllmBench/confirm_py312_128'
++ echo 'run dirs removed'
+run dirs removed
++ echo '== 4. 清理后 =='
+== 4. 清理后 ==
++ docker exec vllm bash -lc '
+    du -sh /tmp/torchinductor_root 2>/dev/null || echo '\''old cache gone'\''
+    echo "keep cache files=$(find /home/huawei_ts_program/inductor_cache_py312 -name '\''*.py'\'' 2>/dev/null | wc -l)"
+    du -sh /home/huawei_ts_program/inductor_cache_py312 2>/dev/null
+    for d in prime_py312_128 prime_py312_128_cached confirm_py312_128; do [ -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/$d ] && echo "still exists: $d"; done
+    echo '\''-- vllmBench 剩余目录 --'\''
+    ls /home/huawei_ts_program/litehost_perf_opt/vllmBench 2>/dev/null | head -6
+  '
++ head -14
+old cache gone
+keep cache files=5
+872K	/home/huawei_ts_program/inductor_cache_py312
+-- vllmBench 剩余目录 --
+lite145_1411
+lite145_1438
+litehost_gap_20261119_191223
+litehost_gap_20261119_195415
+litehost_gap_20261119_195618
+litehost_gap_20261120_091936
++ echo '== 5. 缓存仍可用 =='
+== 5. 缓存仍可用 ==
++ docker exec vllm bash -lc '    TORCHINDUCTOR_CACHE_DIR=/home/huawei_ts_program/inductor_cache_py312 /usr/local/bin/python3 -c     '\''import torch; print("torch", torch.__version__)'\'''
++ tail -3
+torch 2.10.0
++ set +x
+
+### exit: 0
