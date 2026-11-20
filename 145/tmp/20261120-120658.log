@@ -1,0 +1,60 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T04:06:58Z
+
++ echo '== 1. 源文件 =='
+== 1. 源文件 ==
++ ls -l /home/qch/tools/remote-env/145/../litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/qch/tools/remote-env/145/../litehost_toolkit/vllmBench_lite_base_timeline_py312.sh
+-rwxr-xr-x. 1 root root 13445 Nov 20 12:06 /home/qch/tools/remote-env/145/../litehost_toolkit/vllmBench_lite_base_mock_py312.sh
+-rwxr-xr-x. 1 root root 18967 Nov 20 12:06 /home/qch/tools/remote-env/145/../litehost_toolkit/vllmBench_lite_base_timeline_py312.sh
++ echo '== 2. 装到宿主工具目录 =='
+== 2. 装到宿主工具目录 ==
++ mkdir -p /home/huawei_ts_program/litehost_perf_opt
++ cp -f /home/qch/tools/remote-env/145/../litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/qch/tools/remote-env/145/../litehost_toolkit/vllmBench_lite_base_timeline_py312.sh /home/huawei_ts_program/litehost_perf_opt/
++ chmod +x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh
++ ls -l /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh
+-rwxr-xr-x. 1 root root 13445 Nov 20 12:06 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+-rwxr-xr-x. 1 root root 18967 Nov 20 12:06 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh
++ echo '== 3. 装进 vllm 容器（该容器 /home 不是宿主 /home）=='
+== 3. 装进 vllm 容器（该容器 /home 不是宿主 /home）==
++ docker cp /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh vllm://home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ docker cp /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh vllm://home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh
++ docker exec vllm chmod +x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh
++ docker exec vllm bash -lc 'ls -l /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_*_py312.sh; grep -n '\''PREFIX='\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh | head -2'
+-rwxr-xr-x. 1 root root 13445 Nov 20 12:06 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+-rwxr-xr-x. 1 root root 18967 Nov 20 12:06 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh
+9:PREFIX="${PREFIX:-/usr/local}"
+70:SERVER_PREFIX=()
++ echo '== 4. 语法与解释器 =='
+== 4. 语法与解释器 ==
++ docker exec vllm bash -lc 'bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh && echo mock-ok'
+mock-ok
++ docker exec vllm bash -lc 'bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh && echo timeline-ok'
+timeline-ok
++ docker exec vllm bash -lc 'python3 -V; /opt/corex311/bin/python3 -V'
+Python 3.12.11
+Python 3.11.6
++ echo '== 5. 3.12 依赖检查（脚本会用到 aiohttp/requests 等）=='
+== 5. 3.12 依赖检查（脚本会用到 aiohttp/requests 等）==
++ docker exec -i vllm bash -lc 'python3 - <<PY
+mods = ("aiohttp", "requests", "numpy", "psutil", "transformers")
+for m in mods:
+    try:
+        __import__(m); print(m, "ok")
+    except Exception as e:
+        print(m, "MISSING", type(e).__name__)
+PY'
+aiohttp ok
+requests ok
+numpy ok
+psutil ok
+transformers ok
++ echo '== 6. 用法 =='
+== 6. 用法 ==
++ echo 'docker exec vllm bash -lc '\''cd /home/huawei_ts_program/litehost_perf_opt && MODEL_PATH=/home/model/Qwen3-32B-W8A8 HOST_MEASURE=lite bash vllmBench_lite_base_mock_py312.sh'\'''
+docker exec vllm bash -lc 'cd /home/huawei_ts_program/litehost_perf_opt && MODEL_PATH=/home/model/Qwen3-32B-W8A8 HOST_MEASURE=lite bash vllmBench_lite_base_mock_py312.sh'
++ echo 'docker exec vllm bash -lc '\''cd /home/huawei_ts_program/litehost_perf_opt && MODEL_PATH=/home/model/Qwen3-32B-W8A8 bash vllmBench_lite_base_timeline_py312.sh'\'''
+docker exec vllm bash -lc 'cd /home/huawei_ts_program/litehost_perf_opt && MODEL_PATH=/home/model/Qwen3-32B-W8A8 bash vllmBench_lite_base_timeline_py312.sh'
++ set +x
+
+### exit: 0
