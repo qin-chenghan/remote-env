@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。找 kperf 模块/库的真实位置与接口，为“保留调用并修补”做准备。
+# 本次：修补 kperf 调用——保留 `kperf_start_type(103)`，补一个“有则用、无则空”的导入回退。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,6 +11,8 @@ OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
 C=vllm
+F=/opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py
+BAK="$F.bak-kperf-$(date +%Y%m%d%H%M%S)"
 
 {
   echo "### server: $SERVER"
@@ -21,43 +23,48 @@ C=vllm
 
   # ---- 命令开始 ----
 
-  echo "== 1. 容器内所有 python 环境是否装有 kperf =="
-  docker exec "$C" bash -lc '
-    for py in /opt/corex311/bin/python3 /opt/corex311-cpython-vllm/bin/python3 /usr/bin/python3 /usr/local/bin/python3; do
-      [ -x "$py" ] || continue
-      echo "-- $py"
-      "$py" -c "import kperf, inspect; print(kperf.__file__); print([n for n in dir(kperf) if not n.startswith(\"_\")])" 2>&1 | tail -3
-    done
-  ' 2>&1 | head -20
+  echo "== 1. 修改前 =="
+  docker exec "$C" bash -lc "sha256sum $F; grep -n 'kperf_start_type' $F" 2>&1
 
-  echo "== 2. 文件系统里搜 kperf 模块 / 共享库 =="
-  docker exec "$C" bash -lc '
-    ls -l /usr/local/lib/python3*/site-packages/kperf* /usr/lib/python3*/site-packages/kperf* \
-          /opt/corex311/lib/python3.11/site-packages/kperf* 2>/dev/null | head -6
-    ls -l /usr/local/lib/libkperf* /usr/lib64/libkperf* /usr/lib/libkperf* 2>/dev/null | head -4
-    find /usr /opt -maxdepth 6 -name "kperf*" 2>/dev/null | head -8
-  ' 2>&1 | head -14
+  echo "== 2. 备份并插入导入回退（幂等）=="
+  docker exec -i "$C" /opt/corex311/bin/python3 - "$F" "$BAK" <<'PY'
+import pathlib, shutil, sys
 
-  echo "== 3. 全盘搜 kperf_start_type 的定义（排除 vllm 那处调用）=="
-  docker exec "$C" bash -lc '
-    grep -rln "def kperf_start_type\|kperf_start_type *=" /usr /opt /home 2>/dev/null | head -5
-  ' 2>&1 | head -6
+path, bak = pathlib.Path(sys.argv[1]), sys.argv[2]
+src = path.read_text()
+if "from kperf import kperf_start_type" in src or "def kperf_start_type" in src:
+    print("already patched")
+    raise SystemExit
+shutil.copy2(path, bak)
+anchor = "from threading import Thread\n"
+block = (
+    "\ntry:  # kperf instrumentation hook is optional\n"
+    "    from kperf import kperf_start_type  # noqa: F401\n"
+    "except Exception:  # noqa: BLE001\n"
+    "    def kperf_start_type(*args, **kwargs):\n"
+    "        return None\n"
+)
+idx = src.index(anchor) + len(anchor)
+path.write_text(src[:idx] + block + src[idx:])
+print("patched, backup:", bak)
+PY
 
-  echo "== 4. 宿主上是否有 kperf（可能挂在宿主而非容器）=="
-  ls -l /usr/local/lib/libkperf* /usr/lib64/libkperf* 2>/dev/null | head -4
-  find /usr/local /opt -maxdepth 4 -name "kperf*" 2>/dev/null | head -6
-  command -v kperf || true
+  echo "== 3. 修改后上下文与语法 =="
+  docker exec "$C" bash -lc "sed -n '17,30p' $F" 2>&1
+  docker exec "$C" bash -lc "/opt/corex311/bin/python3 -m py_compile $F && echo 'py_compile OK'" 2>&1
 
-  echo "== 5. 镜像内其他 kperf 痕迹（字符串）=="
+  echo "== 4. 真实导入验证（登录 shell，带 corex 库）=="
   docker exec "$C" bash -lc '
-    grep -rln "kperf_start_type\|kperf_stop" /opt/corex311/lib/python3.11/site-packages/vllm 2>/dev/null | head -5
-    grep -rn "kperf_start_type" /opt/corex311/lib/python3.11/site-packages/vllm 2>/dev/null | head -8
-  ' 2>&1 | head -12
+    /opt/corex311/bin/python3 - <<PY
+from vllm.v1.executor import multiproc_executor as m
+print("callable:", callable(m.kperf_start_type))
+m.kperf_start_type(103)
+print("call ok")
+PY' 2>&1 | tail -4
 
-  echo "== 6. light_host_worker 位置（该 run 用的 worker-cls）=="
-  docker exec "$C" bash -lc '
-    find /home -maxdepth 3 -name "light_host_worker.py" 2>/dev/null | head -3
-  ' 2>&1 | head -4
+  echo "== 5. 结果与回滚 =="
+  docker exec "$C" bash -lc "sha256sum $F; grep -n 'kperf_start_type' $F" 2>&1
+  echo "回滚：docker exec $C cp -a $BAK $F"
 
   # ---- 命令结束 ----
 
