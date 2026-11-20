@@ -1,0 +1,59 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T09:07:20Z
+
++ echo '== 1. 进程详情 =='
+== 1. 进程详情 ==
++ docker exec vllm bash -lc '
+    for p in $(pgrep -f "vllm.entrypoints.openai.api_server"); do
+      echo "-- pid $p"
+      ps -o pid,lstart,etime,stat,pcpu,args -p "$p" | cut -c1-160
+    done'
+-- pid 27637
+    PID                  STARTED     ELAPSED STAT %CPU COMMAND
+  27637 Fri Nov 20 17:07:19 2026       00:00 Ss    0.0 bash -lc      for p in $(pgrep -f "vllm.entrypoints.openai.api_server"); do       echo "-- pid $p"       
++ echo '== 2. 端口 =='
+== 2. 端口 ==
++ ss -ltnp
++ grep -E ':(8948|8848)\b'
++ echo '8948/8848 free'
+8948/8848 free
++ echo '== 3. 相关日志（谁在跑）=='
+== 3. 相关日志（谁在跑）==
++ docker exec vllm bash -lc '
+    ls -lt /tmp/run_*.log 2>/dev/null | head -3
+    ls -lt /home/huawei_ts_program/litehost_perf_opt/vllmBench 2>/dev/null | head -5
+  '
++ head -10
+-rw-r--r--. 1 root root 7550 Nov 20 17:00 /tmp/run_confirm_py312_128.log
+-rw-r--r--. 1 root root 7576 Nov 20 16:53 /tmp/run_prime_py312_128_cached.log
+-rw-r--r--. 1 root root 7450 Nov 20 16:44 /tmp/run_prime_py312_128.log
+total 88
+drwxr-xr-x. 3 root root 4096 Nov 20 17:00 confirm_py312_128
+drwxr-xr-x. 3 root root 4096 Nov 20 16:53 prime_py312_128_cached
+drwxr-xr-x. 3 root root 4096 Nov 20 16:44 prime_py312_128
+drwxr-xr-x. 6 root root 4096 Nov 20 15:10 litehost_gap_20261120_150710
++ echo '== 4. 最近日志尾部 =='
+== 4. 最近日志尾部 ==
++ docker exec vllm bash -lc '
+    for f in $(ls -t /tmp/run_*.log 2>/dev/null | head -2); do
+      echo "--- $f"; tail -4 "$f"
+    done'
++ head -12
+--- /tmp/run_confirm_py312_128.log
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+===== Benchmark：吞吐与延迟（全部 case）=====
+bs8_in128_out128: output_tok/s=4057.912 TTFT_mean=51.184ms TPOT_mean=1.509ms ITL_mean=1.509ms
+[2026-11-20 17:00:50] 全部完成 | benchmark=/home/huawei_ts_program/litehost_perf_opt/vllmBench/confirm_py312_128/summary.csv | host=OFF/未采集
+--- /tmp/run_prime_py312_128_cached.log
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+===== Benchmark：吞吐与延迟（全部 case）=====
+bs8_in128_out128: output_tok/s=4204.986 TTFT_mean=50.265ms TPOT_mean=1.449ms ITL_mean=1.449ms
+[2026-11-20 16:53:32] 全部完成 | benchmark=/home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_128_cached/summary.csv | host=OFF/未采集
++ echo '== 5. bench_driver 是否也在跑 =='
+== 5. bench_driver 是否也在跑 ==
++ docker exec vllm bash -lc 'pgrep -af "bench_driver" | grep -v pgrep || echo "no bench_driver"'
+no bench_driver
++ set +x
+
+### exit: 0
