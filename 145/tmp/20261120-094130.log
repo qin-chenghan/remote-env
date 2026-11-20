@@ -1,0 +1,51 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T01:41:30Z
+
++ echo '== 1. 安装 /etc/profile.d/corex-path.sh（登录 shell）=='
+== 1. 安装 /etc/profile.d/corex-path.sh（登录 shell）==
++ docker exec vllm bash -c 'printf '\''%s\n'\''     '\''# added for corex runtime libs'\''     '\''export LD_LIBRARY_PATH=/usr/local/corex/lib64:/usr/local/openmpi/lib:/usr/local/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}'\''     > /etc/profile.d/corex-path.sh'
++ docker exec vllm bash -c 'cat /etc/profile.d/corex-path.sh'
+# added for corex runtime libs
+export LD_LIBRARY_PATH=/usr/local/corex/lib64:/usr/local/openmpi/lib:/usr/local/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
++ echo '== 2. 追加到 /etc/bash.bashrc（交互式非登录 shell，幂等）=='
+== 2. 追加到 /etc/bash.bashrc（交互式非登录 shell，幂等）==
++ docker exec vllm bash -c '
+    if ! grep -q corex-path /etc/bash.bashrc 2>/dev/null; then
+      printf '\''%s\n'\'' '\'''\'' '\''. /etc/profile.d/corex-path.sh  # corex-path'\'' >> /etc/bash.bashrc
+      echo added
+    else
+      echo already-present
+    fi'
+added
++ docker exec vllm bash -c 'tail -3 /etc/bash.bashrc'
+fi
+
+. /etc/profile.d/corex-path.sh  # corex-path
++ echo '== 3. 两种进入方式验证 =='
+== 3. 两种进入方式验证 ==
++ echo '-- 登录 shell（脚本用 bash -lc）'
+-- 登录 shell（脚本用 bash -lc）
++ docker exec vllm bash -lc 'echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"'
+LD_LIBRARY_PATH=/usr/local/corex/lib64:/usr/local/openmpi/lib:/usr/local/lib
++ echo '-- 交互式 shell（docker exec -it bash）'
+-- 交互式 shell（docker exec -it bash）
++ docker exec vllm bash -ic 'echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"'
+LD_LIBRARY_PATH=/usr/local/corex/lib64:/usr/local/openmpi/lib:/usr/local/lib
++ echo '== 4. 实际效果：登录 shell 里 import torch / mock =='
+== 4. 实际效果：登录 shell 里 import torch / mock ==
++ docker exec vllm bash -lc 'PYTHONPATH=/home/qch/mock_vllm /opt/corex311/bin/python3 -c "import torch; import mock_gpu.autoload"'
++ tail -4
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ echo '== 5. 直接 exec 二进制（不经过 shell）仍无环境，属预期 =='
+== 5. 直接 exec 二进制（不经过 shell）仍无环境，属预期 ==
++ docker exec vllm /opt/corex311/bin/python3 -c 'import torch'
++ tail -2
+    raise ValueError(f"{lib_name} not found in the system path {sys.path}")
+ValueError: libcublas.so.*[0-9] not found in the system path ['', '/opt/python-3.11.6/lib/python311.zip', '/opt/python-3.11.6/lib/python3.11', '/opt/python-3.11.6/lib/python3.11/lib-dynload', '/opt/corex311/lib/python3.11/site-packages']
++ set +x
+
+### exit: 0
