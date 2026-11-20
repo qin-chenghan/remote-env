@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。检视 libkperf 的真实接口，以及测试人员在 vllm 容器里最终怎么改的。
+# 本次：只读。核实容器内 3.12 与 /opt/corex311 3.11 的两套 vLLM，以及 mock/插桩各自作用在哪套。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,9 +9,6 @@ SERVER="$(basename "$DIR")"
 TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
-
-LK=/home/l00946765/workspace/performance-tools/libkperf
-F=/opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py
 
 {
   echo "### server: $SERVER"
@@ -22,33 +19,48 @@ F=/opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor
 
   # ---- 命令开始 ----
 
-  echo "== 1. libkperf 目录 =="
-  ls -lat "$LK" 2>/dev/null | head -15
-  ls -l "$LK"/*.so "$LK"/*.py 2>/dev/null | head -8
-
-  echo "== 2. kperf_start_type 的真实定义 =="
-  grep -n "def kperf_start_type\|def start_type\|ctypes\|CDLL\|import " "$LK/libkperf.py" 2>/dev/null | head -20
-  echo "-- 定义体 --"
-  awk '/def kperf_start_type/,/^def [a-zA-Z_]+\(/ {print NR": "$0}' "$LK/libkperf.py" 2>/dev/null | head -20
-
-  echo "== 3. 测试人员改后的 vllm 文件（头部与调用处）=="
-  docker exec vllm bash -lc "grep -n 'kperf' $F" 2>&1
-  docker exec vllm bash -lc "sed -n '1,45p' $F | grep -nE 'import|kperf'" 2>&1 | head -20
-  docker exec vllm bash -lc "sed -n '970,992p' $F" 2>&1
-
-  echo "== 4. 容器内 kperf 是否可用 / 放在哪 =="
+  echo "== 1. 两个解释器 =="
   docker exec vllm bash -lc '
-    /opt/corex311/bin/python3 -c "import kperf; print(kperf.__file__); print([n for n in dir(kperf) if \"start\" in n or \"type\" in n])" 2>&1 | tail -4
-    /opt/corex311/bin/python3 -c "from kperf import kperf_start_type; print(kperf_start_type)" 2>&1 | tail -3
-    ls /opt/corex311/lib/python3.11/site-packages/kperf* /home/*/libkperf* 2>/dev/null | head -6
-  ' 2>&1 | head -14
+    echo "default python3: $(command -v python3) $(python3 -V 2>&1)"
+    echo "venv python:      /opt/corex311/bin/python3 $(/opt/corex311/bin/python3 -V 2>&1)"
+    echo "PATH=$PATH"
+  ' 2>&1 | head -6
 
-  echo "== 5. 备份文件是否存在（他们是否留了回滚点）=="
-  docker exec vllm bash -lc "ls -l $F.bak* 2>/dev/null | head -5" 2>&1
+  echo "== 2. 两套 site-packages 里的 vllm/torch =="
+  docker exec vllm bash -lc '
+    echo "-- 3.12 (/usr/local/lib/python3.12/site-packages)"
+    ls -d /usr/local/lib/python3.12/site-packages/vllm* /usr/local/lib/python3.12/site-packages/torch* 2>/dev/null | head -6
+    echo "-- 3.11 (/opt/corex311/lib/python3.11/site-packages)"
+    ls -d /opt/corex311/lib/python3.11/site-packages/vllm* /opt/corex311/lib/python3.11/site-packages/torch* 2>/dev/null | head -6
+  ' 2>&1 | head -16
 
-  echo "== 6. 当前那次 run 是否已正常产出 =="
-  docker ps --filter name=vllm --format '{{.Names}} {{.Status}}'
-  ls -lt /home/huawei_ts_program/litehost_perf_opt/vllmBench 2>/dev/null | head -3
+  echo "== 3. 插桩在哪套里 =="
+  docker exec vllm bash -lc '
+    grep -c "kperf_start_type" /usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py 2>/dev/null || echo "3.12: 无该文件或无匹配"
+    grep -n "kperf_start_type" /opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py 2>/dev/null | head -3
+  ' 2>&1 | head -6
+
+  echo "== 4. 两套 vllm 的版本与 worker 文件 =="
+  docker exec vllm bash -lc '
+    grep -m1 -E "^Version|__version__" /usr/local/lib/python3.12/site-packages/vllm/version.py 2>/dev/null
+    grep -m1 -E "^Version|__version__" /opt/corex311/lib/python3.11/site-packages/vllm/version.py 2>/dev/null
+    ls /usr/local/lib/python3.12/site-packages/vllm/v1/worker/gpu_worker.py 2>/dev/null
+    ls /opt/corex311/lib/python3.11/site-packages/vllm/v1/worker/gpu_worker.py 2>/dev/null
+  ' 2>&1 | head -8
+
+  echo "== 5. mock 在 3.12 下能否激活 =="
+  docker exec vllm bash -lc '
+    PYTHONPATH=/home/qch/mock_vllm python3 -c "import mock_gpu.autoload" 2>&1 | tail -4
+  ' 2>&1 | head -6
+
+  echo "== 6. mock 在 3.11 下能否激活（对照）=="
+  docker exec vllm bash -lc '
+    PYTHONPATH=/home/qch/mock_vllm /opt/corex311/bin/python3 -c "import mock_gpu.autoload" 2>&1 | tail -3
+  ' 2>&1 | head -5
+
+  echo "== 7. harness 用的解释器 =="
+  grep -n "PYTHON_BIN\|PREFIX=" /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh 2>/dev/null | head -4
+  docker exec vllm bash -lc 'grep -n "PYTHON_BIN\|PREFIX=" /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh 2>/dev/null | head -4' 2>&1 | head -5
 
   # ---- 命令结束 ----
 
