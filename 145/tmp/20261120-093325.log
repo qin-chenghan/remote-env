@@ -1,0 +1,53 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T01:33:25Z
+
++ echo '== 1. 遗留进程状态 =='
+== 1. 遗留进程状态 ==
++ pgrep -af vllm.entrypoints.openai.api_server
++ grep -v grep
+3273358 /opt/corex311/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8948 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --dtype auto --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1 --tensor_parallel_size 4 --data_parallel_size 1 --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto --enable_chunked_prefill --compilation-config {"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0} --async-scheduling --no-enable-prefix-caching --worker-cls light_host_worker.LightHostWorker
+++ pgrep -f vllm.entrypoints.openai.api_server
++ for p in $(pgrep -f "vllm.entrypoints.openai.api_server" 2> /dev/null)
++ ps -o pid,stat,etime,wchan= -p 3273358
+    PID STAT     ELAPSED 
+3273358 Ssl     13:36:37 do_poll.constprop.0
++ echo '== 2. SIGKILL 遗留进程 =='
+== 2. SIGKILL 遗留进程 ==
++ docker exec corex5-py311-mock bash -lc 'pkill -9 -f "vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8948"'
++ sleep 3
++ pgrep -f vllm.entrypoints.openai.api_server
++ echo '已无 api_server 进程'
+已无 api_server 进程
++ echo '== 3. 端口验证（宿主）=='
+== 3. 端口验证（宿主）==
++ python3.11 -
+port 8948: FREE
+port 8848: FREE
++ echo '== 4. 端口验证（两个容器内，-i 传 stdin）=='
+== 4. 端口验证（两个容器内，-i 传 stdin）==
++ for c in vllm "$CONTAINER"
++ echo '-- vllm'
+-- vllm
++ docker exec -i vllm /opt/corex311/bin/python3 -
++ tail -3
+  port 8948: FREE
+  port 8848: FREE
++ for c in vllm "$CONTAINER"
++ echo '-- corex5-py311-mock'
+-- corex5-py311-mock
++ docker exec -i corex5-py311-mock /opt/corex311/bin/python3 -
++ tail -3
+  port 8948: FREE
+  port 8848: FREE
++ echo '== 5. 确认 mock 容器仍正常 =='
+== 5. 确认 mock 容器仍正常 ==
++ docker ps --filter name=corex5-py311-mock --format '{{.Names}} {{.Status}}'
+corex5-py311-mock Up 17 hours
++ docker exec corex5-py311-mock bash -lc 'PYTHONPATH=/home/qch/mock_vllm /opt/corex311/bin/python3 -c "import mock_gpu.autoload"'
++ tail -2
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
++ set +x
+
+### exit: 0
