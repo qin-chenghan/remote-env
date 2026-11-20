@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。取两个解释器的真实版本/依赖（脚本文件方式，避免转义问题）。
+# 本次：把 py312 版脚本装到宿主和 vllm 容器里，并确认 3.12 依赖齐全。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,6 +9,10 @@ SERVER="$(basename "$DIR")"
 TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
+
+SRC="$DIR/../litehost_toolkit"
+TOOLS=/home/huawei_ts_program/litehost_perf_opt
+C=vllm
 
 {
   echo "### server: $SERVER"
@@ -19,44 +23,39 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
 
-  echo "== 1. 写探针脚本（纯 ASCII、无转义）=="
-  docker exec vllm bash -lc 'cat > /tmp/probe_ver.py <<PY
-import sys
-print("interpreter", sys.executable, sys.version.split()[0])
-for name in ("torch", "vllm", "triton", "ixformer", "aiohttp", "numpy"):
+  echo "== 1. 源文件 =="
+  ls -l "$SRC"/vllmBench_lite_base_mock_py312.sh "$SRC"/vllmBench_lite_base_timeline_py312.sh
+
+  echo "== 2. 装到宿主工具目录 =="
+  mkdir -p "$TOOLS"
+  cp -f "$SRC"/vllmBench_lite_base_mock_py312.sh "$SRC"/vllmBench_lite_base_timeline_py312.sh "$TOOLS"/
+  chmod +x "$TOOLS"/vllmBench_lite_base_*_py312.sh
+  ls -l "$TOOLS"/vllmBench_lite_base_*_py312.sh
+
+  echo "== 3. 装进 vllm 容器（该容器 /home 不是宿主 /home）=="
+  docker cp "$TOOLS"/vllmBench_lite_base_mock_py312.sh "$C":/"$TOOLS"/vllmBench_lite_base_mock_py312.sh
+  docker cp "$TOOLS"/vllmBench_lite_base_timeline_py312.sh "$C":/"$TOOLS"/vllmBench_lite_base_timeline_py312.sh
+  docker exec "$C" chmod +x "$TOOLS"/vllmBench_lite_base_*_py312.sh
+  docker exec "$C" bash -lc "ls -l $TOOLS/vllmBench_lite_base_*_py312.sh; grep -n 'PREFIX=' $TOOLS/vllmBench_lite_base_mock_py312.sh | head -2"
+
+  echo "== 4. 语法与解释器 =="
+  docker exec "$C" bash -lc "bash -n $TOOLS/vllmBench_lite_base_mock_py312.sh && echo mock-ok"
+  docker exec "$C" bash -lc "bash -n $TOOLS/vllmBench_lite_base_timeline_py312.sh && echo timeline-ok"
+  docker exec "$C" bash -lc 'python3 -V; /opt/corex311/bin/python3 -V'
+
+  echo "== 5. 3.12 依赖检查（脚本会用到 aiohttp/requests 等）=="
+  docker exec -i "$C" bash -lc 'python3 - <<PY
+mods = ("aiohttp", "requests", "numpy", "psutil", "transformers")
+for m in mods:
     try:
-        mod = __import__(name)
-        ver = getattr(mod, "__version__", "?")
-        print(name, ver)
+        __import__(m); print(m, "ok")
     except Exception as e:
-        print(name, "FAIL", type(e).__name__)
-try:
-    import ctypes
-    print("ctypes ok")
-except Exception as e:
-    print("ctypes FAIL", type(e).__name__)
-PY
-wc -l /tmp/probe_ver.py'
+        print(m, "MISSING", type(e).__name__)
+PY'
 
-  echo "== 2. 3.12 版本 =="
-  docker exec vllm bash -lc 'python3 /tmp/probe_ver.py' 2>&1 | tail -9
-
-  echo "== 3. 3.11 版本（对照）=="
-  docker exec vllm bash -lc '/opt/corex311/bin/python3 /tmp/probe_ver.py' 2>&1 | tail -9
-
-  echo "== 4. 裸 exec 解析到哪个 python3 =="
-  docker exec vllm bash -c 'command -v python3; python3 -V' 2>&1 | head -4
-  docker exec vllm /usr/bin/env python3 -V 2>&1 | head -2
-
-  echo "== 5. 两套 multiproc_executor 的差异（只列 diff 行数）=="
-  docker exec vllm bash -lc '
-    diff /usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py \
-         /opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py \
-      | grep -cE "^[<>]" || true
-    diff /usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py \
-         /opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py \
-      | grep -E "^[<>].*(kperf|ctypes)" || echo "只有 kperf 相关行"
-  ' 2>&1 | head -6
+  echo "== 6. 用法 =="
+  echo "docker exec $C bash -lc 'cd $TOOLS && MODEL_PATH=/home/model/Qwen3-32B-W8A8 HOST_MEASURE=lite bash vllmBench_lite_base_mock_py312.sh'"
+  echo "docker exec $C bash -lc 'cd $TOOLS && MODEL_PATH=/home/model/Qwen3-32B-W8A8 bash vllmBench_lite_base_timeline_py312.sh'"
 
   # ---- 命令结束 ----
 
