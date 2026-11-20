@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。对比 vllm 与 mock 两个容器的 Env / LD_LIBRARY_PATH / corex 库，定位 torch 找不到 libcudart。
+# 本次：不动容器，验证给 vllm 容器补 LD_LIBRARY_PATH 后 torch/mock 是否正常。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,6 +9,8 @@ SERVER="$(basename "$DIR")"
 TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
+
+LIB=/usr/local/corex/lib64:/usr/local/openmpi/lib:/usr/local/lib
 
 {
   echo "### server: $SERVER"
@@ -19,35 +21,31 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
 
-  echo "== 1. 两个容器的镜像与 Env =="
-  for c in vllm corex5-py311-mock; do
-    echo "-- $c"
-    docker inspect "$c" --format 'image={{.Config.Image}}'
-    docker inspect "$c" --format '{{json .Config.Env}}' | tr ',' '\n' | grep -E "LD_LIBRARY_PATH|PATH=|PYTHON" | head -6
-  done
+  echo "== 1. vllm 容器：补 LD_LIBRARY_PATH 后 import torch =="
+  docker exec -e LD_LIBRARY_PATH="$LIB" vllm \
+    /opt/corex311/bin/python3 -c \
+    'import torch; print("torch", torch.__version__, "cuda_available", torch.cuda.is_available())' 2>&1 | tail -4
 
-  echo "== 2. 容器运行时的 LD_LIBRARY_PATH =="
-  for c in vllm corex5-py311-mock; do
-    echo "-- $c"
-    docker exec "$c" bash -lc 'echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-<empty>}"'
-  done
+  echo "== 2. 同环境下 mock 是否能激活 =="
+  docker exec -e LD_LIBRARY_PATH="$LIB" \
+    -e PYTHONPATH=/home/qch/mock_vllm vllm \
+    /opt/corex311/bin/python3 -c 'import mock_gpu.autoload' 2>&1 | tail -4
 
-  echo "== 3. corex 用户态库是否存在 =="
-  for c in vllm corex5-py311-mock; do
-    echo "-- $c"
-    docker exec "$c" bash -lc '
-      ls -d /usr/local/corex-5.0.0 /usr/local/corex 2>/dev/null
-      ls -l /usr/local/corex/lib64/libcudart.so* /usr/local/corex/lib64/libcublas.so* 2>/dev/null | head -4
-      ldd /opt/corex311/lib/python3.11/site-packages/torch/lib/libtorch_cuda.so 2>/dev/null | grep -E "cudart|cublas|not found" | head -4
-    ' 2>&1 | head -8
-  done
+  echo "== 3. 容器内模型与工具是否就绪 =="
+  docker exec vllm bash -lc '
+    du -sh /home/model/Qwen3-32B-W8A8 2>/dev/null
+    ls /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh 2>/dev/null || echo "缺 mock 版 harness"
+  ' 2>&1 | head -4
 
-  echo "== 4. 镜像自带 Env（vllm:latest 是否和 corex5-py311 不同）=="
-  docker image inspect vllm:latest --format '{{json .Config.Env}}' | tr ',' '\n' | grep -E "LD_LIBRARY|PATH=" | head -6
+  echo "== 4. 端口 =="
+  ss -ltn 2>/dev/null | grep -E ':(8948|8848)\b' || echo "8948/8848 空闲"
 
-  echo "== 5. 测试人员那次失败的完整命令 =="
-  cat /home/qch/tools/remote-env/145/tmp/litehost_gap_20261120_093438/server.process.json 2>/dev/null
-  cat /home/qch/tools/remote-env/145/tmp/litehost_gap_20261120_093438/config.txt 2>/dev/null
+  echo "== 5. 建议的运行方式（不重建容器） =="
+  echo "docker exec vllm bash -lc '"
+  echo "  export LD_LIBRARY_PATH=$LIB"
+  echo "  cd /home/huawei_ts_program/litehost_perf_opt"
+  echo "  MODEL_PATH=/home/model/Qwen3-32B-W8A8 TEST_ID=lite_vllm_xxx HOST_MEASURE=lite \\"
+  echo "    bash vllmBench_lite_base_mock.sh'"
 
   # ---- 命令结束 ----
 
