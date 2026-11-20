@@ -1,0 +1,58 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T08:41:21Z
+
++ echo '== 1. 前置检查（不打扰正在跑的活）=='
+== 1. 前置检查（不打扰正在跑的活）==
++ docker ps --filter name=vllm --format '{{.Names}} {{.Status}}'
+vllm Up 7 hours
++ docker exec vllm bash -lc 'pgrep -af "vllm.entrypoints.openai.api_server|bench_driver" | grep -v pgrep || echo "no server/bench running"'
+no server/bench running
++ ss -ltn
++ grep -E ':(8948|8848)\b'
++ echo '8948/8848 free'
+8948/8848 free
++ docker exec vllm bash -lc 'test -f /home/model/Qwen3-32B-W8A8/config.json && echo model-ok; test -x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh && echo script-ok'
+model-ok
+script-ok
++ free -g
++ sed -n 2p
+Mem:             502         158           5           4         345         343
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  6.9T  6.6T  267G  97% /home
++ echo '== 2. 预热前缓存状态 =='
+== 2. 预热前缓存状态 ==
++ docker exec vllm bash -lc 'ls -d /tmp/torchinductor_root 2>/dev/null && find /tmp/torchinductor_root -name '\''*.py'\'' | wc -l || echo '\''0 files (cold cache)'\'''
+/tmp/torchinductor_root
+34
++ docker exec vllm bash -lc 'du -sh /tmp/torchinductor_root 2>/dev/null || echo '\''no cache dir'\'''
+276M	/tmp/torchinductor_root
++ echo '== 3. 启动 128/128 预热（后台，HOST_MEASURE=off，无 trace）=='
+== 3. 启动 128/128 预热（后台，HOST_MEASURE=off，无 trace）==
++ echo TEST_ID=prime_py312_128
+TEST_ID=prime_py312_128
++ docker exec -d vllm bash -lc 'cd /home/huawei_ts_program/litehost_perf_opt &&     TEST_ID=prime_py312_128 HOST_MEASURE=off MODEL_PATH=/home/model/Qwen3-32B-W8A8     nohup bash vllmBench_lite_base_mock_py312.sh > /tmp/run_prime_py312_128.log 2>&1'
++ sleep 25
++ echo '-- 启动 25 秒后 --'
+-- 启动 25 秒后 --
++ docker exec vllm bash -lc 'tail -8 /tmp/run_prime_py312_128.log 2>/dev/null || echo '\''(日志未出现)'\'''
+INFO 11-20 16:41:40 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-20 16:41:40 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
++ echo '== 4. 后续 =='
+== 4. 后续 ==
++ echo 日志（容器内）：/tmp/run_prime_py312_128.log
+日志（容器内）：/tmp/run_prime_py312_128.log
++ echo 结果目录（容器内）：/home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_128
+结果目录（容器内）：/home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_128
++ echo 跑完后再跑一次本文件即可查看缓存增量
+跑完后再跑一次本文件即可查看缓存增量
++ set +x
+
+### exit: 0
