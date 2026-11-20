@@ -1,0 +1,117 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T01:28:18Z
+
++ echo '== 1. 容器完整 ID 与网络/挂载 =='
+== 1. 容器完整 ID 与网络/挂载 ==
++ docker ps -a --no-trunc --format '{{.ID}}\t{{.Names}}\t{{.Image}}'
++ head -8
+b9bab222c04258b7d887d59169d7e401d9f28db74ee1ee1492e5d3d0a85b69f3	vllm	vllm:latest
+419506a136027e1b1a6ea191cbec981d4dd2e9bb29a5d2c18c6325561260717f	corex5-py311-mock	corex5-py311:py3116-20261029
+9f4f74ce9e3d6e66686fb0ca8742142fa17824a062d87220a26583e4a8c8c5a8	rocksdb_test	rocksdb1223:latest
+e68b75a713f6753cb8c08a39aee5e9321fa0aa99f1d3bfc71b3efc216b9a01eb	faiss	faiss:latest
+0ed185c5d115adbf2513c84511dba34a3cf6aaaaf52e2a35e3918ba35e6f6a06	elated_dewdney	nginx
+cdc9f7b77451a4f41b18909f759e68da41b0a4a8207c79971607b04e2b16c61d	api-service	feedinfo:dragonwell17
+9205e3a2016b91a7f555805f6493fa00d7f4ba3e5e3c2a793d5f2cb1d00731bc	db-service	feedinfo:dragonwell17
+9487075c697a427ddbedbdfce3cf1c84d4908b035dcffef613079e1a3b5e00b6	mysql-ks	mysql-ks-restored-1113
++ for c in vllm corex5-py311-mock
++ echo '-- vllm'
+-- vllm
++ docker inspect vllm --format 'Net={{.HostConfig.NetworkMode}} Pid={{.HostConfig.PidMode}} Binds={{json .HostConfig.Binds}} CapAdd={{.HostConfig.CapAdd}}'
+Net=host Pid= Binds=null CapAdd=[]
++ for c in vllm corex5-py311-mock
++ echo '-- corex5-py311-mock'
+-- corex5-py311-mock
++ docker inspect corex5-py311-mock --format 'Net={{.HostConfig.NetworkMode}} Pid={{.HostConfig.PidMode}} Binds={{json .HostConfig.Binds}} CapAdd={{.HostConfig.CapAdd}}'
+Net=host Pid= Binds=["/home:/home"] CapAdd=[SYS_NICE]
++ echo '== 2. 所有 api_server 进程 → 归属容器 =='
+== 2. 所有 api_server 进程 → 归属容器 ==
+++ pgrep -f vllm.entrypoints.openai.api_server
++ for p in $(pgrep -f "vllm.entrypoints.openai.api_server" 2> /dev/null)
+++ grep -oE 'docker/[0-9a-f]{12,}' /proc/3273358/cgroup
+++ head -1
+++ cut -d/ -f2
++ cid=419506a136027e1b1a6ea191cbec981d4dd2e9bb29a5d2c18c6325561260717f
+++ docker ps -a --no-trunc --filter id=419506a136027e1b1a6ea191cbec981d4dd2e9bb29a5d2c18c6325561260717f --format '{{.Names}}'
++ name=corex5-py311-mock
+++ tr '\0' ' '
+++ cut -c1-160
++ echo 'pid=3273358 container=corex5-py311-mock args=/opt/corex311/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8948 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --dtype auto'
+pid=3273358 container=corex5-py311-mock args=/opt/corex311/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8948 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --dtype auto
++ echo '== 3. 各容器内部的监听端口 =='
+== 3. 各容器内部的监听端口 ==
++ for c in vllm corex5-py311-mock
++ echo '-- vllm'
+-- vllm
++ docker exec vllm bash -lc 'ss -ltn 2>/dev/null | head -6'
++ head -7
++ for c in vllm corex5-py311-mock
++ echo '-- corex5-py311-mock'
+-- corex5-py311-mock
++ docker exec corex5-py311-mock bash -lc 'ss -ltn 2>/dev/null | head -6'
++ head -7
++ echo '== 4. vllm 容器的文件系统实况 =='
+== 4. vllm 容器的文件系统实况 ==
++ docker exec vllm bash -lc '
+    echo "pwd=$(pwd)"; ls /home 2>/dev/null | head -5
+    ls -la /home/huawei_ts_program 2>/dev/null | head -6
+    ls -la /home/huawei_ts_program/litehost_perf_opt 2>/dev/null | head -6
+  '
++ head -18
+pwd=/
+huawei_ts_program
+model
+qch
+ubuntu
+total 16
+drwxr-xr-x. 3 root root 4096 Nov 19 13:48 .
+drwxr-xr-x. 1 root root 4096 Nov 20 09:18 ..
+drwxr-xr-x. 4 root root 4096 Nov 20 09:11 litehost_perf_opt
+total 228
+drwxr-xr-x.  4 root root  4096 Nov 20 09:11 .
+drwxr-xr-x.  3 root root  4096 Nov 19 13:48 ..
+-rw-r--r--.  1 root root   344 Nov 19 14:36 Makefile
+-rw-r--r--.  1 root root   946 Nov 19 14:36 README.md
+-rw-r--r--.  1 root root  1559 Nov 19 14:36 SHA256SUMS
++ echo '== 5. vllm 容器内搜 Address already in use =='
+== 5. vllm 容器内搜 Address already in use ==
++ head -6
++ docker exec vllm bash -lc '
+    grep -rIl "Address already in use" /home /tmp /root /var/log 2>/dev/null | head -5
+  '
++ echo '== 6. vllm 容器内最近的日志尾部 =='
+== 6. vllm 容器内最近的日志尾部 ==
++ docker exec vllm bash -lc '
+    for f in $(ls -t /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/logs/server.log 2>/dev/null | head -2); do
+      echo "--- $f"; tail -6 "$f"
+    done
+    ls -t /tmp/*.log /home/*.log 2>/dev/null | head -3
+  '
++ head -25
+--- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261119_195618/logs/server.log
+(EngineCore pid=14980)   File "/opt/corex311/lib/python3.11/site-packages/vllm/distributed/device_communicators/shm_broadcast.py", line 701, in acquire_read
+(EngineCore pid=14980)     raise RuntimeError("cancelled")
+(EngineCore pid=14980) RuntimeError: cancelled
+(EngineCore pid=14980) /opt/corex311/lib/python3.11/site-packages/ray/dag/dag_node.py:19: ResourceWarning: Unclosed context <zmq.Context(4 sockets) at 0xfffd5fb18890>
+(EngineCore pid=14980)   from ray.dag.compiled_dag_node import build_compiled_dag_from_ray_dag
+(EngineCore pid=14980) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+--- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261119_195415/logs/server.log
+(APIServer pid=12720) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}
+(APIServer pid=12720) sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+(APIServer pid=12720) sys:1: ResourceWarning: unclosed <socket.socket fd=13, family=2, type=1, proto=0, laddr=('127.0.0.1', 8948)>
+/opt/python-3.11.6/lib/python3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 4 leaked shared_memory objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+/tmp/zzy_dryrun_vllmBench_lite_baseline.sh.log
+/tmp/zzy_dryrun_vllmBench_lite_tc1g.sh.log
+/tmp/zzy_dryrun_vllmBench_lite_tc256.sh.log
++ echo '== 7. 遗留 server 的启动时间 =='
+== 7. 遗留 server 的启动时间 ==
++ ps -eo pid,lstart,args
++ grep vllm.entrypoints.openai.api_server
++ grep -v grep
++ cut -c1-140
+3273358 Thu Nov 19 19:56:47 2026 /opt/corex311/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8948 --model /home/
++ set +x
+
+### exit: 0
