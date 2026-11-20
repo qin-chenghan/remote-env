@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。取 09:57 那次 server.log 的中间段（启动完成到 EngineCore 死亡），并查 /dev/shm。
+# 本次：只读。定位 kperf_start_type 的来源与缺失原因。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,7 +11,7 @@ OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
 C=vllm
-RUN=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261120_095754
+VLLM=/opt/corex311/lib/python3.11/site-packages/vllm
 
 {
   echo "### server: $SERVER"
@@ -22,27 +22,34 @@ RUN=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261120_09
 
   # ---- 命令开始 ----
 
-  echo "== 1. server.log 规模 =="
-  docker exec "$C" bash -lc "wc -l $RUN/logs/server.log; grep -n -E 'ERROR|Traceback|RuntimeError|startup complete|Waiting for application' $RUN/logs/server.log | head -20" 2>&1
+  echo "== 1. worker_busy_loop 附近的插桩代码 =="
+  docker exec "$C" bash -lc "sed -n '955,1000p' $VLLM/v1/executor/multiproc_executor.py" 2>&1
 
-  echo "== 2. 日志中间段（40-160 行）=="
-  docker exec "$C" bash -lc "sed -n '40,160p' $RUN/logs/server.log" 2>&1 | grep -v "Can't initialize NVML" | grep -v "raw_cnt =" | head -45
+  echo "== 2. 全 site-packages 里 kperf_start_type 的定义/引用 =="
+  docker exec "$C" bash -lc "grep -rn 'kperf_start_type' /opt/corex311/lib/python3.11/site-packages/ 2>/dev/null | head -8" 2>&1
 
-  echo "== 3. /dev/shm 容量（两个容器对比）=="
-  for c in vllm corex5-py311-mock; do
-    echo "-- $c"
-    docker exec "$c" bash -lc 'df -h /dev/shm | tail -1; ls /dev/shm | head -3' 2>&1
-  done
+  echo "== 3. 文件头部有没有 import =="
+  docker exec "$C" bash -lc "sed -n '1,60p' $VLLM/v1/executor/multiproc_executor.py | grep -nE 'import|kperf'" 2>&1 | head -20
 
-  echo "== 4. 容器实际挂载 =="
-  docker inspect "$C" --format '{{json .HostConfig.Binds}} ShmSize={{.HostConfig.ShmSize}}'
-  docker inspect corex5-py311-mock --format '{{json .HostConfig.Binds}} ShmSize={{.HostConfig.ShmSize}}'
-
-  echo "== 5. 那次 run 的 harness 包装日志（若有）=="
+  echo "== 4. kperf 模块 / 库是否存在 =="
   docker exec "$C" bash -lc '
-    ls -lt /home/qch/transfer/*.log /tmp/*vllmBench*.log 2>/dev/null | head -5
-    for f in $(ls -t /home/qch/transfer/*.log 2>/dev/null | head -2); do echo "--- $f"; tail -8 "$f"; done
-  ' 2>&1 | head -20
+    /opt/corex311/bin/python3 -c "import kperf; print(\"kperf ok\", kperf.__file__)" 2>&1 | tail -2
+    ldconfig -p 2>/dev/null | grep -i kperf | head -3
+    ls /usr/local/lib/libkperf* /usr/lib/libkperf* 2>/dev/null | head -3
+  ' 2>&1 | head -10
+
+  echo "== 5. 相关环境变量 =="
+  docker exec "$C" bash -lc 'env | grep -iE "kperf|hotspot|host_opt" | head -8; echo "(空则未设置)"' 2>&1
+
+  echo "== 6. light_host_worker 是否有 kperf 依赖 =="
+  docker exec "$C" bash -lc '
+    f=$(/opt/corex311/bin/python3 -c "import light_host_worker; print(light_host_worker.__file__)" 2>/dev/null)
+    echo "file=$f"; grep -n "kperf" "$f" 2>/dev/null | head -5 || echo "无 kperf 引用"
+  ' 2>&1 | head -8
+
+  echo "== 7. 与 mock 镜像对比：同一文件的 diff 摘要 =="
+  docker exec corex5-py311-mock bash -lc \
+    "sed -n '955,985p' $VLLM/v1/executor/multiproc_executor.py" 2>&1 | head -20
 
   # ---- 命令结束 ----
 
