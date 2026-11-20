@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。看 vllm 容器里那次 128/128 跑到哪一步、卡在哪。
+# 本次：只读。确认容器重启时间、server.log 头部根因、是否 OOM、harness 进程是否还在。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,6 +11,7 @@ OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
 C=vllm
+RUN=/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261120_095754
 
 {
   echo "### server: $SERVER"
@@ -21,46 +22,29 @@ C=vllm
 
   # ---- 命令开始 ----
 
-  echo "== 1. 容器状态 =="
-  docker ps --filter "name=$C" --format '{{.Names}} {{.Status}}'
+  echo "== 1. 容器时间线 =="
+  docker inspect "$C" --format 'created={{.Created}} startedAt={{.State.StartedAt}} finished={{.State.FinishedAt}} restarts={{.RestartCount}} status={{.State.Status}}'
+  docker inspect "$C" --format 'env LD_LIBRARY_PATH = {{range .Config.Env}}{{println .}}{{end}}' | grep -i ld_library || true
+  stat -c '%n  mtime=%y' "$RUN" "$RUN/logs/server.log" 2>/dev/null
 
-  echo "== 2. 容器内进程（含运行时长和 CPU）=="
+  echo "== 2. server.log 头部（真正的第一个错误）=="
+  docker exec "$C" bash -lc "head -60 $RUN/logs/server.log" 2>&1 | grep -vE "^\s*$" | head -40
+
+  echo "== 3. preflight.log =="
+  docker exec "$C" bash -lc "cat $RUN/logs/preflight.log" 2>&1 | head -10
+
+  echo "== 4. harness 进程是否还活着 =="
   docker exec "$C" bash -lc \
-    'ps -eo pid,ppid,etime,pcpu,nlwp,args | grep -E "vllm.entrypoints|VLLM::|bench_driver|vllmBench" | grep -v grep | cut -c1-150' 2>&1 | head -12
+    'ps -eo pid,ppid,etime,stat,args | grep -E "vllmBench|litehost_gap|procutil|bench_driver" | grep -v grep | cut -c1-140' 2>&1 | head -8
+  echo "-- 容器内 bash 进程 --"
+  docker exec "$C" bash -lc 'ps -eo pid,ppid,etime,stat,args | grep -E "bash -lc" | grep -v grep | head -5 | cut -c1-140' 2>&1
 
-  echo "== 3. 宿主整机负载与热点进程 =="
-  uptime
-  ps -eo pcpu,pmem,etime,args --sort=-pcpu 2>/dev/null | head -6 | cut -c1-140
+  echo "== 5. OOM / 内核日志 =="
+  dmesg 2>/dev/null | tail -20 | grep -iE "oom|killed process|vllm" | tail -6 || echo "无 OOM 记录"
+  free -g | sed -n 1,2p
 
-  echo "== 4. 端口 =="
-  ss -ltnp 2>/dev/null | grep -E ':(8948|8848)\b' || echo "8948/8848 空闲"
-
-  echo "== 5. 服务健康 =="
-  curl --noproxy '*' -s -o /dev/null -w 'health http_code=%{http_code}\n' --max-time 3 \
-    http://127.0.0.1:8948/health 2>&1 || true
-  curl --noproxy '*' -s -o /dev/null -w 'health8848 http_code=%{http_code}\n' --max-time 3 \
-    http://127.0.0.1:8848/health 2>&1 || true
-
-  echo "== 6. 最新 run 目录与日志 =="
-  docker exec "$C" bash -lc '
-    d=$(ls -dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ 2>/dev/null | head -1)
-    echo "latest: $d"
-    ls -lt "$d" 2>/dev/null | head -8
-    echo "-- server.log 尾部"
-    tail -12 "$d/logs/server.log" 2>/dev/null
-    echo "-- bench 日志"
-    ls "$d/logs" 2>/dev/null
-    tail -12 "$d"/logs/bench_*.log 2>/dev/null
-    echo "-- litehost case 状态"
-    ls "$d/litehost" 2>/dev/null | head -3
-    cat "$d"/litehost/*/case.json 2>/dev/null | head -20
-    cat "$d"/litehost/*/window.json 2>/dev/null | head -10
-  ' 2>&1 | head -45
-
-  echo "== 7. 最近 5 分钟内被修改的文件（该 run 目录）=="
-  docker exec "$C" bash -lc '
-    find /home/huawei_ts_program/litehost_perf_opt/vllmBench -maxdepth 3 -mmin -5 -type f 2>/dev/null | head -10
-  ' 2>&1 | head -12
+  echo "== 6. 容器内 /home 是不是镜像副本 =="
+  docker exec "$C" bash -lc 'findmnt -T /home 2>/dev/null | tail -2; ls -ld /home/huawei_ts_program /home/model 2>/dev/null' 2>&1 | head -6
 
   # ---- 命令结束 ----
 
