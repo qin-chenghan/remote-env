@@ -1,0 +1,87 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T08:58:23Z
+
++ echo '== 1. 前置 =='
+== 1. 前置 ==
++ docker exec vllm bash -lc 'pgrep -af "vllm.entrypoints.openai.api_server|bench_driver" | grep -v pgrep || echo "no server/bench"'
+no server/bench
++ ss -ltn
++ grep -E ':(8948|8848)\b'
++ echo '8948/8848 free'
+8948/8848 free
+++ docker exec vllm bash -lc 'find /home/huawei_ts_program/inductor_cache_py312 -name '\''*.py'\'' | wc -l'
++ echo 'cache before = 5'
+cache before = 5
++ echo '== 2. 启动确认跑（TORCHDYNAMO_VERBOSE=1）=='
+== 2. 启动确认跑（TORCHDYNAMO_VERBOSE=1）==
++ docker exec -d vllm bash -lc 'cd /home/huawei_ts_program/litehost_perf_opt &&     TEST_ID=confirm_py312_128 HOST_MEASURE=off MODEL_PATH=/home/model/Qwen3-32B-W8A8 TORCHDYNAMO_VERBOSE=1     nohup bash vllmBench_lite_base_mock_py312.sh > /tmp/run_confirm_py312_128.log 2>&1'
++ sleep 25
++ docker exec vllm bash -lc 'grep -E '\''inductor_cache=|PREFIX='\'' /tmp/run_confirm_py312_128.log 2>/dev/null | head -3'
+[2026-11-20 16:58:23] PREFIX=/usr/local
+[2026-11-20 16:58:23] inductor_cache=/home/huawei_ts_program/inductor_cache_py312 files=5
++ echo '== 3. 等待完成（最多 6 分钟）=='
+== 3. 等待完成（最多 6 分钟）==
+++ seq 1 24
++ for i in $(seq 1 24)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/confirm_py312_128/summary.csv
++ '[' 1 -eq 1 ']'
++ echo 等待中（15s/轮）
+等待中（15s/轮）
++ sleep 15
++ for i in $(seq 1 24)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/confirm_py312_128/summary.csv
++ '[' 2 -eq 1 ']'
++ sleep 15
++ for i in $(seq 1 24)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/confirm_py312_128/summary.csv
++ '[' 3 -eq 1 ']'
++ sleep 15
++ for i in $(seq 1 24)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/confirm_py312_128/summary.csv
++ '[' 4 -eq 1 ']'
++ sleep 15
++ for i in $(seq 1 24)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/confirm_py312_128/summary.csv
++ '[' 5 -eq 1 ']'
++ sleep 15
++ for i in $(seq 1 24)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/confirm_py312_128/summary.csv
++ '[' 6 -eq 1 ']'
++ sleep 15
++ for i in $(seq 1 24)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/confirm_py312_128/summary.csv
++ echo 'summary.csv 已生成'
+summary.csv 已生成
++ break
++ echo '== 4. 零编译证据 =='
+== 4. 零编译证据 ==
++ echo '-- Compiling 计数（应为 0）--'
+-- Compiling 计数（应为 0）--
++ docker exec vllm bash -lc 'grep -c '\''Compiling'\'' /tmp/run_confirm_py312_128.log 2>/dev/null || echo 0'
+0
+0
++ echo '-- 缓存文件数（应与预热后相同）--'
+-- 缓存文件数（应与预热后相同）--
++ docker exec vllm bash -lc 'echo "after=$(find /home/huawei_ts_program/inductor_cache_py312 -name '\''*.py'\'' | wc -l)"'
+after=5
++ echo '-- 日志里的 inductor_cache 行 --'
+-- 日志里的 inductor_cache 行 --
++ docker exec vllm bash -lc 'grep '\''inductor_cache='\'' /tmp/run_confirm_py312_128.log | head -2'
+[2026-11-20 16:58:23] inductor_cache=/home/huawei_ts_program/inductor_cache_py312 files=5
++ echo '== 5. 结果与残留 =='
+== 5. 结果与残留 ==
++ docker exec vllm bash -lc 'cut -d, -f2,6,8,11 /home/huawei_ts_program/litehost_perf_opt/vllmBench/confirm_py312_128/summary.csv 2>/dev/null; tail -3 /tmp/run_confirm_py312_128.log'
+case,output_token_throughput_tok_s,mean_ttft_ms,mean_tpot_ms
+bs8_in128_out128,4057.9119449184523,51.183828606735915,1.5094345818479058
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[2026-11-20 17:00:19] 停止本次服务 PID=25369（不使用全局 pkill）
++ docker exec vllm bash -lc 'pgrep -af "vllm.entrypoints.openai.api_server|bench_driver" | grep -v pgrep || echo "no leftover"'
+25369 /usr/local/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8948 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --dtype auto --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1 --tensor_parallel_size 4 --data_parallel_size 1 --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto --enable_chunked_prefill --compilation-config {"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0} --async-scheduling --no-enable-prefix-caching
++ ss -ltn
++ grep -E ':(8948|8848)\b'
+LISTEN 0      2048            127.0.0.1:8948       0.0.0.0:*          
++ set +x
+
+### exit: 0
