@@ -1,0 +1,73 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T04:01:44Z
+
++ echo '== 1. 两个 python3 的路径（bash -lc vs 裸 exec）=='
+== 1. 两个 python3 的路径（bash -lc vs 裸 exec）==
++ docker exec vllm bash -lc 'command -v python3; python3 -V; ls -l /usr/bin/python3 /usr/local/bin/python3 2>/dev/null'
++ head -6
+/usr/local/bin/python3
+Python 3.12.11
+lrwxrwxrwx. 1 root root 25 Jul 31  2025 /usr/local/bin/python3 -> /usr/local/bin/python3.12
++ echo '== 2. 写出探针脚本 =='
+== 2. 写出探针脚本 ==
++ docker exec vllm bash -lc 'cat > /tmp/probe_ver.py <<"PY"
+import sys
+print("interpreter:", sys.executable, sys.version.split()[0])
+for name in ("torch", "vllm", "triton"):
+    try:
+        mod = __import__(name)
+        print(f"{name:8s} {getattr(mod, \"__version__\", \"?\")}")
+    except Exception as e:
+        print(f"{name:8s} FAIL {type(e).__name__}: {str(e)[:80]}")
+try:
+    import ixformer
+    print("ixformer", getattr(ixformer, "__version__", "?"))
+except Exception as e:
+    print("ixformer FAIL", type(e).__name__, str(e)[:60])
+try:
+    import ctypes
+    print("ctypes   ok")
+except Exception as e:
+    print("ctypes   FAIL", type(e).__name__, str(e)[:80])
+PY
+ls -l /tmp/probe_ver.py'
+-rw-r--r--. 1 root root 611 Nov 20 12:01 /tmp/probe_ver.py
++ echo '== 3. 3.12（/usr/local/bin/python3，bash -lc）=='
+== 3. 3.12（/usr/local/bin/python3，bash -lc）==
++ docker exec vllm bash -lc 'python3 /tmp/probe_ver.py'
++ tail -8
+  File "/tmp/probe_ver.py", line 6
+    print(f"{name:8s} {getattr(mod, \"__version__\", \"?\")}")
+                                     ^
+SyntaxError: unexpected character after line continuation character
++ echo '== 4. 3.11（/opt/corex311/bin/python3，bash -lc）=='
+== 4. 3.11（/opt/corex311/bin/python3，bash -lc）==
++ docker exec vllm bash -lc '/opt/corex311/bin/python3 /tmp/probe_ver.py'
++ tail -8
+  File "/tmp/probe_ver.py", line 6
+    print(f"{name:8s} {getattr(mod, \"__version__\", \"?\")}")
+                                                             ^
+SyntaxError: f-string expression part cannot include a backslash
++ echo '== 5. 系统 /usr/bin/python3 是什么 =='
+== 5. 系统 /usr/bin/python3 是什么 ==
++ docker exec vllm bash -lc '/usr/bin/python3 -V 2>&1; /usr/bin/python3 -c "import sys; print(sys.path[:3])" 2>&1 | tail -2'
++ head -4
+bash: line 1: /usr/bin/python3: No such file or directory
+bash: line 1: /usr/bin/python3: No such file or directory
++ echo '== 6. 3.12 的 _ctypes 依赖（libpython）=='
+== 6. 3.12 的 _ctypes 依赖（libpython）==
++ docker exec vllm bash -lc '
+    ldd /usr/local/lib/python3.12/lib-dynload/_ctypes.cpython-312-aarch64-linux-gnu.so 2>/dev/null | head -6
+    ls -l /usr/local/lib/libpython3.12* /usr/lib/libpython3.12* 2>/dev/null | head -4
+  '
++ head -10
+	linux-vdso.so.1 (0x0000fffff7ffb000)
+	libffi.so.8 => /lib/aarch64-linux-gnu/libffi.so.8 (0x0000fffff7f50000)
+	libc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000fffff7d90000)
+	/lib/ld-linux-aarch64.so.1 (0x0000fffff7fbe000)
+lrwxrwxrwx. 1 root root       20 Jul 31  2025 /usr/local/lib/libpython3.12.so -> libpython3.12.so.1.0
+-rwxr-xr-x. 2 root root 29022640 Jul 31  2025 /usr/local/lib/libpython3.12.so.1.0
++ set +x
+
+### exit: 0
