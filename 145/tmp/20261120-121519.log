@@ -1,0 +1,57 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T04:15:19Z
+
++ echo '== 1. 容器环境里是否已设置 MODEL_PATH =='
+== 1. 容器环境里是否已设置 MODEL_PATH ==
++ docker exec vllm bash -lc 'echo "bash -lc  : MODEL_PATH=[${MODEL_PATH:-<unset>}]"'
+bash -lc  : MODEL_PATH=[<unset>]
++ docker exec vllm bash -c 'echo "bash -c   : MODEL_PATH=[${MODEL_PATH:-<unset>}]"'
+bash -c   : MODEL_PATH=[<unset>]
++ docker inspect vllm --format '{{json .Config.Env}}'
++ tr , '\n'
++ grep -i MODEL
++ head -3
++ echo 'Config.Env 无 MODEL_PATH'
+Config.Env 无 MODEL_PATH
++ echo '== 2. profile 里有没有导出 =='
+== 2. profile 里有没有导出 ==
++ docker exec vllm bash -lc 'grep -rn "MODEL_PATH" /etc/profile /etc/profile.d/*.sh /etc/bash.bashrc /root/.bashrc /root/.profile 2>/dev/null | head -6 || echo "profile 无 MODEL_PATH"'
++ echo '== 3. 实际运行的那份脚本里的默认值（容器内）=='
+== 3. 实际运行的那份脚本里的默认值（容器内）==
++ docker exec vllm bash -lc 'grep -n '\''MODEL_PATH='\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh | head -3'
+7:MODEL_PATH="${MODEL_PATH:-/home/model/ts/Qwen3-32B-W8A8}"
++ echo '== 4. 宿主那份（对照，可能你改的是这里）=='
+== 4. 宿主那份（对照，可能你改的是这里）==
++ grep -n MODEL_PATH= /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ head -3
+7:MODEL_PATH="${MODEL_PATH:-/home/model/Qwen3-32B-W8A8}"
++ echo '== 5. 两个模型路径在容器里是否存在 =='
+== 5. 两个模型路径在容器里是否存在 ==
++ docker exec vllm bash -lc '
+    for p in /home/model/Qwen3-32B-W8A8 /home/model/ts/Qwen3-32B-W8A8; do
+      if [ -d "$p" ]; then echo "$p EXISTS $(du -sh $p 2>/dev/null | cut -f1)"; else echo "$p MISSING"; fi
+    done'
+/home/model/Qwen3-32B-W8A8 EXISTS 32G
+/home/model/ts/Qwen3-32B-W8A8 MISSING
++ echo '== 6. 最近一次失败的 run 里用的模型路径 =='
+== 6. 最近一次失败的 run 里用的模型路径 ==
++ docker exec vllm bash -lc '
+    d=$(ls -dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ 2>/dev/null | head -1)
+    echo "latest: $d"
+    grep -m2 -E "model=|MODEL_PATH" "$d/config.txt" "$d/logs/server.log" 2>/dev/null | head -6
+  '
++ head -10
+latest: /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261120_102237/
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261120_102237//logs/server.log:(EngineCore pid=7726) INFO 11-20 10:23:31 [core.py:114] Initializing a V1 LLM engine (v0.23.0) with config: model='/home/model/Qwen3-32B-W8A8', speculative_config=None, tokenizer='/home/model/Qwen3-32B-W8A8', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=4096, download_dir=None, load_format=auto, tensor_parallel_size=4, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=compressed-tensors, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cpu, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_verbose=False), seed=0, served_model_name=/home/model/Qwen3-32B-W8A8, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [2048], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_rope_kvcache_cat_mla': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': True, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native']), enable_flashinfer_autotune=True, moe_backend='auto', linear_backend='auto')
++ echo '== 7. harness 里 MODEL_PATH 的用法（确认是否是 env 优先）=='
+== 7. harness 里 MODEL_PATH 的用法（确认是否是 env 优先）==
++ docker exec vllm bash -lc 'grep -n '\''MODEL_PATH'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh | head -6'
+7:MODEL_PATH="${MODEL_PATH:-/home/model/ts/Qwen3-32B-W8A8}"
+74:    --host 127.0.0.1 --port "$PORT" --model "$MODEL_PATH" --trust_remote_code --dtype auto
+171:        --host 127.0.0.1 --port "$PORT" --model "$MODEL_PATH" --trust_remote_code \
+205:[[ -d "$MODEL_PATH" ]] || { log 'ERROR: MODEL_PATH 不是本地目录'; exit 2; }
+215:    echo "model_path=$MODEL_PATH"
++ set +x
+
+### exit: 0
