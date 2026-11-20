@@ -12,7 +12,7 @@
 # 所以 trace 只能用默认 worker + vllm bench serve --profile 采集。
 set -uo pipefail
 
-MODEL_PATH="${MODEL_PATH:-/home/model/ts/Qwen3-32B-W8A8}"
+MODEL_PATH="${MODEL_PATH:-/home/model/Qwen3-32B-W8A8}"
 if [[ -z "${MOCK_DIR:-}" && ! -e /dev/iluvatar0 ]]; then
     MOCK_DIR=/home/qch/mock_vllm
 fi

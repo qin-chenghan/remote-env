@@ -4,7 +4,7 @@
 # Requires the matching files in this slim folder (included in the ZIP).
 set -uo pipefail
 
-MODEL_PATH="${MODEL_PATH:-/home/model/ts/Qwen3-32B-W8A8}"
+MODEL_PATH="${MODEL_PATH:-/home/model/Qwen3-32B-W8A8}"
 TEST_ID="${TEST_ID:-"py312_litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
 PREFIX="${PREFIX:-/usr/local}"
 PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
