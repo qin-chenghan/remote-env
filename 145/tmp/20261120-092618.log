@@ -1,0 +1,139 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T01:26:18Z
+
++ echo '== 1. 宿主上的监听端口（8848/8948/8000/8080）=='
+== 1. 宿主上的监听端口（8848/8948/8000/8080）==
++ ss -ltnp
++ grep -E ':(8848|8948|8000|8080)\b'
++ echo 以上端口均空闲
+以上端口均空闲
++ echo '== 2. 所有容器 =='
+== 2. 所有容器 ==
++ docker ps -a --format '{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'
++ head -20
+vllm	vllm:latest	Up 31 minutes	
+corex5-py311-mock	corex5-py311:py3116-20261029	Up 17 hours	
+rocksdb_test	rocksdb1223:latest	Up 24 hours	
+faiss	faiss:latest	Up 2 days	
+elated_dewdney	nginx	Up 3 days	
+api-service	feedinfo:dragonwell17	Up 6 days	8081/tcp, 9090-9091/tcp, 0.0.0.0:8083->8080/tcp
+db-service	feedinfo:dragonwell17	Up 6 days	8081/tcp, 9090/tcp, 0.0.0.0:9091->9091/tcp, 0.0.0.0:8081->8080/tcp
+mysql-ks	mysql-ks-restored-1113	Up 7 days (healthy)	33060-33061/tcp, 0.0.0.0:3307->3306/tcp
+redis-ks	redis:6.0.20	Up 7 days (healthy)	0.0.0.0:6380->6379/tcp
+dctax-memops	dctax-memops-container-aarch64:latest	Exited (255) 7 days ago	
+unixbench_demo	docker_init:latest	Exited (255) 7 days ago	
+agent_doc	agent_doc	Up 7 days	
+nginx_old	nginx_old:latest	Up 2 days	
+nginx	dd60e1997134	Up 3 days	
+sonico-go-opt	sonic-go:v1	Up 17 hours	
+db-service2	db-service:latest	Exited (137) 3 weeks ago	
+redis-ks2	redis-ks:latest	Exited (137) 3 weeks ago	
+mysql-ks2	mysql-ks:latest	Exited (137) 3 weeks ago	
+api-service2	api-service:latest	Exited (137) 3 weeks ago	
+zstd	zstd:latest	Exited (255) 7 days ago	
++ echo '== 3. 新容器 vllm 的配置 =='
+== 3. 新容器 vllm 的配置 ==
++ docker inspect vllm --format 'Image={{.Config.Image}} Network={{.HostConfig.NetworkMode}} Pid={{.HostConfig.PidMode}} CapAdd={{.HostConfig.CapAdd}} SecurityOpt={{.HostConfig.SecurityOpt}}'
+Image=vllm:latest Network=host Pid= CapAdd=[] SecurityOpt=[label=disable]
++ docker inspect vllm --format '{{json .HostConfig.Binds}}'
+null
++ echo '== 4. 谁在监听这些端口（含容器归属）=='
+== 4. 谁在监听这些端口（含容器归属）==
++ for port in 8848 8948
+++ ss -ltnp
+++ awk -v p=:8848 '$4 ~ p {print $0}'
++ pids=
++ echo '-- port 8848: '
+-- port 8848: 
++ for port in 8848 8948
+++ ss -ltnp
+++ awk -v p=:8948 '$4 ~ p {print $0}'
++ pids=
++ echo '-- port 8948: '
+-- port 8948: 
++ echo '-- 当前 vLLM 相关进程 --'
+-- 当前 vLLM 相关进程 --
++ ps -eo pid,args
++ grep -E 'vllm.entrypoints|VLLM::'
++ grep -v grep
++ cut -c1-120
++ head -10
+2577567 [VLLM::EngineCor] <defunct>
+2578068 [VLLM::Worker_TP] <defunct>
+2578069 [VLLM::Worker_TP] <defunct>
+2578070 [VLLM::Worker_TP] <defunct>
+2578071 [VLLM::Worker_TP] <defunct>
+2595648 [VLLM::EngineCor] <defunct>
+2596181 [VLLM::Worker_TP] <defunct>
+2596182 [VLLM::Worker_TP] <defunct>
+2596183 [VLLM::Worker_TP] <defunct>
+2596184 [VLLM::Worker_TP] <defunct>
++ echo '== 5. 进程属于哪个容器 =='
+== 5. 进程属于哪个容器 ==
+++ pgrep -f vllm.entrypoints.openai.api_server
++ for p in $(pgrep -f "vllm.entrypoints.openai.api_server" 2> /dev/null)
++ echo '-- pid 3273358 --'
+-- pid 3273358 --
++ grep -m1 'docker\|containerd' /proc/3273358/cgroup
++ cut -c1-160
+13:rdma:/docker/419506a136027e1b1a6ea191cbec981d4dd2e9bb29a5d2c18c6325561260717f
++ docker inspect vllm --format 'vllm container id={{.Id}}'
+vllm container id=b9bab222c04258b7d887d59169d7e401d9f28db74ee1ee1492e5d3d0a85b69f3
++ echo '== 6. vllm 容器内的端口与进程 =='
+== 6. vllm 容器内的端口与进程 ==
++ docker exec vllm bash -lc 'ss -ltnp 2>/dev/null | grep -E ":(8848|8948)\b" || echo "容器内无监听"; pgrep -af "vllm.entrypoints|bench_driver" | head -5'
+容器内无监听
+544 bash -lc ss -ltnp 2>/dev/null | grep -E ":(8848|8948)\b" || echo "??????????????????"; pgrep -af "vllm.entrypoints|bench_driver" | head -5
++ echo '== 7. 最近的启动日志 =='
+== 7. 最近的启动日志 ==
++ ls -t /home/huawei_ts_program/litehost_perf_opt/vllmBench/
++ head -3
+litehost_gap_20261119_195618
+litehost_gap_20261119_195415
+litehost_gap_20261119_191223
+++ head -2
+++ ls -t /home/huawei_ts_program/litehost_perf_opt/vllmBench/lite145_1438/logs/server.log /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261119_191223/logs/server.log /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261119_195415/logs/server.log /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261119_195618/logs/server.log /home/huawei_ts_program/litehost_perf_opt/vllmBench/mock145_1355/logs/server.log
++ for f in $(ls -t /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/logs/server.log 2> /dev/null | head -2)
++ echo '--- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261119_195618/logs/server.log'
+--- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261119_195618/logs/server.log
++ grep -iE 'address already in use|error|EADDRINUSE' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261119_195618/logs/server.log
++ tail -5
+(EngineCore pid=14980) ERROR 11-19 19:57:32 [core.py:1235]   File "/opt/corex311/lib/python3.11/site-packages/vllm/distributed/device_communicators/shm_broadcast.py", line 701, in acquire_read
+(EngineCore pid=14980) ERROR 11-19 19:57:32 [core.py:1235]     raise RuntimeError("cancelled")
+(EngineCore pid=14980) ERROR 11-19 19:57:32 [core.py:1235] RuntimeError: cancelled
+(EngineCore pid=14980)     raise RuntimeError("cancelled")
+(EngineCore pid=14980) RuntimeError: cancelled
++ for f in $(ls -t /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/logs/server.log 2> /dev/null | head -2)
++ echo '--- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261119_195415/logs/server.log'
+--- /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261119_195415/logs/server.log
++ grep -iE 'address already in use|error|EADDRINUSE' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261119_195415/logs/server.log
++ tail -5
+(EngineCore pid=13004) ERROR 11-19 19:55:31 [core.py:1235] RuntimeError: cancelled
+(EngineCore pid=13004)     raise RuntimeError("cancelled")
+(EngineCore pid=13004) RuntimeError: cancelled
+(APIServer pid=12720)     raise RuntimeError(
+(APIServer pid=12720) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}
++ ls -t /home/qch/transfer/run_lite145_1411.log /home/qch/transfer/run_lite145_1438.log /home/qch/transfer/run_mock145_1355.log /home/qch/transfer/run_pin145_1608.log
++ head -3
+/home/qch/transfer/run_pin145_1608.log
+/home/qch/transfer/run_lite145_1438.log
+/home/qch/transfer/run_lite145_1411.log
++ echo '== 8. 正在跑的服务进程归属 =='
+== 8. 正在跑的服务进程归属 ==
++ for c in vllm corex5-py311-mock
++ echo '-- vllm'
+-- vllm
++ docker exec vllm bash -lc 'pgrep -af "api_server|bench_driver" | head -4'
++ head -5
+555 bash -lc pgrep -af "api_server|bench_driver" | head -4
++ for c in vllm corex5-py311-mock
++ echo '-- corex5-py311-mock'
+-- corex5-py311-mock
++ docker exec corex5-py311-mock bash -lc 'pgrep -af "api_server|bench_driver" | head -4'
++ head -5
+14696 /opt/corex311/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8948 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --dtype auto --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1 --tensor_parallel_size 4 --data_parallel_size 1 --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto --enable_chunked_prefill --compilation-config {"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0} --async-scheduling --no-enable-prefix-caching --worker-cls light_host_worker.LightHostWorker
+16303 bash -lc pgrep -af "api_server|bench_driver" | head -4
++ set +x
+
+### exit: 0
