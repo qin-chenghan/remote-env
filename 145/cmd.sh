@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。确认 128/128 预热完成、缓存增量，并检查没有残留进程/端口。
+# 本次：同步固定缓存目录的 py312 脚本 → 用新目录跑 128/128 预热（5 分钟）。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -10,11 +10,14 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
-C=vllm
+SRC="$DIR/../litehost_toolkit"
 TOOLS=/home/huawei_ts_program/litehost_perf_opt
-TEST_ID=prime_py312_128
+C=vllm
+MODEL=/home/model/Qwen3-32B-W8A8
+TEST_ID=prime_py312_128_cached
 LOG=/tmp/run_${TEST_ID}.log
-CACHE=/tmp/torchinductor_root
+CACHE=/home/huawei_ts_program/inductor_cache_py312
+FILES="vllmBench_lite_base_mock_py312.sh vllmBench_lite_base_timeline_py312.sh"
 
 {
   echo "### server: $SERVER"
@@ -25,29 +28,34 @@ CACHE=/tmp/torchinductor_root
 
   # ---- 命令开始 ----
 
-  echo "== 1. 是否跑完 =="
-  docker exec "$C" bash -lc "
-    if [ -f $TOOLS/vllmBench/$TEST_ID/summary.csv ]; then echo 'summary.csv 已生成'; else echo '尚未完成'; fi
-    tail -12 $LOG 2>/dev/null
-  " 2>&1 | tail -16
+  echo "== 1. 同步脚本（宿主 + 容器）=="
+  cp -f "$SRC"/vllmBench_lite_base_mock_py312.sh "$SRC"/vllmBench_lite_base_timeline_py312.sh "$TOOLS"/
+  chmod +x "$TOOLS"/vllmBench_lite_base_*_py312.sh
+  for f in $FILES; do docker cp "$TOOLS/$f" "$C":"$TOOLS/$f"; done
+  docker exec "$C" chmod +x "$TOOLS"/vllmBench_lite_base_*_py312.sh
+  docker exec "$C" bash -lc "grep -n 'TORCHINDUCTOR_CACHE_DIR\|inductor_cache=' $TOOLS/vllmBench_lite_base_mock_py312.sh | head -4"
+  docker exec "$C" bash -lc "bash -n $TOOLS/vllmBench_lite_base_mock_py312.sh && echo mock-ok"
+  docker exec "$C" bash -lc "bash -n $TOOLS/vllmBench_lite_base_timeline_py312.sh && echo timeline-ok"
 
-  echo "== 2. 吞吐结果 =="
-  docker exec "$C" bash -lc "cat $TOOLS/vllmBench/$TEST_ID/summary.csv 2>/dev/null | cut -d, -f2,5,6,8,11"
+  echo "== 2. 新缓存目录状态 =="
+  docker exec "$C" bash -lc "ls -d $CACHE 2>/dev/null && echo \"files=\$(find $CACHE -name '*.py' | wc -l)\" || echo 'not created yet'"
+  echo "-- 旧目录（/tmp，先保留不动）--"
+  docker exec "$C" bash -lc "echo \"/tmp files=\$(find /tmp/torchinductor_root -name '*.py' 2>/dev/null | wc -l)\""
 
-  echo "== 3. 缓存现状 =="
-  docker exec "$C" bash -lc "
-    echo \"py files: \$(find $CACHE -name '*.py' 2>/dev/null | wc -l)\"
-    du -sh $CACHE 2>/dev/null
-    echo '-- AOT ID 分布 --'
-    for f in $CACHE/*/*.py; do head -1 \$f 2>/dev/null; done | sort | uniq -c | head -8
-  " 2>&1 | head -14
-
-  echo "== 4. 残留进程与端口 =="
-  docker exec "$C" bash -lc 'pgrep -af "vllm.entrypoints.openai.api_server|bench_driver" | grep -v pgrep || echo "no leftover processes"'
+  echo "== 3. 前置检查 =="
+  docker exec "$C" bash -lc 'pgrep -af "vllm.entrypoints.openai.api_server|bench_driver" | grep -v pgrep || echo "no server/bench running"'
   ss -ltn 2>/dev/null | grep -E ':(8948|8848)\b' || echo "8948/8848 free"
 
-  echo "== 5. 产物大小 =="
-  docker exec "$C" bash -lc "du -sh $TOOLS/vllmBench/$TEST_ID 2>/dev/null; ls $TOOLS/vllmBench/$TEST_ID 2>/dev/null | head -6"
+  echo "== 4. 启动预热（新缓存目录）=="
+  docker exec -d "$C" bash -lc "cd $TOOLS && \
+    TEST_ID=$TEST_ID HOST_MEASURE=off MODEL_PATH=$MODEL \
+    nohup bash vllmBench_lite_base_mock_py312.sh > $LOG 2>&1"
+  sleep 25
+  docker exec "$C" bash -lc "grep -E 'inductor_cache=|PREFIX=|全部完成' $LOG 2>/dev/null; tail -3 $LOG 2>/dev/null"
+
+  echo "== 5. 后续 =="
+  echo "日志：$LOG（容器内）"
+  echo "缓存：$CACHE（容器内）"
 
   # ---- 命令结束 ----
 
