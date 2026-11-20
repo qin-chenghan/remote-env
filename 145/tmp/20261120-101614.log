@@ -1,0 +1,130 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T02:16:14Z
+
++ echo '== 1. worker_busy_loop 附近的插桩代码 =='
+== 1. worker_busy_loop 附近的插桩代码 ==
++ docker exec vllm bash -lc 'sed -n '\''955,1000p'\'' /opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py'
+            self.enqueue_output(output)
+
+    def async_output_busy_loop(self):
+        """Entrypoint for the thread which handles outputs asynchronously."""
+
+        # set device to the worker device for the thread.
+        # a thread will not inherit the context of the main thread.
+        # when calling any cuda runtime functions, it will implicitly
+        # create a new cuda context on device 0, consuming extra memory.
+        # here we set the device to the worker device for the thread,
+        # enforcing the context to be the same as the main thread.
+        from vllm.platforms import current_platform
+
+        if hasattr(self.worker, "device"):
+            current_platform.set_device(self.worker.device)
+
+        while True:
+            output = self.async_output_queue.get()
+            self.enqueue_output(output)
+
+    def worker_busy_loop(self):
+        """Main busy loop for Multiprocessing Workers"""
+        assert self.rpc_broadcast_mq is not None
+        while True:
+            kperf_start_type(103)
+            method, args, kwargs, output_rank = self.rpc_broadcast_mq.dequeue(
+                indefinite=True
+            )
+            try:
+                if isinstance(method, str):
+                    func = getattr(self.worker, method)
+                elif isinstance(method, bytes):
+                    func = partial(cloudpickle.loads(method), self.worker)
+
+                output = func(*args, **kwargs)
+
+                if output_rank is None or self.rank == output_rank:
+                    self.handle_output(output)
+            except Exception as e:
+                # Notes have been introduced in python 3.11
+                if hasattr(e, "add_note"):
+                    e.add_note(traceback.format_exc())
+                logger.exception("WorkerProc hit an exception.")
+                # exception might not be serializable, so we convert it to
+                # string, only for logging purpose.
+                if output_rank is None or self.rank == output_rank:
++ echo '== 2. 全 site-packages 里 kperf_start_type 的定义/引用 =='
+== 2. 全 site-packages 里 kperf_start_type 的定义/引用 ==
++ docker exec vllm bash -lc 'grep -rn '\''kperf_start_type'\'' /opt/corex311/lib/python3.11/site-packages/ 2>/dev/null | head -8'
+/opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py:979:            kperf_start_type(103)
++ echo '== 3. 文件头部有没有 import =='
+== 3. 文件头部有没有 import ==
++ head -20
++ docker exec vllm bash -lc 'sed -n '\''1,60p'\'' /opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py | grep -nE '\''import|kperf'\'''
+3:import multiprocessing
+4:import os
+5:import pickle
+6:import queue
+7:import signal
+8:import threading
+9:import time
+10:import traceback
+11:import weakref
+12:from collections import deque
+13:from collections.abc import Callable, Sequence
+14:from concurrent.futures import Future, InvalidStateError
+15:from contextlib import suppress
+16:from dataclasses import dataclass
+17:from enum import Enum, auto
+18:from functools import partial
+19:from multiprocessing.connection import Connection
+20:from multiprocessing.process import BaseProcess
+21:from multiprocessing.synchronize import Lock as LockType
+22:from threading import Thread
++ echo '== 4. kperf 模块 / 库是否存在 =='
+== 4. kperf 模块 / 库是否存在 ==
++ docker exec vllm bash -lc '
+    /opt/corex311/bin/python3 -c "import kperf; print(\"kperf ok\", kperf.__file__)" 2>&1 | tail -2
+    ldconfig -p 2>/dev/null | grep -i kperf | head -3
+    ls /usr/local/lib/libkperf* /usr/lib/libkperf* 2>/dev/null | head -3
+  '
++ head -10
+  File "<string>", line 1, in <module>
+ModuleNotFoundError: No module named 'kperf'
++ echo '== 5. 相关环境变量 =='
+== 5. 相关环境变量 ==
++ docker exec vllm bash -lc 'env | grep -iE "kperf|hotspot|host_opt" | head -8; echo "(空则未设置)"'
+(空则未设置)
++ echo '== 6. light_host_worker 是否有 kperf 依赖 =='
+== 6. light_host_worker 是否有 kperf 依赖 ==
++ docker exec vllm bash -lc '
+    f=$(/opt/corex311/bin/python3 -c "import light_host_worker; print(light_host_worker.__file__)" 2>/dev/null)
+    echo "file=$f"; grep -n "kperf" "$f" 2>/dev/null | head -5 || echo "无 kperf 引用"
+  '
++ head -8
+file=
++ echo '== 7. 与 mock 镜像对比：同一文件的 diff 摘要 =='
+== 7. 与 mock 镜像对比：同一文件的 diff 摘要 ==
++ docker exec corex5-py311-mock bash -lc 'sed -n '\''955,985p'\'' /opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py'
++ head -20
+            self.enqueue_output(output)
+
+    def async_output_busy_loop(self):
+        """Entrypoint for the thread which handles outputs asynchronously."""
+
+        # set device to the worker device for the thread.
+        # a thread will not inherit the context of the main thread.
+        # when calling any cuda runtime functions, it will implicitly
+        # create a new cuda context on device 0, consuming extra memory.
+        # here we set the device to the worker device for the thread,
+        # enforcing the context to be the same as the main thread.
+        from vllm.platforms import current_platform
+
+        if hasattr(self.worker, "device"):
+            current_platform.set_device(self.worker.device)
+
+        while True:
+            output = self.async_output_queue.get()
+            self.enqueue_output(output)
+
++ set +x
+
+### exit: 0
