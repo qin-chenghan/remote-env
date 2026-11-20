@@ -1,0 +1,104 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T01:38:48Z
+
++ echo '== 1. 两个容器的镜像与 Env =='
+== 1. 两个容器的镜像与 Env ==
++ for c in vllm corex5-py311-mock
++ echo '-- vllm'
+-- vllm
++ docker inspect vllm --format 'image={{.Config.Image}}'
+image=vllm:latest
++ docker inspect vllm --format '{{json .Config.Env}}'
++ tr , '\n'
++ grep -E 'LD_LIBRARY_PATH|PATH=|PYTHON'
++ head -6
++ for c in vllm corex5-py311-mock
++ echo '-- corex5-py311-mock'
+-- corex5-py311-mock
++ docker inspect corex5-py311-mock --format 'image={{.Config.Image}}'
+image=corex5-py311:py3116-20261029
++ docker inspect corex5-py311-mock --format '{{json .Config.Env}}'
++ tr , '\n'
++ grep -E 'LD_LIBRARY_PATH|PATH=|PYTHON'
++ head -6
+["LD_LIBRARY_PATH=/usr/local/corex/lib64:/usr/local/openmpi/lib:/usr/local/lib"
+"PATH=/opt/corex311/bin:/usr/local/corex/bin:/usr/local/openmpi/bin:/usr/local/openmpi/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+"PYTHONNOUSERSITE=1"
+"PYTHONPATH="]
++ echo '== 2. 容器运行时的 LD_LIBRARY_PATH =='
+== 2. 容器运行时的 LD_LIBRARY_PATH ==
++ for c in vllm corex5-py311-mock
++ echo '-- vllm'
+-- vllm
++ docker exec vllm bash -lc 'echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-<empty>}"'
+LD_LIBRARY_PATH=<empty>
++ for c in vllm corex5-py311-mock
++ echo '-- corex5-py311-mock'
+-- corex5-py311-mock
++ docker exec corex5-py311-mock bash -lc 'echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-<empty>}"'
+LD_LIBRARY_PATH=/usr/local/corex/lib64:/usr/local/openmpi/lib:/usr/local/lib
++ echo '== 3. corex 用户态库是否存在 =='
+== 3. corex 用户态库是否存在 ==
++ for c in vllm corex5-py311-mock
++ echo '-- vllm'
+-- vllm
++ docker exec vllm bash -lc '
+      ls -d /usr/local/corex-5.0.0 /usr/local/corex 2>/dev/null
+      ls -l /usr/local/corex/lib64/libcudart.so* /usr/local/corex/lib64/libcublas.so* 2>/dev/null | head -4
+      ldd /opt/corex311/lib/python3.11/site-packages/torch/lib/libtorch_cuda.so 2>/dev/null | grep -E "cudart|cublas|not found" | head -4
+    '
++ head -8
+/usr/local/corex
+/usr/local/corex-5.0.0
+lrwxrwxrwx. 1 root root        15 Sep  8 19:57 /usr/local/corex/lib64/libcublas.so -> libcublas.so.10
+lrwxrwxrwx. 1 root root        23 Sep  8 19:57 /usr/local/corex/lib64/libcublas.so.10 -> libcublas.so.10.2.3.254
+-rw-r--r--. 1 root root 433712944 Sep  8 19:57 /usr/local/corex/lib64/libcublas.so.10.2.3.254
+lrwxrwxrwx. 1 root root        17 Sep  8 19:57 /usr/local/corex/lib64/libcudart.so -> libcudart.so.10.2
+	libixattnbkd.so.1 => not found
+	libcudart.so.10.2 => not found
++ for c in vllm corex5-py311-mock
++ echo '-- corex5-py311-mock'
+-- corex5-py311-mock
++ docker exec corex5-py311-mock bash -lc '
+      ls -d /usr/local/corex-5.0.0 /usr/local/corex 2>/dev/null
+      ls -l /usr/local/corex/lib64/libcudart.so* /usr/local/corex/lib64/libcublas.so* 2>/dev/null | head -4
+      ldd /opt/corex311/lib/python3.11/site-packages/torch/lib/libtorch_cuda.so 2>/dev/null | grep -E "cudart|cublas|not found" | head -4
+    '
++ head -8
+/usr/local/corex
+/usr/local/corex-5.0.0
+lrwxrwxrwx. 1 root root        15 Sep  8 19:57 /usr/local/corex/lib64/libcublas.so -> libcublas.so.10
+lrwxrwxrwx. 1 root root        23 Sep  8 19:57 /usr/local/corex/lib64/libcublas.so.10 -> libcublas.so.10.2.3.254
+-rw-r--r--. 1 root root 433712944 Sep  8 19:57 /usr/local/corex/lib64/libcublas.so.10.2.3.254
+lrwxrwxrwx. 1 root root        17 Sep  8 19:57 /usr/local/corex/lib64/libcudart.so -> libcudart.so.10.2
+	libcudart.so.10.2 => /usr/local/corex/lib64/libcudart.so.10.2 (0x0000ffffbf860000)
+	libcublas.so.10 => /usr/local/corex/lib64/libcublas.so.10 (0x0000ffff99140000)
++ echo '== 4. 镜像自带 Env（vllm:latest 是否和 corex5-py311 不同）=='
+== 4. 镜像自带 Env（vllm:latest 是否和 corex5-py311 不同）==
++ docker image inspect vllm:latest --format '{{json .Config.Env}}'
++ tr , '\n'
++ grep -E 'LD_LIBRARY|PATH='
++ head -6
++ echo '== 5. 测试人员那次失败的完整命令 =='
+== 5. 测试人员那次失败的完整命令 ==
++ cat /home/qch/tools/remote-env/145/tmp/litehost_gap_20261120_093438/server.process.json
+{
+  "pid": 693,
+  "starttime": "60689647",
+  "pgid": 693,
+  "sid": 693
+}
++ cat /home/qch/tools/remote-env/145/tmp/litehost_gap_20261120_093438/config.txt
+test_id=litehost_gap_20261120_093438
+started=2026-11-20T09:34:38+08:00
+prefix=/opt/corex311
+multi_engine=unknown
+cpu_range=0-63
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
++ set +x
+
+### exit: 0
