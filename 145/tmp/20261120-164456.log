@@ -1,0 +1,66 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T08:44:56Z
+
++ echo '== 1. 是否跑完 =='
+== 1. 是否跑完 ==
++ docker exec vllm bash -lc '
+    if [ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_128/summary.csv ]; then echo '\''summary.csv 已生成'\''; else echo '\''尚未完成'\''; fi
+    tail -12 /tmp/run_prime_py312_128.log 2>/dev/null
+  '
++ tail -16
+summary.csv 已生成
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-20 16:44:12 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-20 16:44:12 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+===== Benchmark：吞吐与延迟（全部 case）=====
+bs8_in128_out128: output_tok/s=4145.136 TTFT_mean=51.694ms TPOT_mean=1.467ms ITL_mean=1.467ms
+[2026-11-20 16:44:17] 全部完成 | benchmark=/home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_128/summary.csv | host=OFF/未采集
++ echo '== 2. 吞吐结果 =='
+== 2. 吞吐结果 ==
++ docker exec vllm bash -lc 'cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_128/summary.csv 2>/dev/null | cut -d, -f2,5,6,8,11'
+case,request_throughput_req_s,output_token_throughput_tok_s,mean_ttft_ms,mean_tpot_ms
+bs8_in128_out128,32.383872412674286,4145.135668822309,51.69383959961124,1.4670388984372915
++ echo '== 3. 缓存现状 =='
+== 3. 缓存现状 ==
++ head -14
++ docker exec vllm bash -lc '
+    echo "py files: $(find /tmp/torchinductor_root -name '\''*.py'\'' 2>/dev/null | wc -l)"
+    du -sh /tmp/torchinductor_root 2>/dev/null
+    echo '\''-- AOT ID 分布 --'\''
+    for f in /tmp/torchinductor_root/*/*.py; do head -1 $f 2>/dev/null; done | sort | uniq -c | head -8
+  '
+py files: 34
+276M	/tmp/torchinductor_root
+-- AOT ID 分布 --
+     16 
+      8 # AOT ID: ['0_inference']
+      6 # AOT ID: ['1_inference']
+      4 # AOT ID: ['2_inference']
++ echo '== 4. 残留进程与端口 =='
+== 4. 残留进程与端口 ==
++ docker exec vllm bash -lc 'pgrep -af "vllm.entrypoints.openai.api_server|bench_driver" | grep -v pgrep || echo "no leftover processes"'
+no leftover processes
++ ss -ltn
++ grep -E ':(8948|8848)\b'
++ echo '8948/8848 free'
+8948/8848 free
++ echo '== 5. 产物大小 =='
+== 5. 产物大小 ==
++ docker exec vllm bash -lc 'du -sh /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_128 2>/dev/null; ls /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_128 2>/dev/null | head -6'
+88K	/home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_128
+bench.process.json
+bs8_in128_out128.json
+config.txt
+logs
+server.process.json
+summary.csv
++ set +x
+
+### exit: 0
