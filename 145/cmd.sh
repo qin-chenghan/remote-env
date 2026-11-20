@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。读 3.12/3.11 的真实模块版本，并检查 libkperf.so 与插桩可行性。
+# 本次：只读。用脚本文件（不用 stdin）分别经 bash -lc 跑两个解释器，取真实版本与 _ctypes 状态。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,58 +19,46 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
 
-  echo "== 1. 3.12 模块版本（从模块属性读）=="
-  docker exec -i vllm python3 - <<'PY' 2>&1 | tail -8
-import torch, vllm, triton
-print("torch     ", getattr(torch, "__version__", "?"))
-print("vllm      ", getattr(vllm, "__version__", "?"))
-print("triton    ", getattr(triton, "__version__", "?"))
-try:
-    import ixformer; print("ixformer  ", getattr(ixformer, "__version__", "?"))
-except Exception as e:
-    print("ixformer  ", type(e).__name__)
-PY
+  echo "== 1. 两个 python3 的路径（bash -lc vs 裸 exec）=="
+  docker exec vllm bash -lc 'command -v python3; python3 -V; ls -l /usr/bin/python3 /usr/local/bin/python3 2>/dev/null' 2>&1 | head -6
 
-  echo "== 2. 3.11 模块版本（对照）=="
-  docker exec -i vllm /opt/corex311/bin/python3 - <<'PY' 2>&1 | tail -8
-import torch, vllm, triton
-print("torch     ", getattr(torch, "__version__", "?"))
-print("vllm      ", getattr(vllm, "__version__", "?"))
-print("triton    ", getattr(triton, "__version__", "?"))
+  echo "== 2. 写出探针脚本 =="
+  docker exec vllm bash -lc 'cat > /tmp/probe_ver.py <<"PY"
+import sys
+print("interpreter:", sys.executable, sys.version.split()[0])
+for name in ("torch", "vllm", "triton"):
+    try:
+        mod = __import__(name)
+        print(f"{name:8s} {getattr(mod, \"__version__\", \"?\")}")
+    except Exception as e:
+        print(f"{name:8s} FAIL {type(e).__name__}: {str(e)[:80]}")
 try:
-    import ixformer; print("ixformer  ", getattr(ixformer, "__version__", "?"))
+    import ixformer
+    print("ixformer", getattr(ixformer, "__version__", "?"))
 except Exception as e:
-    print("ixformer  ", type(e).__name__)
+    print("ixformer FAIL", type(e).__name__, str(e)[:60])
+try:
+    import ctypes
+    print("ctypes   ok")
+except Exception as e:
+    print("ctypes   FAIL", type(e).__name__, str(e)[:80])
 PY
+ls -l /tmp/probe_ver.py'
 
-  echo "== 3. 3.12 的 vllm 是否与 3.11 同一份源码（比 sha256）=="
+  echo "== 3. 3.12（/usr/local/bin/python3，bash -lc）=="
+  docker exec vllm bash -lc 'python3 /tmp/probe_ver.py' 2>&1 | tail -8
+
+  echo "== 4. 3.11（/opt/corex311/bin/python3，bash -lc）=="
+  docker exec vllm bash -lc '/opt/corex311/bin/python3 /tmp/probe_ver.py' 2>&1 | tail -8
+
+  echo "== 5. 系统 /usr/bin/python3 是什么 =="
+  docker exec vllm bash -lc '/usr/bin/python3 -V 2>&1; /usr/bin/python3 -c "import sys; print(sys.path[:3])" 2>&1 | tail -2' 2>&1 | head -4
+
+  echo "== 6. 3.12 的 _ctypes 依赖（libpython）=="
   docker exec vllm bash -lc '
-    for f in vllm/v1/executor/multiproc_executor.py vllm/v1/worker/gpu_worker.py; do
-      printf "%-45s " "$f"
-      sha256sum /usr/local/lib/python3.12/site-packages/$f /opt/corex311/lib/python3.11/site-packages/$f 2>/dev/null | awk "{print \$1}" | uniq | wc -l | tr -d "\n"
-      echo " (1=相同 2=不同)"
-    done
-  ' 2>&1
-
-  echo "== 4. libkperf.so 是否存在、架构、导出符号 =="
-  docker exec vllm bash -lc '
-    ls -l /home2/libkperf/libkperf.so 2>&1
-    file /home2/libkperf/libkperf.so 2>&1 | cut -c1-110
-    nm -D --defined-only /home2/libkperf/libkperf.so 2>/dev/null | grep -i kperf_start_type | head -3
-  ' 2>&1 | head -8
-
-  echo "== 5. ctypes 加载测试（3.12 解释器）=="
-  docker exec -i vllm python3 - <<'PY' 2>&1 | tail -4
-import ctypes
-try:
-    lib = ctypes.CDLL("/home2/libkperf/libkperf.so")
-    print("CDLL ok; symbol:", hasattr(lib, "kperf_start_type"))
-except Exception as e:
-    print("CDLL failed:", type(e).__name__, e)
-PY
-
-  echo "== 6. 3.12 的 multiproc_executor 是否已有 ctypes import =="
-  docker exec vllm bash -lc "grep -n 'import ctypes\|libkperf' /usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py | head -4" 2>&1
+    ldd /usr/local/lib/python3.12/lib-dynload/_ctypes.cpython-312-aarch64-linux-gnu.so 2>/dev/null | head -6
+    ls -l /usr/local/lib/libpython3.12* /usr/lib/libpython3.12* 2>/dev/null | head -4
+  ' 2>&1 | head -10
 
   # ---- 命令结束 ----
 
