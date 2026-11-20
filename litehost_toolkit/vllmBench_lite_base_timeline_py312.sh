@@ -25,6 +25,9 @@ if [[ -n "${MOCK_DIR:-}" ]]; then
     _timeline_cpu_range=0-63
 fi
 TEST_ID="${TEST_ID:-"${_timeline_prefix}_$(date +%Y%m%d_%H%M%S)"}"
+# Same pinned cache as the mock script: primed once, compile-free afterwards.
+export TORCHINDUCTOR_CACHE_DIR="${TORCHINDUCTOR_CACHE_DIR:-/home/huawei_ts_program/inductor_cache_py312}"
+mkdir -p "$TORCHINDUCTOR_CACHE_DIR" 2>/dev/null || true
 PREFIX="${PREFIX:-/usr/local}"
 PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
 GPU_LIST="${GPU_LIST:-0,1,2,3}"
@@ -169,6 +172,7 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 log "PREFIX=$PREFIX"
+log "inductor_cache=$TORCHINDUCTOR_CACHE_DIR files=$(find "$TORCHINDUCTOR_CACHE_DIR" -name "*.py" 2>/dev/null | wc -l)"
 
 check_gpu_memory() {
     local gpu free_mib
