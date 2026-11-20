@@ -1,0 +1,130 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T02:13:21Z
+
++ echo '== 1. server.log 规模 =='
+== 1. server.log 规模 ==
++ docker exec vllm bash -lc 'wc -l /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261120_095754/logs/server.log; grep -n -E '\''ERROR|Traceback|RuntimeError|startup complete|Waiting for application'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261120_095754/logs/server.log | head -20'
+451 /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261120_095754/logs/server.log
+244:(Worker_TP0 pid=1072) ERROR 11-20 09:59:04 [multiproc_executor.py:900] WorkerProc failed.
+245:(Worker_TP0 pid=1072) ERROR 11-20 09:59:04 [multiproc_executor.py:900] Traceback (most recent call last):
+246:(Worker_TP0 pid=1072) ERROR 11-20 09:59:04 [multiproc_executor.py:900]   File "/opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 885, in worker_main
+247:(Worker_TP0 pid=1072) ERROR 11-20 09:59:04 [multiproc_executor.py:900]     worker.worker_busy_loop()
+248:(Worker_TP0 pid=1072) ERROR 11-20 09:59:04 [multiproc_executor.py:900]   File "/opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 979, in worker_busy_loop
+249:(Worker_TP0 pid=1072) ERROR 11-20 09:59:04 [multiproc_executor.py:900]     kperf_start_type(103)
+250:(Worker_TP0 pid=1072) ERROR 11-20 09:59:04 [multiproc_executor.py:900]     ^^^^^^^^^^^^^^^^
+251:(Worker_TP0 pid=1072) ERROR 11-20 09:59:04 [multiproc_executor.py:900] NameError: name 'kperf_start_type' is not defined
+252:(Worker_TP1 pid=1073) ERROR 11-20 09:59:04 [multiproc_executor.py:900] WorkerProc failed.
+253:(Worker_TP1 pid=1073) ERROR 11-20 09:59:04 [multiproc_executor.py:900] Traceback (most recent call last):
+254:(Worker_TP1 pid=1073) ERROR 11-20 09:59:04 [multiproc_executor.py:900]   File "/opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 885, in worker_main
+255:(Worker_TP1 pid=1073) ERROR 11-20 09:59:04 [multiproc_executor.py:900]     worker.worker_busy_loop()
+256:(Worker_TP1 pid=1073) ERROR 11-20 09:59:04 [multiproc_executor.py:900]   File "/opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 979, in worker_busy_loop
+257:(Worker_TP1 pid=1073) ERROR 11-20 09:59:04 [multiproc_executor.py:900]     kperf_start_type(103)
+258:(Worker_TP1 pid=1073) ERROR 11-20 09:59:04 [multiproc_executor.py:900]     ^^^^^^^^^^^^^^^^
+259:(Worker_TP1 pid=1073) ERROR 11-20 09:59:04 [multiproc_executor.py:900] NameError: name 'kperf_start_type' is not defined
+260:(Worker_TP3 pid=1075) ERROR 11-20 09:59:04 [multiproc_executor.py:900] WorkerProc failed.
+261:(Worker_TP3 pid=1075) ERROR 11-20 09:59:04 [multiproc_executor.py:900] Traceback (most recent call last):
+262:(Worker_TP3 pid=1075) ERROR 11-20 09:59:04 [multiproc_executor.py:900]   File "/opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 885, in worker_main
+263:(Worker_TP3 pid=1075) ERROR 11-20 09:59:04 [multiproc_executor.py:900]     worker.worker_busy_loop()
++ echo '== 2. 日志中间段（40-160 行）=='
+== 2. 日志中间段（40-160 行）==
++ docker exec vllm bash -lc 'sed -n '\''40,160p'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench/litehost_gap_20261120_095754/logs/server.log'
++ grep -v 'Can'\''t initialize NVML'
++ grep -v 'raw_cnt ='
++ head -45
+(APIServer pid=485) INFO 11-20 09:58:37 [api_utils.py:339] 
+(APIServer pid=485) INFO 11-20 09:58:37 [api_utils.py:339]        █     █     █▄   ▄█
+(APIServer pid=485) INFO 11-20 09:58:37 [api_utils.py:339]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.23.0
+(APIServer pid=485) INFO 11-20 09:58:37 [api_utils.py:339]   █▄█▀ █     █     █     █  model   /home/model/Qwen3-32B-W8A8
+(APIServer pid=485) INFO 11-20 09:58:37 [api_utils.py:339]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+(APIServer pid=485) INFO 11-20 09:58:37 [api_utils.py:339] 
+(APIServer pid=485) INFO 11-20 09:58:37 [api_utils.py:273] non-default args: {'host': '127.0.0.1', 'port': 8948, 'model': '/home/model/Qwen3-32B-W8A8', 'trust_remote_code': True, 'max_model_len': 4096, 'quantization': 'compressed-tensors', 'distributed_executor_backend': 'mp', 'tensor_parallel_size': 4, 'worker_cls': 'light_host_worker.LightHostWorker', 'gpu_memory_utilization': 0.9, 'enable_prefix_caching': False, 'enable_chunked_prefill': True, 'async_scheduling': True, 'compilation_config': {'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': None, 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}}
+(APIServer pid=485) WARNING 11-20 09:58:37 [envs.py:2005] Unknown vLLM environment variable detected: VLLM_USE_V1
+(APIServer pid=485) INFO 11-20 09:58:37 [model.py:598] Resolved architecture: Qwen3ForCausalLM
+(APIServer pid=485) INFO 11-20 09:58:37 [model.py:1741] Using max model len 4096
+(APIServer pid=485) INFO 11-20 09:58:37 [model.py:121] DeepSeek-V4 mhc_pre: using ds4_mhc_pre_v2 (bf16 GEMM + epilogue)
+(APIServer pid=485) INFO 11-20 09:58:38 [vllm.py:1016] Asynchronous scheduling is enabled.
+(APIServer pid=485) WARNING 11-20 09:58:38 [vllm.py:1120] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(APIServer pid=485) INFO 11-20 09:58:38 [kernel.py:274] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+INFO 11-20 09:58:43 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-20 09:58:43 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-20 09:58:43 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-20 09:58:43 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-20 09:58:43 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-20 09:58:43 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-20 09:58:43 [__init__.py:238] Platform plugin iluvatar is activated
+INFO 11-20 09:58:43 [__init__.py:238] Platform plugin iluvatar is activated
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+<frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+INFO 11-20 09:58:46 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-20 09:58:46 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+INFO 11-20 09:58:46 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-20 09:58:46 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/opt/corex311/lib/python3.11/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/opt/corex311/lib/python3.11/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+[mock_gpu] worker patched
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+(EngineCore pid=769) INFO 11-20 09:58:48 [core.py:114] Initializing a V1 LLM engine (v0.23.0) with config: model='/home/model/Qwen3-32B-W8A8', speculative_config=None, tokenizer='/home/model/Qwen3-32B-W8A8', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=4096, download_dir=None, load_format=auto, tensor_parallel_size=4, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=compressed-tensors, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cpu, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_verbose=False), seed=0, served_model_name=/home/model/Qwen3-32B-W8A8, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [2048], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_rope_kvcache_cat_mla': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': True, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native']), enable_flashinfer_autotune=True, moe_backend='auto', linear_backend='auto')
+(EngineCore pid=769) INFO 11-20 09:58:48 [multiproc_executor.py:146] DP group leader: node_rank=0, node_rank_within_dp=0, master_addr=127.0.0.1, mq_connect_ip=90.91.147.145 (local), world_size=4, local_world_size=4
+INFO 11-20 09:58:51 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-20 09:58:51 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-20 09:58:51 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-20 09:58:51 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-20 09:58:51 [__init__.py:44] Available plugins for group vllm.platform_plugins:
++ echo '== 3. /dev/shm 容量（两个容器对比）=='
+== 3. /dev/shm 容量（两个容器对比）==
++ for c in vllm corex5-py311-mock
++ echo '-- vllm'
+-- vllm
++ docker exec vllm bash -lc 'df -h /dev/shm | tail -1; ls /dev/shm | head -3'
+shm              64M   16K   64M   1% /dev/shm
+psm_5cacfe4c
+psm_8b9400d2
+psm_b6043531
++ for c in vllm corex5-py311-mock
++ echo '-- corex5-py311-mock'
+-- corex5-py311-mock
++ docker exec corex5-py311-mock bash -lc 'df -h /dev/shm | tail -1; ls /dev/shm | head -3'
+shm              64M     0   64M   0% /dev/shm
++ echo '== 4. 容器实际挂载 =='
+== 4. 容器实际挂载 ==
++ docker inspect vllm --format '{{json .HostConfig.Binds}} ShmSize={{.HostConfig.ShmSize}}'
+null ShmSize=67108864
++ docker inspect corex5-py311-mock --format '{{json .HostConfig.Binds}} ShmSize={{.HostConfig.ShmSize}}'
+["/home:/home"] ShmSize=67108864
++ echo '== 5. 那次 run 的 harness 包装日志（若有）=='
+== 5. 那次 run 的 harness 包装日志（若有）==
++ docker exec vllm bash -lc '
+    ls -lt /home/qch/transfer/*.log /tmp/*vllmBench*.log 2>/dev/null | head -5
+    for f in $(ls -t /home/qch/transfer/*.log 2>/dev/null | head -2); do echo "--- $f"; tail -8 "$f"; done
+  '
++ head -20
+-rw-r--r--. 1 root root  8403 Nov 19 16:10 /home/qch/transfer/run_pin145_1608.log
+-rw-r--r--. 1 root root 18572 Nov 19 14:41 /home/qch/transfer/run_lite145_1438.log
+-rw-r--r--. 1 root root  4116 Nov 19 14:12 /home/qch/transfer/run_lite145_1411.log
+-rw-r--r--. 1 root root  2556 Nov 19 13:59 /home/qch/transfer/run_mock145_1355.log
+-rw-r--r--. 1 root root   991 Oct 23 15:36 /tmp/zzy_dryrun_vllmBench_lite_baseline.sh.log
+--- /home/qch/transfer/run_pin145_1608.log
+INFO 11-19 16:10:20 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/opt/corex311/lib/python3.11/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/opt/corex311/lib/python3.11/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+--- /home/qch/transfer/run_lite145_1438.log
+  rank2 pid=4399 formal=1716 warmup_excluded=264 T_total=2.243448s S_total=0.000221s H_total=2.243227s G_total=0.839184s H+G=3.082411s
+  rank3 pid=4400 formal=1716 warmup_excluded=264 T_total=2.222982s S_total=0.000241s H_total=2.222741s G_total=0.859646s H+G=3.082388s
+  all_formal       four_rank_mean_total_H_s=2.290185
+  graph_formal     four_rank_mean_total_H_s=1.656473
+  no_graph_formal  four_rank_mean_total_H_s=0.633712
++ set +x
+
+### exit: 0
