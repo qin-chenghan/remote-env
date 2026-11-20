@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：清理预热产物——旧 /tmp 缓存 + 三个 priming 运行目录；保留固定缓存目录。
+# 本次：只读。查清 vllm 容器里那个还在跑的 api_server 是谁的。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,10 +11,6 @@ OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
 C=vllm
-TOOLS=/home/huawei_ts_program/litehost_perf_opt
-KEEP=/home/huawei_ts_program/inductor_cache_py312
-OLD=/tmp/torchinductor_root
-RUNS="prime_py312_128 prime_py312_128_cached confirm_py312_128"
 
 {
   echo "### server: $SERVER"
@@ -25,40 +21,30 @@ RUNS="prime_py312_128 prime_py312_128_cached confirm_py312_128"
 
   # ---- 命令开始 ----
 
-  echo "== 1. 确认没有服务在用缓存 =="
-  if docker exec "$C" bash -lc 'pgrep -f "vllm.entrypoints.openai.api_server" >/dev/null 2>&1'; then
-    echo "!! 仍有 api_server 在跑，拒绝清理"; exit 5
-  fi
-  echo "无 api_server"
+  echo "== 1. 进程详情 =="
+  docker exec "$C" bash -lc '
+    for p in $(pgrep -f "vllm.entrypoints.openai.api_server"); do
+      echo "-- pid $p"
+      ps -o pid,lstart,etime,stat,pcpu,args -p "$p" | cut -c1-160
+    done'
 
-  echo "== 2. 清理前 =="
-  docker exec "$C" bash -lc "
-    du -sh $OLD 2>/dev/null || echo '旧缓存已不存在'
-    echo \"keep cache files=\$(find $KEEP -name '*.py' 2>/dev/null | wc -l)\"
-    for d in $RUNS; do du -sh $TOOLS/vllmBench/\$d 2>/dev/null; done
-  "
+  echo "== 2. 端口 =="
+  ss -ltnp 2>/dev/null | grep -E ':(8948|8848)\b' || echo "8948/8848 free"
 
-  echo "== 3. 删除 =="
-  docker exec "$C" bash -lc "rm -rf $OLD; echo 'old cache removed'"
-  for d in $RUNS; do
-    docker exec "$C" bash -lc "rm -rf $TOOLS/vllmBench/$d"
-  done
-  echo "run dirs removed"
+  echo "== 3. 相关日志（谁在跑）=="
+  docker exec "$C" bash -lc '
+    ls -lt /tmp/run_*.log 2>/dev/null | head -3
+    ls -lt /home/huawei_ts_program/litehost_perf_opt/vllmBench 2>/dev/null | head -5
+  ' 2>&1 | head -10
 
-  echo "== 4. 清理后 =="
-  docker exec "$C" bash -lc "
-    du -sh $OLD 2>/dev/null || echo 'old cache gone'
-    echo \"keep cache files=\$(find $KEEP -name '*.py' 2>/dev/null | wc -l)\"
-    du -sh $KEEP 2>/dev/null
-    for d in $RUNS; do [ -d $TOOLS/vllmBench/\$d ] && echo \"still exists: \$d\"; done
-    echo '-- vllmBench 剩余目录 --'
-    ls $TOOLS/vllmBench 2>/dev/null | head -6
-  " 2>&1 | head -14
+  echo "== 4. 最近日志尾部 =="
+  docker exec "$C" bash -lc '
+    for f in $(ls -t /tmp/run_*.log 2>/dev/null | head -2); do
+      echo "--- $f"; tail -4 "$f"
+    done' 2>&1 | head -12
 
-  echo "== 5. 缓存仍可用（只 import，不跑服务）=="
-  docker exec "$C" bash -lc "\
-    TORCHINDUCTOR_CACHE_DIR=$KEEP PYTHONPATH=/home/qch/mock_vllm /usr/local/bin/python3 -c \
-    'import torch; print(\"torch\", torch.__version__)'" 2>&1 | tail -3
+  echo "== 5. bench_driver 是否也在跑 =="
+  docker exec "$C" bash -lc 'pgrep -af "bench_driver" | grep -v pgrep || echo "no bench_driver"'
 
   # ---- 命令结束 ----
 
