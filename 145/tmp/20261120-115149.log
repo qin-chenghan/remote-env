@@ -1,0 +1,100 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T03:51:49Z
+
++ echo '== 1. 3.12 关键包版本 =='
+== 1. 3.12 关键包版本 ==
++ tail -10
++ docker exec -i vllm python3 -
+vllm          MISSING
+torch         MISSING
+triton        MISSING
+ixformer      MISSING
+transformers  MISSING
+numpy         MISSING
++ echo '== 2. 3.11 关键包版本（对照）=='
+== 2. 3.11 关键包版本（对照）==
++ docker exec -i vllm /opt/corex311/bin/python3 -
++ tail -10
+vllm          0.23.0+corex.5.0.0
+torch         2.10.0+corex.5.0.0
+triton        3.2.0+corex.5.0.0
+ixformer      0.7.0+corex.5.0.0
+transformers  5.5.3
+numpy         1.26.4
++ echo '== 3. libkperf.py 里 kperf_start_type 的定义 =='
+== 3. libkperf.py 里 kperf_start_type 的定义 ==
++ grep -n 'def kperf_start_type\|kperf_start_type' /home/l00946765/workspace/performance-tools/libkperf/libkperf.py
++ head -6
+46:            self.kperf_start_type_exe(pmu_lists_chunk, exe)
+76:            self.kperf_start_type_exe(pmu_list, exe, True, file_name)
+85:    def kperf_start_type_exe(self, pmu_lists, exe, pmiflag=False, file_name="/tmp/tmp.txt"):
++ grep -rn 'def kperf_start_type' /home/l00946765/workspace/performance-tools/libkperf
++ head -4
+/home/l00946765/workspace/performance-tools/libkperf/libkperf.py:85:    def kperf_start_type_exe(self, pmu_lists, exe, pmiflag=False, file_name="/tmp/tmp.txt"):
++ echo '== 4. 测试人员在 3.11 里最终怎么接的 =='
+== 4. 测试人员在 3.11 里最终怎么接的 ==
++ docker exec vllm bash -lc 'grep -n '\''kperf'\'' /opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py'
++ head -6
+69:libkperf = ctypes.CDLL("/home2/libkperf/libkperf.so")
+979:            libkperf.kperf_start_type(103)
++ docker exec vllm bash -lc 'sed -n '\''1,40p'\'' /opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py | grep -nE '\''import|kperf'\'''
++ head -10
+3:import multiprocessing
+4:import os
+5:import pickle
+6:import queue
+7:import signal
+8:import threading
+9:import time
+10:import traceback
+11:import weakref
+12:from collections import deque
++ docker exec vllm bash -lc 'sed -n '\''972,988p'\'' /opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py'
+            output = self.async_output_queue.get()
+            self.enqueue_output(output)
+
+    def worker_busy_loop(self):
+        """Main busy loop for Multiprocessing Workers"""
+        assert self.rpc_broadcast_mq is not None
+        while True:
+            libkperf.kperf_start_type(103)
+            method, args, kwargs, output_rank = self.rpc_broadcast_mq.dequeue(
+                indefinite=True
+            )
+            try:
+                if isinstance(method, str):
+                    func = getattr(self.worker, method)
+                elif isinstance(method, bytes):
+                    func = partial(cloudpickle.loads(method), self.worker)
+
++ echo '== 5. 3.11 套里 kperf 模块从哪来 =='
+== 5. 3.11 套里 kperf 模块从哪来 ==
++ docker exec vllm bash -lc '
+    /opt/corex311/bin/python3 -c "import kperf; print(kperf.__file__)" 2>&1 | tail -2
+    ls -d /opt/corex311/lib/python3.11/site-packages/kperf* /opt/corex311/lib/python3.11/site-packages/libkperf* 2>/dev/null
+    /opt/corex311/bin/python3 -m pip list 2>/dev/null | grep -i kperf | head -3
+  '
++ head -8
+  File "<string>", line 1, in <module>
+ModuleNotFoundError: No module named 'kperf'
++ echo '== 6. 3.12 下 mock 激活后再 import vLLM 关键类（补丁是否真的落地）=='
+== 6. 3.12 下 mock 激活后再 import vLLM 关键类（补丁是否真的落地）==
++ docker exec -i vllm bash -lc '
+    PYTHONPATH=/home/qch/mock_vllm python3 - <<PY 2>&1 | tail -6
+import mock_gpu.autoload
+from vllm.v1.worker.gpu_model_runner import GPUModelRunner
+import vllm.v1.worker.gpu_worker as gw
+print("Worker patched:", gw.Worker.init_device.__module__, gw.Worker.init_device.__qualname__)
+print("vllm import ok")
+PY
+  '
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+Worker patched: mock_gpu.worker_patch patch_worker.<locals>.init_device
+vllm import ok
++ set +x
+
+### exit: 0
