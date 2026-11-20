@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：在 vllm 容器里安装 shell 启动文件，使 LD_LIBRARY_PATH 自动生效（不重建容器）。
+# 本次：只读。看 vllm 容器里那次 128/128 跑到哪一步、卡在哪。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -10,7 +10,7 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
-LIB=/usr/local/corex/lib64:/usr/local/openmpi/lib:/usr/local/lib
+C=vllm
 
 {
   echo "### server: $SERVER"
@@ -21,35 +21,46 @@ LIB=/usr/local/corex/lib64:/usr/local/openmpi/lib:/usr/local/lib
 
   # ---- 命令开始 ----
 
-  echo "== 1. 安装 /etc/profile.d/corex-path.sh（登录 shell）=="
-  docker exec vllm bash -c "printf '%s\n' \
-    '# added for corex runtime libs' \
-    'export LD_LIBRARY_PATH=$LIB\${LD_LIBRARY_PATH:+:\$LD_LIBRARY_PATH}' \
-    > /etc/profile.d/corex-path.sh"
-  docker exec vllm bash -c 'cat /etc/profile.d/corex-path.sh'
+  echo "== 1. 容器状态 =="
+  docker ps --filter "name=$C" --format '{{.Names}} {{.Status}}'
 
-  echo "== 2. 追加到 /etc/bash.bashrc（交互式非登录 shell，幂等）=="
-  docker exec vllm bash -c "
-    if ! grep -q corex-path /etc/bash.bashrc 2>/dev/null; then
-      printf '%s\n' '' '. /etc/profile.d/corex-path.sh  # corex-path' >> /etc/bash.bashrc
-      echo added
-    else
-      echo already-present
-    fi"
-  docker exec vllm bash -c 'tail -3 /etc/bash.bashrc'
+  echo "== 2. 容器内进程（含运行时长和 CPU）=="
+  docker exec "$C" bash -lc \
+    'ps -eo pid,ppid,etime,pcpu,nlwp,args | grep -E "vllm.entrypoints|VLLM::|bench_driver|vllmBench" | grep -v grep | cut -c1-150' 2>&1 | head -12
 
-  echo "== 3. 两种进入方式验证 =="
-  echo "-- 登录 shell（脚本用 bash -lc）"
-  docker exec vllm bash -lc 'echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"'
-  echo "-- 交互式 shell（docker exec -it bash）"
-  docker exec vllm bash -ic 'echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"' 2>/dev/null
+  echo "== 3. 宿主整机负载与热点进程 =="
+  uptime
+  ps -eo pcpu,pmem,etime,args --sort=-pcpu 2>/dev/null | head -6 | cut -c1-140
 
-  echo "== 4. 实际效果：登录 shell 里 import torch / mock =="
-  docker exec vllm bash -lc \
-    'PYTHONPATH=/home/qch/mock_vllm /opt/corex311/bin/python3 -c "import torch; import mock_gpu.autoload"' 2>&1 | tail -4
+  echo "== 4. 端口 =="
+  ss -ltnp 2>/dev/null | grep -E ':(8948|8848)\b' || echo "8948/8848 空闲"
 
-  echo "== 5. 直接 exec 二进制（不经过 shell）仍无环境，属预期 =="
-  docker exec vllm /opt/corex311/bin/python3 -c 'import torch' 2>&1 | tail -2
+  echo "== 5. 服务健康 =="
+  curl --noproxy '*' -s -o /dev/null -w 'health http_code=%{http_code}\n' --max-time 3 \
+    http://127.0.0.1:8948/health 2>&1 || true
+  curl --noproxy '*' -s -o /dev/null -w 'health8848 http_code=%{http_code}\n' --max-time 3 \
+    http://127.0.0.1:8848/health 2>&1 || true
+
+  echo "== 6. 最新 run 目录与日志 =="
+  docker exec "$C" bash -lc '
+    d=$(ls -dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ 2>/dev/null | head -1)
+    echo "latest: $d"
+    ls -lt "$d" 2>/dev/null | head -8
+    echo "-- server.log 尾部"
+    tail -12 "$d/logs/server.log" 2>/dev/null
+    echo "-- bench 日志"
+    ls "$d/logs" 2>/dev/null
+    tail -12 "$d"/logs/bench_*.log 2>/dev/null
+    echo "-- litehost case 状态"
+    ls "$d/litehost" 2>/dev/null | head -3
+    cat "$d"/litehost/*/case.json 2>/dev/null | head -20
+    cat "$d"/litehost/*/window.json 2>/dev/null | head -10
+  ' 2>&1 | head -45
+
+  echo "== 7. 最近 5 分钟内被修改的文件（该 run 目录）=="
+  docker exec "$C" bash -lc '
+    find /home/huawei_ts_program/litehost_perf_opt/vllmBench -maxdepth 3 -mmin -5 -type f 2>/dev/null | head -10
+  ' 2>&1 | head -12
 
   # ---- 命令结束 ----
 
