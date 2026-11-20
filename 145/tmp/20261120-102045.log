@@ -1,0 +1,164 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-20T02:20:45Z
+
++ echo '== 1. 目录概览 =='
+== 1. 目录概览 ==
++ ls -ld /home/l00946765
+drwxrwxrwx. 35 l00946765 l00946765 4096 Nov 19 20:08 /home/l00946765
++ du -sh /home/l00946765
+75G	/home/l00946765
++ ls -lat /home/l00946765
++ head -20
+total 30858832
+drwxr-xr-x.  3 l00946765 l00946765        4096 Nov 20 10:14 .vscode
+drwxr-xr-x. 46 root      root             4096 Nov 19 23:04 ..
+-rw-r--r--.  1 root      root      26533598720 Nov 19 20:09 vllm.tar
+drwxrwxrwx. 35 l00946765 l00946765        4096 Nov 19 20:08 .
+-rw-------.  1 l00946765 l00946765       25712 Nov 19 18:57 .bash_history
+drwxr-xr-x. 17 l00946765 l00946765        4096 Nov 19 15:00 workspace
+-rw-r--r--.  1 l00946765 l00946765        2991 Nov 19 14:36 feedinfo.sh
+drwxr-xr-x.  9 l00946765 l00946765        4096 Nov 17 19:59 .debug
+-rw-------.  1 root      root          2387124 Nov 17 18:55 perf.data
+-rw-------.  1 l00946765 l00946765       15034 Nov 17 10:39 .viminfo
+-rwxrwxrwx.  1 l00946765 l00946765        3198 Nov 17 10:37 run_all_ftelf.sh
+-rw-------.  1 root      root          2006248 Nov 16 20:01 perf.data.old
+-rw-r--r--.  1 root      root         10888407 Nov 16 19:40 hnsw_deep.maps
+-rw-r--r--.  1 root      root         69586331 Nov 16 19:39 spe_timestamp_5s.txt
+-rw-r--r--.  1 root      root         11989577 Nov 16 19:39 pmu_timestamp_5s.txt
+-rw-r--r--.  1 l00946765 root              342 Nov 16 13:46 test.c
+-rw-r--r--.  1 l00946765 l00946765         170 Nov 13 18:09 .wget-hsts
+drwxr-xr-x. 14 l00946765 l00946765        4096 Nov 13 17:30 agent_vm_bench
+drwxr-xr-x.  2 l00946765 root             4096 Nov 13 17:23 chrome_docker
++ echo '== 2. 两层目录树 =='
+== 2. 两层目录树 ==
++ find /home/l00946765 -maxdepth 2 -type d
++ head -25
+/home/l00946765
+/home/l00946765/workspace
+/home/l00946765/workspace/spark_analysis
+/home/l00946765/workspace/performance-tools
+/home/l00946765/workspace/chazhuang
+/home/l00946765/workspace/asm_test
+/home/l00946765/workspace/faiss
+/home/l00946765/workspace/ceph146_paoding
+/home/l00946765/workspace/jvmti_chazhuang
+/home/l00946765/workspace/paoding
+/home/l00946765/workspace/document-bench
+/home/l00946765/workspace/xtrace-qemu-update-master
+/home/l00946765/workspace/browser-agent
+/home/l00946765/workspace/lzbench
+/home/l00946765/workspace/yinghaoyu
+/home/l00946765/workspace/libkperf
+/home/l00946765/workspace/xtrace-binutils-master
+/home/l00946765/temp
+/home/l00946765/temp/bin
+/home/l00946765/temp/faiss-sve
+/home/l00946765/temp/sra_test-master
+/home/l00946765/temp/perf
+/home/l00946765/temp/tool
+/home/l00946765/temp/OpenBLAS-0.3.33
+/home/l00946765/temp/KRL-sve-202512-rprfm
++ echo '== 3. 找 kperf 相关文件 =='
+== 3. 找 kperf 相关文件 ==
++ find /home/l00946765 -maxdepth 5 '(' -iname '*kperf*' -o -iname '*kperf*' ')'
++ head -15
+/home/l00946765/workspace/performance-tools/Benchmark/SliceTestTool/kperfParse.cpp
+/home/l00946765/workspace/performance-tools/Benchmark/GRAPES/kperf2.data
+/home/l00946765/workspace/performance-tools/Benchmark/GRAPES/kperf.data
+/home/l00946765/workspace/performance-tools/kperf2
+/home/l00946765/workspace/performance-tools/kperf2/src/kperf.py
+/home/l00946765/workspace/performance-tools/kperf
+/home/l00946765/workspace/performance-tools/kperf/src/kperf.py
+/home/l00946765/workspace/performance-tools/libkperf
+/home/l00946765/workspace/performance-tools/libkperf/test_exec_kperf.c
+/home/l00946765/workspace/performance-tools/libkperf/libkperf.c
+/home/l00946765/workspace/performance-tools/libkperf/libkperf.py
+/home/l00946765/workspace/performance-tools/libkperf/kperf_log.sh
+/home/l00946765/workspace/performance-tools/libkperf/org_apache_spark_KperfLoader.h
+/home/l00946765/workspace/performance-tools/libkperf/kperf_jni.c
+/home/l00946765/workspace/performance-tools/libkperf/kperf.sh
++ grep -rIl kperf_start_type /home/l00946765
++ head -10
+/home/l00946765/workspace/performance-tools/elfexe/elfexe_dimension.py
+/home/l00946765/workspace/performance-tools/elfexe/elfexe.py
+/home/l00946765/workspace/performance-tools/libkperf/libkperf.c
+/home/l00946765/workspace/performance-tools/libkperf/libkperf.py
+/home/l00946765/workspace/performance-tools/libkperf/org/apache/spark/KperfLoader.java
+/home/l00946765/workspace/performance-tools/libkperf/test_libstart.c
+/home/l00946765/workspace/performance-tools/libkperf/org_apache_spark_KperfLoader.h
+/home/l00946765/workspace/performance-tools/libkperf/test_single_core.c
+/home/l00946765/workspace/performance-tools/libkperf/libjni.c
+/home/l00946765/workspace/performance-tools/libkperf/kperf_jni.c
++ echo '== 4. 找 python 环境与 wheel =='
+== 4. 找 python 环境与 wheel ==
++ head -6
++ find /home/l00946765 -maxdepth 4 -name pyvenv.cfg
++ head -12
++ find /home/l00946765 -maxdepth 4 '(' -name '*.whl' -o -name '*.tar.gz' -o -name '*.zip' ')'
+/home/l00946765/workspace/kjvmti.zip
+/home/l00946765/workspace/document-bench/wheels/et_xmlfile-2.0.0-py3-none-any.whl
+/home/l00946765/workspace/document-bench/wheels/openpyxl-3.1.5-py2.py3-none-any.whl
+/home/l00946765/workspace/document-bench/wheels/pillow-12.2.0-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl
+/home/l00946765/workspace/document-bench/wheels/pillow-12.2.0-cp311-cp311-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl
+/home/l00946765/workspace/document-bench/wheels/pypdf-6.10.0-py3-none-any.whl
+/home/l00946765/workspace/document-bench/wheels/pdf2image-1.17.0-py3-none-any.whl
+/home/l00946765/workspace/asm_test.zip
+/home/l00946765/workspace/browser-agent/pnpm-linux-arm64.tar.gz
+/home/l00946765/workspace/lzbench/ZSTD-ZJ_For_BigData.zip
+/home/l00946765/workspace/xtrace-qemu-update-master.zip
+/home/l00946765/temp/KRL-sve-202603.zip
++ find /home/l00946765 -maxdepth 5 -path '*site-packages/kperf*'
++ head -6
++ echo '== 5. 找脚本与 dockerfile =='
+== 5. 找脚本与 dockerfile ==
++ find /home/l00946765 -maxdepth 4 '(' -name '*.sh' -o -name 'Dockerfile*' -o -name '*.py' ')'
++ head -20
+/home/l00946765/workspace/spark_analysis/jiexi.py
+/home/l00946765/workspace/spark_analysis/parse-yhy.py
+/home/l00946765/workspace/spark_analysis/parse-lgj.py
+/home/l00946765/workspace/spark_analysis/parse-trace.py
+/home/l00946765/workspace/spark_analysis/parse-lh.py
+/home/l00946765/workspace/spark_analysis/processdata.py
+/home/l00946765/workspace/performance-tools/kroofline/kroofline.py
+/home/l00946765/workspace/performance-tools/generalhotfunc/hotfunc_collect.py
+/home/l00946765/workspace/performance-tools/generalhotfunc/hotfunc_parser.py
+/home/l00946765/workspace/performance-tools/parsing2/build.sh
+/home/l00946765/workspace/performance-tools/parsing2/parsing.py
+/home/l00946765/workspace/performance-tools/pmu/auto_lns.sh
+/home/l00946765/workspace/performance-tools/pmu/cache.py
+/home/l00946765/workspace/performance-tools/pmu/main.py
+/home/l00946765/workspace/performance-tools/pmu/hook-pmu.py
+/home/l00946765/workspace/performance-tools/pmu/build.sh
+/home/l00946765/workspace/performance-tools/pmu/setup.py
+/home/l00946765/workspace/performance-tools/pmu/test.py
+/home/l00946765/workspace/performance-tools/elfexe/elfexe_dimension.py
+/home/l00946765/workspace/performance-tools/elfexe/build.sh
++ echo '== 6. 最近改动 =='
+== 6. 最近改动 ==
++ find /home/l00946765 -maxdepth 4 -type f -mtime -10
++ head -15
+/home/l00946765/spe_timestamp_5s.txt
+/home/l00946765/hnsw_deep.maps
+/home/l00946765/workspace/performance-tools/libkperf/libkperf.py
+/home/l00946765/workspace/kjvmti.zip
+/home/l00946765/workspace/paoding/tool/whitebox.sh
+/home/l00946765/workspace/paoding/tool/whitebox.sh.bak.20261117_193304
+/home/l00946765/workspace/paoding/tool/find_main_process.sh.bak.20261118_160309
+/home/l00946765/workspace/paoding/tool/whitebox.sh.bak.20261118_145141
+/home/l00946765/workspace/paoding/tool/find_main_process.sh
+/home/l00946765/workspace/libkperf/final.txt
+/home/l00946765/workspace/libkperf/tmp.txt_0
+/home/l00946765/workspace/libkperf/tmp.txt_1
+/home/l00946765/workspace/libkperf/__pycache__/avg_tmp.cpython-311.pyc
+/home/l00946765/workspace/libkperf/avg_tmp.py
+/home/l00946765/perf.data
++ echo '== 7. 与该 run 相关的线索（zzy_dryrun 等）=='
+== 7. 与该 run 相关的线索（zzy_dryrun 等）==
++ head -6
++ ls -lat '/tmp/zzy_dryrun_*'
++ head -3
++ grep -l kperf '/tmp/zzy_dryrun_*.log'
++ set +x
+
+### exit: 0
