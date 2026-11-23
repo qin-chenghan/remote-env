@@ -1,0 +1,88 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-23T08:17:57Z
+
++ echo '== 1. 空闲检查 =='
+== 1. 空闲检查 ==
++ docker exec vllm bash -lc 'pgrep -af "vllm[.]entrypoints[.]openai[.]api_server|bench_driver" | grep -v pgrep || echo "no server/bench"'
+no server/bench
++ ss -ltn
++ grep -E ':(8948|8848)\b'
++ echo '8948/8848 free'
+8948/8848 free
++ docker exec vllm bash -lc 'pgrep -f "vllm[.]entrypoints[.]openai[.]api_server" >/dev/null 2>&1'
++ docker exec vllm bash -lc 'echo "cache before=$(find /home/huawei_ts_program/inductor_cache_py312 -name '\''*.py'\'' | wc -l)"'
+cache before=5
++ echo '== 2. 启动 2048/2048 预热（verbose）=='
+== 2. 启动 2048/2048 预热（verbose）==
++ docker exec vllm bash -lc 'printf '\''2048 2048\n'\'' > /tmp/cases_2048.txt; cat /tmp/cases_2048.txt'
+2048 2048
++ docker exec -d vllm bash -lc 'cd /home/huawei_ts_program/litehost_perf_opt &&     CASES_FILE=/tmp/cases_2048.txt TEST_ID=prime_py312_2048 HOST_MEASURE=off MODEL_PATH=/home/model/Qwen3-32B-W8A8     TORCHDYNAMO_VERBOSE=1     nohup bash vllmBench_lite_base_mock_py312.sh > /tmp/run_prime_py312_2048.log 2>&1'
++ sleep 30
++ docker exec vllm bash -lc 'grep -E '\''PREFIX=|inductor_cache='\'' /tmp/run_prime_py312_2048.log | head -2; tail -2 /tmp/run_prime_py312_2048.log'
+[2026-11-23 16:17:57] PREFIX=/usr/local
+[2026-11-23 16:17:57] inductor_cache=/home/huawei_ts_program/inductor_cache_py312 files=5
+[2026-11-23 16:18:22] WARNING: ixsmi 不可用，跳过显存预检
+[2026-11-23 16:18:22] 服务 PID=37785；所有 case 复用；日志=/home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_2048/logs/server.log
++ echo '== 3. 等待完成（最多 15 分钟）=='
+== 3. 等待完成（最多 15 分钟）==
+++ seq 1 30
++ for i in $(seq 1 30)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_2048/summary.csv
++ '[' 1 -eq 1 ']'
++ echo 等待中（30s/轮）
+等待中（30s/轮）
++ sleep 30
++ for i in $(seq 1 30)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_2048/summary.csv
++ '[' 2 -eq 1 ']'
++ sleep 30
++ for i in $(seq 1 30)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_2048/summary.csv
++ '[' 3 -eq 1 ']'
++ sleep 30
++ for i in $(seq 1 30)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_2048/summary.csv
++ '[' 4 -eq 1 ']'
++ sleep 30
++ for i in $(seq 1 30)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_2048/summary.csv
++ '[' 5 -eq 1 ']'
++ sleep 30
++ for i in $(seq 1 30)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_2048/summary.csv
++ echo 'summary.csv 已生成'
+summary.csv 已生成
++ break
++ echo '== 4. 结果 =='
+== 4. 结果 ==
++ docker exec vllm bash -lc 'tail -6 /tmp/run_prime_py312_2048.log'
+INFO 11-23 16:20:53 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
++ docker exec vllm bash -lc 'cut -d, -f2,4,5,6,8,11 /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_2048/summary.csv 2>/dev/null'
+case,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,mean_ttft_ms,mean_tpot_ms
+bs8_in2048_out2048,45.32810808997601,2.206136638253258,4518.167835142673,231.79221540805884,1.5960126168020192
++ echo '== 5. 零编译验证 =='
+== 5. 零编译验证 ==
++ docker exec vllm bash -lc 'echo "Compiling lines: $(grep -c '\''Compiling'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_2048/logs/server.log 2>/dev/null || echo 0)"'
+Compiling lines: 0
+0
++ docker exec vllm bash -lc 'echo "cache after=$(find /home/huawei_ts_program/inductor_cache_py312 -name '\''*.py'\'' | wc -l)"'
+cache after=5
++ docker exec vllm bash -lc 'du -sh /home/huawei_ts_program/inductor_cache_py312 2>/dev/null'
+872K	/home/huawei_ts_program/inductor_cache_py312
++ echo '== 6. 残留 =='
+== 6. 残留 ==
++ docker exec vllm bash -lc 'pgrep -af "vllm[.]entrypoints|bench_driver" | grep -v pgrep || echo none'
+37785 /usr/local/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8948 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --dtype auto --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1 --tensor_parallel_size 4 --data_parallel_size 1 --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto --enable_chunked_prefill --compilation-config {"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0} --async-scheduling --no-enable-prefix-caching
++ ss -ltn
++ grep -E ':(8948|8848)\b'
++ echo 'ports free'
+ports free
++ set +x
+
+### exit: 0
