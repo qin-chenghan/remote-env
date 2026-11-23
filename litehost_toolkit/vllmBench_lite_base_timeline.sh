@@ -25,6 +25,9 @@ if [[ -n "${MOCK_DIR:-}" ]]; then
     _timeline_cpu_range=0-63
 fi
 TEST_ID="${TEST_ID:-"${_timeline_prefix}_$(date +%Y%m%d_%H%M%S)"}"
+# JIT artifacts outlive /tmp cleanup and container restarts.
+export TORCHINDUCTOR_CACHE_DIR="${TORCHINDUCTOR_CACHE_DIR:-/home/huawei_ts_program/inductor_cache_py311}"
+mkdir -p "$TORCHINDUCTOR_CACHE_DIR" 2>/dev/null || true
 PREFIX="${PREFIX:-/opt/corex311}"
 PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
 GPU_LIST="${GPU_LIST:-0,1,2,3}"
@@ -36,6 +39,7 @@ MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
 CASE_INTERVAL="${CASE_INTERVAL:-60}"
 CPU_RANGE="${CPU_RANGE-$_timeline_cpu_range}"
 HOST_MEASURE="${HOST_MEASURE:-off}"         # 本脚本要求 off；lite 与 torch profiler 互斥
+SERVER_WAIT_TIMEOUT="${SERVER_WAIT_TIMEOUT:-1800}"   # 服务就绪等待上限（秒）
 HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
 HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
 HOST_MAX_SCOPES="${HOST_MAX_SCOPES:-200000}"
@@ -169,6 +173,7 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 log "PREFIX=$PREFIX"
+log "inductor_cache=$TORCHINDUCTOR_CACHE_DIR files=$(find "$TORCHINDUCTOR_CACHE_DIR" -name '*.py' 2>/dev/null | wc -l)"
 
 check_gpu_memory() {
     local gpu free_mib
@@ -186,7 +191,7 @@ check_gpu_memory() {
 }
 wait_for_server() {
     local elapsed=0 code
-    while (( elapsed < 600 )); do
+    while (( elapsed < SERVER_WAIT_TIMEOUT )); do
         kill -0 "$SERVER_PID" 2>/dev/null || { log "ERROR: 服务已退出，查看 $SERVER_LOG"; return 1; }
         code=$(curl --noproxy '*' -s -o /dev/null -w '%{http_code}' --max-time 2 "http://127.0.0.1:${PORT}/health" 2>/dev/null || true)
         [[ "$code" == 200 ]] && { log "服务就绪 (${elapsed}s)"; return 0; }
@@ -203,7 +208,7 @@ PY
     check_gpu_memory "$GPU_LIST"
     local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1
         "${SERVER_EXTRA_ENV[@]}")
-    [[ "$PROFILE" == 1 ]] && env_args+=(VLLM_RPC_TIMEOUT="$VLLM_RPC_TIMEOUT")
+    env_args+=(VLLM_RPC_TIMEOUT="$VLLM_RPC_TIMEOUT")
     if [[ -n "$MOCK_DIR" ]]; then
         [[ -d "$MOCK_DIR/mock_gpu" ]] || { echo "ERROR: MOCK_DIR 无效: $MOCK_DIR" >&2; return 1; }
         env_args+=(PYTHONPATH="$MOCK_DIR")

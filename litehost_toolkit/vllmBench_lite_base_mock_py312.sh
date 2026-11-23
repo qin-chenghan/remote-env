@@ -21,6 +21,8 @@ MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
 CASE_INTERVAL="${CASE_INTERVAL:-60}"
 CPU_RANGE="${CPU_RANGE-0-63}"
 HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
+VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
+SERVER_WAIT_TIMEOUT="${SERVER_WAIT_TIMEOUT:-1800}"   # 服务就绪等待上限（秒）
 HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
 HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
 HOST_MAX_SCOPES="${HOST_MAX_SCOPES:-200000}"
@@ -125,7 +127,7 @@ check_gpu_memory() {
 }
 wait_for_server() {
     local elapsed=0 code
-    while (( elapsed < 600 )); do
+    while (( elapsed < SERVER_WAIT_TIMEOUT )); do
         kill -0 "$SERVER_PID" 2>/dev/null || { log "ERROR: 服务已退出，查看 $SERVER_LOG"; return 1; }
         code=$(curl --noproxy '*' -s -o /dev/null -w '%{http_code}' --max-time 2 "http://127.0.0.1:${PORT}/health" 2>/dev/null || true)
         [[ "$code" == 200 ]] && { log "服务就绪 (${elapsed}s)"; return 0; }
@@ -140,7 +142,8 @@ import socket,sys
 with socket.socket() as s:s.bind(('127.0.0.1',int(sys.argv[1])))
 PY
     check_gpu_memory "$GPU_LIST"
-    local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1
+    local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1 \
+        VLLM_RPC_TIMEOUT="$VLLM_RPC_TIMEOUT"
         "${SERVER_EXTRA_ENV[@]}")
     if [[ "$HOST_MEASURE" == lite ]]; then
         env_args+=(PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}"
