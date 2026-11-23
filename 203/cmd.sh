@@ -17,87 +17,86 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 只读：切换 data-root 到 /home/docker 前的可行性核查。
+  # 只读：用 diff_ids 校验 corex 镜像层，以及旧库 layerdb → overlay2 的链接完整性。
 
-  echo "== 1. 当前 daemon 与配置 =="
-  docker version --format '{{.Server.Version}}' 2>&1
-  docker info 2>&1 | grep -iE 'Docker Root Dir|Storage Driver|Images|Containers|Running'
-  cat /etc/docker/daemon.json
-  systemctl show docker -p ExecStart -p FragmentPath 2>&1 | head -5
-
-  echo "== 2. 当前 daemon 里在跑什么（切换会停掉这些）=="
-  docker ps --format '{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}' 2>&1 | head -20
-  echo "-- 容器数 --"
-  docker ps -q 2>&1 | wc -l
-
-  echo "== 3. 旧库结构完整性 =="
-  ls -ld /home/docker
-  for p in image/overlay2/imagedb/content/sha256 image/overlay2/imagedb/metadata/sha256 image/overlay2/layerdb/sha256 overlay2 containers volumes network engine-id; do
-    if [ -e "/home/docker/$p" ]; then
-      printf '%-45s %s\n' "$p" "$(ls "/home/docker/$p" 2>/dev/null | wc -l)"
-    else
-      printf '%-45s MISSING\n' "$p"
-    fi
-  done
-  ls /home/docker/image/overlay2/repositories.json 2>&1
-
-  echo "== 4. 旧库容器状态（元数据）=="
+  echo "== 1. corex5-py311 镜像配置 =="
   python3 - <<'PY'
-import glob, json, os
-running = 0
-total = 0
-for p in glob.glob('/home/docker/containers/*/config.v2.json'):
-    try:
-        j = json.load(open(p))
-    except Exception:
+import json, os
+pid = '438486a0cac34c0f6802d9af065b2e9ca67b7ef1ec9504f0b2432d108e1c9fb1'
+p = f'/home/docker/image/overlay2/imagedb/content/sha256/{pid}'
+print('exists:', os.path.exists(p))
+j = json.load(open(p))
+rf = j.get('rootfs', {})
+print('type:', rf.get('type'))
+diffs = rf.get('diff_ids') or rf.get('layers') or []
+print('layer_count:', len(diffs))
+print('docker_version:', j.get('docker_version'))
+print('created:', j.get('created'))
+print('first_diff:', diffs[0] if diffs else None)
+PY
+
+  echo "== 2. 旧库 layerdb → overlay2 链接校验 =="
+  python3 - <<'PY'
+import glob, os
+lb = '/home/docker/image/overlay2/layerdb/sha256'
+ov = '/home/docker/overlay2'
+entries = glob.glob(lb + '/*')
+missing_cache = []
+no_cache_id = 0
+for e in entries:
+    cid = os.path.join(e, 'cache-id')
+    if not os.path.exists(cid):
+        no_cache_id += 1
         continue
-    total += 1
-    name = j.get('Name', '?')
-    img = j.get('Config', {}).get('Image', '?')
-    st = j.get('State', {})
-    if st.get('Running'):
-        running += 1
-    print(f"{name:32s} running={st.get('Running')} status={st.get('Status')} image={str(img)[:60]}")
-print(f"total={total} running_at_save_time={running}")
+    val = open(cid).read().strip()
+    if not os.path.isdir(os.path.join(ov, val)):
+        missing_cache.append((os.path.basename(e)[:12], val))
+print('layerdb_entries:', len(entries))
+print('overlay2_dirs:', len([d for d in os.listdir(ov) if not d.endswith('-init')]))
+print('without_cache_id:', no_cache_id)
+print('missing_overlay_dirs:', len(missing_cache))
+for m in missing_cache[:10]:
+    print('  ', m)
 PY
 
-  echo "== 5. corex5-py311 的镜像与层是否齐 =="
+  echo "== 3. 旧库里每个容器的镜像是否都能解析 =="
   python3 - <<'PY'
 import glob, json, os
-tgt = 'sha256:438486a0cac34c0f6802d9af065b2e9ca67b7ef1ec9504f0b2432d108e1c9fb1'
-p = '/home/docker/image/overlay2/imagedb/content/sha256/' + tgt.split(':')[1]
-print('imagedb exists:', os.path.exists(p))
-if os.path.exists(p):
+imagedb = '/home/docker/image/overlay2/imagedb/content/sha256'
+names = set(os.path.basename(p) for p in glob.glob(imagedb + '/*'))
+ok = miss = 0
+for p in glob.glob('/home/docker/containers/*/config.v2.json'):
     j = json.load(open(p))
-    rootfs = j.get('rootfs', {}).get('layers', [])
-    print('layers:', len(rootfs))
-    missing = []
-    for i, d in enumerate(rootfs):
-        lp = '/home/docker/image/overlay2/layerdb/sha256/' + d.split(':')[1]
-        if not os.path.exists(lp):
-            missing.append(i)
-    print('missing layerdb entries:', missing if missing else 'none')
-    ds = j.get('docker_version')
-    print('docker_version:', ds)
+    img = (j.get('Config', {}).get('Image') or '').replace('sha256:', '')
+    if img in names:
+        ok += 1
+    else:
+        miss += 1
+        print('  MISSING image for container', j.get('Name'), img[:16])
+print(f'containers_with_image={ok} missing={miss}')
 PY
 
-  echo "== 6. 旧库最后一次写入时间 =="
-  stat -c '%y %n' /home/docker /home/docker/containers 2>&1
-  ls -lt /home/docker/containers | head -3
-
-  echo "== 7. 空间 =="
-  df -h /home /data-ssd /data-hdd /data-ext4 2>/dev/null | tail -5
+  echo "== 4. /home 空间与 inode =="
+  df -h /home | tail -1
+  df -i /home | tail -1
   du -sh /home/docker 2>/dev/null
 
-  echo "== 8. GPU 就绪度（切完要能起 corex5-py311）=="
-  uname -r
-  ls -l /dev/iluvatar* 2>&1 | head -5
-  lsmod | grep iluvatar
-  timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | grep -E 'BI-V150|MiB /' | head -6
+  echo "== 5. 旧库是否被占用（无进程应持有）=="
+  fuser -vm /home/docker 2>&1 | head -5 || echo "no holder"
+  ls /home/docker/*.pid /run/docker*.pid 2>/dev/null
 
-  echo "== 9. 有没有别的服务依赖 /home/docker 或 e2b 栈 =="
-  systemctl list-units --type=service --state=running 2>/dev/null | grep -iE 'harbor|nomad|consul|e2b|docker' | head -10
-  ls /data-ssd/harbor /data-ssd/nomad 2>&1 | head -8
+  echo "== 6. 当前 e2b/harbor 是否在活跃使用 =="
+  docker ps --format '{{.Names}}\t{{.Status}}' 2>&1
+  echo "-- 最近日志写入时间 --"
+  for c in harbor-core harbor-db registry postgres; do
+    docker inspect -f '{{.Name}} started={{.State.StartedAt}} restarts={{.RestartCount}}' "$c" 2>/dev/null
+  done
+  docker logs --tail 5 harbor-core 2>&1 | tail -5
+
+  echo "== 7. 当前 daemon 与 GPU =="
+  docker info 2>&1 | grep -iE 'Docker Root Dir|Containers|Images'
+  uname -r
+  timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | grep -E 'BI-V150|MiB /' | head -6
 
   # ---- 命令结束 ----
 
