@@ -1,0 +1,188 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-23T08:19:07Z
+
++ CUR=/etc/docker/daemon.json
++ BAK=/etc/docker/daemon.json.bak-20261123-161907
++ OLDROOT=/data-ssd/docker
++ NEWROOT=/home/docker
++ SNAP=/home/qch/docker-state-before-20261123-161907.txt
++ echo '== 1. 切前快照 =='
+== 1. 切前快照 ==
++ docker ps -a --format '{{.Names}}\t{{.Image}}\t{{.Status}}'
++ wc -l /home/qch/docker-state-before-20261123-161907.txt
+11 /home/qch/docker-state-before-20261123-161907.txt
++ cp -a /etc/docker/daemon.json /etc/docker/daemon.json.bak-20261123-161907
++ echo 'daemon.json 备份: /etc/docker/daemon.json.bak-20261123-161907'
+daemon.json 备份: /etc/docker/daemon.json.bak-20261123-161907
++ cat /etc/docker/daemon.json
+{
+  "data-root": "/data-ssd/docker",
+  "insecure-registries": [
+    "swr.cn-north-4.myhuaweicloud.com",
+    "downloads.unstructured.io",
+    "cr.metax-tech.com",
+    "registry-1.docker.io",
+    "pub-registry1.metax-tech.com"
+  ],
+  "registry-mirrors": [
+    "https://docker.xuanyuan.me",
+    "https://docker.1ms.run",
+    "https://docker.m.daocloud.io"
+  ],
+  "runtimes": {
+    "nvidia": {
+      "args": [],
+      "path": "nvidia-container-runtime"
+    }
+  }
+}
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  804G  757G  6.8G 100% /home
++ echo '== 2. 修改 data-root =='
+== 2. 修改 data-root ==
++ python3 - /etc/docker/daemon.json /home/docker
+old data-root: /data-ssd/docker
+new data-root: /home/docker
++ cat /etc/docker/daemon.json
+{
+  "data-root": "/home/docker",
+  "insecure-registries": [
+    "swr.cn-north-4.myhuaweicloud.com",
+    "downloads.unstructured.io",
+    "cr.metax-tech.com",
+    "registry-1.docker.io",
+    "pub-registry1.metax-tech.com"
+  ],
+  "registry-mirrors": [
+    "https://docker.xuanyuan.me",
+    "https://docker.1ms.run",
+    "https://docker.m.daocloud.io"
+  ],
+  "runtimes": {
+    "nvidia": {
+      "args": [],
+      "path": "nvidia-container-runtime"
+    }
+  }
+}+ echo '== 3. 重启 dockerd =='
+== 3. 重启 dockerd ==
++ systemctl restart docker
++ echo 'restart rc=0'
+restart rc=0
++ sleep 5
++ systemctl is-active docker
+active
++ docker info
++ grep -iE 'Docker Root Dir|Storage Driver|Images:|Containers:'
+ Containers: 17
+ Images: 72
+ Storage Driver: overlay2
+ Docker Root Dir: /home/docker
++ echo '== 4. 验证旧库镜像 =='
+== 4. 验证旧库镜像 ==
++ docker images
++ head -25
+REPOSITORY                                                                TAG                                                       IMAGE ID       CREATED         SIZE
+ov-kp-hg                                                                  51ba2f244e0887f1672229ffbacff12a2f996aa4                  36241a480545   6 days ago      1.3GB
+ov-kp-hg                                                                  9e89a5b530951bfb62032874dc5007ea5b652651                  bf7500fb4552   6 days ago      1.3GB
+ov-perf-minio                                                             RELEASE.2025-10-15T17-29-55Z                              166a5487c306   6 days ago      285MB
+ov-kp-hg                                                                  2da7db30d9ca061acb6d06e0ebffb2591a0c237c                  ad965dd7458c   6 days ago      1.3GB
+ov-perf-base                                                              2da7db30d9ca061acb6d06e0ebffb2591a0c237c                  ae4344611422   6 days ago      1.3GB
+ov-perf-base                                                              51ba2f244e0887f1672229ffbacff12a2f996aa4                  ae4344611422   6 days ago      1.3GB
+ov-perf-base                                                              9e89a5b530951bfb62032874dc5007ea5b652651                  ae4344611422   6 days ago      1.3GB
+corex5-py311                                                              source-x86-20261105                                       438486a0cac3   2 weeks ago     24.5GB
+debian                                                                    trixie                                                    51e269e6af18   2 weeks ago     120MB
+curlimages/curl                                                           latest                                                    08dd54208921   3 weeks ago     24.2MB
+10.150.9.98:80/infra_test/vllm                                            0.23.0_py3.12-corex.5.0.0-ubuntu24.04-x86_64_20260902-0   2db49dd661c8   2 months ago    21.3GB
+corex                                                                     5.0.0                                                     2db49dd661c8   2 months ago    21.3GB
+vllm0.23_corex500                                                         latest                                                    2db49dd661c8   2 months ago    21.3GB
+127.0.0.1:5000/ubuntu-aenv-latency-bench                                  24.04-x86_64                                              16ad0607de1f   3 months ago    78.1MB
+ubuntu-aenv-latency-bench                                                 24.04-x86_64                                              16ad0607de1f   3 months ago    78.1MB
+vllm0.26_fj                                                               latest                                                    e10d03132010   3 months ago    21GB
+vllm0.11_fj                                                               latest                                                    30507b268322   3 months ago    18.5GB
+cube-bench-suite                                                          upstream-amd64-20260716-build-noperf                      62f199e973eb   4 months ago    1.41GB
+cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-lifecycle-manager   v0.5.1                                                    522c3530768a   4 months ago    10.3MB
+cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-proxy               v0.5.1                                                    f64a260739b3   4 months ago    400MB
+openeuler/openeuler                                                       24.03-lts-sp3                                             fe7c0900a0ec   5 months ago    173MB
+cube-sandbox-cn.tencentcloudcr.com/cube-sandbox/sandbox-code              latest                                                    bba260df5c72   5 months ago    306MB
+corex                                                                     4.4.0.rc6.0918                                            a0b7c7d24589   6 months ago    16.3GB
+cr.metax-tech.com/public-ai-release/maca/vllm-metax                       0.19.0-maca.ai3.5.3.502-torch2.8-py312-kylinv11-amd64     c9617c664384   6 months ago    27.7GB
++ echo '-- corex 相关 --'
+-- corex 相关 --
++ docker images
++ grep -iE 'corex|vllm'
++ head -10
+corex5-py311                                                              source-x86-20261105                                       438486a0cac3   2 weeks ago     24.5GB
+10.150.9.98:80/infra_test/vllm                                            0.23.0_py3.12-corex.5.0.0-ubuntu24.04-x86_64_20260902-0   2db49dd661c8   2 months ago    21.3GB
+corex                                                                     5.0.0                                                     2db49dd661c8   2 months ago    21.3GB
+vllm0.23_corex500                                                         latest                                                    2db49dd661c8   2 months ago    21.3GB
+vllm0.26_fj                                                               latest                                                    e10d03132010   3 months ago    21GB
+vllm0.11_fj                                                               latest                                                    30507b268322   3 months ago    18.5GB
+corex                                                                     4.4.0.rc6.0918                                            a0b7c7d24589   6 months ago    16.3GB
+cr.metax-tech.com/public-ai-release/maca/vllm-metax                       0.19.0-maca.ai3.5.3.502-torch2.8-py312-kylinv11-amd64     c9617c664384   6 months ago    27.7GB
+cr.metax-tech.com/public-ai-release/maca/vllm-metax                       0.11.0-maca.ai3.3.0.11-torch2.6-py310-kylinv11-amd64      3d38ee649092   11 months ago   25.8GB
+cr.metax-tech.com/public-ai-release/maca/vllm-metax                       0.11.0-maca.ai3.3.0.11-torch2.6-py312-kylinv11-amd64      2c3e05ef3bce   11 months ago   25.7GB
++ echo '-- 容器 --'
+-- 容器 --
++ docker ps -a --format '{{.Names}}\t{{.Status}}'
++ head -20
+ov-perf	Exited (0) 2 days ago
+ov-perf-retained-e2b8dc3bbb	Exited (0) 5 days ago
+ov-perf-minio	Exited (0) 2 days ago
+corex5-py311	Exited (137) 2 days ago
+nvbw-build	Exited (255) 3 weeks ago
+corex5-v0.23.0	Exited (137) 2 days ago
+local-registry	Exited (255) 7 weeks ago
+vllm026_qwen	Exited (255) 3 weeks ago
+vllm011_qwen	Exited (137) 3 months ago
+vllm011_kperf	Exited (137) 3 months ago
+vllm_metax_0.19	Exited (137) 5 weeks ago
+vllm_011_ysl	Exited (255) 7 months ago
+vllm_011_py312	Exited (255) 7 months ago
+oc-22	Exited (255) 7 months ago
+oc	Exited (255) 8 months ago
+mx-qwen3	Exited (137) 5 weeks ago
+muxi	Exited (255) 8 months ago
++ echo '== 5. 启动 corex5-py311 =='
+== 5. 启动 corex5-py311 ==
++ timeout 20 /usr/local/corex-5.0.0/bin/ixsmi
++ sed -n '/Processes/,$p'
++ head -8
+| Processes:                                                          GPU Memory |
+|  GPU        PID      Process name                                   Usage(MiB) |
+|================================================================================|
+|  No running processes found                                                    |
++--------------------------------------------------------------------------------+
++ docker start corex5-py311
+corex5-py311
++ echo 'start rc=0'
+start rc=0
++ sleep 5
++ docker ps --filter name=corex5-py311 --format '{{.Names}}\t{{.Status}}'
+corex5-py311	Up 5 seconds
++ echo '== 6. 容器内 GPU 验证 =='
+== 6. 容器内 GPU 验证 ==
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -c 'import torch;print("devices",torch.cuda.device_count())'
++ tail -3
+devices 4
++ docker exec corex5-py311 bash -lc 'ls /dev/iluvatar* 2>/dev/null | wc -l'
+4
++ echo '== 7. 空间与状态 =='
+== 7. 空间与状态 ==
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  804G  757G  6.8G 100% /home
++ docker info
++ grep -iE 'Containers:|Running:|Images:'
+ Containers: 17
+  Running: 1
+ Images: 72
++ echo '== 8. 回滚命令 =='
+== 8. 回滚命令 ==
++ echo 'cp /etc/docker/daemon.json.bak-20261123-161907 /etc/docker/daemon.json && systemctl restart docker'
+cp /etc/docker/daemon.json.bak-20261123-161907 /etc/docker/daemon.json && systemctl restart docker
++ set +x
+
+### exit: 0
