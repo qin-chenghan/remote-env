@@ -1,0 +1,42 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-23T08:06:02Z
+
++ echo '== 1. 是否有人在跑 =='
+== 1. 是否有人在跑 ==
++ docker exec vllm bash -lc 'pgrep -af "vllm[.]entrypoints[.]openai[.]api_server|bench_driver" | grep -v pgrep || echo "no server/bench"'
+no server/bench
++ ss -ltn
++ grep -E ':(8948|8848)\b'
++ echo '8948/8848 free'
+8948/8848 free
++ docker exec vllm bash -lc 'pgrep -f "vllm[.]entrypoints[.]openai[.]api_server" >/dev/null 2>&1'
++ ss -ltn
++ grep -qE ':(8948|8848)\b'
++ echo '== 2. 预热前缓存 =='
+== 2. 预热前缓存 ==
++ docker exec vllm bash -lc 'echo files=$(find /home/huawei_ts_program/inductor_cache_py312 -name '\''*.py'\'' 2>/dev/null | wc -l)'
+files=5
++ echo '== 3. 准备 cases 文件并启动 py312 预热 =='
+== 3. 准备 cases 文件并启动 py312 预热 ==
++ docker exec vllm bash -lc 'printf '\''1024 1024\n'\'' > /tmp/cases_1024.txt; cat /tmp/cases_1024.txt'
+1024 1024
++ docker exec -d vllm bash -lc 'cd /home/huawei_ts_program/litehost_perf_opt &&       CASES_FILE=/tmp/cases_1024.txt TEST_ID=prime_py312_1024 HOST_MEASURE=off MODEL_PATH=/home/model/Qwen3-32B-W8A8       nohup bash vllmBench_lite_base_mock_py312.sh > /tmp/run_prime_py312_1024.log 2>&1'
++ sleep 30
++ docker exec vllm bash -lc 'grep -E '\''PREFIX=|inductor_cache=|case 最终结果|===='\'' /tmp/run_prime_py312_1024.log 2>/dev/null | head -4; tail -3 /tmp/run_prime_py312_1024.log 2>/dev/null'
+[2026-11-23 16:06:03] PREFIX=/usr/local
+[2026-11-23 16:06:03] inductor_cache=/home/huawei_ts_program/inductor_cache_py312 files=5
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+[2026-11-23 16:06:28] WARNING: ixsmi 不可用，跳过显存预检
+[2026-11-23 16:06:28] 服务 PID=35232；所有 case 复用；日志=/home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_1024/logs/server.log
++ echo '== 4. 后续 =='
+== 4. 后续 ==
++ echo 日志：/tmp/run_prime_py312_1024.log
+日志：/tmp/run_prime_py312_1024.log
++ echo 结果：/home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_1024
+结果：/home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_1024
++ echo 缓存：/home/huawei_ts_program/inductor_cache_py312
+缓存：/home/huawei_ts_program/inductor_cache_py312
++ set +x
+
+### exit: 0
