@@ -17,61 +17,60 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 只读：解析旧 docker 数据目录的元数据，确认 corex5-py311 镜像是否还在。
+  # 只读：确认 OS/内核现状，以及每个内核下 iluvatar.ko 是否齐备。
 
-  echo "== 1. 旧库体积与结构 =="
+  echo "== 1. OS 与当前内核 =="
+  head -5 /etc/os-release
+  uname -r
+  getconf PAGE_SIZE
+  grubby --default-kernel 2>&1
+  grub2-editenv list 2>&1
+
+  echo "== 2. 已装内核包 =="
+  rpm -qa 2>/dev/null | grep -E '^kernel(-devel|-headers|-tools|-source)?-' | sort
+
+  echo "== 3. grub 候选 =="
+  grubby --info=ALL 2>/dev/null | grep -E 'index=|kernel=' | head -20
+
+  echo "== 4. 每个内核的 iluvatar.ko 与 vermagic =="
+  for k in /lib/modules/*; do
+    KN=$(basename "$k")
+    if [ -f "$k/updates/iluvatar.ko" ]; then
+      echo "[$KN] updates/iluvatar.ko $(stat -c %s "$k/updates/iluvatar.ko") bytes vermagic=$(modinfo -F vermagic "$k/updates/iluvatar.ko" 2>&1 | tr -d '\n')"
+    elif [ -f "$k/kernel/drivers/misc/iluvatar.ko" ]; then
+      echo "[$KN] kernel/.../iluvatar.ko $(stat -c %s "$k/kernel/drivers/misc/iluvatar.ko") bytes vermagic=$(modinfo -F vermagic "$k/kernel/drivers/misc/iluvatar.ko" 2>&1 | tr -d '\n')"
+    else
+      echo "[$KN] 无 iluvatar.ko"
+    fi
+    ls -d "$k/build" >/dev/null 2>&1 && echo "     build 目录存在" || echo "     build 目录缺失"
+  done
+
+  echo "== 5. 当前驱动 =="
+  lsmod | grep iluvatar || echo "未加载"
+  cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>/dev/null
+  timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | grep -E 'BI-V150|MiB /' | head -6
+
+  echo "== 6. docker 根的两处配置 =="
+  cat /etc/docker/daemon.json
+  ls -ld /home/docker /data-ssd/docker
   du -sh /home/docker 2>/dev/null
-  du -sh /home/docker/* 2>/dev/null | sort -rh | head -10
   ls /home/docker/image/overlay2/imagedb/content/sha256 2>/dev/null | wc -l
-  ls /home/docker/overlay2 2>/dev/null | wc -l
 
-  echo "== 2. 旧库镜像标签（解析 imagedb 元数据）=="
-  python3 - <<'PY'
-import glob, json, os
-for root in ('/home/docker', '/data-hdd/docker'):
-    d = root + '/image/overlay2/imagedb/content/sha256'
-    files = glob.glob(d + '/*')
-    print(f"---- {root}: {len(files)} images")
-    for p in files:
-        try:
-            j = json.load(open(p))
-        except Exception:
-            continue
-        tags = j.get('RepoTags') or []
-        if tags:
-            print('  ', os.path.basename(p)[:12], tags)
-PY
-
-  echo "== 3. 旧库里的容器 =="
+  echo "== 7. 旧库中 corex 容器的镜像引用 =="
   python3 - <<'PY'
 import glob, json
-for root in ('/home/docker', '/data-hdd/docker'):
-    print(f"---- {root}")
-    for p in glob.glob(root + '/containers/*/config.v2.json'):
-        try:
-            j = json.load(open(p))
-        except Exception:
-            continue
-        print('  ', j.get('Name'), '|', j.get('Config', {}).get('Image'),
-              '| created', j.get('Created', '')[:19])
+for p in glob.glob('/home/docker/containers/*/config.v2.json'):
+    try:
+        j = json.load(open(p))
+    except Exception:
+        continue
+    name = j.get('Name', '')
+    if 'corex' in name or 'vllm' in name:
+        print(name, '| image', j.get('Config', {}).get('Image'), '| created', j.get('Created', '')[:19])
 PY
 
-  echo "== 4. 定向搜索 corex 相关元数据 =="
-  grep -rl 'corex5-py311' /home/docker/image/overlay2/imagedb/content/sha256 2>/dev/null | head -5
-  grep -rl 'corex5-py311' /home/docker/containers 2>/dev/null | head -5
-  grep -rl 'corex' /data-hdd/docker/image/overlay2/imagedb/content/sha256 2>/dev/null | head -5
-
-  echo "== 5. overlay2 最大的几个层 =="
-  du -sh /home/docker/overlay2/* 2>/dev/null | sort -rh | head -10
-
-  echo "== 6. 当前 daemon 与旧库对比 =="
-  docker info 2>&1 | grep -iE 'Docker Root Dir|Images:|Containers:'
-  docker images 2>&1 | grep -iE 'corex|vllm' || echo "当前 daemon 无 corex 镜像"
-
-  echo "== 7. GPU 与内核 =="
-  uname -r
-  ls -l /dev/iluvatar* 2>&1 | head -5
-  timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | grep -E 'BI-V150|MiB /' | head -6
+  echo "== 8. 空间 =="
+  df -h / /home /data-ssd /data-hdd 2>/dev/null | tail -5
 
   # ---- 命令结束 ----
 
