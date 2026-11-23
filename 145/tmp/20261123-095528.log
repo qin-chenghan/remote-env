@@ -1,0 +1,71 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-23T01:55:28Z
+
++ echo '== 1. 同步脚本（宿主 + 容器）=='
+== 1. 同步脚本（宿主 + 容器）==
++ cp -f /home/qch/tools/remote-env/145/../litehost_toolkit/vllmBench_lite_base_mock.sh vllmBench_lite_base_timeline.sh vllmBench_lite_base_mock_py312.sh vllmBench_lite_base_timeline_py312.sh /home/huawei_ts_program/litehost_perf_opt/
+cp: cannot stat 'vllmBench_lite_base_timeline.sh': No such file or directory
+cp: cannot stat 'vllmBench_lite_base_mock_py312.sh': No such file or directory
+cp: cannot stat 'vllmBench_lite_base_timeline_py312.sh': No such file or directory
++ chmod +x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh
++ for f in $FILES
++ docker cp /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh vllm:/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ for f in $FILES
++ docker cp /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh vllm:/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh
++ for f in $FILES
++ docker cp /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh vllm:/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ for f in $FILES
++ docker cp /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh vllm:/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh
++ docker exec vllm chmod +x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh
++ echo '== 2. 关键改动确认（容器内）=='
+== 2. 关键改动确认（容器内）==
++ docker exec vllm bash -lc '
+    grep -n '\''SERVER_WAIT_TIMEOUT'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh | head -3
+    grep -n '\''TORCHINDUCTOR_CACHE_DIR\|VLLM_RPC_TIMEOUT'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh | head -4
+  '
+24:SERVER_WAIT_TIMEOUT="${SERVER_WAIT_TIMEOUT:-0}"   # 0 = 不设上限，直到服务就绪或进程退出
+129:    # Set SERVER_WAIT_TIMEOUT > 0 to restore a limit.
+135:        if (( SERVER_WAIT_TIMEOUT > 0 && elapsed >= SERVER_WAIT_TIMEOUT )); then
+10:export TORCHINDUCTOR_CACHE_DIR="${TORCHINDUCTOR_CACHE_DIR:-/home/huawei_ts_program/inductor_cache_py311}"
+11:mkdir -p "$TORCHINDUCTOR_CACHE_DIR" 2>/dev/null || true
+23:VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
+111:log "inductor_cache=$TORCHINDUCTOR_CACHE_DIR files=$(find "$TORCHINDUCTOR_CACHE_DIR" -name '*.py' 2>/dev/null | wc -l)"
++ docker exec vllm bash -lc 'bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh && echo mock-syntax-ok'
+mock-syntax-ok
++ docker exec vllm bash -lc 'bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh && echo timeline-syntax-ok'
+timeline-syntax-ok
++ echo '== 3. 前置检查 =='
+== 3. 前置检查 ==
++ docker exec vllm bash -lc 'pgrep -af "vllm[.]entrypoints[.]openai[.]api_server|bench_driver" | grep -v pgrep || echo "no server/bench"'
+no server/bench
++ ss -ltn
++ grep -E ':(8948|8848)\b'
++ echo '8948/8848 free'
+8948/8848 free
++ docker exec vllm bash -lc 'echo "py311 cache before=$(find /home/huawei_ts_program/inductor_cache_py311 -name '\''*.py'\'' 2>/dev/null | wc -l)"'
+py311 cache before=0
++ echo '== 4. 启动 py311 预热（128/128，HOST_MEASURE=off，无 trace，不设等待上限）=='
+== 4. 启动 py311 预热（128/128，HOST_MEASURE=off，无 trace，不设等待上限）==
++ docker exec -d vllm bash -lc 'cd /home/huawei_ts_program/litehost_perf_opt &&     TEST_ID=prime_py311_128 HOST_MEASURE=off MODEL_PATH=/home/model/Qwen3-32B-W8A8     nohup bash vllmBench_lite_base_mock.sh > /tmp/run_prime_py311_128.log 2>&1'
++ sleep 30
++ docker exec vllm bash -lc '
+    grep -E '\''PREFIX=|inductor_cache=|SERVER_WAIT'\'' /tmp/run_prime_py311_128.log 2>/dev/null | head -3
+    tail -3 /tmp/run_prime_py311_128.log 2>/dev/null
+  '
+[2026-11-23 09:55:29] PREFIX=/opt/corex311
+[2026-11-23 09:55:29] inductor_cache=/home/huawei_ts_program/inductor_cache_py311 files=0
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+[2026-11-23 09:55:49] WARNING: ixsmi 不可用，跳过显存预检
+[2026-11-23 09:55:49] 服务 PID=34498；所有 case 复用；日志=/home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py311_128/logs/server.log
++ echo '== 5. 后续 =='
+== 5. 后续 ==
++ echo 日志：/tmp/run_prime_py311_128.log（容器内）
+日志：/tmp/run_prime_py311_128.log（容器内）
++ echo 缓存：/home/huawei_ts_program/inductor_cache_py311（容器内）
+缓存：/home/huawei_ts_program/inductor_cache_py311（容器内）
++ echo '跑完后再执行本文件可查看缓存增量；如需上限可传 SERVER_WAIT_TIMEOUT=3600'
+跑完后再执行本文件可查看缓存增量；如需上限可传 SERVER_WAIT_TIMEOUT=3600
++ set +x
+
+### exit: 0
