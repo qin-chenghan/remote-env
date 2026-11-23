@@ -17,86 +17,55 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 只读：用 diff_ids 校验 corex 镜像层，以及旧库 layerdb → overlay2 的链接完整性。
+  # 只读：判断是否有人正在使用这台机器 / e2b 那套 docker。
 
-  echo "== 1. corex5-py311 镜像配置 =="
-  python3 - <<'PY'
-import json, os
-pid = '438486a0cac34c0f6802d9af065b2e9ca67b7ef1ec9504f0b2432d108e1c9fb1'
-p = f'/home/docker/image/overlay2/imagedb/content/sha256/{pid}'
-print('exists:', os.path.exists(p))
-j = json.load(open(p))
-rf = j.get('rootfs', {})
-print('type:', rf.get('type'))
-diffs = rf.get('diff_ids') or rf.get('layers') or []
-print('layer_count:', len(diffs))
-print('docker_version:', j.get('docker_version'))
-print('created:', j.get('created'))
-print('first_diff:', diffs[0] if diffs else None)
-PY
+  echo "== 1. 谁登录着 =="
+  who 2>&1
+  echo "-- w --"
+  w 2>&1 | head -10
+  echo "-- 最近登录 --"
+  last -n 10 2>&1 | head -12
 
-  echo "== 2. 旧库 layerdb → overlay2 链接校验 =="
-  python3 - <<'PY'
-import glob, os
-lb = '/home/docker/image/overlay2/layerdb/sha256'
-ov = '/home/docker/overlay2'
-entries = glob.glob(lb + '/*')
-missing_cache = []
-no_cache_id = 0
-for e in entries:
-    cid = os.path.join(e, 'cache-id')
-    if not os.path.exists(cid):
-        no_cache_id += 1
-        continue
-    val = open(cid).read().strip()
-    if not os.path.isdir(os.path.join(ov, val)):
-        missing_cache.append((os.path.basename(e)[:12], val))
-print('layerdb_entries:', len(entries))
-print('overlay2_dirs:', len([d for d in os.listdir(ov) if not d.endswith('-init')]))
-print('without_cache_id:', no_cache_id)
-print('missing_overlay_dirs:', len(missing_cache))
-for m in missing_cache[:10]:
-    print('  ', m)
-PY
+  echo "== 2. SSH 会话与远端来源 =="
+  ss -tnp 2>/dev/null | grep -E ':22\b' | head -10
+  ps -eo user,pid,etimes,args 2>/dev/null | grep '[s]shd:' | head -10
 
-  echo "== 3. 旧库里每个容器的镜像是否都能解析 =="
-  python3 - <<'PY'
-import glob, json, os
-imagedb = '/home/docker/image/overlay2/imagedb/content/sha256'
-names = set(os.path.basename(p) for p in glob.glob(imagedb + '/*'))
-ok = miss = 0
-for p in glob.glob('/home/docker/containers/*/config.v2.json'):
-    j = json.load(open(p))
-    img = (j.get('Config', {}).get('Image') or '').replace('sha256:', '')
-    if img in names:
-        ok += 1
-    else:
-        miss += 1
-        print('  MISSING image for container', j.get('Name'), img[:16])
-print(f'containers_with_image={ok} missing={miss}')
-PY
+  echo "== 3. 有人在容器里操作吗（docker exec）=="
+  ps -eo user,pid,etimes,args 2>/dev/null | grep -E '[d]ocker (exec|attach)|[d]ocker-compose' | head -10 || echo "无 docker exec/attach 进程"
 
-  echo "== 4. /home 空间与 inode =="
-  df -h /home | tail -1
-  df -i /home | tail -1
-  du -sh /home/docker 2>/dev/null
+  echo "== 4. 容器状态、重启次数、启动时间 =="
+  docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.RunningFor}}' 2>&1
+  echo "-- 重启计数 --"
+  for c in $(docker ps --format '{{.Names}}' 2>/dev/null); do
+    docker inspect -f '{{.Name}} restarts={{.RestartCount}} started={{.State.StartedAt}}' "$c" 2>/dev/null
+  done | head -12
 
-  echo "== 5. 旧库是否被占用（无进程应持有）=="
-  fuser -vm /home/docker 2>&1 | head -5 || echo "no holder"
-  ls /home/docker/*.pid /run/docker*.pid 2>/dev/null
+  echo "== 5. 容器资源占用（谁在真干活）=="
+  timeout 20 docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.PIDs}}' 2>&1 | head -12
 
-  echo "== 6. 当前 e2b/harbor 是否在活跃使用 =="
-  docker ps --format '{{.Names}}\t{{.Status}}' 2>&1
-  echo "-- 最近日志写入时间 --"
-  for c in harbor-core harbor-db registry postgres; do
-    docker inspect -f '{{.Name}} started={{.State.StartedAt}} restarts={{.RestartCount}}' "$c" 2>/dev/null
+  echo "== 6. 每个运行中容器的日志最后一条时间 =="
+  for c in $(docker ps --format '{{.Names}}' 2>/dev/null | head -6); do
+    echo "---- $c"
+    docker logs --timestamps --tail 2 "$c" 2>&1 | tail -2
   done
-  docker logs --tail 5 harbor-core 2>&1 | tail -5
 
-  echo "== 7. 当前 daemon 与 GPU =="
-  docker info 2>&1 | grep -iE 'Docker Root Dir|Containers|Images'
-  uname -r
-  timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | grep -E 'BI-V150|MiB /' | head -6
+  echo "== 7. docker 事件（最近 15 分钟）=="
+  timeout 10 docker events --since 15m --until 1s --format '{{.Time}} {{.Type}} {{.Action}} {{.Actor.Attributes.name}}' 2>&1 | tail -20
+
+  echo "== 8. 当前 data-root 下最近被写的文件 =="
+  find /data-ssd/docker -xdev -mmin -30 -type f 2>/dev/null | head -15
+  echo "-- /data-ssd 顶层最近写入 --"
+  find /data-ssd -maxdepth 2 -xdev -mmin -30 -type f 2>/dev/null | head -15
+
+  echo "== 9. 网络连接（有人在访问服务端口吗）=="
+  ss -tn state established 2>/dev/null | grep -E ':(2900|30443|5432|8080|8443|1514)\b' | head -10 || echo "无相关连接"
+
+  echo "== 10. GPU 上有没有别人在跑 =="
+  timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | sed -n '/Processes/,$p' | head -12
+
+  echo "== 11. 系统负载与近期登录尝试 =="
+  uptime
+  journalctl -u sshd --since '2 hours ago' --no-pager 2>/dev/null | grep -iE 'Accepted|session opened' | tail -8
 
   # ---- 命令结束 ----
 
