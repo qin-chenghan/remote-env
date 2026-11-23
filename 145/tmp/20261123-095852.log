@@ -1,0 +1,87 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-23T01:58:52Z
+
++ echo '== 1. 逐文件同步（宿主 → 容器）=='
+== 1. 逐文件同步（宿主 → 容器）==
++ for f in $FILES
++ cp -f /home/qch/tools/remote-env/145/../litehost_toolkit/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ docker cp /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh vllm:/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ echo 'synced: vllmBench_lite_base_mock.sh'
+synced: vllmBench_lite_base_mock.sh
++ for f in $FILES
++ cp -f /home/qch/tools/remote-env/145/../litehost_toolkit/vllmBench_lite_base_timeline.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh
++ docker cp /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh vllm:/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh
++ echo 'synced: vllmBench_lite_base_timeline.sh'
+synced: vllmBench_lite_base_timeline.sh
++ for f in $FILES
++ cp -f /home/qch/tools/remote-env/145/../litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ docker cp /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh vllm:/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ echo 'synced: vllmBench_lite_base_mock_py312.sh'
+synced: vllmBench_lite_base_mock_py312.sh
++ for f in $FILES
++ cp -f /home/qch/tools/remote-env/145/../litehost_toolkit/vllmBench_lite_base_timeline_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh
++ docker cp /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh vllm:/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh
++ echo 'synced: vllmBench_lite_base_timeline_py312.sh'
+synced: vllmBench_lite_base_timeline_py312.sh
++ docker exec vllm chmod +x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh
++ echo '== 2. 四份脚本关键改动确认（容器内）=='
+== 2. 四份脚本关键改动确认（容器内）==
++ for f in $FILES
++ echo '-- vllmBench_lite_base_mock.sh'
+-- vllmBench_lite_base_mock.sh
++ docker exec vllm bash -lc 'bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh && echo syntax-ok'
+syntax-ok
++ docker exec vllm bash -lc 'grep -c '\''SERVER_WAIT_TIMEOUT'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh; grep -o '\''TORCHINDUCTOR_CACHE_DIR=[^}]*'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh | head -1'
+4
+TORCHINDUCTOR_CACHE_DIR="${TORCHINDUCTOR_CACHE_DIR:-/home/huawei_ts_program/inductor_cache_py311
++ for f in $FILES
++ echo '-- vllmBench_lite_base_timeline.sh'
+-- vllmBench_lite_base_timeline.sh
++ docker exec vllm bash -lc 'bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh && echo syntax-ok'
+syntax-ok
++ docker exec vllm bash -lc 'grep -c '\''SERVER_WAIT_TIMEOUT'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh; grep -o '\''TORCHINDUCTOR_CACHE_DIR=[^}]*'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh | head -1'
+4
+TORCHINDUCTOR_CACHE_DIR="${TORCHINDUCTOR_CACHE_DIR:-/home/huawei_ts_program/inductor_cache_py311
++ for f in $FILES
++ echo '-- vllmBench_lite_base_mock_py312.sh'
+-- vllmBench_lite_base_mock_py312.sh
++ docker exec vllm bash -lc 'bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh && echo syntax-ok'
+syntax-ok
++ docker exec vllm bash -lc 'grep -c '\''SERVER_WAIT_TIMEOUT'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh; grep -o '\''TORCHINDUCTOR_CACHE_DIR=[^}]*'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh | head -1'
+4
+TORCHINDUCTOR_CACHE_DIR="${TORCHINDUCTOR_CACHE_DIR:-/home/huawei_ts_program/inductor_cache_py312
++ for f in $FILES
++ echo '-- vllmBench_lite_base_timeline_py312.sh'
+-- vllmBench_lite_base_timeline_py312.sh
++ docker exec vllm bash -lc 'bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh && echo syntax-ok'
+syntax-ok
++ docker exec vllm bash -lc 'grep -c '\''SERVER_WAIT_TIMEOUT'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh; grep -o '\''TORCHINDUCTOR_CACHE_DIR=[^}]*'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh | head -1'
+4
+TORCHINDUCTOR_CACHE_DIR="${TORCHINDUCTOR_CACHE_DIR:-/home/huawei_ts_program/inductor_cache_py312
++ echo '== 3. 状态 =='
+== 3. 状态 ==
++ ss -ltn
++ grep -E ':(8948|8848)\b'
++ echo '8948/8848 free'
+8948/8848 free
++ docker exec vllm bash -lc 'echo "py311 cache files=$(find /home/huawei_ts_program/inductor_cache_py311 -name '\''*.py'\'' 2>/dev/null | wc -l)"'
+py311 cache files=5
++ echo '== 4. 预热状态 / 启动 =='
+== 4. 预热状态 / 启动 ==
++ docker exec vllm bash -lc 'pgrep -f "vllm[.]entrypoints[.]openai[.]api_server" >/dev/null 2>&1'
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py311_128/summary.csv
++ echo '该 TEST_ID 已完成，不再启动'
+该 TEST_ID 已完成，不再启动
++ docker exec vllm bash -lc 'cut -d, -f2,6,8,11 /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py311_128/summary.csv 2>/dev/null'
+case,output_token_throughput_tok_s,mean_ttft_ms,mean_tpot_ms
+bs8_in128_out128,4163.222399785404,51.20667810435407,1.4610332630182374
++ echo '== 5. 后续 =='
+== 5. 后续 ==
++ echo 日志：/tmp/run_prime_py311_128.log（容器内）
+日志：/tmp/run_prime_py311_128.log（容器内）
++ echo 缓存：/home/huawei_ts_program/inductor_cache_py311（容器内）
+缓存：/home/huawei_ts_program/inductor_cache_py311（容器内）
++ set +x
+
+### exit: 0
