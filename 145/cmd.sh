@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：同步四份脚本（逐文件）→ 检查预热状态；没有在跑就启动 py311 预热。
+# 本次：只读。检查 test（py312）与 test311（py311）两次采集的结果与异常。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -10,14 +10,9 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
-SRC="$DIR/../litehost_toolkit"
-TOOLS=/home/huawei_ts_program/litehost_perf_opt
 C=vllm
-MODEL=/home/model/Qwen3-32B-W8A8
-TEST_ID=prime_py311_128
-LOG=/tmp/run_${TEST_ID}.log
-CACHE=/home/huawei_ts_program/inductor_cache_py311
-FILES="vllmBench_lite_base_mock.sh vllmBench_lite_base_timeline.sh vllmBench_lite_base_mock_py312.sh vllmBench_lite_base_timeline_py312.sh"
+TOOLS=/home/huawei_ts_program/litehost_perf_opt
+VB=$TOOLS/vllmBench
 
 {
   echo "### server: $SERVER"
@@ -28,44 +23,50 @@ FILES="vllmBench_lite_base_mock.sh vllmBench_lite_base_timeline.sh vllmBench_lit
 
   # ---- 命令开始 ----
 
-  echo "== 1. 逐文件同步（宿主 → 容器）=="
-  for f in $FILES; do
-    cp -f "$SRC/$f" "$TOOLS/$f" || exit 1
-    docker cp "$TOOLS/$f" "$C":"$TOOLS/$f" || exit 1
-    echo "synced: $f"
+  echo "== 1. 找 run 目录 =="
+  docker exec "$C" bash -lc "
+    ls -d $VB/test $VB/test311 2>/dev/null
+    ls -d $VB/*test* 2>/dev/null | head -8
+    ls -lt /tmp/run_test*.log 2>/dev/null | head -4
+  " 2>&1 | head -14
+
+  for d in test test311; do
+    echo "== 2.$d 配置与结果 =="
+    docker exec "$C" bash -lc "
+      echo '--- config.txt'; cat $VB/$d/config.txt 2>/dev/null
+      echo '--- summary.csv'; cat $VB/$d/summary.csv 2>/dev/null
+      echo '--- 目录内容'; ls -la $VB/$d 2>/dev/null | head -8
+    " 2>&1 | head -22
   done
-  docker exec "$C" chmod +x "$TOOLS"/vllmBench_lite_base_*.sh
 
-  echo "== 2. 四份脚本关键改动确认（容器内）=="
-  for f in $FILES; do
-    echo "-- $f"
-    docker exec "$C" bash -lc "bash -n $TOOLS/$f && echo syntax-ok"
-    docker exec "$C" bash -lc "grep -c 'SERVER_WAIT_TIMEOUT' $TOOLS/$f; grep -o 'TORCHINDUCTOR_CACHE_DIR=[^}]*' $TOOLS/$f | head -1"
-  done
+  echo "== 3. litehost H/G 报告（若有）=="
+  for d in test test311; do
+    docker exec "$C" bash -lc "
+      if [ -f $VB/$d/host_summary/report.txt ]; then
+        echo '--- $d'; tail -8 $VB/$d/host_summary/report.txt
+      else echo '$d: 无 host_summary'; fi"
+  done 2>&1 | head -24
 
-  echo "== 3. 状态 =="
-  ss -ltn 2>/dev/null | grep -E ':(8948|8848)\b' || echo "8948/8848 free"
-  docker exec "$C" bash -lc "echo \"py311 cache files=\$(find $CACHE -name '*.py' 2>/dev/null | wc -l)\""
+  echo "== 4. server.log 异常 =="
+  for d in test test311; do
+    docker exec "$C" bash -lc "
+      f=$VB/$d/logs/server.log
+      if [ -f \$f ]; then
+        echo '--- $d'
+        grep -niE 'error|traceback|exception|failed' \$f | tail -5
+        grep -cE 'Compiling' \$f || true
+      else echo '$d: 无 server.log'; fi"
+  done 2>&1 | head -20
 
-  echo "== 4. 预热状态 / 启动 =="
-  if docker exec "$C" bash -lc 'pgrep -f "vllm[.]entrypoints[.]openai[.]api_server" >/dev/null 2>&1'; then
-    echo "已有服务在跑，跳过启动"
-    docker exec "$C" bash -lc "grep -E 'inductor_cache=|全部完成' $LOG 2>/dev/null | head -2; tail -3 $LOG 2>/dev/null"
-  elif docker exec "$C" test -f "$TOOLS/vllmBench/$TEST_ID/summary.csv" 2>/dev/null; then
-    echo "该 TEST_ID 已完成，不再启动"
-    docker exec "$C" bash -lc "cut -d, -f2,6,8,11 $TOOLS/vllmBench/$TEST_ID/summary.csv 2>/dev/null"
-  else
-    echo "启动 py311 预热（HOST_MEASURE=off，无等待上限）"
-    docker exec -d "$C" bash -lc "cd $TOOLS && \
-      TEST_ID=$TEST_ID HOST_MEASURE=off MODEL_PATH=$MODEL \
-      nohup bash vllmBench_lite_base_mock.sh > $LOG 2>&1"
-    sleep 30
-    docker exec "$C" bash -lc "grep -E 'PREFIX=|inductor_cache=' $LOG 2>/dev/null | head -3; tail -3 $LOG 2>/dev/null"
-  fi
+  echo "== 5. 缓存现状 =="
+  docker exec "$C" bash -lc '
+    for c in /home/huawei_ts_program/inductor_cache_py311 /home/huawei_ts_program/inductor_cache_py312; do
+      echo "$c files=$(find $c -name "*.py" 2>/dev/null | wc -l)"
+    done'
 
-  echo "== 5. 后续 =="
-  echo "日志：$LOG（容器内）"
-  echo "缓存：$CACHE（容器内）"
+  echo "== 6. 残留进程与端口 =="
+  docker exec "$C" bash -lc 'pgrep -af "vllm[.]entrypoints|bench_driver" | grep -v pgrep || echo none'
+  ss -ltn 2>/dev/null | grep -E ':(8948|8848)\b' || echo "ports free"
 
   # ---- 命令结束 ----
 
