@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。核对两次采集是否用了绑核、是否零编译、以及各自的启动耗时。
+# 本次：只读。确认 3.12 是否有 kperf 插桩，以及两套插桩的确切路径/行号。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,7 +11,8 @@ OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
 C=vllm
-VB=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+F312=/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py
+F311=/opt/corex311/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py
 
 {
   echo "### server: $SERVER"
@@ -22,28 +23,23 @@ VB=/home/huawei_ts_program/litehost_perf_opt/vllmBench
 
   # ---- 命令开始 ----
 
-  for d in test test311; do
-    echo "===== $d ====="
-    echo "-- 绑核情况（server.log 中的 pinned 行）"
-    docker exec "$C" bash -lc "grep -c 'pinned to cpu' $VB/$d/logs/server.log 2>/dev/null; grep -m2 'pinned to cpu' $VB/$d/logs/server.log 2>/dev/null"
-    echo "-- 编译次数（Compiling）"
-    docker exec "$C" bash -lc "grep -c 'Compiling' $VB/$d/logs/server.log 2>/dev/null || echo 0"
-    echo "-- 启动到就绪（server.log 首尾时间）"
-    docker exec "$C" bash -lc "
-      head -1 $VB/$d/logs/server.log 2>/dev/null | cut -c1-60
-      grep -m1 'Application startup complete' $VB/$d/logs/server.log 2>/dev/null | cut -c1-60
-      grep -c 'No available shared memory broadcast' $VB/$d/logs/server.log 2>/dev/null || true
-    "
-    echo "-- mock 指纹"
-    docker exec "$C" bash -lc "grep -m1 'activated' $VB/$d/logs/server.log 2>/dev/null | tail -1"
-  done 2>&1 | head -30
+  echo "== 1. 3.12 套里的 kperf 插桩 =="
+  docker exec "$C" bash -lc "ls -l $F312; sha256sum $F312; grep -n 'kperf' $F312 || echo '3.12: 无 kperf'" 2>&1
 
-  echo "== 缓存与残留 =="
-  docker exec "$C" bash -lc '
-    for c in /home/huawei_ts_program/inductor_cache_py311 /home/huawei_ts_program/inductor_cache_py312; do
-      echo "$c files=$(find $c -name "*.py" 2>/dev/null | wc -l)"
-    done'
-  docker exec "$C" bash -lc 'pgrep -af "vllm[.]entrypoints|bench_driver" | grep -v pgrep || echo none'
+  echo "== 2. 3.11 套（对照）=="
+  docker exec "$C" bash -lc "ls -l $F311; sha256sum $F311; grep -n 'kperf' $F311 || echo '3.11: 无 kperf'" 2>&1
+
+  echo "== 3. 3.12 全树搜索 kperf / 其它插桩标记 =="
+  docker exec "$C" bash -lc "
+    grep -rln 'kperf_start_type' /usr/local/lib/python3.12/site-packages/vllm 2>/dev/null | head -5
+    grep -rln 'kperf\|hotspot_opt\|host_opt' /usr/local/lib/python3.12/site-packages/vllm/v1/executor 2>/dev/null | head -5
+  " 2>&1 | head -8
+
+  echo "== 4. libkperf.so 是否存在 =="
+  docker exec "$C" bash -lc "ls -l /home2/libkperf/libkperf.so 2>&1; nm -D --defined-only /home2/libkperf/libkperf.so 2>/dev/null | grep -m2 kperf_start_type" 2>&1
+
+  echo "== 5. 两套文件差异行数 =="
+  docker exec "$C" bash -lc "diff $F312 $F311 | grep -cE '^[<>]' ; diff $F312 $F311 | grep -E '^[<>].*kperf' || echo 'diff 中无 kperf 行'" 2>&1
 
   # ---- 命令结束 ----
 
