@@ -17,66 +17,47 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # Docker data-root 回切：/data-ssd/docker -> /home/docker（仅重启 dockerd，不重启机器）。
+  # 关闭多流：rmmod + insmod itr_multi_compute_engine=0（203 的模块在 updates/ 下）。
 
-  CUR=/etc/docker/daemon.json
-  BAK=/etc/docker/daemon.json.bak-$TS
-  OLDROOT=/data-ssd/docker
-  NEWROOT=/home/docker
-  SNAP=/home/qch/docker-state-before-$TS.txt
+  K=$(uname -r)
+  MOD="/lib/modules/$K/updates/iluvatar.ko"
 
-  echo "== 1. 切前快照 =="
-  docker ps -a --format '{{.Names}}\t{{.Image}}\t{{.Status}}' > "$SNAP" 2>&1
-  wc -l "$SNAP"
-  cp -a "$CUR" "$BAK"
-  echo "daemon.json 备份: $BAK"
-  cat "$CUR"
-  df -h /home | tail -1
+  echo "== 0. 现状（确认没人用）=="
+  lsmod | grep iluvatar || echo "模块未加载"
+  cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>/dev/null || echo "无参数文件"
+  ls -l "$MOD" 2>&1
+  modinfo -p "$MOD" 2>&1 | grep -i multi || echo "modinfo 无 multi 参数"
+  echo "-- GPU 进程 --"
+  timeout 20 /usr/local/corex/bin/ixsmi 2>&1 | sed -n '/Processes/,$p' | head -10
+  echo "-- 谁打开着设备 --"
+  fuser -vm /dev/iluvatar* 2>&1 | head -10 || echo "无进程占用"
+  echo "-- 相关进程 --"
+  pgrep -af 'vllm.entrypoints|bench_driver|api_server' 2>/dev/null | head -5 || echo "无 vllm/bench 进程"
 
-  echo "== 2. 修改 data-root =="
-  python3 - "$CUR" "$NEWROOT" <<'PY'
-import json, sys
-p, newroot = sys.argv[1], sys.argv[2]
-j = json.load(open(p))
-print("old data-root:", j.get("data-root"))
-j["data-root"] = newroot
-json.dump(j, open(p, "w"), indent=2)
-print("new data-root:", j.get("data-root"))
-PY
-cat "$CUR"
+  echo "== 1. 卸载模块 =="
+  rmmod iluvatar 2>&1
+  echo "rmmod rc=$?"
+  lsmod | grep iluvatar || echo "已卸载"
+  ls /dev/iluvatar* 2>&1 | head -3
 
-  echo "== 3. 重启 dockerd =="
-  systemctl restart docker
-  echo "restart rc=$?"
-  sleep 5
-  systemctl is-active docker
-  docker info 2>&1 | grep -iE 'Docker Root Dir|Storage Driver|Images:|Containers:'
+  echo "== 2. 以 multi_engine=0 重新加载 =="
+  insmod "$MOD" itr_multi_compute_engine=0 2>&1
+  echo "insmod rc=$?"
 
-  echo "== 4. 验证旧库镜像 =="
-  docker images 2>&1 | head -25
-  echo "-- corex 相关 --"
-  docker images 2>&1 | grep -iE 'corex|vllm' | head -10
-  echo "-- 容器 --"
-  docker ps -a --format '{{.Names}}\t{{.Status}}' 2>&1 | head -20
+  echo "== 3. 验证 =="
+  lsmod | grep iluvatar
+  cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>&1
+  dmesg 2>/dev/null | grep 'is okay' | tail -8
+  ls -l /dev/iluvatar* 2>&1 | head -5
+  timeout 20 /usr/local/corex/bin/ixsmi --query-gpu=index,memory.used --format=csv,noheader 2>&1 | head -8
 
-  echo "== 5. 启动 corex5-py311 =="
-  timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | sed -n '/Processes/,$p' | head -8
-  docker start corex5-py311 2>&1
-  echo "start rc=$?"
-  sleep 5
-  docker ps --filter name=corex5-py311 --format '{{.Names}}\t{{.Status}}'
-
-  echo "== 6. 容器内 GPU 验证 =="
+  echo "== 4. 容器内是否仍可用 =="
+  docker ps --filter name=corex5-py311 --format '{{.Names}}\t{{.Status}}' 2>&1
   docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 \
     /opt/corex311/bin/python -c 'import torch;print("devices",torch.cuda.device_count())' 2>&1 | tail -3
-  docker exec corex5-py311 bash -lc 'ls /dev/iluvatar* 2>/dev/null | wc -l' 2>&1
 
-  echo "== 7. 空间与状态 =="
+  echo "== 5. 收尾 =="
   df -h /home | tail -1
-  docker info 2>&1 | grep -iE 'Containers:|Running:|Images:'
-
-  echo "== 8. 回滚命令 =="
-  echo "cp $BAK $CUR && systemctl restart docker"
 
   # ---- 命令结束 ----
 
