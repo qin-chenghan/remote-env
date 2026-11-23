@@ -1,0 +1,147 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-23T02:19:53Z
+
++ echo '== 1. 找 run 目录 =='
+== 1. 找 run 目录 ==
++ docker exec vllm bash -lc '
+    ls -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/test /home/huawei_ts_program/litehost_perf_opt/vllmBench/test311 2>/dev/null
+    ls -d /home/huawei_ts_program/litehost_perf_opt/vllmBench/*test* 2>/dev/null | head -8
+    ls -lt /tmp/run_test*.log 2>/dev/null | head -4
+  '
++ head -14
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/test
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/test311
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/test
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/test311
++ for d in test test311
++ echo '== 2.test 配置与结果 =='
+== 2.test 配置与结果 ==
++ docker exec vllm bash -lc '
+      echo '\''--- config.txt'\''; cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/test/config.txt 2>/dev/null
+      echo '\''--- summary.csv'\''; cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/test/summary.csv 2>/dev/null
+      echo '\''--- 目录内容'\''; ls -la /home/huawei_ts_program/litehost_perf_opt/vllmBench/test 2>/dev/null | head -8
+    '
++ head -22
+--- config.txt
+test_id=test
+started=2026-11-23T10:01:51+08:00
+prefix=/usr/local
+multi_engine=unknown
+cpu_range=0-63
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+--- summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+test,bs8_in128_out128,100,3.225952429929748,30.99859721185588,3967.8204431175527,7935.640886235105,51.186245400458574,54.03708998346701,61.37515233247541,1.5518119487742799,1.5302925983876519,1.746550358283722,1.552791244882296,1.5190799604170024,2.0769448962528267
+--- 目录内容
+total 48
+drwxr-xr-x.  6 root root 4096 Nov 23 10:04 .
+drwxr-xr-x. 26 root root 4096 Nov 23 10:12 ..
+-rw-------.  1 root root   79 Nov 23 10:03 bench.process.json
+-rw-r--r--.  1 root root 1032 Nov 23 10:03 bs8_in128_out128.json
+-rw-r--r--.  1 root root  212 Nov 23 10:01 config.txt
+drwxr-xr-x.  2 root root 4096 Nov 23 10:02 control
+drwxr-xr-x.  2 root root 4096 Nov 23 10:04 host_summary
++ for d in test test311
++ echo '== 2.test311 配置与结果 =='
+== 2.test311 配置与结果 ==
++ docker exec vllm bash -lc '
+      echo '\''--- config.txt'\''; cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/test311/config.txt 2>/dev/null
+      echo '\''--- summary.csv'\''; cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/test311/summary.csv 2>/dev/null
+      echo '\''--- 目录内容'\''; ls -la /home/huawei_ts_program/litehost_perf_opt/vllmBench/test311 2>/dev/null | head -8
+    '
++ head -22
+--- config.txt
+test_id=test311
+started=2026-11-23T10:12:25+08:00
+prefix=/opt/corex311
+multi_engine=unknown
+cpu_range=0-63
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+--- summary.csv
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+test311,bs8_in128_out128,100,3.2642003600485623,30.635374355057138,3921.3279174473137,7842.655834894627,53.84748400421813,57.568955002352595,60.762487853644416,1.5586762046569766,1.546384960112316,1.752119114096313,1.5586771448619487,1.531645015347749,1.9438033737242233
+--- 目录内容
+total 48
+drwxr-xr-x.  6 root root 4096 Nov 23 10:14 .
+drwxr-xr-x. 26 root root 4096 Nov 23 10:12 ..
+-rw-------.  1 root root   79 Nov 23 10:13 bench.process.json
+-rw-r--r--.  1 root root 1036 Nov 23 10:13 bs8_in128_out128.json
+-rw-r--r--.  1 root root  218 Nov 23 10:12 config.txt
+drwxr-xr-x.  2 root root 4096 Nov 23 10:13 control
+drwxr-xr-x.  2 root root 4096 Nov 23 10:14 host_summary
++ echo '== 3. litehost H/G 报告（若有）=='
+== 3. litehost H/G 报告（若有）==
++ head -24
++ for d in test test311
++ docker exec vllm bash -lc '
+      if [ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/test/host_summary/report.txt ]; then
+        echo '\''--- test'\''; tail -8 /home/huawei_ts_program/litehost_perf_opt/vllmBench/test/host_summary/report.txt
+      else echo '\''test: 无 host_summary'\''; fi'
+--- test
+  rank1 pid=38302 formal=1716 warmup_excluded=264 T_total=2.316193s S_total=0.000221s H_total=2.315972s G_total=0.901172s H+G=3.217144s
+  rank2 pid=38303 formal=1716 warmup_excluded=264 T_total=2.327951s S_total=0.000254s H_total=2.327697s G_total=0.889456s H+G=3.217153s
+  rank3 pid=38304 formal=1716 warmup_excluded=264 T_total=2.332427s S_total=0.000260s H_total=2.332167s G_total=0.884986s H+G=3.217153s
+  all_formal       four_rank_mean_total_H_s=2.354710
+  graph_formal     four_rank_mean_total_H_s=1.720465
+  no_graph_formal  four_rank_mean_total_H_s=0.634245
+FINAL [bs8_in128_out128]: four_rank_mean_total_H_s = 2.354710 s G_total=0.862440s H+G=3.217150s (all_formal, no warmup, gap sync NOT subtracted)
+
++ for d in test test311
++ docker exec vllm bash -lc '
+      if [ -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/test311/host_summary/report.txt ]; then
+        echo '\''--- test311'\''; tail -8 /home/huawei_ts_program/litehost_perf_opt/vllmBench/test311/host_summary/report.txt
+      else echo '\''test311: 无 host_summary'\''; fi'
+--- test311
+  rank1 pid=41574 formal=1715 warmup_excluded=264 T_total=2.351925s S_total=0.000227s H_total=2.351699s G_total=0.904464s H+G=3.256163s
+  rank2 pid=41575 formal=1715 warmup_excluded=264 T_total=2.147736s S_total=0.000181s H_total=2.147554s G_total=1.108663s H+G=3.256217s
+  rank3 pid=41576 formal=1715 warmup_excluded=264 T_total=2.371878s S_total=0.000184s H_total=2.371694s G_total=0.884457s H+G=3.256151s
+  all_formal       four_rank_mean_total_H_s=2.319731
++ echo '== 4. server.log 异常 =='
+== 4. server.log 异常 ==
++ head -20
++ for d in test test311
++ docker exec vllm bash -lc '
+      f=/home/huawei_ts_program/litehost_perf_opt/vllmBench/test/logs/server.log
+      if [ -f $f ]; then
+        echo '\''--- test'\''
+        grep -niE '\''error|traceback|exception|failed'\'' $f | tail -5
+        grep -cE '\''Compiling'\'' $f || true
+      else echo '\''test: 无 server.log'\''; fi'
+--- test
+512:(Worker_TP3 pid=38304) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+514:(Worker_TP3 pid=38304) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+516:(Worker_TP3 pid=38304) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+518:(Worker_TP3 pid=38304) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+520:(Worker_TP3 pid=38304) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+0
++ for d in test test311
++ docker exec vllm bash -lc '
+      f=/home/huawei_ts_program/litehost_perf_opt/vllmBench/test311/logs/server.log
+      if [ -f $f ]; then
+        echo '\''--- test311'\''
++ echo '== 5. 缓存现状 =='
+== 5. 缓存现状 ==
++ docker exec vllm bash -lc '
+    for c in /home/huawei_ts_program/inductor_cache_py311 /home/huawei_ts_program/inductor_cache_py312; do
+      echo "$c files=$(find $c -name "*.py" 2>/dev/null | wc -l)"
+    done'
+/home/huawei_ts_program/inductor_cache_py311 files=5
+/home/huawei_ts_program/inductor_cache_py312 files=5
++ echo '== 6. 残留进程与端口 =='
+== 6. 残留进程与端口 ==
++ docker exec vllm bash -lc 'pgrep -af "vllm[.]entrypoints|bench_driver" | grep -v pgrep || echo none'
+none
++ ss -ltn
++ grep -E ':(8948|8848)\b'
++ echo 'ports free'
+ports free
++ set +x
+
+### exit: 0
