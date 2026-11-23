@@ -1,0 +1,231 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-23T08:11:24Z
+
++ echo '== 1. 谁登录着 =='
+== 1. 谁登录着 ==
++ who
+root     pts/0        2026-11-23 16:01 (141.1.203.216)
+root     pts/2        2026-11-23 16:05 (141.1.61.31)
++ echo '-- w --'
+-- w --
++ w
++ head -10
+ 16:11:24 up 34 min,  2 users,  load average: 1.86, 2.78, 2.55
+USER     TTY        LOGIN@   IDLE   JCPU   PCPU WHAT
+root     pts/0     16:01    9:08   0.05s  0.05s -bash
+root     pts/2     16:05    3.00s  0.51s  0.47s w
++ echo '-- 最近登录 --'
+-- 最近登录 --
++ last -n 10
++ head -12
+computin pts/3        141.5.136.199    Mon Nov 23 16:11 - 16:11  (00:00)
+computin pts/3        141.3.208.72     Mon Nov 23 16:08 - 16:08  (00:00)
+computin pts/3        141.5.136.199    Mon Nov 23 16:06 - 16:06  (00:00)
+root     pts/2        141.1.61.31      Mon Nov 23 16:05   still logged in
+computin pts/2        141.3.208.72     Mon Nov 23 16:02 - 16:02  (00:00)
+root     pts/0        141.1.203.216    Mon Nov 23 16:01   still logged in
+computin pts/1        141.1.34.53      Mon Nov 23 15:52 - 15:52  (00:00)
+computin pts/1        141.3.208.72     Mon Nov 23 15:41 - 15:41  (00:00)
+f0097704 pts/0        141.5.158.211    Mon Nov 23 15:40 - 16:00  (00:20)
+reboot   system boot  6.6.0-159.4.21.1 Mon Nov 23 15:37   still running
+
+wtmp begins Sun Nov  1 03:17:16 2026
++ echo '== 2. SSH 会话与远端来源 =='
+== 2. SSH 会话与远端来源 ==
++ ss -tnp
++ grep -E ':22\b'
++ head -10
+ESTAB      0      0               141.61.11.203:22               141.1.61.31:59489 users:(("sshd",pid=173939,fd=4),("sshd",pid=173935,fd=4))
+ESTAB      0      0               141.61.11.203:22              141.1.67.152:53189 users:(("sshd",pid=109856,fd=4),("sshd",pid=109852,fd=4))
+ESTAB      0      0               141.61.11.203:22             141.1.203.216:51080 users:(("sshd",pid=138106,fd=4),("sshd",pid=138067,fd=4))
++ ps -eo user,pid,etimes,args
++ grep '[s]shd:'
++ head -10
+root        9568    2013 sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups
+root      109852     668 sshd: root [priv]
+root      109856     668 sshd: root@notty
+root      138067     569 sshd: root [priv]
+root      138106     569 sshd: root@pts/0
+root      173935     350 sshd: root [priv]
+root      173939     350 sshd: root@pts/2
++ echo '== 3. 有人在容器里操作吗（docker exec）=='
+== 3. 有人在容器里操作吗（docker exec）==
++ ps -eo user,pid,etimes,args
++ grep -E '[d]ocker (exec|attach)|[d]ocker-compose'
++ head -10
++ echo '无 docker exec/attach 进程'
+无 docker exec/attach 进程
++ echo '== 4. 容器状态、重启次数、启动时间 =='
+== 4. 容器状态、重启次数、启动时间 ==
++ docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.RunningFor}}'
+NAMES                                        STATUS                             CREATED
+start-e4cac28e-d26d-9028-7b23-df7b94f925f5   Up 33 minutes                      33 minutes ago
+harbor-core                                  Up 16 seconds (health: starting)   2 days ago
+registryctl                                  Up 33 minutes (healthy)            2 days ago
+harbor-db                                    Up 33 minutes (healthy)            2 days ago
+harbor-log                                   Up 33 minutes (healthy)            2 days ago
+postgres                                     Up 33 minutes                      2 days ago
++ echo '-- 重启计数 --'
+-- 重启计数 --
++ head -12
+++ docker ps --format '{{.Names}}'
++ for c in $(docker ps --format '{{.Names}}' 2> /dev/null)
++ docker inspect -f '{{.Name}} restarts={{.RestartCount}} started={{.State.StartedAt}}' start-e4cac28e-d26d-9028-7b23-df7b94f925f5
++ for c in $(docker ps --format '{{.Names}}' 2> /dev/null)
++ docker inspect -f '{{.Name}} restarts={{.RestartCount}} started={{.State.StartedAt}}' harbor-core
++ for c in $(docker ps --format '{{.Names}}' 2> /dev/null)
++ docker inspect -f '{{.Name}} restarts={{.RestartCount}} started={{.State.StartedAt}}' registryctl
++ for c in $(docker ps --format '{{.Names}}' 2> /dev/null)
++ docker inspect -f '{{.Name}} restarts={{.RestartCount}} started={{.State.StartedAt}}' harbor-db
++ for c in $(docker ps --format '{{.Names}}' 2> /dev/null)
++ docker inspect -f '{{.Name}} restarts={{.RestartCount}} started={{.State.StartedAt}}' harbor-log
++ for c in $(docker ps --format '{{.Names}}' 2> /dev/null)
++ docker inspect -f '{{.Name}} restarts={{.RestartCount}} started={{.State.StartedAt}}' postgres
+/start-e4cac28e-d26d-9028-7b23-df7b94f925f5 restarts=0 started=2026-11-23T07:38:10.684877284Z
+/harbor-core restarts=30 started=2026-11-23T08:11:09.723203383Z
+/registryctl restarts=0 started=2026-11-23T07:38:00.755554381Z
+/harbor-db restarts=0 started=2026-11-23T07:38:00.852338547Z
+/harbor-log restarts=0 started=2026-11-23T07:38:00.604071645Z
+/postgres restarts=0 started=2026-11-23T07:37:59.980325047Z
++ echo '== 5. 容器资源占用（谁在真干活）=='
+== 5. 容器资源占用（谁在真干活）==
++ timeout 20 docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.PIDs}}'
++ head -12
+NAME                                         CPU %     MEM USAGE / LIMIT     NET I/O          PIDS
+start-e4cac28e-d26d-9028-7b23-df7b94f925f5   0.28%     12.72MiB / 2GiB       0B / 0B          6
+harbor-core                                  0.00%     18.55MiB / 720.1GiB   656B / 0B        17
+registryctl                                  0.00%     20.21MiB / 720.1GiB   1.52kB / 0B      41
+harbor-db                                    0.00%     17.59MiB / 720.1GiB   1.45kB / 0B      6
+harbor-log                                   0.00%     13.25MiB / 720.1GiB   354kB / 91.8kB   11
+postgres                                     0.00%     25.78MiB / 720.1GiB   259kB / 303kB    6
++ echo '== 6. 每个运行中容器的日志最后一条时间 =='
+== 6. 每个运行中容器的日志最后一条时间 ==
+++ docker ps --format '{{.Names}}'
+++ head -6
++ for c in $(docker ps --format '{{.Names}}' 2> /dev/null | head -6)
++ echo '---- start-e4cac28e-d26d-9028-7b23-df7b94f925f5'
+---- start-e4cac28e-d26d-9028-7b23-df7b94f925f5
++ docker logs --timestamps --tail 2 start-e4cac28e-d26d-9028-7b23-df7b94f925f5
++ tail -2
+2026-11-23T07:38:10.872588932Z 1:M 23 Nov 2026 07:38:10.872 * Server initialized
+2026-11-23T07:38:10.872616082Z 1:M 23 Nov 2026 07:38:10.872 * Ready to accept connections tcp
++ for c in $(docker ps --format '{{.Names}}' 2> /dev/null | head -6)
++ echo '---- harbor-core'
+---- harbor-core
++ docker logs --timestamps --tail 2 harbor-core
++ tail -2
+2026-11-23T08:11:22.372650037Z 2026-11-23T08:11:22Z [ERROR] [/lib/cache/cache.go:126]: failed to ping redis://redis:6379?idle_timeout_seconds=30, retry after 3.86289255s : dial tcp: lookup redis on 127.0.0.11:53: server misbehaving
+2026-11-23T08:11:26.331841240Z 2026-11-23T08:11:26Z [ERROR] [/lib/cache/cache.go:126]: failed to ping redis://redis:6379?idle_timeout_seconds=30, retry after 10s : dial tcp: lookup redis on 127.0.0.11:53: server misbehaving
++ for c in $(docker ps --format '{{.Names}}' 2> /dev/null | head -6)
++ echo '---- registryctl'
+---- registryctl
++ docker logs --timestamps --tail 2 registryctl
++ tail -2
+2026-11-23T08:10:34.430432469Z 127.0.0.1 - - [23/Nov/2026:08:10:34 +0000] "GET /api/health HTTP/1.1" 200 9
+2026-11-23T08:11:04.487362316Z 127.0.0.1 - - [23/Nov/2026:08:11:04 +0000] "GET /api/health HTTP/1.1" 200 9
++ for c in $(docker ps --format '{{.Names}}' 2> /dev/null | head -6)
++ echo '---- harbor-db'
+---- harbor-db
++ docker logs --timestamps --tail 2 harbor-db
++ tail -2
+2026-11-23T07:43:01.192389896Z 2026-11-23 07:43:01.192 UTC [7] LOG:  checkpoint starting: time
+2026-11-23T07:43:01.195087354Z 2026-11-23 07:43:01.195 UTC [7] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.003 s; sync files=2, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=0 kB
++ for c in $(docker ps --format '{{.Names}}' 2> /dev/null | head -6)
++ echo '---- harbor-log'
+---- harbor-log
++ docker logs --timestamps --tail 2 harbor-log
++ tail -2
++ for c in $(docker ps --format '{{.Names}}' 2> /dev/null | head -6)
++ echo '---- postgres'
+---- postgres
++ docker logs --timestamps --tail 2 postgres
++ tail -2
+2026-11-23T07:43:00.336108454Z 2026-11-23 07:43:00.335 UTC [27] LOG:  checkpoint starting: time
+2026-11-23T07:43:00.338213733Z 2026-11-23 07:43:00.338 UTC [27] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.003 s; sync files=3, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=0 kB; lsn=0/AEABED8, redo lsn=0/AEABE80
++ echo '== 7. docker 事件（最近 15 分钟）=='
+== 7. docker 事件（最近 15 分钟）==
++ timeout 10 docker events --since 15m --until 1s --format '{{.Time}} {{.Type}} {{.Action}} {{.Actor.Attributes.name}}'
++ tail -20
+1795421468 container exec_die harbor-core
+1795421469 network disconnect harbor_harbor
+1795421469 container die harbor-core
+1795421469 network connect harbor_harbor
+1795421469 container start harbor-core
+1795421471 container create start-c35d5459-fd8f-f167-232f-7b2aa7be14f0
+1795421471 network connect host
+1795421471 container start start-c35d5459-fd8f-f167-232f-7b2aa7be14f0
+1795421473 network disconnect host
+1795421473 container die start-c35d5459-fd8f-f167-232f-7b2aa7be14f0
+1795421473 container destroy start-c35d5459-fd8f-f167-232f-7b2aa7be14f0
+1795421478 container create start-c35d5459-fd8f-f167-232f-7b2aa7be14f0
+1795421478 network connect host
+1795421478 container start start-c35d5459-fd8f-f167-232f-7b2aa7be14f0
+1795421480 network disconnect host
+1795421480 container die start-c35d5459-fd8f-f167-232f-7b2aa7be14f0
+1795421480 container destroy start-c35d5459-fd8f-f167-232f-7b2aa7be14f0
+1795421486 container create start-c35d5459-fd8f-f167-232f-7b2aa7be14f0
+1795421486 network connect host
+1795421486 container start start-c35d5459-fd8f-f167-232f-7b2aa7be14f0
++ echo '== 8. 当前 data-root 下最近被写的文件 =='
+== 8. 当前 data-root 下最近被写的文件 ==
++ find /data-ssd/docker -xdev -mmin -30 -type f
++ head -15
+/data-ssd/docker/containers/75bd7e1345d067f4eca01df5a443bf0809966492257ce7470a143340829d2a84/container-cached.log
+/data-ssd/docker/containers/5170461e0a93ff918c1d474c9586b114eb38684b5040ea435390db60603001bc/5170461e0a93ff918c1d474c9586b114eb38684b5040ea435390db60603001bc-json.log
+/data-ssd/docker/containers/e74a73c14849abddeecdd1e66d9d32b9794b2aaa01d114b47b697f110f22e290/hosts
+/data-ssd/docker/containers/e74a73c14849abddeecdd1e66d9d32b9794b2aaa01d114b47b697f110f22e290/container-cached.log
+/data-ssd/docker/containers/e74a73c14849abddeecdd1e66d9d32b9794b2aaa01d114b47b697f110f22e290/hostname
+/data-ssd/docker/containers/e74a73c14849abddeecdd1e66d9d32b9794b2aaa01d114b47b697f110f22e290/hostconfig.json
+/data-ssd/docker/containers/e74a73c14849abddeecdd1e66d9d32b9794b2aaa01d114b47b697f110f22e290/resolv.conf
+/data-ssd/docker/containers/e74a73c14849abddeecdd1e66d9d32b9794b2aaa01d114b47b697f110f22e290/resolv.conf.hash
+/data-ssd/docker/containers/e74a73c14849abddeecdd1e66d9d32b9794b2aaa01d114b47b697f110f22e290/config.v2.json
+/data-ssd/docker/containers/15e52dcf961a2b82bb8245c8729cb1c48e04a495e41987ba5a79064d56ea4066/container-cached.log
+/data-ssd/docker/volumes/c581db5a16be281589fb6b3387f04d123cc524f54e167dc50b8c1cbfead46cf2/_data/pg_subtrans/0000
+/data-ssd/docker/volumes/c581db5a16be281589fb6b3387f04d123cc524f54e167dc50b8c1cbfead46cf2/_data/global/pg_control
+/data-ssd/docker/volumes/c581db5a16be281589fb6b3387f04d123cc524f54e167dc50b8c1cbfead46cf2/_data/pg_xact/0000
+/data-ssd/docker/volumes/c581db5a16be281589fb6b3387f04d123cc524f54e167dc50b8c1cbfead46cf2/_data/pg_wal/00000001000000000000000A
+/data-ssd/docker/volumes/c581db5a16be281589fb6b3387f04d123cc524f54e167dc50b8c1cbfead46cf2/_data/pg_logical/replorigin_checkpoint
++ echo '-- /data-ssd 顶层最近写入 --'
+-- /data-ssd 顶层最近写入 --
++ find /data-ssd -maxdepth 2 -xdev -mmin -30 -type f
++ head -15
++ echo '== 9. 网络连接（有人在访问服务端口吗）=='
+== 9. 网络连接（有人在访问服务端口吗）==
++ ss -tn state established
++ grep -E ':(2900|30443|5432|8080|8443|1514)\b'
++ head -10
+0      0                   127.0.0.1:1514               127.0.0.1:50792       
+0      0                   127.0.0.1:35496              127.0.0.1:1514        
+0      0                   127.0.0.1:35520              127.0.0.1:1514        
+0      0                   127.0.0.1:1514               127.0.0.1:35520       
+0      0                   127.0.0.1:50792              127.0.0.1:1514        
+0      0                   127.0.0.1:1514               127.0.0.1:35496       
++ echo '== 10. GPU 上有没有别人在跑 =='
+== 10. GPU 上有没有别人在跑 ==
++ timeout 20 /usr/local/corex-5.0.0/bin/ixsmi
++ sed -n '/Processes/,$p'
++ head -12
+| Processes:                                                          GPU Memory |
+|  GPU        PID      Process name                                   Usage(MiB) |
+|================================================================================|
+|  No running processes found                                                    |
++--------------------------------------------------------------------------------+
++ echo '== 11. 系统负载与近期登录尝试 =='
+== 11. 系统负载与近期登录尝试 ==
++ uptime
+ 16:11:29 up 34 min,  2 users,  load average: 1.95, 2.78, 2.55
++ journalctl -u sshd --since '2 hours ago' --no-pager
++ grep -iE 'Accepted|session opened'
++ tail -8
+Nov 23 16:06:35 localhost.localdomain sudo[187292]: pam_unix(sudo:session): session opened for user root(uid=0) by computinglab_collector_monitor(uid=1000)
+Nov 23 16:06:35 localhost.localdomain su[187295]: pam_unix(su-l:session): session opened for user root(uid=0) by computinglab_collector_monitor(uid=0)
+Nov 23 16:08:07 localhost.localdomain sshd[202905]: Accepted password for computinglab_collector_monitor from 141.3.208.72 port 38296 ssh2
+Nov 23 16:08:07 localhost.localdomain sshd[202905]: pam_unix(sshd:session): session opened for user computinglab_collector_monitor(uid=1000) by computinglab_collector_monitor(uid=0)
+Nov 23 16:08:09 localhost.localdomain sudo[203819]: pam_unix(sudo:session): session opened for user root(uid=0) by computinglab_collector_monitor(uid=1000)
+Nov 23 16:08:09 localhost.localdomain su[203822]: pam_unix(su-l:session): session opened for user root(uid=0) by computinglab_collector_monitor(uid=0)
+Nov 23 16:11:05 localhost.localdomain sshd[211661]: Accepted password for computinglab_collector_monitor from 141.5.136.199 port 36246 ssh2
+Nov 23 16:11:05 localhost.localdomain sshd[211661]: pam_unix(sshd:session): session opened for user computinglab_collector_monitor(uid=1000) by computinglab_collector_monitor(uid=0)
++ set +x
+
+### exit: 0
