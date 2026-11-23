@@ -1,0 +1,55 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-23T08:08:45Z
+
++ echo '== 1. 等待完成（最多 12 分钟）=='
+== 1. 等待完成（最多 12 分钟）==
+++ seq 1 24
++ for i in $(seq 1 24)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_1024/summary.csv
++ echo 'summary.csv 已生成'
+summary.csv 已生成
++ break
++ echo '== 2. 日志尾部 =='
+== 2. 日志尾部 ==
++ docker exec vllm bash -lc 'tail -12 /tmp/run_prime_py312_1024.log 2>/dev/null'
+INFO 11-23 16:08:29 [__init__.py:238] Platform plugin iluvatar is activated
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-23 16:08:32 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-23 16:08:32 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+[2026-11-23 16:08:45] ========== 所有 case 最终结果（仅此处打印一次） ==========
++ echo '== 3. 结果 =='
+== 3. 结果 ==
++ docker exec vllm bash -lc 'cut -d, -f2,4,5,6,8,11 /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_1024/summary.csv 2>/dev/null'
+case,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,mean_ttft_ms,mean_tpot_ms
+bs8_in1024_out1024,22.94835141999647,4.357611497654823,4462.194173598538,124.63572740089148,1.6098428726296883
++ echo '== 4. 缓存增量 =='
+== 4. 缓存增量 ==
++ docker exec vllm bash -lc '
+    echo "files=$(find /home/huawei_ts_program/inductor_cache_py312 -name '\''*.py'\'' 2>/dev/null | wc -l)"
+    du -sh /home/huawei_ts_program/inductor_cache_py312 2>/dev/null
+    for f in /home/huawei_ts_program/inductor_cache_py312/*/*.py; do head -1 $f 2>/dev/null; done | sort | uniq -c | head -6
+  '
++ head -12
+files=5
+872K	/home/huawei_ts_program/inductor_cache_py312
+      4 # AOT ID: ['0_inference']
+      1 # AOT ID: ['1_inference']
++ echo '== 5. 残留 =='
+== 5. 残留 ==
++ docker exec vllm bash -lc 'pgrep -af "vllm[.]entrypoints|bench_driver" | grep -v pgrep || echo none'
+none
++ ss -ltn
++ grep -E ':(8948|8848)\b'
++ echo 'ports free'
+ports free
++ set +x
+
+### exit: 0
