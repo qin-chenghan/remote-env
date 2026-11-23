@@ -47,10 +47,9 @@ FILES="vllmBench_lite_base_mock.sh vllmBench_lite_base_timeline.sh vllmBench_lit
   ss -ltn 2>/dev/null | grep -E ':(8948|8848)\b' || echo "8948/8848 free"
   docker exec "$C" bash -lc "echo \"py311 cache before=\$(find $CACHE -name '*.py' 2>/dev/null | wc -l)\""
 
-  echo "== 4. 启动 py311 预热（128/128，HOST_MEASURE=off，无 trace，超时 1800s）=="
+  echo "== 4. 启动 py311 预热（128/128，HOST_MEASURE=off，无 trace，不设等待上限）=="
   docker exec -d "$C" bash -lc "cd $TOOLS && \
     TEST_ID=$TEST_ID HOST_MEASURE=off MODEL_PATH=$MODEL \
-    SERVER_WAIT_TIMEOUT=1800 \
     nohup bash vllmBench_lite_base_mock.sh > $LOG 2>&1"
   sleep 30
   docker exec "$C" bash -lc "
@@ -61,7 +60,7 @@ FILES="vllmBench_lite_base_mock.sh vllmBench_lite_base_timeline.sh vllmBench_lit
   echo "== 5. 后续 =="
   echo "日志：$LOG（容器内）"
   echo "缓存：$CACHE（容器内）"
-  echo "跑完后再执行本文件可查看缓存增量；超时可传 SERVER_WAIT_TIMEOUT=3600"
+  echo "跑完后再执行本文件可查看缓存增量；如需上限可传 SERVER_WAIT_TIMEOUT=3600"
 
   # ---- 命令结束 ----
 
