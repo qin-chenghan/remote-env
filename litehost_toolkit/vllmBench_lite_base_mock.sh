@@ -21,7 +21,7 @@ CASE_INTERVAL="${CASE_INTERVAL:-60}"
 CPU_RANGE="${CPU_RANGE-0-63}"
 HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
 VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
-SERVER_WAIT_TIMEOUT="${SERVER_WAIT_TIMEOUT:-1800}"   # 服务就绪等待上限（秒）
+SERVER_WAIT_TIMEOUT="${SERVER_WAIT_TIMEOUT:-0}"   # 0 = 不设上限，直到服务就绪或进程退出
 HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
 HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
 HOST_MAX_SCOPES="${HOST_MAX_SCOPES:-200000}"
@@ -125,14 +125,19 @@ check_gpu_memory() {
     return 0
 }
 wait_for_server() {
+    # No fixed cap: graph capture on a cold JIT cache can take tens of minutes.
+    # Set SERVER_WAIT_TIMEOUT > 0 to restore a limit.
     local elapsed=0 code
-    while (( elapsed < SERVER_WAIT_TIMEOUT )); do
+    while :; do
         kill -0 "$SERVER_PID" 2>/dev/null || { log "ERROR: 服务已退出，查看 $SERVER_LOG"; return 1; }
         code=$(curl --noproxy '*' -s -o /dev/null -w '%{http_code}' --max-time 2 "http://127.0.0.1:${PORT}/health" 2>/dev/null || true)
         [[ "$code" == 200 ]] && { log "服务就绪 (${elapsed}s)"; return 0; }
+        if (( SERVER_WAIT_TIMEOUT > 0 && elapsed >= SERVER_WAIT_TIMEOUT )); then
+            log "ERROR: 服务启动超时 (${SERVER_WAIT_TIMEOUT}s)"; return 1
+        fi
+        (( elapsed > 0 && elapsed % 300 == 0 )) && log "等待服务中 (${elapsed}s)"
         sleep 5; elapsed=$((elapsed+5))
     done
-    log 'ERROR: 服务启动超时'; return 1
 }
 start_server() {
     # Refuse an occupied port. Never kill an unrelated service by name/port.
