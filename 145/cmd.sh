@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：同步新脚本（超时可配、py311 缓存固定）→ 用 py311 预热 128/128。
+# 本次：同步四份脚本（逐文件）→ 检查预热状态；没有在跑就启动 py311 预热。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -28,39 +28,44 @@ FILES="vllmBench_lite_base_mock.sh vllmBench_lite_base_timeline.sh vllmBench_lit
 
   # ---- 命令开始 ----
 
-  echo "== 1. 同步脚本（宿主 + 容器）=="
-  cp -f "$SRC"/$FILES "$TOOLS"/
-  chmod +x "$TOOLS"/vllmBench_lite_base_*.sh
-  for f in $FILES; do docker cp "$TOOLS/$f" "$C":"$TOOLS/$f"; done
+  echo "== 1. 逐文件同步（宿主 → 容器）=="
+  for f in $FILES; do
+    cp -f "$SRC/$f" "$TOOLS/$f" || exit 1
+    docker cp "$TOOLS/$f" "$C":"$TOOLS/$f" || exit 1
+    echo "synced: $f"
+  done
   docker exec "$C" chmod +x "$TOOLS"/vllmBench_lite_base_*.sh
 
-  echo "== 2. 关键改动确认（容器内）=="
-  docker exec "$C" bash -lc "
-    grep -n 'SERVER_WAIT_TIMEOUT' $TOOLS/vllmBench_lite_base_mock.sh | head -3
-    grep -n 'TORCHINDUCTOR_CACHE_DIR\|VLLM_RPC_TIMEOUT' $TOOLS/vllmBench_lite_base_mock.sh | head -4
-  "
-  docker exec "$C" bash -lc "bash -n $TOOLS/vllmBench_lite_base_mock.sh && echo mock-syntax-ok"
-  docker exec "$C" bash -lc "bash -n $TOOLS/vllmBench_lite_base_timeline.sh && echo timeline-syntax-ok"
+  echo "== 2. 四份脚本关键改动确认（容器内）=="
+  for f in $FILES; do
+    echo "-- $f"
+    docker exec "$C" bash -lc "bash -n $TOOLS/$f && echo syntax-ok"
+    docker exec "$C" bash -lc "grep -c 'SERVER_WAIT_TIMEOUT' $TOOLS/$f; grep -o 'TORCHINDUCTOR_CACHE_DIR=[^}]*' $TOOLS/$f | head -1"
+  done
 
-  echo "== 3. 前置检查 =="
-  docker exec "$C" bash -lc 'pgrep -af "vllm[.]entrypoints[.]openai[.]api_server|bench_driver" | grep -v pgrep || echo "no server/bench"'
+  echo "== 3. 状态 =="
   ss -ltn 2>/dev/null | grep -E ':(8948|8848)\b' || echo "8948/8848 free"
-  docker exec "$C" bash -lc "echo \"py311 cache before=\$(find $CACHE -name '*.py' 2>/dev/null | wc -l)\""
+  docker exec "$C" bash -lc "echo \"py311 cache files=\$(find $CACHE -name '*.py' 2>/dev/null | wc -l)\""
 
-  echo "== 4. 启动 py311 预热（128/128，HOST_MEASURE=off，无 trace，不设等待上限）=="
-  docker exec -d "$C" bash -lc "cd $TOOLS && \
-    TEST_ID=$TEST_ID HOST_MEASURE=off MODEL_PATH=$MODEL \
-    nohup bash vllmBench_lite_base_mock.sh > $LOG 2>&1"
-  sleep 30
-  docker exec "$C" bash -lc "
-    grep -E 'PREFIX=|inductor_cache=|SERVER_WAIT' $LOG 2>/dev/null | head -3
-    tail -3 $LOG 2>/dev/null
-  "
+  echo "== 4. 预热状态 / 启动 =="
+  if docker exec "$C" bash -lc 'pgrep -f "vllm[.]entrypoints[.]openai[.]api_server" >/dev/null 2>&1'; then
+    echo "已有服务在跑，跳过启动"
+    docker exec "$C" bash -lc "grep -E 'inductor_cache=|全部完成' $LOG 2>/dev/null | head -2; tail -3 $LOG 2>/dev/null"
+  elif docker exec "$C" test -f "$TOOLS/vllmBench/$TEST_ID/summary.csv" 2>/dev/null; then
+    echo "该 TEST_ID 已完成，不再启动"
+    docker exec "$C" bash -lc "cut -d, -f2,6,8,11 $TOOLS/vllmBench/$TEST_ID/summary.csv 2>/dev/null"
+  else
+    echo "启动 py311 预热（HOST_MEASURE=off，无等待上限）"
+    docker exec -d "$C" bash -lc "cd $TOOLS && \
+      TEST_ID=$TEST_ID HOST_MEASURE=off MODEL_PATH=$MODEL \
+      nohup bash vllmBench_lite_base_mock.sh > $LOG 2>&1"
+    sleep 30
+    docker exec "$C" bash -lc "grep -E 'PREFIX=|inductor_cache=' $LOG 2>/dev/null | head -3; tail -3 $LOG 2>/dev/null"
+  fi
 
   echo "== 5. 后续 =="
   echo "日志：$LOG（容器内）"
   echo "缓存：$CACHE（容器内）"
-  echo "跑完后再执行本文件可查看缓存增量；如需上限可传 SERVER_WAIT_TIMEOUT=3600"
 
   # ---- 命令结束 ----
 
