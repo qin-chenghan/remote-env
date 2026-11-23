@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。定位 vllm_qemu_err.log 并提取关键内容（不整文件倾倒）。
+# 本次：同步新脚本（超时可配、py311 缓存固定）→ 用 py311 预热 128/128。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,6 +9,15 @@ SERVER="$(basename "$DIR")"
 TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
+
+SRC="$DIR/../litehost_toolkit"
+TOOLS=/home/huawei_ts_program/litehost_perf_opt
+C=vllm
+MODEL=/home/model/Qwen3-32B-W8A8
+TEST_ID=prime_py311_128
+LOG=/tmp/run_${TEST_ID}.log
+CACHE=/home/huawei_ts_program/inductor_cache_py311
+FILES="vllmBench_lite_base_mock.sh vllmBench_lite_base_timeline.sh vllmBench_lite_base_mock_py312.sh vllmBench_lite_base_timeline_py312.sh"
 
 {
   echo "### server: $SERVER"
@@ -19,29 +28,40 @@ mkdir -p "$DIR/tmp"
 
   # ---- 命令开始 ----
 
-  echo "== 1. 定位文件（宿主）=="
-  find /home /tmp /var/tmp /var/log -maxdepth 6 -name 'vllm_qemu_err.log' 2>/dev/null | head -5
+  echo "== 1. 同步脚本（宿主 + 容器）=="
+  cp -f "$SRC"/$FILES "$TOOLS"/
+  chmod +x "$TOOLS"/vllmBench_lite_base_*.sh
+  for f in $FILES; do docker cp "$TOOLS/$f" "$C":"$TOOLS/$f"; done
+  docker exec "$C" chmod +x "$TOOLS"/vllmBench_lite_base_*.sh
 
-  echo "== 2. 定位文件（vllm 容器内）=="
-  docker exec vllm bash -lc \
-    'find /home /tmp /root -maxdepth 6 -name "vllm_qemu_err.log" 2>/dev/null | head -5' 2>&1 | head -6
+  echo "== 2. 关键改动确认（容器内）=="
+  docker exec "$C" bash -lc "
+    grep -n 'SERVER_WAIT_TIMEOUT' $TOOLS/vllmBench_lite_base_mock.sh | head -3
+    grep -n 'TORCHINDUCTOR_CACHE_DIR\|VLLM_RPC_TIMEOUT' $TOOLS/vllmBench_lite_base_mock.sh | head -4
+  "
+  docker exec "$C" bash -lc "bash -n $TOOLS/vllmBench_lite_base_mock.sh && echo mock-syntax-ok"
+  docker exec "$C" bash -lc "bash -n $TOOLS/vllmBench_lite_base_timeline.sh && echo timeline-syntax-ok"
 
-  echo "== 3. 汇总每个找到的文件 =="
-  for f in $(find /home /tmp /var/tmp -maxdepth 6 -name 'vllm_qemu_err.log' 2>/dev/null | head -3); do
-    echo "=== $f"
-    ls -lh "$f"
-    wc -l "$f"
-    echo '-- 前 20 行 --'
-    head -20 "$f"
-    echo '-- 最后 40 行 --'
-    tail -40 "$f"
-    echo '-- 关键行（ERROR/Traceback/qemu/fatal/signal/killed）--'
-    grep -niE 'error|traceback|qemu|fatal|signal|killed|abort|SIGSEGV|SIGILL|SIGBUS' "$f" | tail -30
-  done
+  echo "== 3. 前置检查 =="
+  docker exec "$C" bash -lc 'pgrep -af "vllm[.]entrypoints[.]openai[.]api_server|bench_driver" | grep -v pgrep || echo "no server/bench"'
+  ss -ltn 2>/dev/null | grep -E ':(8948|8848)\b' || echo "8948/8848 free"
+  docker exec "$C" bash -lc "echo \"py311 cache before=\$(find $CACHE -name '*.py' 2>/dev/null | wc -l)\""
 
-  echo "== 4. 宿主/容器里 qemu 相关进程 =="
-  ps -eo pid,etime,pcpu,args 2>/dev/null | grep -iE "qemu|vllm" | grep -v grep | cut -c1-150 | head -8
-  docker exec vllm bash -lc 'ps -eo pid,etime,pcpu,args | grep -iE "qemu|vllm" | grep -v grep | cut -c1-150 | head -8' 2>&1 | head -8
+  echo "== 4. 启动 py311 预热（128/128，HOST_MEASURE=off，无 trace，超时 1800s）=="
+  docker exec -d "$C" bash -lc "cd $TOOLS && \
+    TEST_ID=$TEST_ID HOST_MEASURE=off MODEL_PATH=$MODEL \
+    SERVER_WAIT_TIMEOUT=1800 \
+    nohup bash vllmBench_lite_base_mock.sh > $LOG 2>&1"
+  sleep 30
+  docker exec "$C" bash -lc "
+    grep -E 'PREFIX=|inductor_cache=|SERVER_WAIT' $LOG 2>/dev/null | head -3
+    tail -3 $LOG 2>/dev/null
+  "
+
+  echo "== 5. 后续 =="
+  echo "日志：$LOG（容器内）"
+  echo "缓存：$CACHE（容器内）"
+  echo "跑完后再执行本文件可查看缓存增量；超时可传 SERVER_WAIT_TIMEOUT=3600"
 
   # ---- 命令结束 ----
 
