@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。分析 145 上 test / test311 的 litehost per-scope 数据（prefill/decode 时间结构）。
+# 本次：检查 vllm 容器是否空闲；空闲则用 py312 预热 1024/1024 的 inductor 缓存。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,7 +11,12 @@ OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
 C=vllm
-VB=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+TOOLS=/home/huawei_ts_program/litehost_perf_opt
+MODEL=/home/model/Qwen3-32B-W8A8
+CACHE=/home/huawei_ts_program/inductor_cache_py312
+TEST_ID=prime_py312_1024
+LOG=/tmp/run_${TEST_ID}.log
+CASES=/tmp/cases_1024.txt
 
 {
   echo "### server: $SERVER"
@@ -22,71 +27,30 @@ VB=/home/huawei_ts_program/litehost_perf_opt/vllmBench
 
   # ---- 命令开始 ----
 
-  echo "== 1. 定位 rank0 scope CSV =="
-  for d in test test311; do
-    docker exec "$C" bash -lc "ls -l $VB/$d/litehost/*/rank0_pid*.csv 2>/dev/null | head -2" 2>&1
-  done
+  echo "== 1. 是否有人在跑 =="
+  docker exec "$C" bash -lc 'pgrep -af "vllm[.]entrypoints[.]openai[.]api_server|bench_driver" | grep -v pgrep || echo "no server/bench"'
+  ss -ltn 2>/dev/null | grep -E ':(8948|8848)\b' || echo "8948/8848 free"
 
-  echo "== 2. 写分析脚本 =="
-  docker exec "$C" bash -lc 'cat > /tmp/analyze_scopes.py <<"PY"
-import csv, sys, collections, re
+  if docker exec "$C" bash -lc 'pgrep -f "vllm[.]entrypoints[.]openai[.]api_server" >/dev/null 2>&1' \
+     || ss -ltn 2>/dev/null | grep -qE ':(8948|8848)\b'; then
+    echo "!! 容器里有服务在跑，不启动预热"
+  else
+    echo "== 2. 预热前缓存 =="
+    docker exec "$C" bash -lc "echo files=\$(find $CACHE -name '*.py' 2>/dev/null | wc -l)"
 
-path = sys.argv[1]
-rows = list(csv.DictReader(open(path)))
-t0 = float(rows[0]["start_ns"])
-cats = collections.Counter()
-tl = []
-durs = collections.defaultdict(list)
-for r in rows:
-    m = re.match(r"execute_context_(\d+)\((\d+)\)_generation_(\d+)\((\d+)\)", r["scope"])
-    if not m:
-        cats["other"] += 1
-        continue
-    cr, ct, gr, gt = map(int, m.groups())
-    if cr == 0 and gr > 0:
-        k = "decode"
-    elif gr == 0 and cr > 0:
-        k = "prefill"
-    elif cr > 0 and gr > 0:
-        k = "mixed"
-    else:
-        k = "other"
-    cats[k] += 1
-    dur = (float(r["end_ns"]) - float(r["start_ns"])) / 1e6
-    durs[k].append(dur)
-    tl.append(((float(r["start_ns"]) - t0) / 1e6, k, cr, ct, gr, gt))
+    echo "== 3. 准备 cases 文件并启动 py312 预热 =="
+    docker exec "$C" bash -lc "printf '1024 1024\n' > $CASES; cat $CASES"
+    docker exec -d "$C" bash -lc "cd $TOOLS && \
+      CASES_FILE=$CASES TEST_ID=$TEST_ID HOST_MEASURE=off MODEL_PATH=$MODEL \
+      nohup bash vllmBench_lite_base_mock_py312.sh > $LOG 2>&1"
+    sleep 30
+    docker exec "$C" bash -lc "grep -E 'PREFIX=|inductor_cache=|case 最终结果|====' $LOG 2>/dev/null | head -4; tail -3 $LOG 2>/dev/null"
 
-print("rows:", len(rows))
-print("categories:", dict(cats))
-for k in ("prefill", "mixed", "decode"):
-    if durs[k]:
-        print(f"{k}: n={len(durs[k])} mean_dur={sum(durs[k])/len(durs[k]):.2f}ms max={max(durs[k]):.2f}ms")
-
-print("time buckets (0.5s): prefill/mixed/decode")
-b = collections.defaultdict(collections.Counter)
-for off, k, *_ in tl:
-    b[int(off // 500)][k] += 1
-for i in sorted(b):
-    c = b[i]
-    pre=c["prefill"]; mix=c["mixed"]; dec=c["decode"]
-    print("  %.1f-%.1fs  prefill=%3d mixed=%3d decode=%4d" % (i*0.5, i*0.5+0.5, pre, mix, dec))
-
-print("first 15 scopes:")
-for off, k, cr, ct, gr, gt in sorted(tl)[:15]:
-    print(f"  +{off:8.1f}ms {k:8s} ctx={cr}({ct}) gen={gr}({gt})")
-PY
-echo written'
-
-  echo "== 3. 逐个分析 =="
-  for d in test test311; do
-    f=$(docker exec "$C" bash -lc "ls $VB/$d/litehost/*/rank0_pid*.csv 2>/dev/null | head -1")
-    echo "===== $d  ($f)"
-    if [ -n "$f" ]; then
-      docker exec "$C" /usr/local/bin/python3 /tmp/analyze_scopes.py "$f" 2>&1 | head -40
-    else
-      echo "无 rank0 csv"
-    fi
-  done
+    echo "== 4. 后续 =="
+    echo "日志：$LOG"
+    echo "结果：$TOOLS/vllmBench/$TEST_ID"
+    echo "缓存：$CACHE"
+  fi
 
   # ---- 命令结束 ----
 
