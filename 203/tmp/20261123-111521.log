@@ -1,0 +1,384 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-23T03:15:21Z
+
++ echo '== 1. 主机与内核 =='
+== 1. 主机与内核 ==
++ hostname
+localhost.localdomain
++ uname -r
+6.6.0-132.0.0.111.oe2403sp3.x86_64
++ getconf PAGE_SIZE
+4096
++ head -3 /etc/os-release
+NAME="openEuler"
+VERSION="24.03 (LTS-SP4)"
+ID="openEuler"
++ uptime
+ 11:15:21 up 1 day, 23:29, 10 users,  load average: 3.48, 3.33, 3.16
++ echo '== 2. 磁盘与挂载 =='
+== 2. 磁盘与挂载 ==
++ df -hT
++ head -25
+Filesystem                     Type      Size  Used Avail Use% Mounted on
+/dev/mapper/openeuler-root     ext4       69G   62G  3.8G  95% /
+devtmpfs                       devtmpfs  4.0M     0  4.0M   0% /dev
+tmpfs                          tmpfs     361G     0  361G   0% /dev/shm
+tmpfs                          tmpfs     4.0M     0  4.0M   0% /sys/fs/cgroup
+efivarfs                       efivarfs  128K   90K   34K  73% /sys/firmware/efi/efivars
+tmpfs                          tmpfs     145G  697M  144G   1% /run
+tmpfs                          tmpfs     361G  809M  360G   1% /tmp
+/dev/sde2                      ext4      974M  356M  551M  40% /boot
+/dev/sde1                      vfat      599M  6.2M  593M   2% /boot/efi
+/dev/mapper/ubuntu--vg-e2bwork ext4      590G  215M  560G   1% /data-ext4
+/dev/mapper/openeuler-home     ext4      804G  757G  6.8G 100% /home
+/dev/sdb                       ext4      1.1T  8.4G  1.1T   1% /data-hdd
+/dev/sdc1                      xfs       744G   16G  729G   3% /data/cubelet
+/dev/mapper/ubuntu--vg-e2bsys  ext4      118G   11G  101G  10% /data-ssd
+tmpfs                          tmpfs      65G     0   65G   0% /mnt/snapshot-cache
+overlay                        overlay   118G   11G  101G  10% /data-ssd/docker/overlay2/eff48a0e7004abe930353e5ac2ee82051a7a882114e5721ba814915f191df624/merged
+overlay                        overlay   118G   11G  101G  10% /data-ssd/docker/overlay2/38e88c32402c8cae770b136515d854f8ce6aeb4b3643c92beb7818307bc75ed5/merged
+overlay                        overlay   118G   11G  101G  10% /data-ssd/docker/overlay2/e0e0ccf637effe1bca9c760ecb8f4a8a417102befd314ccd0366e0f852bdc1aa/merged
+overlay                        overlay   118G   11G  101G  10% /data-ssd/docker/overlay2/18def0145cab6cd7f9fff6dabad2228b9e2b74a11ed98adf9e073729a54c2639/merged
+overlay                        overlay   118G   11G  101G  10% /data-ssd/docker/overlay2/e9bcafde511e2099870a2ccfb902cd402191fc00b5fcd4fde674320d579d7f01/merged
+overlay                        overlay   118G   11G  101G  10% /data-ssd/docker/overlay2/02d32f26bf8996bc6202fa4f5e2dba3ddf7316e8e6703956b6fa3a7e1670f683/merged
+overlay                        overlay   118G   11G  101G  10% /data-ssd/docker/overlay2/26288280f9b35ee3e232a72d1f88bf6a3a92f0d4f7644bea206b5846436ad4e6/merged
+overlay                        overlay   118G   11G  101G  10% /data-ssd/docker/overlay2/e20be60411ecccb68c818ca788b486b4b2e9374fb61ef2b0bfbeee4857719bc3/merged
+overlay                        overlay   118G   11G  101G  10% /data-ssd/docker/overlay2/acf6bd6aeb058ace402bf372182dfa9b404023508c19827de8b63d92fb2405b6/merged
++ lsblk
++ head -30
+NAME                      MAJ:MIN  RM   SIZE RO TYPE MOUNTPOINTS
+sda                         8:0     0 893.8G  0 disk 
+├─sda1                      8:1     0     1G  0 part 
+├─sda2                      8:2     0     2G  0 part 
+└─sda3                      8:3     0 890.7G  0 part 
+  ├─ubuntu--vg-ubuntu--lv 253:2     0   100G  0 lvm  
+  ├─ubuntu--vg-e2bwork    253:4     0   600G  0 lvm  /orchestrator
+  │                                                  /data-ext4
+  └─ubuntu--vg-e2bsys     253:5     0   120G  0 lvm  /data-ssd
+sdb                         8:16    0   1.1T  0 disk /data-hdd
+sdc                         8:32    0 744.1G  0 disk 
+└─sdc1                      8:33    0 743.8G  0 part /data/cubelet
+sdd                         8:48    0 893.8G  0 disk 
+sde                         8:64    0 893.3G  0 disk 
+├─sde1                      8:65    0   600M  0 part /boot/efi
+├─sde2                      8:66    0     1G  0 part /boot
+└─sde3                      8:67    0 891.7G  0 part 
+  ├─openeuler-root        253:0     0    70G  0 lvm  /
+  ├─openeuler-swap        253:1     0     4G  0 lvm  [SWAP]
+  └─openeuler-home        253:3     0 817.7G  0 lvm  /home
+nbd0                       43:0     0     0B  0 disk 
+nbd1                       43:1     0     0B  0 disk 
+nbd2                       43:2     0     0B  0 disk 
+nbd3                       43:3     0     0B  0 disk 
+nbd4                       43:4     0     0B  0 disk 
+nbd5                       43:5     0     0B  0 disk 
+nbd6                       43:6     0     0B  0 disk 
+nbd7                       43:7     0     0B  0 disk 
+nbd8                       43:8     0     0B  0 disk 
+nbd9                       43:9     0     0B  0 disk 
++ echo '== 3. docker 配置与状态 =='
+== 3. docker 配置与状态 ==
++ systemctl is-active docker
+active
++ systemctl is-enabled docker
+enabled
++ cat /etc/docker/daemon.json
+{
+  "data-root": "/data-ssd/docker",
+  "insecure-registries": [
+    "swr.cn-north-4.myhuaweicloud.com",
+    "downloads.unstructured.io",
+    "cr.metax-tech.com",
+    "registry-1.docker.io",
+    "pub-registry1.metax-tech.com"
+  ],
+  "registry-mirrors": [
+    "https://docker.xuanyuan.me",
+    "https://docker.1ms.run",
+    "https://docker.m.daocloud.io"
+  ],
+  "runtimes": {
+    "nvidia": {
+      "args": [],
+      "path": "nvidia-container-runtime"
+    }
+  }
+}
++ docker info
++ grep -iE 'Docker Root Dir|Storage Driver|Images:|Containers:|Server Version'
++ head -8
+ Containers: 13
+ Images: 21
+ Server Version: 25.0.5
+ Storage Driver: overlay2
+ Docker Root Dir: /data-ssd/docker
++ echo '== 4. 当前 docker 可见内容 =='
+== 4. 当前 docker 可见内容 ==
++ docker images
++ head -20
+REPOSITORY                                           TAG             IMAGE ID       CREATED         SIZE
+141.61.11.203:30443/e2b-orchestration/client-proxy   2630fit         d48ae9479c81   44 hours ago    150MB
+141.61.11.203:30443/e2b-orchestration/api            2630fit         8a7c75b6af2c   44 hours ago    382MB
+141.61.11.203:30443/e2b-orchestration/e2b-webhook    latest          4bf2d1d596b8   45 hours ago    89.1MB
+141.61.11.203:30443/e2b-orchestration/ubuntu         22.04-e2b2630   222f5f0d0c1c   4 weeks ago     293MB
+ubuntu                                               22.04-e2b2630   222f5f0d0c1c   4 weeks ago     293MB
+141.61.11.203:30443/e2b-orchestration/busybox        latest          aaef90e06523   6 months ago    4.45MB
+busybox                                              latest          aaef90e06523   6 months ago    4.45MB
+openeuler-24.03-lts-sp3                              latest          588b0fc53316   10 months ago   173MB
+141.61.11.203:30443/e2b-orchestration/redis          7.4.4-alpine    7ff232a1fe04   18 months ago   41.4MB
+redis                                                7.4.4-alpine    7ff232a1fe04   18 months ago   41.4MB
+goharbor/harbor-exporter                             v2.13.0         0be56feff492   19 months ago   127MB
+goharbor/redis-photon                                v2.13.0         7c0d9781ab12   19 months ago   166MB
+goharbor/trivy-adapter-photon                        v2.13.0         f2b4d5497558   19 months ago   381MB
+goharbor/harbor-registryctl                          v2.13.0         bbd957df71d6   19 months ago   162MB
+goharbor/registry-photon                             v2.13.0         fa23989bf194   19 months ago   85.9MB
+goharbor/nginx-photon                                v2.13.0         c922d86a7218   19 months ago   151MB
+goharbor/harbor-log                                  v2.13.0         463b8f469e21   19 months ago   164MB
+goharbor/harbor-jobservice                           v2.13.0         112a1616822d   19 months ago   174MB
+goharbor/harbor-core                                 v2.13.0         b90fcb27fd54   19 months ago   197MB
++ docker ps -a
++ head -20
+CONTAINER ID   IMAGE                                                        COMMAND                  CREATED        STATUS                  PORTS                                                                                    NAMES
+d7c7e48eb480   141.61.11.203:30443/e2b-orchestration/api:2630fit            "/api --port 3000"       44 hours ago   Up 44 hours                                                                                                      start-c35d5459-fd8f-f167-232f-7b2aa7be14f0
+5ce3b46e5921   141.61.11.203:30443/e2b-orchestration/client-proxy:2630fit   "/client-proxy"          44 hours ago   Up 44 hours                                                                                                      start-1c1c410a-3b8b-be80-9a15-7a535463ebd9
+e857a6b0138a   141.61.11.203:30443/e2b-orchestration/redis:7.4.4-alpine     "docker-entrypoint.s…"   45 hours ago   Up 45 hours                                                                                                      start-e4cac28e-d26d-9028-7b23-df7b94f925f5
+58bfac23447a   goharbor/nginx-photon:v2.13.0                                "nginx -g 'daemon of…"   45 hours ago   Up 45 hours (healthy)   0.0.0.0:2900->8080/tcp, :::2900->8080/tcp, 0.0.0.0:30443->8443/tcp, :::30443->8443/tcp   nginx
+327782e712a9   goharbor/harbor-jobservice:v2.13.0                           "/harbor/entrypoint.…"   45 hours ago   Up 45 hours (healthy)                                                                                            harbor-jobservice
+e74a73c14849   goharbor/harbor-core:v2.13.0                                 "/harbor/entrypoint.…"   45 hours ago   Up 45 hours (healthy)                                                                                            harbor-core
+e621e79b3254   goharbor/harbor-portal:v2.13.0                               "nginx -g 'daemon of…"   45 hours ago   Up 45 hours (healthy)                                                                                            harbor-portal
+669c3e19581d   goharbor/registry-photon:v2.13.0                             "/home/harbor/entryp…"   45 hours ago   Up 45 hours (healthy)                                                                                            registry
+15e52dcf961a   goharbor/harbor-registryctl:v2.13.0                          "/home/harbor/start.…"   45 hours ago   Up 45 hours (healthy)                                                                                            registryctl
+a0fd351a78e1   goharbor/redis-photon:v2.13.0                                "redis-server /etc/r…"   45 hours ago   Up 45 hours (healthy)                                                                                            redis
+75bd7e1345d0   goharbor/harbor-db:v2.13.0                                   "/docker-entrypoint.…"   45 hours ago   Up 45 hours (healthy)                                                                                            harbor-db
+6ccc2d54d207   goharbor/harbor-log:v2.13.0                                  "/bin/sh -c /usr/loc…"   45 hours ago   Up 45 hours (healthy)   127.0.0.1:1514->10514/tcp                                                                harbor-log
+5170461e0a93   postgres:latest                                              "docker-entrypoint.s…"   45 hours ago   Up 45 hours             0.0.0.0:5432->5432/tcp, :::5432->5432/tcp                                                postgres
++ echo '== 5. 候选 docker 数据目录 =='
+== 5. 候选 docker 数据目录 ==
++ for d in /var/lib/docker /data-ssd/docker /data/docker /home/docker /mnt/docker /opt/docker /var/lib/containerd
++ '[' -e /var/lib/docker ']'
++ echo '--- /var/lib/docker'
+--- /var/lib/docker
++ ls -ld /var/lib/docker
+drwx--x---. 16 root root 4096 Mar  2  2026 /var/lib/docker
++ du -sh /var/lib/docker
+328K	/var/lib/docker
++ ls /var/lib/docker
++ head -8
+builder
+buildkit
+containerd
+containers
+hooks
+image
+network
+overlay2
++ for d in /var/lib/docker /data-ssd/docker /data/docker /home/docker /mnt/docker /opt/docker /var/lib/containerd
++ '[' -e /data-ssd/docker ']'
++ echo '--- /data-ssd/docker'
+--- /data-ssd/docker
++ ls -ld /data-ssd/docker
+drwx--x---. 12 root root 4096 Nov 21 14:22 /data-ssd/docker
++ du -sh /data-ssd/docker
+5.9G	/data-ssd/docker
++ ls /data-ssd/docker
++ head -8
+buildkit
+containers
+engine-id
+image
+network
+overlay2
+plugins
+runtimes
++ for d in /var/lib/docker /data-ssd/docker /data/docker /home/docker /mnt/docker /opt/docker /var/lib/containerd
++ '[' -e /data/docker ']'
++ for d in /var/lib/docker /data-ssd/docker /data/docker /home/docker /mnt/docker /opt/docker /var/lib/containerd
++ '[' -e /home/docker ']'
++ echo '--- /home/docker'
+--- /home/docker
++ ls -ld /home/docker
+drwx--x---. 16 root root 4096 Nov 16 15:47 /home/docker
++ du -sh /home/docker
+263G	/home/docker
++ ls /home/docker
++ head -8
+builder
+buildkit
+containerd
+containers
+engine-id
+hooks
+image
+network
++ for d in /var/lib/docker /data-ssd/docker /data/docker /home/docker /mnt/docker /opt/docker /var/lib/containerd
++ '[' -e /mnt/docker ']'
++ for d in /var/lib/docker /data-ssd/docker /data/docker /home/docker /mnt/docker /opt/docker /var/lib/containerd
++ '[' -e /opt/docker ']'
++ for d in /var/lib/docker /data-ssd/docker /data/docker /home/docker /mnt/docker /opt/docker /var/lib/containerd
++ '[' -e /var/lib/containerd ']'
++ echo '--- /var/lib/containerd'
+--- /var/lib/containerd
++ ls -ld /var/lib/containerd
+drwx--x--x. 9 root root 4096 Aug 14 15:42 /var/lib/containerd
++ du -sh /var/lib/containerd
+1.9M	/var/lib/containerd
++ ls /var/lib/containerd
++ head -8
+io.containerd.content.v1.content
+io.containerd.metadata.v1.bolt
+io.containerd.runtime.v1.linux
+io.containerd.runtime.v2.task
+io.containerd.snapshotter.v1.native
+io.containerd.snapshotter.v1.overlayfs
+tmpmounts
++ echo '== 6. 找 overlay2 / docker 目录（限深度）=='
+== 6. 找 overlay2 / docker 目录（限深度）==
++ find / -maxdepth 4 -type d -name overlay2
++ head -10
+/var/lib/docker/overlay2
+/data-hdd/docker/image/overlay2
+/data-hdd/docker/overlay2
+/home/docker/image/overlay2
+/home/docker/overlay2
+/data-ssd/docker/image/overlay2
+/data-ssd/docker/overlay2
++ find / -maxdepth 3 -type d -name docker
++ grep -v '^/proc'
++ head -10
+/var/lib/docker
+/data-hdd/docker
+/home/docker
+/data-ssd/docker
+/usr/libexec/docker
+/etc/docker
+/run/docker
++ echo '== 7. data-ssd 与其它数据盘内容 =='
+== 7. data-ssd 与其它数据盘内容 ==
++ ls -la /data-ssd
++ head -20
+total 60
+drwxr-xr-x  12 root root  4096 Nov 21 17:07 .
+dr-xr-xr-x. 31 root root  4096 Nov 21 15:18 ..
+drwxr-xr-x.  6 root root  4096 Nov 23 10:23 consul
+drwx--x---. 12 root root  4096 Nov 21 14:22 docker
+drwxr-xr-x.  9 root root  4096 Nov 21 14:36 e2b-infra
+drwxr-xr-x.  4 root root  4096 Nov 21 15:54 e2b-scripts
+drwxr-xr-x. 11 root root  4096 Nov 21 16:35 fqy
+drwxr-xr-x.  8 root root  4096 Nov 21 14:23 harbor
+drwxr-xr-x.  5 root root  4096 Nov 21 15:17 kas-bin
+drwx------   2 root root 16384 Nov 21 14:21 lost+found
+drwxr-xr-x.  5 root root  4096 Nov 21 14:24 nomad
+drwxr-xr-x.  5 root root  4096 Nov 21 14:22 odir
++ du -sh /data-ssd/consul /data-ssd/docker /data-ssd/e2b-infra /data-ssd/e2b-scripts /data-ssd/fqy /data-ssd/harbor /data-ssd/kas-bin /data-ssd/lost+found /data-ssd/nomad /data-ssd/odir
++ sort -rh
++ head -15
+5.9G	/data-ssd/docker
+3.4G	/data-ssd/fqy
+2.4G	/data-ssd/e2b-infra
+628M	/data-ssd/harbor
+589M	/data-ssd/kas-bin
+126M	/data-ssd/nomad
+65M	/data-ssd/consul
+3.0M	/data-ssd/e2b-scripts
+16K	/data-ssd/odir
+16K	/data-ssd/lost+found
++ ls -la /data
++ head -15
+total 48
+drwxr-xr-x. 13 root root 4096 Nov 21 16:55 .
+dr-xr-xr-x. 31 root root 4096 Nov 21 15:18 ..
+drwx--x--x.  2 root root 4096 Nov 21 14:24 alloc_mounts
+lrwxrwxrwx.  1 root root   16 Nov 21 14:21 consul -> /data-ssd/consul
+drwxr-xr-x   7 root root  128 Nov 21 11:35 cubelet
+drwxr-xr-x.  3 root root 4096 Aug 22 10:29 CubeMaster
+drwxr-xr-x.  3 root root 4096 Aug 22 14:13 cube-shim
+drwxr-xr-x.  4 root root 4096 Nov 17 14:13 go-cache
+drwxr-xr-x.  3 root root 4096 Apr 21  2026 LlaMa-Factory
+drwxr-xr-x.  3 root root 4096 Apr 21  2026 LLaMA-Factory
+drwxr-xr-x. 11 root root 4096 Aug 22 14:13 log
+lrwxrwxrwx.  1 root root   15 Nov 21 14:21 nomad -> /data-ssd/nomad
+drwxr-xr-x.  2 root root 4096 Nov  5 16:36 output
+drwx------.  2 root root 4096 Nov 18 18:45 ov-perf-analysis
++ echo '== 8. 镜像 tar / 备份 =='
+== 8. 镜像 tar / 备份 ==
++ find /home /data /data-ssd /opt -maxdepth 4 '(' -name '*.tar' -o -name '*.tar.gz' ')' -size +50M
++ head -10
+/home/cyx/ubuntu-aenv-latency-bench-x86.tar
+/home/hc/llm-modelzoo-kunpeng.tar.gz
+/home/hc/go1.26.3.linux-amd64.tar.gz
+/home/xqs/docker-img/openEuler-docker.x86_64-24.tar
+/home/install_claude_linux/claude_linux_files.tar.gz
+/home/install_claude_linux.tar.gz
+/home/j00568090/cube-bench-suite_upstream-amd64-20260716-build-noperf.tar.gz
+/home/j00568090/cube-sandbox-sandbox-code-latest-amd64.tar
+/home/j00568090/cube-sandbox-one-click-v0.5.1-amd64.tar.gz
+/home/j00568090/cube-sandbox-openresty-1.21.4.1-6-alpine-fat-amd64.tar
++ echo '== 9. 仓库与 transfer =='
+== 9. 仓库与 transfer ==
++ ls -l /home/qch/tools/remote-env
++ head -5
+total 24
+drwxr-xr-x. 4 root root 4096 Nov 23 11:15 145
+drwxr-xr-x. 3 root root 4096 Nov 18 15:15 184
+drwxr-xr-x. 4 root root 4096 Nov 23 11:15 203
+drwxr-xr-x. 2 root root 4096 Nov 23 11:15 litehost_toolkit
++ ls /home/qch
++ head -10
+184
+analysis
+env
+kunpeng-affinity-fix
+outputs
+scripts
+tools
+transfer
++ ls /home/qch/transfer
++ head -10
+203opt.zip1
+corex-driver-linux64-5.0.0_x86_64.run
+corex-drv-5.0.0-x86_64
+gpu_worker_184_to_203.patch
+hygon_fix.patch
+litehost_perf
+litehost_perf - 副本.md.zip
+opt.zip1
+scripts_184_to_203.patch
++ echo '== 10. GPU 驱动状态 =='
+== 10. GPU 驱动状态 ==
++ lsmod
++ grep iluvatar
+iluvatar             1802240  0
++ ls /lib/modules
+6.6.0-132.0.0.111.oe2403sp3.x86_64
+6.6.0-145.0.2.142.oe2403sp1.x86_64
+6.6.0-145.3.38.169.oe2403sp3.x86_64
+6.6.0-159.4.21.175.oe2403sp4.x86_64
+6.6.0-72.0.0.76.oe2403sp1.x86_64
++ head -5
++ ls -l /dev/iluvatar0 /dev/iluvatar1 /dev/iluvatar2 /dev/iluvatar3
+crw-rw-rw-. 1 root root 240, 0 Nov 21 14:22 /dev/iluvatar0
+crw-rw-rw-. 1 root root 240, 1 Nov 21 14:22 /dev/iluvatar1
+crw-rw-rw-. 1 root root 240, 2 Nov 21 14:22 /dev/iluvatar2
+crw-rw-rw-. 1 root root 240, 3 Nov 21 14:22 /dev/iluvatar3
+++ uname -r
++ modinfo -F vermagic /lib/modules/6.6.0-132.0.0.111.oe2403sp3.x86_64/updates/iluvatar.ko
+6.6.0-132.0.0.111.oe2403sp3.x86_64 SMP mod_unload modversions 
++ echo '== 11. 空间 =='
+== 11. 空间 ==
++ du -xhd1 /
++ sort -rh
++ head -10
+62G	/
+20G	/data
+19G	/usr
+14G	/opt
+5.2G	/root
+2.2G	/var
+647M	/mnt
+42M	/fc-kernels
+38M	/etc
+12M	/fc-envd
++ set +x
+
+### exit: 0
