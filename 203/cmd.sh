@@ -17,55 +17,66 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 只读：判断是否有人正在使用这台机器 / e2b 那套 docker。
+  # Docker data-root 回切：/data-ssd/docker -> /home/docker（仅重启 dockerd，不重启机器）。
 
-  echo "== 1. 谁登录着 =="
-  who 2>&1
-  echo "-- w --"
-  w 2>&1 | head -10
-  echo "-- 最近登录 --"
-  last -n 10 2>&1 | head -12
+  CUR=/etc/docker/daemon.json
+  BAK=/etc/docker/daemon.json.bak-$TS
+  OLDROOT=/data-ssd/docker
+  NEWROOT=/home/docker
+  SNAP=/home/qch/docker-state-before-$TS.txt
 
-  echo "== 2. SSH 会话与远端来源 =="
-  ss -tnp 2>/dev/null | grep -E ':22\b' | head -10
-  ps -eo user,pid,etimes,args 2>/dev/null | grep '[s]shd:' | head -10
+  echo "== 1. 切前快照 =="
+  docker ps -a --format '{{.Names}}\t{{.Image}}\t{{.Status}}' > "$SNAP" 2>&1
+  wc -l "$SNAP"
+  cp -a "$CUR" "$BAK"
+  echo "daemon.json 备份: $BAK"
+  cat "$CUR"
+  df -h /home | tail -1
 
-  echo "== 3. 有人在容器里操作吗（docker exec）=="
-  ps -eo user,pid,etimes,args 2>/dev/null | grep -E '[d]ocker (exec|attach)|[d]ocker-compose' | head -10 || echo "无 docker exec/attach 进程"
+  echo "== 2. 修改 data-root =="
+  python3 - "$CUR" "$NEWROOT" <<'PY'
+import json, sys
+p, newroot = sys.argv[1], sys.argv[2]
+j = json.load(open(p))
+print("old data-root:", j.get("data-root"))
+j["data-root"] = newroot
+json.dump(j, open(p, "w"), indent=2)
+print("new data-root:", j.get("data-root"))
+PY
+cat "$CUR"
 
-  echo "== 4. 容器状态、重启次数、启动时间 =="
-  docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.RunningFor}}' 2>&1
-  echo "-- 重启计数 --"
-  for c in $(docker ps --format '{{.Names}}' 2>/dev/null); do
-    docker inspect -f '{{.Name}} restarts={{.RestartCount}} started={{.State.StartedAt}}' "$c" 2>/dev/null
-  done | head -12
+  echo "== 3. 重启 dockerd =="
+  systemctl restart docker
+  echo "restart rc=$?"
+  sleep 5
+  systemctl is-active docker
+  docker info 2>&1 | grep -iE 'Docker Root Dir|Storage Driver|Images:|Containers:'
 
-  echo "== 5. 容器资源占用（谁在真干活）=="
-  timeout 20 docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.PIDs}}' 2>&1 | head -12
+  echo "== 4. 验证旧库镜像 =="
+  docker images 2>&1 | head -25
+  echo "-- corex 相关 --"
+  docker images 2>&1 | grep -iE 'corex|vllm' | head -10
+  echo "-- 容器 --"
+  docker ps -a --format '{{.Names}}\t{{.Status}}' 2>&1 | head -20
 
-  echo "== 6. 每个运行中容器的日志最后一条时间 =="
-  for c in $(docker ps --format '{{.Names}}' 2>/dev/null | head -6); do
-    echo "---- $c"
-    docker logs --timestamps --tail 2 "$c" 2>&1 | tail -2
-  done
+  echo "== 5. 启动 corex5-py311 =="
+  timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | sed -n '/Processes/,$p' | head -8
+  docker start corex5-py311 2>&1
+  echo "start rc=$?"
+  sleep 5
+  docker ps --filter name=corex5-py311 --format '{{.Names}}\t{{.Status}}'
 
-  echo "== 7. docker 事件（最近 15 分钟）=="
-  timeout 10 docker events --since 15m --until 1s --format '{{.Time}} {{.Type}} {{.Action}} {{.Actor.Attributes.name}}' 2>&1 | tail -20
+  echo "== 6. 容器内 GPU 验证 =="
+  docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 \
+    /opt/corex311/bin/python -c 'import torch;print("devices",torch.cuda.device_count())' 2>&1 | tail -3
+  docker exec corex5-py311 bash -lc 'ls /dev/iluvatar* 2>/dev/null | wc -l' 2>&1
 
-  echo "== 8. 当前 data-root 下最近被写的文件 =="
-  find /data-ssd/docker -xdev -mmin -30 -type f 2>/dev/null | head -15
-  echo "-- /data-ssd 顶层最近写入 --"
-  find /data-ssd -maxdepth 2 -xdev -mmin -30 -type f 2>/dev/null | head -15
+  echo "== 7. 空间与状态 =="
+  df -h /home | tail -1
+  docker info 2>&1 | grep -iE 'Containers:|Running:|Images:'
 
-  echo "== 9. 网络连接（有人在访问服务端口吗）=="
-  ss -tn state established 2>/dev/null | grep -E ':(2900|30443|5432|8080|8443|1514)\b' | head -10 || echo "无相关连接"
-
-  echo "== 10. GPU 上有没有别人在跑 =="
-  timeout 20 /usr/local/corex-5.0.0/bin/ixsmi 2>&1 | sed -n '/Processes/,$p' | head -12
-
-  echo "== 11. 系统负载与近期登录尝试 =="
-  uptime
-  journalctl -u sshd --since '2 hours ago' --no-pager 2>/dev/null | grep -iE 'Accepted|session opened' | tail -8
+  echo "== 8. 回滚命令 =="
+  echo "cp $BAK $CUR && systemctl restart docker"
 
   # ---- 命令结束 ----
 
