@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：检查 vllm 容器是否空闲；空闲则用 py312 预热 1024/1024 的 inductor 缓存。
+# 本次：只读。等待 py312 1024/1024 预热结束，报告结果与缓存增量。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -12,11 +12,9 @@ mkdir -p "$DIR/tmp"
 
 C=vllm
 TOOLS=/home/huawei_ts_program/litehost_perf_opt
-MODEL=/home/model/Qwen3-32B-W8A8
-CACHE=/home/huawei_ts_program/inductor_cache_py312
 TEST_ID=prime_py312_1024
 LOG=/tmp/run_${TEST_ID}.log
-CASES=/tmp/cases_1024.txt
+CACHE=/home/huawei_ts_program/inductor_cache_py312
 
 {
   echo "### server: $SERVER"
@@ -27,30 +25,31 @@ CASES=/tmp/cases_1024.txt
 
   # ---- 命令开始 ----
 
-  echo "== 1. 是否有人在跑 =="
-  docker exec "$C" bash -lc 'pgrep -af "vllm[.]entrypoints[.]openai[.]api_server|bench_driver" | grep -v pgrep || echo "no server/bench"'
-  ss -ltn 2>/dev/null | grep -E ':(8948|8848)\b' || echo "8948/8848 free"
-
-  if docker exec "$C" bash -lc 'pgrep -f "vllm[.]entrypoints[.]openai[.]api_server" >/dev/null 2>&1' \
-     || ss -ltn 2>/dev/null | grep -qE ':(8948|8848)\b'; then
-    echo "!! 容器里有服务在跑，不启动预热"
-  else
-    echo "== 2. 预热前缓存 =="
-    docker exec "$C" bash -lc "echo files=\$(find $CACHE -name '*.py' 2>/dev/null | wc -l)"
-
-    echo "== 3. 准备 cases 文件并启动 py312 预热 =="
-    docker exec "$C" bash -lc "printf '1024 1024\n' > $CASES; cat $CASES"
-    docker exec -d "$C" bash -lc "cd $TOOLS && \
-      CASES_FILE=$CASES TEST_ID=$TEST_ID HOST_MEASURE=off MODEL_PATH=$MODEL \
-      nohup bash vllmBench_lite_base_mock_py312.sh > $LOG 2>&1"
+  echo "== 1. 等待完成（最多 12 分钟）=="
+  for i in $(seq 1 24); do
+    if docker exec "$C" test -f "$TOOLS/vllmBench/$TEST_ID/summary.csv" 2>/dev/null; then
+      echo "summary.csv 已生成"; break
+    fi
+    [ "$i" -eq 1 ] && echo "等待中（30s/轮）"
     sleep 30
-    docker exec "$C" bash -lc "grep -E 'PREFIX=|inductor_cache=|case 最终结果|====' $LOG 2>/dev/null | head -4; tail -3 $LOG 2>/dev/null"
+  done
 
-    echo "== 4. 后续 =="
-    echo "日志：$LOG"
-    echo "结果：$TOOLS/vllmBench/$TEST_ID"
-    echo "缓存：$CACHE"
-  fi
+  echo "== 2. 日志尾部 =="
+  docker exec "$C" bash -lc "tail -12 $LOG 2>/dev/null"
+
+  echo "== 3. 结果 =="
+  docker exec "$C" bash -lc "cut -d, -f2,4,5,6,8,11 $TOOLS/vllmBench/$TEST_ID/summary.csv 2>/dev/null"
+
+  echo "== 4. 缓存增量 =="
+  docker exec "$C" bash -lc "
+    echo \"files=\$(find $CACHE -name '*.py' 2>/dev/null | wc -l)\"
+    du -sh $CACHE 2>/dev/null
+    for f in $CACHE/*/*.py; do head -1 \$f 2>/dev/null; done | sort | uniq -c | head -6
+  " 2>&1 | head -12
+
+  echo "== 5. 残留 =="
+  docker exec "$C" bash -lc 'pgrep -af "vllm[.]entrypoints|bench_driver" | grep -v pgrep || echo none'
+  ss -ltn 2>/dev/null | grep -E ':(8948|8848)\b' || echo "ports free"
 
   # ---- 命令结束 ----
 
