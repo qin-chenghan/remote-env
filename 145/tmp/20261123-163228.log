@@ -1,0 +1,125 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-23T08:32:28Z
+
++ echo '== 1. 空闲检查 =='
+== 1. 空闲检查 ==
++ docker exec vllm bash -lc 'pgrep -af "vllm[.]entrypoints[.]openai[.]api_server|bench_driver" | grep -v pgrep || echo "no server/bench"'
+no server/bench
++ ss -ltn
++ grep -E ':(8948|8848)\b'
++ echo '8948/8848 free'
+8948/8848 free
++ docker exec vllm bash -lc 'pgrep -f "vllm[.]entrypoints[.]openai[.]api_server" >/dev/null 2>&1'
++ docker exec vllm bash -lc 'echo "cache before=$(find /home/huawei_ts_program/inductor_cache_py312 -name '\''*.py'\'' | wc -l)"'
+cache before=5
++ echo '== 2. 启动剩余 6 case（CASE_INTERVAL=0, verbose）=='
+== 2. 启动剩余 6 case（CASE_INTERVAL=0, verbose）==
++ docker exec vllm bash -lc 'cat > /tmp/cases_rest6.txt <<EOF
+128 1024
+128 2048
+1024 128
+1024 2048
+2048 128
+2048 1024
+EOF
+cat /tmp/cases_rest6.txt'
+128 1024
+128 2048
+1024 128
+1024 2048
+2048 128
+2048 1024
++ docker exec -d vllm bash -lc 'cd /home/huawei_ts_program/litehost_perf_opt &&     CASES_FILE=/tmp/cases_rest6.txt TEST_ID=prime_py312_rest6 HOST_MEASURE=off MODEL_PATH=/home/model/Qwen3-32B-W8A8     CASE_INTERVAL=0 TORCHDYNAMO_VERBOSE=1     nohup bash vllmBench_lite_base_mock_py312.sh > /tmp/run_prime_py312_rest6.log 2>&1'
++ sleep 30
++ docker exec vllm bash -lc 'grep -E '\''PREFIX=|inductor_cache=|CASES:'\'' /tmp/run_prime_py312_rest6.log | head -3; tail -2 /tmp/run_prime_py312_rest6.log'
+[2026-11-23 16:32:28] PREFIX=/usr/local
+[2026-11-23 16:32:28] inductor_cache=/home/huawei_ts_program/inductor_cache_py312 files=5
+[2026-11-23 16:32:53] WARNING: ixsmi 不可用，跳过显存预检
+[2026-11-23 16:32:53] 服务 PID=40360；所有 case 复用；日志=/home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_rest6/logs/server.log
++ echo '== 3. 等待完成（最多 20 分钟）=='
+== 3. 等待完成（最多 20 分钟）==
+++ seq 1 40
++ for i in $(seq 1 40)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_rest6/summary.csv
++ '[' 1 -eq 1 ']'
++ echo 等待中（30s/轮）
+等待中（30s/轮）
++ sleep 30
++ for i in $(seq 1 40)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_rest6/summary.csv
++ '[' 2 -eq 1 ']'
++ sleep 30
++ for i in $(seq 1 40)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_rest6/summary.csv
++ '[' 3 -eq 1 ']'
++ sleep 30
++ for i in $(seq 1 40)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_rest6/summary.csv
++ '[' 4 -eq 1 ']'
++ sleep 30
++ for i in $(seq 1 40)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_rest6/summary.csv
++ '[' 5 -eq 1 ']'
++ sleep 30
++ for i in $(seq 1 40)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_rest6/summary.csv
++ '[' 6 -eq 1 ']'
++ sleep 30
++ for i in $(seq 1 40)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_rest6/summary.csv
++ '[' 7 -eq 1 ']'
++ sleep 30
++ for i in $(seq 1 40)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_rest6/summary.csv
++ '[' 8 -eq 1 ']'
++ sleep 30
++ for i in $(seq 1 40)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_rest6/summary.csv
++ '[' 9 -eq 1 ']'
++ sleep 30
++ for i in $(seq 1 40)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_rest6/summary.csv
++ '[' 10 -eq 1 ']'
++ sleep 30
++ for i in $(seq 1 40)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_rest6/summary.csv
++ '[' 11 -eq 1 ']'
++ sleep 30
++ for i in $(seq 1 40)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_rest6/summary.csv
++ '[' 12 -eq 1 ']'
++ sleep 30
++ for i in $(seq 1 40)
++ docker exec vllm test -f /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_rest6/summary.csv
++ echo 'summary.csv 已生成'
+summary.csv 已生成
++ break
++ echo '== 4. 各 case 结果 =='
+== 4. 各 case 结果 ==
++ docker exec vllm bash -lc 'cut -d, -f2,4,6,8,11 /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_rest6/summary.csv 2>/dev/null'
+case,benchmark_duration_s,output_token_throughput_tok_s,mean_ttft_ms,mean_tpot_ms
+bs8_in1024_out128,4.984695049934089,2567.860194410338,133.93535000272095,1.991408046410148
+bs8_in1024_out2048,42.80588057008572,4784.389370630575,132.55396140157245,1.5488100698084444
+bs8_in128_out1024,20.35444759996608,5030.841514960624,54.258649200201035,1.4809958642177499
+bs8_in128_out2048,40.60830075992271,5043.3038607249955,54.74289879784919,1.5024965626769295
+bs8_in2048_out1024,24.93522846000269,4106.639735194508,227.28817560244352,1.6633251163301004
+bs8_in2048_out128,6.894276020000689,1856.6126396544712,214.58290159935132,2.5372850802620706
++ echo '== 5. 零编译验证 =='
+== 5. 零编译验证 ==
++ docker exec vllm bash -lc 'echo "Compiling lines: $(grep -c '\''Compiling'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_rest6/logs/server.log 2>/dev/null || echo 0)"'
+Compiling lines: 0
+0
++ docker exec vllm bash -lc 'echo "cache after=$(find /home/huawei_ts_program/inductor_cache_py312 -name '\''*.py'\'' | wc -l)"; du -sh /home/huawei_ts_program/inductor_cache_py312 2>/dev/null'
+cache after=5
+872K	/home/huawei_ts_program/inductor_cache_py312
++ echo '== 6. 残留 =='
+== 6. 残留 ==
++ docker exec vllm bash -lc 'pgrep -af "vllm[.]entrypoints|bench_driver" | grep -v pgrep || echo none'
+40360 /usr/local/bin/python3 -m vllm.entrypoints.openai.api_server --host 127.0.0.1 --port 8948 --model /home/model/Qwen3-32B-W8A8 --trust_remote_code --dtype auto --max_model_len 4096 --distributed_executor_backend mp --pipeline_parallel_size 1 --tensor_parallel_size 4 --data_parallel_size 1 --quantization compressed-tensors --gpu_memory_utilization 0.9 --kv_cache_dtype auto --enable_chunked_prefill --compilation-config {"cudagraph_mode":"FULL_DECODE_ONLY", "mode":0} --async-scheduling --no-enable-prefix-caching
++ ss -ltn
++ grep -E ':(8948|8848)\b'
+LISTEN 0      2048            127.0.0.1:8948       0.0.0.0:*          
++ set +x
+
+### exit: 0
