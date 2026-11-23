@@ -1,0 +1,202 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-23T08:06:04Z
+
++ echo '== 1. 当前 daemon 与配置 =='
+== 1. 当前 daemon 与配置 ==
++ docker version --format '{{.Server.Version}}'
+25.0.5
++ docker info
++ grep -iE 'Docker Root Dir|Storage Driver|Images|Containers|Running'
+ Containers: 11
+  Running: 6
+ Images: 20
+ Storage Driver: overlay2
+ Docker Root Dir: /data-ssd/docker
++ cat /etc/docker/daemon.json
+{
+  "data-root": "/data-ssd/docker",
+  "insecure-registries": [
+    "swr.cn-north-4.myhuaweicloud.com",
+    "downloads.unstructured.io",
+    "cr.metax-tech.com",
+    "registry-1.docker.io",
+    "pub-registry1.metax-tech.com"
+  ],
+  "registry-mirrors": [
+    "https://docker.xuanyuan.me",
+    "https://docker.1ms.run",
+    "https://docker.m.daocloud.io"
+  ],
+  "runtimes": {
+    "nvidia": {
+      "args": [],
+      "path": "nvidia-container-runtime"
+    }
+  }
+}
++ systemctl show docker -p ExecStart -p FragmentPath
++ head -5
+ExecStart={ path=/usr/bin/dockerd ; argv[]=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock ; ignore_errors=no ; start_time=[Mon 2026-11-23 15:37:57 CST] ; stop_time=[n/a] ; pid=9856 ; code=(null) ; status=0/0 }
+FragmentPath=/usr/lib/systemd/system/docker.service
++ echo '== 2. 当前 daemon 里在跑什么（切换会停掉这些）=='
+== 2. 当前 daemon 里在跑什么（切换会停掉这些）==
++ docker ps --format '{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'
++ head -20
+start-e4cac28e-d26d-9028-7b23-df7b94f925f5	141.61.11.203:30443/e2b-orchestration/redis:7.4.4-alpine	Up 27 minutes	
+harbor-core	goharbor/harbor-core:v2.13.0	Up 28 seconds (health: starting)	
+registryctl	goharbor/harbor-registryctl:v2.13.0	Up 28 minutes (healthy)	
+harbor-db	goharbor/harbor-db:v2.13.0	Up 28 minutes (healthy)	
+harbor-log	goharbor/harbor-log:v2.13.0	Up 28 minutes (healthy)	127.0.0.1:1514->10514/tcp
+postgres	postgres:latest	Up 28 minutes	0.0.0.0:5432->5432/tcp, :::5432->5432/tcp
++ echo '-- 容器数 --'
+-- 容器数 --
++ docker ps -q
++ wc -l
+6
++ echo '== 3. 旧库结构完整性 =='
+== 3. 旧库结构完整性 ==
++ ls -ld /home/docker
+drwx--x---. 16 root root 4096 Nov 16 15:47 /home/docker
++ for p in image/overlay2/imagedb/content/sha256 image/overlay2/imagedb/metadata/sha256 image/overlay2/layerdb/sha256 overlay2 containers volumes network engine-id
++ '[' -e /home/docker/image/overlay2/imagedb/content/sha256 ']'
+++ ls /home/docker/image/overlay2/imagedb/content/sha256
+++ wc -l
++ printf '%-45s %s\n' image/overlay2/imagedb/content/sha256 72
+image/overlay2/imagedb/content/sha256         72
++ for p in image/overlay2/imagedb/content/sha256 image/overlay2/imagedb/metadata/sha256 image/overlay2/layerdb/sha256 overlay2 containers volumes network engine-id
++ '[' -e /home/docker/image/overlay2/imagedb/metadata/sha256 ']'
+++ ls /home/docker/image/overlay2/imagedb/metadata/sha256
+++ wc -l
++ printf '%-45s %s\n' image/overlay2/imagedb/metadata/sha256 51
+image/overlay2/imagedb/metadata/sha256        51
++ for p in image/overlay2/imagedb/content/sha256 image/overlay2/imagedb/metadata/sha256 image/overlay2/layerdb/sha256 overlay2 containers volumes network engine-id
++ '[' -e /home/docker/image/overlay2/layerdb/sha256 ']'
+++ ls /home/docker/image/overlay2/layerdb/sha256
+++ wc -l
++ printf '%-45s %s\n' image/overlay2/layerdb/sha256 258
+image/overlay2/layerdb/sha256                 258
++ for p in image/overlay2/imagedb/content/sha256 image/overlay2/imagedb/metadata/sha256 image/overlay2/layerdb/sha256 overlay2 containers volumes network engine-id
++ '[' -e /home/docker/overlay2 ']'
+++ ls /home/docker/overlay2
+++ wc -l
++ printf '%-45s %s\n' overlay2 354
+overlay2                                      354
++ for p in image/overlay2/imagedb/content/sha256 image/overlay2/imagedb/metadata/sha256 image/overlay2/layerdb/sha256 overlay2 containers volumes network engine-id
++ '[' -e /home/docker/containers ']'
+++ ls /home/docker/containers
+++ wc -l
++ printf '%-45s %s\n' containers 17
+containers                                    17
++ for p in image/overlay2/imagedb/content/sha256 image/overlay2/imagedb/metadata/sha256 image/overlay2/layerdb/sha256 overlay2 containers volumes network engine-id
++ '[' -e /home/docker/volumes ']'
+++ ls /home/docker/volumes
+++ wc -l
++ printf '%-45s %s\n' volumes 5
+volumes                                       5
++ for p in image/overlay2/imagedb/content/sha256 image/overlay2/imagedb/metadata/sha256 image/overlay2/layerdb/sha256 overlay2 containers volumes network engine-id
++ '[' -e /home/docker/network ']'
+++ ls /home/docker/network
+++ wc -l
++ printf '%-45s %s\n' network 1
+network                                       1
++ for p in image/overlay2/imagedb/content/sha256 image/overlay2/imagedb/metadata/sha256 image/overlay2/layerdb/sha256 overlay2 containers volumes network engine-id
++ '[' -e /home/docker/engine-id ']'
+++ ls /home/docker/engine-id
+++ wc -l
++ printf '%-45s %s\n' engine-id 1
+engine-id                                     1
++ ls /home/docker/image/overlay2/repositories.json
+/home/docker/image/overlay2/repositories.json
++ echo '== 4. 旧库容器状态（元数据）=='
+== 4. 旧库容器状态（元数据）==
++ python3 -
+/vllm_metax_0.19                 running=False status=None image=cr.metax-tech.com/public-ai-release/maca/vllm-metax:0.19.0-m
+/oc-22                           running=False status=None image=7b4b6722a80d
+/ov-perf-retained-e2b8dc3bbb     running=False status=None image=ov-kp-hg:51ba2f244e0887f1672229ffbacff12a2f996aa4
+/corex5-v0.23.0                  running=False status=None image=corex:5.0.0
+/vllm011_kperf                   running=False status=None image=vllm0.11_fj:latest
+/corex5-py311                    running=False status=None image=sha256:438486a0cac34c0f6802d9af065b2e9ca67b7ef1ec9504f0b2432
+/ov-perf-minio                   running=False status=None image=ov-perf-minio:RELEASE.2025-10-15T17-29-55Z
+/vllm011_qwen                    running=False status=None image=vllm0.11_fj:latest
+/oc                              running=False status=None image=1e8198c4a969
+/vllm026_qwen                    running=False status=None image=vllm0.26_fj:latest
+/nvbw-build                      running=False status=None image=nvidia/cuda:13.0.2-devel-ubuntu22.04
+/vllm_011_py312                  running=False status=None image=cr.metax-tech.com/public-ai-release/maca/vllm-metax:0.11.0-m
+/local-registry                  running=False status=None image=registry:2
+/vllm_011_ysl                    running=False status=None image=cr.metax-tech.com/public-ai-release/maca/vllm-metax:0.11.0-m
+/muxi                            running=False status=None image=cr.metax-tech.com/public-ai-release/maca/vllm-metax:0.11.0-m
+/ov-perf                         running=False status=None image=ov-kp-hg:51ba2f244e0887f1672229ffbacff12a2f996aa4
+/mx-qwen3                        running=False status=None image=3d38ee649092
+total=17 running_at_save_time=0
++ echo '== 5. corex5-py311 的镜像与层是否齐 =='
+== 5. corex5-py311 的镜像与层是否齐 ==
++ python3 -
+imagedb exists: True
+layers: 0
+missing layerdb entries: none
+docker_version: 25.0.5
++ echo '== 6. 旧库最后一次写入时间 =='
+== 6. 旧库最后一次写入时间 ==
++ stat -c '%y %n' /home/docker /home/docker/containers
+2026-11-16 15:47:44.965767141 +0800 /home/docker
+2026-11-21 11:35:42.081847260 +0800 /home/docker/containers
++ ls -lt /home/docker/containers
++ head -3
+total 68
+drwx--x---. 4 root root 4096 Nov 21 11:36 47f6115ceabc1968555174338a027d658e1b0a690bbd2ade010bc3697b8041cd
+drwx--x---. 4 root root 4096 Nov 21 11:35 ff15d2242dd4e0700606d8b9b704309dcef8a9e62e6b5410e627b8b01122b86b
++ echo '== 7. 空间 =='
+== 7. 空间 ==
++ df -h /home /data-ssd /data-hdd /data-ext4
++ tail -5
+Filesystem                      Size  Used Avail Use% Mounted on
+/dev/mapper/openeuler-home      804G  757G  6.8G 100% /home
+/dev/mapper/ubuntu--vg-e2bsys   118G   11G  101G  10% /data-ssd
+/dev/sde                        1.1T  2.6G  1.1T   1% /data-hdd
+/dev/mapper/ubuntu--vg-e2bwork  590G  215M  560G   1% /data-ext4
++ du -sh /home/docker
+263G	/home/docker
++ echo '== 8. GPU 就绪度（切完要能起 corex5-py311）=='
+== 8. GPU 就绪度（切完要能起 corex5-py311）==
++ uname -r
+6.6.0-159.4.21.175.oe2403sp4.x86_64
++ head -5
++ ls -l /dev/iluvatar0 /dev/iluvatar1 /dev/iluvatar2 /dev/iluvatar3
+crw-rw-rw-. 1 root root 240, 0 Nov 23 15:37 /dev/iluvatar0
+crw-rw-rw-. 1 root root 240, 1 Nov 23 15:37 /dev/iluvatar1
+crw-rw-rw-. 1 root root 240, 2 Nov 23 15:37 /dev/iluvatar2
+crw-rw-rw-. 1 root root 240, 3 Nov 23 15:37 /dev/iluvatar3
++ lsmod
++ grep iluvatar
+iluvatar             1802240  0
++ timeout 20 /usr/local/corex-5.0.0/bin/ixsmi
++ grep -E 'BI-V150|MiB /'
++ head -6
+| 0    Iluvatar BI-V150            | 00000000:10:00.0     | 500MHz    1600MHz    |
+| N/A  36C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
+| 1    Iluvatar BI-V150            | 00000000:13:00.0     | 500MHz    1600MHz    |
+| N/A  35C   P0       53W / 350W   | 66MiB / 32768MiB     | 0%        Default    |
+| 2    Iluvatar BI-V150            | 00000000:19:00.0     | 500MHz    1600MHz    |
+| N/A  32C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++ echo '== 9. 有没有别的服务依赖 /home/docker 或 e2b 栈 =='
+== 9. 有没有别的服务依赖 /home/docker 或 e2b 栈 ==
++ systemctl list-units --type=service --state=running
++ grep -iE 'harbor|nomad|consul|e2b|docker'
++ head -10
+  consul.service           loaded active running "HashiCorp Consul - A service mesh solution"
+  docker.service           loaded active running Docker Application Container Engine
+  nomad.service            loaded active running Nomad
++ ls /data-ssd/harbor /data-ssd/nomad
++ head -8
+/data-ssd/harbor:
+ca_download
+database
+job_logs
+redis
+registry
+secret
+
++ set +x
+
+### exit: 0
