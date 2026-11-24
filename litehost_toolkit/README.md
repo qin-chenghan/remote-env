@@ -35,5 +35,6 @@ litehost 的测量工具包（来自 32 的 `/home/huawei_ts_program/litehost_pe
 | `STALL_DUMP_SECONDS` | 300 | `Capturing CUDA graphs` 进度停滞这么久就自动给 worker 发 SIGUSR2；`0` 关闭。仅在 `MOCK_STACK_DUMP=1` 时生效（否则会杀进程） |
 | `STALL_ABORT_SECONDS` | 900 | 停滞这么久无任何进展就放弃本轮，避免白等到超时；`0` 关闭 |
 | `SERVER_WAIT_TIMEOUT` | 0 | 启动总时长上限，`0` 不限 |
+| `VLLM_ENGINE_READY_TIMEOUT_S` | 1800 | vLLM 等待引擎初始化 RPC（权重加载后到 capture 完成）的时间；vLLM 默认只有 600，冷缓存编译会因此被判死 |
 
 服务进程退出或停滞放弃时，脚本会把 `server.log` 最后 40 行直接打到 stdout（`stall_guard=` 行记录当前取值）。

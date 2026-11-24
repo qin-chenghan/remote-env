@@ -21,6 +21,9 @@ CASE_INTERVAL="${CASE_INTERVAL:-60}"
 CPU_RANGE="${CPU_RANGE-0-63}"
 HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
 VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
+# 引擎初始化 RPC（含 graph capture/编译）的等待时间，vllm 默认只有 600 秒；
+# 冷缓存编译超过 10 分钟就会把 worker 判死，这里放宽到 30 分钟。
+VLLM_ENGINE_READY_TIMEOUT_S="${VLLM_ENGINE_READY_TIMEOUT_S:-1800}"
 SERVER_WAIT_TIMEOUT="${SERVER_WAIT_TIMEOUT:-0}"   # 0 = 不设上限，直到服务就绪或进程退出
 STALL_DUMP_SECONDS="${STALL_DUMP_SECONDS:-300}"   # graph capture 进度停滞多久自动抓栈；0=关闭
 STALL_ABORT_SECONDS="${STALL_ABORT_SECONDS:-900}"  # 停滞多久放弃本轮（正常启动 3 分钟）；0=关闭
@@ -204,7 +207,7 @@ with socket.socket() as s:s.bind(('127.0.0.1',int(sys.argv[1])))
 PY
     check_gpu_memory "$GPU_LIST"
     local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1 \
-        VLLM_RPC_TIMEOUT="$VLLM_RPC_TIMEOUT"
+        VLLM_RPC_TIMEOUT="$VLLM_RPC_TIMEOUT" VLLM_ENGINE_READY_TIMEOUT_S="$VLLM_ENGINE_READY_TIMEOUT_S"
         "${SERVER_EXTRA_ENV[@]}")
     if [[ "$HOST_MEASURE" == lite ]]; then
         env_args+=(PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}"
@@ -285,7 +288,7 @@ mkdir -p "$LOG_DIR"
     echo "gpus=$GPU_LIST tp=$GPUS_PER_INSTANCE"
     echo "prompts=$NUM_PROMPTS concurrency=$MAX_CONCURRENCY warmups=$NUM_WARMUPS"
     echo "mock_env=MOCK_TP_CPUS=${MOCK_TP_CPUS:-unset} MOCK_TP_CPUS_DEFER=${MOCK_TP_CPUS_DEFER:-0} MOCK_STACK_DUMP=${MOCK_STACK_DUMP:-0} MOCK_THREADS=${MOCK_THREADS:-unset}"
-    echo "stall_guard=STALL_DUMP_SECONDS=${STALL_DUMP_SECONDS} STALL_ABORT_SECONDS=${STALL_ABORT_SECONDS} SERVER_WAIT_TIMEOUT=${SERVER_WAIT_TIMEOUT}"
+    echo "stall_guard=STALL_DUMP_SECONDS=${STALL_DUMP_SECONDS} STALL_ABORT_SECONDS=${STALL_ABORT_SECONDS} SERVER_WAIT_TIMEOUT=${SERVER_WAIT_TIMEOUT} ENGINE_READY_TIMEOUT_S=${VLLM_ENGINE_READY_TIMEOUT_S}"
 } > "$RUN_DIR/config.txt" 2>/dev/null || true
 if [[ "$HOST_MEASURE" == lite ]]; then
     "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" init --run-dir "$RUN_DIR" \
