@@ -1,0 +1,106 @@
+### server: 145 -> 198  (FIX=0)
+### time:   2026-11-24T07:12:02Z
+
++ echo '== 0. 100823 期间是否另有编译/进程在抢资源（只读）=='
+== 0. 100823 期间是否另有编译/进程在抢资源（只读）==
++ cat
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -120
+
+Authorized users only. All activities may be monitored and reported.
+-- 部署脚本里的 TORCHINDUCTOR_CACHE_DIR
+11:export TORCHINDUCTOR_CACHE_DIR="${TORCHINDUCTOR_CACHE_DIR:-/home/huawei_ts_program/inductor_cache_py312}"
+13:mkdir -p "$TORCHINDUCTOR_CACHE_DIR" 2>/dev/null || true
+113:log "inductor_cache=$TORCHINDUCTOR_CACHE_DIR files=$(find "$TORCHINDUCTOR_CACHE_DIR" -name '*.py' 2>/dev/null | wc -l)"
+-- default_cache_dir() 是否吃环境变量
+/tmp/torchinductor_root
+-- 固定 cache 下的 PCH
+ls: cannot access '/home/huawei_ts_program/inductor_cache_py312/precompiled_headers': No such file or directory
+-- /tmp 下的 PCH
+drwxr-xr-x 1 root root 4096 2026-11-24 11:23 /tmp/torchinductor_root/precompiled_headers
+2026-11-21 10:50 137264793
+2026-11-21 16:23 137264789
+2026-11-24 11:23 137260719
+-- 各 run 的 server.log 时间范围
+mock145_1355                                  2026-11-19 13:59  11-19 13:55:21 .. 11-19 13:59:24
+lite145_1438                                  2026-11-19 14:41  11-19 14:39:30 .. 11-19 14:41:25
+prime_py311_128                               2026-11-23 09:57  11-23 09:55:52 .. 11-23 09:57:56
+prime_py312_1024                              2026-11-23 16:08  11-23 16:06:31 .. 11-23 16:08:34
+prime_py312_2048                              2026-11-23 16:21  11-23 16:18:25 .. 11-23 16:20:54
+prime_py312_rest6                             2026-11-23 16:39  11-23 16:32:56 .. 11-23 16:39:07
+litehost_gap_20261119_191223                  2026-11-19 19:15  11-19 19:12:56 .. 11-19 19:15:55
+litehost_gap_20261119_195415                  2026-11-19 19:55  11-19 19:54:48 .. 11-19 19:55:31
+litehost_gap_20261119_195618                  2026-11-19 19:57  11-19 19:56:51 .. 11-19 19:57:32
+litehost_gap_20261120_093438                  2026-11-20 09:34   .. 
+litehost_gap_20261120_094412                  2026-11-20 09:45  11-20 09:44:45 .. 11-20 09:45:28
+litehost_gap_20261120_095754                  2026-11-20 09:59  11-20 09:58:27 .. 11-20 09:59:12
+litehost_gap_20261120_101735                  2026-11-20 10:20  11-20 10:18:08 .. 11-20 10:19:58
+litehost_gap_20261120_102237                  2026-11-20 10:25  11-20 10:23:10 .. 11-20 10:25:31
+litehost_gap_20261120_150710                  2026-11-20 15:10  11-20 15:07:46 .. 11-20 15:10:38
+litehost_gap_20261121_162213                  2026-11-21 16:25  11-21 16:22:49 .. 11-21 16:25:51
+py312_litehost_gap_20261121_104851            2026-11-21 10:52  11-21 10:49:35 .. 11-21 10:52:25
+py312_litehost_gap_20261123_140205            2026-11-23 14:05  11-23 14:02:44 .. 11-23 14:05:00
+py312_litehost_gap_20261123_140720            2026-11-23 14:10  11-23 14:08:01 .. 11-23 14:10:21
+py312_litehost_gap_20261123_141703            2026-11-23 14:20  11-23 14:17:44 .. 11-23 14:20:39
+py312_litehost_gap_20261123_142317            2026-11-23 14:26  11-23 14:23:58 .. 11-23 14:26:16
+py312_litehost_gap_20261123_143610            2026-11-23 14:39  11-23 14:36:51 .. 11-23 14:39:08
+py312_litehost_gap_20261123_144648            2026-11-23 14:50  11-23 14:47:29 .. 11-23 14:50:17
+py312_litehost_gap_20261123_145247            2026-11-23 14:55  11-23 14:53:28 .. 11-23 14:55:50
+py312_litehost_gap_20261123_153202            2026-11-23 15:35  11-23 15:32:43 .. 11-23 15:35:33
+py312_litehost_gap_20261123_154626            2026-11-23 15:49  11-23 15:47:08 .. 11-23 15:49:38
+py312_litehost_gap_20261123_155113            2026-11-23 15:55  11-23 15:51:53 .. 11-23 15:55:22
+py312_litehost_gap_20261123_155940            2026-11-23 16:02  11-23 16:00:21 .. 11-23 16:02:51
+py312_litehost_gap_20261124_100823            2026-11-24 11:29  11-24 10:37:39 .. 11-24 11:28:53
+-- 100823 的 config 与瓶颈行
+11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_
+11:28:53 [core.py:1235]     status, result = mq.dequeue(timeout=dequeue_timeout)
+11:28:53 [core.py:1235]                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/distributed/device_com
+11:28:53 [core.py:1235]     with self.acquire_read(timeout, indefinite) as buf:
+11:28:53 [core.py:1235]          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/contextlib.py", line 137, in __enter__
+11:28:53 [core.py:1235]     return next(self.gen)
+11:28:53 [core.py:1235]            ^^^^^^^^^^^^^^
+11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/distributed/device_com
+11:28:53 [core.py:1235]     raise RuntimeError("cancelled")
+11:28:53 [core.py:1235] RuntimeError: cancelled
+-- /tmp 的 perf map 与编译残留
+-rw------- 1 root root 3281793 2026-11-24 11:29 /tmp/perf-1285.map
+-rw------- 1 root root 3505976 2026-11-24 11:28 /tmp/perf-1286.map
+-rw------- 1 root root 3294687 2026-11-24 10:25 /tmp/perf-169.map
+-rw------- 1 root root 3843181 2026-11-24 11:23 /tmp/perf-1808.map
+-rw------- 1 root root 3839261 2026-11-24 11:23 /tmp/perf-1809.map
+-rw------- 1 root root 3840066 2026-11-24 11:23 /tmp/perf-1810.map
+-rw------- 1 root root 3839365 2026-11-24 11:23 /tmp/perf-1811.map
+-rw------- 1 root root 3281519 2026-11-24 10:34 /tmp/perf-270.map
+-rw------- 1 root root 3281867 2026-11-24 11:39 /tmp/perf-3316.map
+-rw------- 1 root root 3286810 2026-11-24 11:47 /tmp/perf-3421.map
+-rw------- 1 root root 6858162 2026-11-24 11:30 /tmp/perf-380.map
+-rw------- 1 root root 3281378 2026-11-24 10:16 /tmp/perf-62.map
+-- 当前仍在跑的 python/编译进程
++ echo '== 1. 本地待同步文件 =='
+== 1. 本地待同步文件 ==
++ md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+5ef27ddf6637aa0cd15e68c40d9aeaa6  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+f0200586ea2fffc40c1e4bfd9e5db1bd  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ echo '== 2. 198 当前版本 =='
+== 2. 198 当前版本 ==
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py; md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
+0188d4c5b18957e47ad6bdfeee8e817e  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+85df78dbbf1780f59779e3d8b8b88c7f  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+94c98d5bc0490b8c4a7faa7d41d26e64  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ [[ 0 != 1 ]]
++ echo '== 3. 预览（未写入；执行 FIX=1 bash cmd.sh 才会同步）=='
+== 3. 预览（未写入；执行 FIX=1 bash cmd.sh 才会同步）==
++ echo 将覆盖：/home/qch/mock_vllm/mock_gpu/worker_patch.py
+将覆盖：/home/qch/mock_vllm/mock_gpu/worker_patch.py
++ echo '        /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh'
+        /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ echo '        /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'
+        /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ set +x
+
+### exit: 0
