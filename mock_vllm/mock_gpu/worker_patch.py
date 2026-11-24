@@ -539,7 +539,31 @@ def _tune_threads():
     torch.set_num_threads(int(os.environ.get("MOCK_THREADS", "1")))
 
 
-def _pin_worker(rank):
+def _defers_pinning():
+    return os.environ.get("MOCK_TP_CPUS_DEFER", "0").strip() not in ("", "0")
+
+
+def arm_stack_dump():
+    """Let SIGUSR2 print every thread's Python stack to stderr.
+
+    A capture that stalls for minutes leaves nothing in the log, and the
+    measured boxes have no debugger; this is the only way to see which call
+    each worker is stuck in. Off unless MOCK_STACK_DUMP=1.
+    """
+    if os.environ.get("MOCK_STACK_DUMP", "0").strip() in ("", "0"):
+        return
+    import faulthandler
+    import signal
+
+    try:
+        faulthandler.register(signal.SIGUSR2, all_threads=True)
+    except (AttributeError, ValueError) as exc:
+        print(f"[mock_gpu] stack dump unavailable: {exc}", flush=True)
+        return
+    print("[mock_gpu] stack dump armed (SIGUSR2)", flush=True)
+
+
+def _pin_worker(rank, when=""):
     """Pin one TP worker to the core chosen for it.
 
     MOCK_TP_CPUS is a comma list indexed by rank, e.g. "8,10,11,12". The
@@ -547,8 +571,10 @@ def _pin_worker(rank):
     from the harness CPU range and pin the sampler to it.
 
     A worker has many threads (gloo, torch, runtime pools); affinity is set
-    on all of them here and inherited by threads created later, which only
-    works because this runs before the model is built.
+    on all of them here and inherited by threads created later. Running this
+    at init covers every thread; MOCK_TP_CPUS_DEFER=1 moves the call to the
+    end of compile_or_warm_up_model so JIT work keeps the full CPU range, and
+    the sweep there pins the threads that already exist.
     """
     spec = os.environ.get("MOCK_TP_CPUS", "").strip()
     if not spec:
@@ -559,6 +585,7 @@ def _pin_worker(rank):
     except (IndexError, ValueError):
         print(f"[mock_gpu] MOCK_TP_CPUS invalid for rank {rank}: {spec}", flush=True)
         return
+    suffix = f" ({when})" if when else ""
     try:
         os.sched_setaffinity(0, {cpu})
         for tid in os.listdir("/proc/self/task"):
@@ -566,13 +593,14 @@ def _pin_worker(rank):
                 os.sched_setaffinity(int(tid), {cpu})
             except OSError:
                 pass
-        print(f"[mock_gpu] rank {rank} pinned to cpu {cpu}", flush=True)
+        print(f"[mock_gpu] rank {rank} pinned to cpu {cpu}{suffix}", flush=True)
     except OSError as exc:
         print(f"[mock_gpu] rank {rank} pin to cpu {cpu} failed: {exc}", flush=True)
 
 
 def patch_worker(gw):
     _tune_threads()
+    arm_stack_dump()
     from mock_gpu.dispatch import install_method_stubs
 
     install_method_stubs()
@@ -590,7 +618,8 @@ def patch_worker(gw):
 
     def init_device(self):
         self.device = torch.device("cpu")
-        _pin_worker(self.rank)
+        if not _defers_pinning():
+            _pin_worker(self.rank)
         self.parallel_config.disable_custom_all_reduce = True
         try:
             gw.set_custom_all_reduce(False)
@@ -642,23 +671,27 @@ def patch_worker(gw):
         from vllm.v1.worker.worker_base import CompilationTimes
 
         cc = self.vllm_config.compilation_config
-        if cc.cudagraph_mode != CUDAGraphMode.NONE:
-            try:
-                self.model_runner.capture_model()
-                print("[mock_gpu] cudagraph captured (fake device)", flush=True)
-            except Exception as exc:
-                import traceback
-
-                traceback.print_exc()
-                print(f"[mock_gpu] CUDAGRAPH UNAVAILABLE: {exc}", flush=True)
-                cc.cudagraph_mode = CUDAGraphMode.NONE
+        try:
+            if cc.cudagraph_mode != CUDAGraphMode.NONE:
                 try:
-                    self.model_runner.cudagraph_dispatcher.initialize_cudagraph_keys(
-                        CUDAGraphMode.NONE,
-                        self.model_runner.uniform_decode_query_len,
-                    )
-                except Exception:
-                    pass
+                    self.model_runner.capture_model()
+                    print("[mock_gpu] cudagraph captured (fake device)", flush=True)
+                except Exception as exc:
+                    import traceback
+
+                    traceback.print_exc()
+                    print(f"[mock_gpu] CUDAGRAPH UNAVAILABLE: {exc}", flush=True)
+                    cc.cudagraph_mode = CUDAGraphMode.NONE
+                    try:
+                        self.model_runner.cudagraph_dispatcher.initialize_cudagraph_keys(
+                            CUDAGraphMode.NONE,
+                            self.model_runner.uniform_decode_query_len,
+                        )
+                    except Exception:
+                        pass
+        finally:
+            if _defers_pinning():
+                _pin_worker(self.rank, "after capture")
         return CompilationTimes(0.0, 0.0)
 
     Worker.init_device = init_device

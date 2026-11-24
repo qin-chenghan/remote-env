@@ -228,6 +228,7 @@ mkdir -p "$LOG_DIR"
     echo "model_path=$MODEL_PATH"
     echo "gpus=$GPU_LIST tp=$GPUS_PER_INSTANCE"
     echo "prompts=$NUM_PROMPTS concurrency=$MAX_CONCURRENCY warmups=$NUM_WARMUPS"
+    echo "mock_env=MOCK_TP_CPUS=${MOCK_TP_CPUS:-unset} MOCK_TP_CPUS_DEFER=${MOCK_TP_CPUS_DEFER:-0} MOCK_STACK_DUMP=${MOCK_STACK_DUMP:-0} MOCK_THREADS=${MOCK_THREADS:-unset}"
 } > "$RUN_DIR/config.txt" 2>/dev/null || true
 if [[ "$HOST_MEASURE" == lite ]]; then
     "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" init --run-dir "$RUN_DIR" \
