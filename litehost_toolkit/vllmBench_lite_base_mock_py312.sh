@@ -41,6 +41,10 @@ HOST_TOOLKIT=/home/huawei_ts_program/litehost_perf_opt
 MOCK_DIR=/home/qch/mock_vllm
 [[ -d "$MOCK_DIR/mock_gpu" ]] || { echo "ERROR: mock 目录不存在: $MOCK_DIR" >&2; exit 2; }
 export PYTHONPATH="$MOCK_DIR${PYTHONPATH:+:$PYTHONPATH}"
+# 启动保护默认开启，测试人员的命令行不用变：抓栈只注册信号、不影响测量；
+# 绑核推迟到 capture 结束后，测出来的部分仍是单核。
+export MOCK_STACK_DUMP="${MOCK_STACK_DUMP:-1}"
+export MOCK_TP_CPUS_DEFER="${MOCK_TP_CPUS_DEFER:-1}"
 
 [[ "$TEST_ID" =~ ^[A-Za-z0-9_.-]+$ && "$TEST_ID" != . && "$TEST_ID" != .. ]] || { echo 'ERROR: TEST_ID 不能包含路径分隔符' >&2; exit 2; }
 
