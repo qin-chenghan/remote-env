@@ -1,0 +1,92 @@
+### server: 145 -> 198  (FIX=0)
+### time:   2026-11-24T08:04:46Z
+
++ echo '== 0. 100823 卡住的 9 分钟在做什么（只读）=='
+== 0. 100823 卡住的 9 分钟在做什么（只读）==
++ cat
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -220
+
+Authorized users only. All activities may be monitored and reported.
+-- 三份 PCH 的头文件
+-rw-r--r-- 1 root root        44 2026-11-21 16:23 /tmp/torchinductor_root/precompiled_headers/c2hveezg3bvkabtpvdlmbi3rzhgsfwnlhmbmsilaxbgcq7w5xwlf.h
+-rw-r--r-- 1 root root 137264789 2026-11-21 16:23 /tmp/torchinductor_root/precompiled_headers/c2hveezg3bvkabtpvdlmbi3rzhgsfwnlhmbmsilaxbgcq7w5xwlf.h.gch
+-rw-r--r-- 1 root root        44 2026-11-24 11:20 /tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h
+-rw-r--r-- 1 root root 137260719 2026-11-24 11:23 /tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h.gch
+-rw-r--r-- 1 root root        44 2026-11-21 10:50 /tmp/torchinductor_root/precompiled_headers/cmm6ladfh5ak4rwlgjjanyyaxkkyyegwftuurmvg4rwdgiqr4iuf.h
+-rw-r--r-- 1 root root 137264793 2026-11-21 10:50 /tmp/torchinductor_root/precompiled_headers/cmm6ladfh5ak4rwlgjjanyyaxkkyyegwftuurmvg4rwdgiqr4iuf.h.gch
+43ab28a2c33504460bb1f2e9fda8f5a4  /tmp/torchinductor_root/precompiled_headers/c2hveezg3bvkabtpvdlmbi3rzhgsfwnlhmbmsilaxbgcq7w5xwlf.h
+43ab28a2c33504460bb1f2e9fda8f5a4  /tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h
+43ab28a2c33504460bb1f2e9fda8f5a4  /tmp/torchinductor_root/precompiled_headers/cmm6ladfh5ak4rwlgjjanyyaxkkyyegwftuurmvg4rwdgiqr4iuf.h
+-- 每个 .h 的内容（都很小）
+== /tmp/torchinductor_root/precompiled_headers/c2hveezg3bvkabtpvdlmbi3rzhgsfwnlhmbmsilaxbgcq7w5xwlf.h
+#include <torch/csrc/inductor/cpp_prefix.h>
+== /tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h
+#include <torch/csrc/inductor/cpp_prefix.h>
+== /tmp/torchinductor_root/precompiled_headers/cmm6ladfh5ak4rwlgjjanyyaxkkyyegwftuurmvg4rwdgiqr4iuf.h
+#include <torch/csrc/inductor/cpp_prefix.h>
+-- 编译器与 CPU 特性
+3.12.11 2.10.0
+aarch64
+g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0
+asimd
+bf16
+sve
+40
+-- 内核缓存里都有哪些键
+/home/huawei_ts_program/inductor_cache_py312/ja/cjavtv4n3luyfucbb6i5p2zymefx63rrnvuts436umrx6l5z6vyg.main.so
+/home/huawei_ts_program/inductor_cache_py312/nl/cnl5nolx7roqekzqp7qew6n2axezaet4fp5xphg7m2eh5ngzzx2d.py
+/home/huawei_ts_program/inductor_cache_py312/zm/czmfxgpoh27q3ws2n7wsfdzy5wyhl2t3lmzlojongie6bfbwk6pl.main.so
+/home/huawei_ts_program/inductor_cache_py312/4d/c4dhhvl6i66bgahdgw773zegd7skxsxxveortrovjhpkcbmneb2a.py
+/home/huawei_ts_program/inductor_cache_py312/sw/cswycifpddtbwlipmwdronb24b35hgy2gmu2rizq5rerlui6so3z.py
+/home/huawei_ts_program/inductor_cache_py312/tt/cttxc73muljznnta7kmxpqgfy7cfyypcaepmsgewry5b3uzy3c56.py
+/home/huawei_ts_program/inductor_cache_py312/u4/cu4bzqib4o2n2s3hgdrios2d4uyy4hqtetsrd3licxebvqz5uvo2.so
+/home/huawei_ts_program/inductor_cache_py312/ua/cua2fvqyaafgvd256l52ngwqkboc6vwwgpmgwquqov65vtkuqi6q.py
+count: 24
+-- /tmp 里内核产物（同一配置的对照）
+/tmp/torchinductor_root
+/tmp/torchinductor_root/nm
+/tmp/torchinductor_root/4d
+/tmp/torchinductor_root/sw
+/tmp/torchinductor_root/locks
+/tmp/torchinductor_root/aotautograd
+/tmp/torchinductor_root/precompiled_headers
+/tmp/torchinductor_root/vy
+/tmp/torchinductor_root/tt
+/tmp/torchinductor_root/fxgraph
+files: 29
++ echo '== 1. 本地待同步文件（来自 145 仓库 clone）=='
+== 1. 本地待同步文件（来自 145 仓库 clone）==
++ md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+9c92a49989f677edc96c527946dd42d2  /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh
+589ec5543a0b761c0308db180ca1e252  /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh
++ echo '== 2. 145 部署目录 / 198 容器当前版本 =='
+== 2. 145 部署目录 / 198 容器当前版本 ==
++ md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+9c92a49989f677edc96c527946dd42d2  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+589ec5543a0b761c0308db180ca1e252  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py; md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+9c92a49989f677edc96c527946dd42d2  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+589ec5543a0b761c0308db180ca1e252  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/mock_vllm/mock_gpu/worker_patch.py ]]
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh ]]
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh ]]
++ [[ 0 != 1 ]]
++ echo '== 3. 预览（未写入；执行 FIX=1 bash cmd.sh 才会同步）=='
+== 3. 预览（未写入；执行 FIX=1 bash cmd.sh 才会同步）==
++ echo '将覆盖：/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock{,_py312}.sh'
+将覆盖：/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock{,_py312}.sh
++ echo '        /home/qch/mock_vllm/mock_gpu/worker_patch.py'
+        /home/qch/mock_vllm/mock_gpu/worker_patch.py
++ echo '        /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock{,_py312}.sh'
+        /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock{,_py312}.sh
++ set +x
+
+### exit: 0
