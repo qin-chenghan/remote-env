@@ -31,27 +31,33 @@ DOCKER_TOOL=/home/huawei_ts_program/litehost_perf_opt
 set -uo pipefail
 # 不带 -i：否则 docker 会从 stdin 抽走本探针脚本剩余的行
 D() { docker exec vllm bash -lc "$1" 2>&1 | sed '/^Authorized users only/d'; }
-D 'echo "-- 复算当前环境的 PCH 键（mock 掉写盘，不产生文件）"
+D 'echo "-- 复算 PCH 键（mock 掉写盘；同宿主连算两次）"
 TORCHINDUCTOR_CACHE_DIR=/home/huawei_ts_program/inductor_cache_py312 /usr/local/bin/python3 - <<PYEOF
 import torch, torch._inductor.codecache as c
 from torch._inductor.cpp_builder import CppBuilder, CppTorchDeviceOptions
 from torch._inductor.cpu_vec_isa import pick_vec_isa
 isa = pick_vec_isa()
-print("vec_isa:", type(isa).__name__, "flags:", getattr(isa, "flags", None))
+print("vec_isa:", type(isa).__name__, "flags:", getattr(isa, "vec_isa_flags", None))
 cc = {**c.CppCodeCache.cpp_compile_command_flags, "device_type": "cpu",
       "extra_flags": (), "use_relative_path": False, "vec_isa": isa}
-bo = CppTorchDeviceOptions(compile_only=False, min_optimize=False, **cc)
-cmd = CppBuilder(name="probe", sources="probe.cpp", BuildOption=bo).get_command_line()
-print("cmdline:", cmd[:600])
+def cmdline(min_opt):
+    bo = CppTorchDeviceOptions(compile_only=True, min_optimize=min_opt, **cc)
+    return CppBuilder(name="probe", sources="probe.cpp", BuildOption=bo).get_command_line()
+keys = []
 def fake_write(content, extension, extra="", specified_dir=None):
-    return c.get_hash(content.strip(), extra, "code"), "MOCK"
+    k = c.get_hash(content.strip(), extra, "code")
+    keys.append(k)
+    return k, "MOCK"
 c.write = fake_write
 c._worker_compile_cpp = lambda *a, **k: None
-print("PCH key now:", c._precompile_header("torch/csrc/inductor/cpp_prefix.h", cmd, **cc))
+for mo in (True, False, True):
+    c._precompile_header.cache_clear()
+    keys.clear()
+    c._precompile_header("torch/csrc/inductor/cpp_prefix.h", cmdline(mo), min_optimize=mo, **cc)
+    print("min_optimize=%-5s -> %s" % (mo, keys[-1]))
 PYEOF'
-D 'echo "-- hashable_cmd_line 的定义"; sed -n "2286,2320p" /usr/local/lib/python3.12/site-packages/torch/_inductor/codecache.py'
-D 'echo "-- 调用点（传了哪些参数）"; sed -n "2225,2300p" /usr/local/lib/python3.12/site-packages/torch/_inductor/codecache.py'
-D 'echo "-- 另一处调用点"; sed -n "2850,2900p" /usr/local/lib/python3.12/site-packages/torch/_inductor/codecache.py'
+D 'echo "-- -march=native 展开出的 ARM 特性宏（host 相关，进 preprocessor_hash）"; g++ -march=native -dM -E -x c++ /dev/null 2>/dev/null | grep -E "__ARM_FEATURE|__ARM_ARCH " | sort'
+D 'echo "-- 磁盘上已有的 PCH 键"; ls -1 /tmp/torchinductor_root/precompiled_headers/*.h | xargs -n1 basename | sed "s/\.h$//"'
 PROBE_EOF
   ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE" 2>&1 | head -420
 
