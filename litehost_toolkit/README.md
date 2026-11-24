@@ -24,3 +24,13 @@ litehost 的测量工具包（来自 32 的 `/home/huawei_ts_program/litehost_pe
 
 以上取值都会写进每轮的 `config.txt`（`mock_env=` 行）。卡住时：
 `kill -USR2 $(pgrep -f 'VLLM::Worker')`，栈会落在该轮的 `logs/server.log`。
+
+## 启动停滞保护（bench 脚本）
+
+| 变量 | 默认 | 作用 |
+|---|---|---|
+| `STALL_DUMP_SECONDS` | 300 | `Capturing CUDA graphs` 进度停滞这么久就自动给 worker 发 SIGUSR2；`0` 关闭。仅在 `MOCK_STACK_DUMP=1` 时生效（否则会杀进程） |
+| `STALL_ABORT_SECONDS` | 1800 | 停滞这么久无任何进展就放弃本轮，避免白等到超时；`0` 关闭 |
+| `SERVER_WAIT_TIMEOUT` | 0 | 启动总时长上限，`0` 不限 |
+
+服务进程退出或停滞放弃时，脚本会把 `server.log` 最后 40 行直接打到 stdout（`stall_guard=` 行记录当前取值）。

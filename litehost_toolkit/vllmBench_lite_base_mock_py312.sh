@@ -23,6 +23,8 @@ CPU_RANGE="${CPU_RANGE-0-63}"
 HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
 VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
 SERVER_WAIT_TIMEOUT="${SERVER_WAIT_TIMEOUT:-0}"   # 0 = 不设上限，直到服务就绪或进程退出
+STALL_DUMP_SECONDS="${STALL_DUMP_SECONDS:-300}"   # graph capture 进度停滞多久自动抓栈；0=关闭
+STALL_ABORT_SECONDS="${STALL_ABORT_SECONDS:-1800}" # 停滞多久放弃本轮；0=关闭
 HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
 HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
 HOST_MAX_SCOPES="${HOST_MAX_SCOPES:-200000}"
@@ -125,18 +127,69 @@ check_gpu_memory() {
     done
     return 0
 }
+_capture_progress() {
+    # tqdm 用 \r 刷新同一行，取最后一条 "Capturing CUDA graphs" 的 n/n
+    tr '\r' '\n' < "$SERVER_LOG" 2>/dev/null \
+        | grep -F 'Capturing CUDA graphs' | grep -oE '[0-9]+/[0-9]+' | tail -1
+}
+_last_phase() {
+    local line
+    line=$(grep -oE '\[[a-z_]+\.py:[0-9]+\] .*' "$SERVER_LOG" 2>/dev/null | tail -1)
+    printf '%s' "${line:0:120}"
+}
+dump_stacks() {
+    # SIGUSR2 只对已注册 handler 的 worker 安全；未注册时会直接杀掉进程。
+    if ! grep -qF 'stack dump armed (SIGUSR2)' "$SERVER_LOG" 2>/dev/null; then
+        log "WARNING: worker 未开始栈转储（需 MOCK_STACK_DUMP=1），跳过抓栈"
+        return
+    fi
+    local -a pids=()
+    command -v pgrep >/dev/null && mapfile -t pids < <(pgrep -f 'VLLM::Worker' 2>/dev/null)
+    if (( ${#pids[@]} == 0 )); then
+        local d cmd
+        for d in /proc/[0-9]*; do
+            cmd=$(tr '\0' ' ' < "$d/cmdline" 2>/dev/null) || continue
+            [[ "$cmd" == *VLLM::* ]] && pids+=("${d#/proc/}")
+        done
+    fi
+    if (( ${#pids[@]} == 0 )); then log "WARNING: 找不到 worker 进程，无法抓栈"; return; fi
+    log "抓取线程栈 → $SERVER_LOG (pids: ${pids[*]})"
+    kill -USR2 "${pids[@]}" 2>/dev/null || true
+    sleep 3
+}
 wait_for_server() {
-    # No fixed cap: graph capture on a cold JIT cache can take tens of minutes.
-    # Set SERVER_WAIT_TIMEOUT > 0 to restore a limit.
-    local elapsed=0 code
+    # No fixed cap by default: graph capture on a cold JIT cache can take tens of minutes.
+    # 但停滞会被单独盯住：抓栈（STALL_DUMP_SECONDS）和放弃（STALL_ABORT_SECONDS）。
+    local elapsed=0 code prog prev="" stalled=0 last_dump=-1 phase
     while :; do
-        kill -0 "$SERVER_PID" 2>/dev/null || { log "ERROR: 服务已退出，查看 $SERVER_LOG"; return 1; }
+        if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+            log "ERROR: 服务已退出 (${elapsed}s)，最后 40 行日志："
+            tail -n 40 "$SERVER_LOG" 2>/dev/null | sed 's/^/  | /'
+            return 1
+        fi
         code=$(curl --noproxy '*' -s -o /dev/null -w '%{http_code}' --max-time 2 "http://127.0.0.1:${PORT}/health" 2>/dev/null || true)
         [[ "$code" == 200 ]] && { log "服务就绪 (${elapsed}s)"; return 0; }
+        prog=$(_capture_progress)
+        if [[ -n "$prog" ]]; then
+            if [[ "$prog" == "$prev" ]]; then stalled=$((stalled+5))
+            else stalled=0; prev="$prog"; last_dump=-1; fi
+            if (( STALL_DUMP_SECONDS > 0 && stalled >= STALL_DUMP_SECONDS \
+                  && (last_dump < 0 || stalled - last_dump >= STALL_DUMP_SECONDS) )); then
+                log "WARNING: graph capture 停在 ${prog} 已 ${stalled}s，自动抓栈"
+                dump_stacks; last_dump=$stalled
+            fi
+            if (( STALL_ABORT_SECONDS > 0 && stalled >= STALL_ABORT_SECONDS )); then
+                log "ERROR: graph capture 停滞 ${stalled}s 无进展，放弃本轮（STALL_ABORT_SECONDS=${STALL_ABORT_SECONDS}）"
+                return 1
+            fi
+        fi
         if (( SERVER_WAIT_TIMEOUT > 0 && elapsed >= SERVER_WAIT_TIMEOUT )); then
             log "ERROR: 服务启动超时 (${SERVER_WAIT_TIMEOUT}s)"; return 1
         fi
-        (( elapsed > 0 && elapsed % 300 == 0 )) && log "等待服务中 (${elapsed}s)"
+        if (( elapsed > 0 && elapsed % 300 == 0 )); then
+            phase=$(_last_phase)
+            log "等待服务中 (${elapsed}s) capture=${prog:-未开始}${phase:+ | 最近: $phase}"
+        fi
         sleep 5; elapsed=$((elapsed+5))
     done
 }
@@ -229,6 +282,7 @@ mkdir -p "$LOG_DIR"
     echo "gpus=$GPU_LIST tp=$GPUS_PER_INSTANCE"
     echo "prompts=$NUM_PROMPTS concurrency=$MAX_CONCURRENCY warmups=$NUM_WARMUPS"
     echo "mock_env=MOCK_TP_CPUS=${MOCK_TP_CPUS:-unset} MOCK_TP_CPUS_DEFER=${MOCK_TP_CPUS_DEFER:-0} MOCK_STACK_DUMP=${MOCK_STACK_DUMP:-0} MOCK_THREADS=${MOCK_THREADS:-unset}"
+    echo "stall_guard=STALL_DUMP_SECONDS=${STALL_DUMP_SECONDS} STALL_ABORT_SECONDS=${STALL_ABORT_SECONDS} SERVER_WAIT_TIMEOUT=${SERVER_WAIT_TIMEOUT}"
 } > "$RUN_DIR/config.txt" 2>/dev/null || true
 if [[ "$HOST_MEASURE" == lite ]]; then
     "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" init --run-dir "$RUN_DIR" \
