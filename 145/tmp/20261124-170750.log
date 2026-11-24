@@ -1,0 +1,189 @@
+### server: 145 -> 198  (FIX=1)
+### time:   2026-11-24T09:07:50Z
+
++ echo '== 0. 198 上预热 run 的实际结果（只读）=='
+== 0. 198 上预热 run 的实际结果（只读）==
++ cat
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -420
+
+Authorized users only. All activities may be monitored and reported.
+===== test-warmup1
+test_id=test-warmup1
+started=2026-11-24T16:58:54+08:00
+prefix=/usr/local
+multi_engine=unknown
+cpu_range=0-63
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+mock_env=MOCK_TP_CPUS=unset MOCK_TP_CPUS_DEFER=1 MOCK_STACK_DUMP=1 MOCK_THREADS=unset
+stall_guard=STALL_DUMP_SECONDS=300 STALL_ABORT_SECONDS=900 SERVER_WAIT_TIMEOUT=0 ENGINE_READY_TIMEOUT_S=1800
+warmup_only=1
+-- 阶段
+108:INFO 11-24 16:59:56 [__init__.py:238] Platform plugin iluvatar is activated
+113:/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+123:/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+129:/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+131:/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+149:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+151:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+153:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+155:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+219:(Worker_TP0 pid=2814) Capturing CUDA graphs (decode, FULL):   0%|          | 0/35 [00:00<?, ?it/s]Capturing CUDA graphs (decode, FULL):   3%|▎         | 1/35 [00:02<01:29,  2.63s/it]Capturing CUDA graphs (decode, FULL):   9%|▊         | 3/35 [00:02<00:23,  1.39it/s]Capturing CUDA graphs (decode, FULL):  14%|█▍        | 5/35 [00:02<00:11,  2.66it/s]Capturing CUDA graphs (decode, FULL):  23%|██▎       | 8/35 [00:02<00:05,  4.89it/s]Capturing CUDA graphs (decode, FULL):  31%|███▏      | 11/35 [00:03<00:03,  7.25it/s]Capturing CUDA graphs (decode, FULL):  40%|████      | 14/35 [00:03<00:02,  9.60it/s]Capturing CUDA graphs (decode, FULL):  49%|████▊     | 17/35 [00:03<00:01, 11.85it/s]Capturing CUDA graphs (decode, FULL):  57%|█████▋    | 20/35 [00:03<00:01, 13.85it/s]Capturing CUDA graphs (decode, FULL):  66%|██████▌   | 23/35 [00:03<00:00, 15.59it/s]Capturing CUDA graphs (decode, FULL):  74%|███████▍  | 26/35 [00:03<00:00, 17.05it/s]Capturing CUDA graphs (decode, FULL):  83%|████████▎ | 29/35 [00:03<00:00, 18.23it/s]Capturing CUDA graphs (decode, FULL):  91%|█████████▏| 32/35 [00:04<00:00, 19.31it/s](Worker_TP2 pid=2816) /usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+227:(Worker_TP0 pid=2814) Capturing CUDA graphs (decode, FULL): 100%|██████████| 35/35 [00:04<00:00, 17.47it/s]Capturing CUDA graphs (decode, FULL): 100%|██████████| 35/35 [00:04<00:00,  8.08it/s]
+235:(EngineCore pid=2627) WARNING 11-24 17:01:10 [vllm.py:1120] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+-- 报错
+-- tail
+(Worker_TP3 pid=2817) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(Worker_TP2 pid=2816) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(Worker_TP2 pid=2816) /usr/local/lib/python3.12/multiprocessing/process.py:-1: ResourceWarning: Unclosed socket <zmq.Socket(zmq.PAIR) at 0x7d7c301470>
+(Worker_TP3 pid=2817) /usr/local/lib/python3.12/multiprocessing/process.py:-1: ResourceWarning: Unclosed socket <zmq.Socket(zmq.PAIR) at 0x7d683c1320>
+(Worker_TP2 pid=2816) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(Worker_TP3 pid=2817) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(Worker_TP2 pid=2816) /usr/local/lib/python3.12/multiprocessing/process.py:-1: ResourceWarning: Unclosed socket <zmq.Socket(zmq.PAIR) at 0x7d7c3011d0>
+(Worker_TP3 pid=2817) /usr/local/lib/python3.12/multiprocessing/process.py:-1: ResourceWarning: Unclosed socket <zmq.Socket(zmq.PAIR) at 0x7d683c1470>
+(Worker_TP2 pid=2816) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(Worker_TP3 pid=2817) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(Worker_TP2 pid=2816) /usr/local/lib/python3.12/multiprocessing/process.py:-1: ResourceWarning: Unclosed socket <zmq.Socket(zmq.SUB) at 0x7d7c301010>
+(Worker_TP3 pid=2817) /usr/local/lib/python3.12/multiprocessing/process.py:-1: ResourceWarning: Unclosed socket <zmq.Socket(zmq.SUB) at 0x7d683c1010>
+(Worker_TP2 pid=2816) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(Worker_TP3 pid=2817) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(Worker_TP2 pid=2816) /usr/local/lib/python3.12/multiprocessing/process.py:-1: ResourceWarning: Unclosed context <zmq.Context() at 0x7d7c2fdd30>
+(Worker_TP3 pid=2817) /usr/local/lib/python3.12/multiprocessing/process.py:-1: ResourceWarning: Unclosed context <zmq.Context() at 0x7d683bd7f0>
+(Worker_TP2 pid=2816) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(Worker_TP3 pid=2817) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/local/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 1 leaked shared_memory objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+===== test-warmup2
+test_id=test-warmup2
+started=2026-11-24T17:03:01+08:00
+prefix=/usr/local
+multi_engine=unknown
+cpu_range=0-63
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+mock_env=MOCK_TP_CPUS=unset MOCK_TP_CPUS_DEFER=1 MOCK_STACK_DUMP=1 MOCK_THREADS=unset
+stall_guard=STALL_DUMP_SECONDS=300 STALL_ABORT_SECONDS=900 SERVER_WAIT_TIMEOUT=0 ENGINE_READY_TIMEOUT_S=1800
+warmup_only=1
+-- 阶段
+108:INFO 11-24 17:04:04 [__init__.py:238] Platform plugin iluvatar is activated
+120:/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+123:/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+125:/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+131:/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+149:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+151:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+153:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+155:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+219:(Worker_TP0 pid=4417) Capturing CUDA graphs (decode, FULL):   0%|          | 0/35 [00:00<?, ?it/s]Capturing CUDA graphs (decode, FULL):   3%|▎         | 1/35 [00:01<00:43,  1.27s/it]Capturing CUDA graphs (decode, FULL):   9%|▊         | 3/35 [00:01<00:11,  2.73it/s]Capturing CUDA graphs (decode, FULL):  17%|█▋        | 6/35 [00:01<00:04,  5.82it/s]Capturing CUDA graphs (decode, FULL):  26%|██▌       | 9/35 [00:01<00:02,  8.75it/s]Capturing CUDA graphs (decode, FULL):  34%|███▍      | 12/35 [00:01<00:02, 11.38it/s]Capturing CUDA graphs (decode, FULL):  43%|████▎     | 15/35 [00:01<00:01, 13.65it/s]Capturing CUDA graphs (decode, FULL):  51%|█████▏    | 18/35 [00:02<00:01, 15.52it/s]Capturing CUDA graphs (decode, FULL):  60%|██████    | 21/35 [00:02<00:00, 17.03it/s]Capturing CUDA graphs (decode, FULL):  69%|██████▊   | 24/35 [00:02<00:00, 18.23it/s]Capturing CUDA graphs (decode, FULL):  77%|███████▋  | 27/35 [00:02<00:00, 19.18it/s]Capturing CUDA graphs (decode, FULL):  86%|████████▌ | 30/35 [00:02<00:00, 19.93it/s]Capturing CUDA graphs (decode, FULL):  94%|█████████▍| 33/35 [00:02<00:00, 20.80it/s](Worker_TP1 pid=4418) /usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+227:(Worker_TP0 pid=4417) Capturing CUDA graphs (decode, FULL): 100%|██████████| 35/35 [00:02<00:00, 11.90it/s]
+235:(EngineCore pid=4230) WARNING 11-24 17:04:22 [vllm.py:1120] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+-- 报错
+-- tail
+(Worker_TP0 pid=4417) INFO 11-24 17:04:32 [multiproc_executor.py:792] Parent process exited, terminating worker queues
+(APIServer pid=4015) INFO 11-24 17:04:32 [core_client.py:657] [shutdown] MPClient: stopping engine manager
+(APIServer pid=4015) WARNING 11-24 17:04:32 [utils.py:607] [shutdown] Process manager: force killing remaining processes count=1
+(APIServer pid=4015) INFO 11-24 17:04:32 [core_client.py:659] [shutdown] MPClient: engine manager stopped
+(APIServer pid=4015) INFO 11-24 17:04:32 [core_client.py:660] [shutdown] MPClient: cleaning up background resources
+(APIServer pid=4015) INFO 11-24 17:04:32 [core_client.py:662] [shutdown] MPClient: complete
+(APIServer pid=4015) INFO:     Shutting down
+(APIServer pid=4015) INFO 11-24 17:04:32 [launcher.py:125] [shutdown] API server: engine client stopped
+(APIServer pid=4015) INFO 11-24 17:04:32 [launcher.py:128] [shutdown] API server: signalling HTTP server shutdown
+(APIServer pid=4015) INFO 11-24 17:04:32 [launcher.py:149] [shutdown] API server: shutting down FastAPI HTTP server
+(APIServer pid=4015) INFO:     Shutting down
+(APIServer pid=4015) INFO:     Waiting for application shutdown.
+(APIServer pid=4015) INFO:     Application shutdown complete.
+(APIServer pid=4015) /usr/local/lib/python3.12/asyncio/runners.py:118: ResourceWarning: Unclosed context <zmq.Context() at 0x7d8a2767b0>
+(APIServer pid=4015)   return self._loop.run_until_complete(task)
+(APIServer pid=4015) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/local/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 4 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+/usr/local/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 6 leaked shared_memory objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+-- PCH 头文件
+-rw-r--r-- 1 root root 44 2026-11-21 16:23 /tmp/torchinductor_root/precompiled_headers/c2hveezg3bvkabtpvdlmbi3rzhgsfwnlhmbmsilaxbgcq7w5xwlf.h
+-rw-r--r-- 1 root root 44 2026-11-24 11:20 /tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h
+-rw-r--r-- 1 root root 44 2026-11-21 10:50 /tmp/torchinductor_root/precompiled_headers/cmm6ladfh5ak4rwlgjjanyyaxkkyyegwftuurmvg4rwdgiqr4iuf.h
+-- 最近 2 小时内核缓存写入
+17:04 cjavtv4n3luyfucbb6i5p2zymefx63rrnvuts436umrx6l5z6vyg.lock
+17:04 czmfxgpoh27q3ws2n7wsfdzy5wyhl2t3lmzlojongie6bfbwk6pl.lock
++ echo '== 1. 待同步文件（来自 145 仓库 clone）=='
+== 1. 待同步文件（来自 145 仓库 clone）==
++ md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+93fa31e217f11d807667dd485891f322  /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh
+32403c12e271ced274a683ecbad1e683  /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh
++ echo '== 2. 当前部署版本（145 目录 / 198 容器）=='
+== 2. 当前部署版本（145 目录 / 198 容器）==
++ md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+93fa31e217f11d807667dd485891f322  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+32403c12e271ced274a683ecbad1e683  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py; md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+93fa31e217f11d807667dd485891f322  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+32403c12e271ced274a683ecbad1e683  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/mock_vllm/mock_gpu/worker_patch.py ]]
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh ]]
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh ]]
++ [[ 1 != 1 ]]
++ echo '== 3. 备份 =='
+== 3. 备份 ==
++ cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh.bak-20261124c
++ cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh.bak-20261124c
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''
+      cp -f /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/qch/mock_vllm/mock_gpu/worker_patch.py.bak-20261124c &&
+      cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh.bak-20261124c &&
+      cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh.bak-20261124c &&
+      ls -l /home/qch/mock_vllm/mock_gpu/worker_patch.py.bak-20261124c /home/huawei_ts_program/litehost_perf_opt/*.bak-20261124c'\'''
+
+Authorized users only. All activities may be monitored and reported.
+-rwxr-xr-x 1 root root 18861 Nov 24 17:07 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh.bak-20261124c
+-rwxr-xr-x 1 root root 18944 Nov 24 17:07 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh.bak-20261124c
+-rw-r--r-- 1 root root 21980 Nov 24 17:07 /home/qch/mock_vllm/mock_gpu/worker_patch.py.bak-20261124c
++ echo '== 4. 同步到 145 部署目录 =='
+== 4. 同步到 145 部署目录 ==
++ cp -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ cp -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ chmod +x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ echo '== 5. 写入 198 容器 =='
+== 5. 写入 198 容器 ==
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''cat > /home/qch/mock_vllm/mock_gpu/worker_patch.py'\'''
+
+Authorized users only. All activities may be monitored and reported.
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''cat > /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''cat > /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
++ echo '== 6. 校验（应与第 1 节一致）=='
+== 6. 校验（应与第 1 节一致）==
++ md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+93fa31e217f11d807667dd485891f322  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+32403c12e271ced274a683ecbad1e683  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''chmod +x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock*.sh; md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh; bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh && bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh && echo SCRIPT_OK'\'''
+
+Authorized users only. All activities may be monitored and reported.
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+93fa31e217f11d807667dd485891f322  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+32403c12e271ced274a683ecbad1e683  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+SCRIPT_OK
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''grep -n "WARMUP_ONLY" /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh | head -5'\'''
+
+Authorized users only. All activities may be monitored and reported.
+31:WARMUP_ONLY="${WARMUP_ONLY:-0}"                     # 1 = 只启动到就绪后停止，用于重启后预热编译
+44:[[ "$WARMUP_ONLY" == 0 || "$WARMUP_ONLY" == 1 ]] || { echo 'ERROR: WARMUP_ONLY=0|1' >&2; exit 2; }
+295:    echo "warmup_only=$WARMUP_ONLY"
+308:if [[ "$WARMUP_ONLY" == 1 ]]; then
++ set +x
+
+### exit: 0
