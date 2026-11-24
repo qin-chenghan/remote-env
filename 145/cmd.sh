@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：198 上核对 mock 代码版本、worker 死亡判定、PCH 落盘逻辑、core。
+# 本次：198 上取 coredump/OOM 证据、缓存全量 mtime、开机时间、新 key 痕迹。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,7 +9,7 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 REMOTE=root@90.91.147.198
-PROBE=/tmp/probe198d.sh
+PROBE=/tmp/probe198e.sh
 
 {
   echo "### server: 145 -> 198"
@@ -21,35 +21,36 @@ PROBE=/tmp/probe198d.sh
 #!/usr/bin/env bash
 set -uo pipefail
 C=vllm
-VB=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+CACHE=/home/huawei_ts_program/inductor_cache_py312
 
-echo "== 1. mock 源码版本（sitecustomize 打印的 id = 源码哈希）=="
-docker exec $C bash -lc "for d in py312_litehost_gap_20261123_155113 py312_litehost_gap_20261123_155940 py312_litehost_gap_20261124_100823; do echo -n \"\$d: \"; grep -h 'mock_gpu] activated' $VB/\$d/logs/preflight.log 2>/dev/null | tail -1; done"
-docker exec $C bash -lc "ls -l /home/qch/mock_vllm/mock_gpu/*.py | head -12"
-docker exec $C bash -lc "md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/qch/mock_vllm/mock_gpu/fake_graph.py /home/qch/mock_vllm/sitecustomize.py 2>/dev/null"
+echo "== 1. 开机/负载历史 =="
+uptime -s; uptime
+last reboot 2>/dev/null | head -3
 
-echo "== 2. worker 死亡判定（multiproc_executor.py:270-300）=="
-docker exec $C bash -lc "sed -n '255,300p' /usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py"
-docker exec $C bash -lc "grep -n 'died unexpectedly\|monitor_workers\|def _monitor\|_check_worker\|is_alive' /usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py | head -12"
+echo "== 2. 11:15-11:35 内核日志（OOM/segfault）=="
+journalctl -k --since '2026-11-24 11:10' --until '2026-11-24 11:40' 2>/dev/null | grep -iE 'oom|killed process|segfault|traps' | head -10 || echo "(journalctl -k 不可用)"
+echo "-- systemd-coredump --"
+coredumpctl list 2>/dev/null | tail -8 || echo "(无 coredumpctl)"
 
-echo "== 3. PCH 目录选择逻辑（是否与 CACHE_DIR 无关）=="
-docker exec $C bash -lc "grep -n 'precompiled_headers\|system_temp\|gettempdir' /usr/local/lib/python3.12/site-packages/torch/_inductor/codecache.py | head -12"
+echo "== 3. pinned cache 全量 =="
+docker exec $C bash -lc "find $CACHE -type f -printf '%TY-%Tm-%Td %TH:%TM %s %p\n' | sort | head -40"
 
-echo "== 4. 今天 100823 里 rank2 的日志与任何 stderr =="
-docker exec $C bash -lc "grep -n 'pid=1810' $VB/py312_litehost_gap_20261124_100823/logs/server.log | cut -c1-190 | head -20"
+echo "== 4. 全机找 inductor 缓存目录 =="
+ls -d /tmp/torchinductor* /home/*/inductor* /root/torchinductor* 2>/dev/null
+docker exec $C bash -lc "find /tmp/torchinductor_root -type f -printf '%TY-%Tm-%Td %TH:%TM %s %p\n' | sort | tail -12"
 
-echo "== 5. core dump =="
-ls -lt /tmp/core* /var/crash 2>/dev/null | head -5
-docker exec $C bash -lc "ls -lt /tmp/core* 2>/dev/null | head -5; cat /proc/sys/kernel/core_pattern"
+echo "== 5. 找新 key cjavtv4n 的产物 =="
+docker exec $C bash -lc "grep -rl . /dev/null 2>/dev/null; find / -maxdepth 8 -name 'cjavtv4n*' 2>/dev/null | head -5"
 
-echo "== 6. 100823 的 preflight 尾部（会话建立后有无异常）=="
-docker exec $C bash -lc "tail -12 $VB/py312_litehost_gap_20261124_100823/logs/preflight.log"
+echo "== 6. 11-23 成功运行是否也重建过 PCH =="
+docker exec $C bash -lc "stat -c '%n %y' /tmp/torchinductor_root/precompiled_headers/*.gch 2>/dev/null"
 
-echo "== 7. litehost 会话目录残留 =="
-docker exec $C bash -lc "ls -ld /tmp/lhc-* 2>/dev/null | head; du -sh /tmp/lhc-* 2>/dev/null | head"
+echo "== 7. 容器内可见的 CPU 拓扑（与绑核 8/10/12/14 对应）=="
+docker exec $C bash -lc "nproc; grep -c ^processor /proc/cpuinfo; cat /sys/fs/cgroup/cpuset.cpus.effective 2>/dev/null"
+lscpu 2>/dev/null | grep -E 'Model name|^CPU\(s\)|NUMA node0' | head -4
 PROBE_EOF
 
-  ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE" 2>&1 | head -200
+  ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE" 2>&1 | head -160
 
   set +x
 } 2>&1 | tee "$OUT"
