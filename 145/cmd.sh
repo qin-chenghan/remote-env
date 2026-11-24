@@ -31,33 +31,15 @@ DOCKER_TOOL=/home/huawei_ts_program/litehost_perf_opt
 set -uo pipefail
 # 不带 -i：否则 docker 会从 stdin 抽走本探针脚本剩余的行
 D() { docker exec vllm bash -lc "$1" 2>&1 | sed '/^Authorized users only/d'; }
-D 'echo "-- 复算 PCH 键（mock 掉写盘；同宿主连算两次）"
-TORCHINDUCTOR_CACHE_DIR=/home/huawei_ts_program/inductor_cache_py312 /usr/local/bin/python3 - <<PYEOF
-import torch, torch._inductor.codecache as c
-from torch._inductor.cpp_builder import CppBuilder, CppTorchDeviceOptions
-from torch._inductor.cpu_vec_isa import pick_vec_isa
-isa = pick_vec_isa()
-print("vec_isa:", type(isa).__name__, "flags:", getattr(isa, "vec_isa_flags", None))
-cc = {**c.CppCodeCache.cpp_compile_command_flags, "device_type": "cpu",
-      "extra_flags": (), "use_relative_path": False, "vec_isa": isa}
-def cmdline(min_opt):
-    bo = CppTorchDeviceOptions(compile_only=True, min_optimize=min_opt, **cc)
-    return CppBuilder(name="probe", sources="probe.cpp", BuildOption=bo).get_command_line()
-keys = []
-def fake_write(content, extension, extra="", specified_dir=None):
-    k = c.get_hash(content.strip(), extra, "code")
-    keys.append(k)
-    return k, "MOCK"
-c.write = fake_write
-c._worker_compile_cpp = lambda *a, **k: None
-for mo in (True, False, True):
-    c._precompile_header.cache_clear()
-    keys.clear()
-    c._precompile_header("torch/csrc/inductor/cpp_prefix.h", cmdline(mo), min_optimize=mo, **cc)
-    print("min_optimize=%-5s -> %s" % (mo, keys[-1]))
-PYEOF'
-D 'echo "-- -march=native 展开出的 ARM 特性宏（host 相关，进 preprocessor_hash）"; g++ -march=native -dM -E -x c++ /dev/null 2>/dev/null | grep -E "__ARM_FEATURE|__ARM_ARCH " | sort'
-D 'echo "-- 磁盘上已有的 PCH 键"; ls -1 /tmp/torchinductor_root/precompiled_headers/*.h | xargs -n1 basename | sed "s/\.h$//"'
+D 'echo "-- 不同 -march 下 cpp_prefix.h 的预处理结果（PCH 键的实际变量）"
+I=$(/usr/local/bin/python3 -c "from torch.utils.cpp_extension import include_paths;print(\" \".join(\"-I\"+p for p in include_paths()))" 2>/dev/null)
+DF="-DTORCH_INDUCTOR_CPP_WRAPPER -DSTANDALONE_TORCH_HEADER -DC10_USING_CUSTOM_GENERATED_MACROS -DCPU_CAPABILITY_NEON"
+for m in native armv8-a armv8.2-a; do
+  printf "#include <torch/csrc/inductor/cpp_prefix.h>\n" | g++ $I $DF -std=c++17 -march=$m -E -P -x c++ - >/tmp/pp.$m.i 2>/tmp/pp.$m.err
+  echo "$m bytes=$(wc -c </tmp/pp.$m.i) sha=$(openssl sha512 /tmp/pp.$m.i | cut -c1-16) errlines=$(wc -l </tmp/pp.$m.err)"
+  rm -f /tmp/pp.$m.i /tmp/pp.$m.err
+done'
+D 'echo "-- 内核缓存文件 mtime（2026-11-24 的说明是那天早上重编的）"; find /home/huawei_ts_program/inductor_cache_py312 -type f -printf "%TY-%Tm-%Td %TH:%TM %f\n" | sort | head -30'
 PROBE_EOF
   ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE" 2>&1 | head -420
 
