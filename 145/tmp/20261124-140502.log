@@ -1,0 +1,73 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-24T06:05:02Z
+
++ echo '== 1. ssh 连通性 =='
+== 1. ssh 连通性 ==
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'hostname; uname -m; nproc'
++ head -4
+
+Authorized users only. All activities may be monitored and reported.
+bash: line 1: hostname: command not found
+aarch64
++ echo '== 2. 写探测脚本到本机 =='
+== 2. 写探测脚本到本机 ==
++ cat
++ ls -l /tmp/probe198.sh
+-rw-r--r--. 1 root root 2229 Nov 24 14:05 /tmp/probe198.sh
++ echo '== 3. 在 198 执行 =='
+== 3. 在 198 执行 ==
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -80
+
+Authorized users only. All activities may be monitored and reported.
+bash: line 3: hostname: command not found
+### host:   aarch64  nproc=40
+== 1. 容器 ==
+vllm vllm:latest Up 21 minutes
+== 2. 容器里找 run 目录 ==
+total 152
+drwxr-xr-x 4 root root 4096 Nov 24 11:39 py312_litehost_gap_20261124_100823
+drwxr-xr-x 3 root root 4096 Nov 24 09:53 py312_litehost_gap_20261124_094434
+drwxr-xr-x 3 root root 4096 Nov 23 16:39 prime_py312_rest6
+drwxr-xr-x 3 root root 4096 Nov 23 16:21 prime_py312_2048
+drwxr-xr-x 3 root root 4096 Nov 23 16:08 prime_py312_1024
+drwxr-xr-x 6 root root 4096 Nov 23 16:03 py312_litehost_gap_20261123_155940
+drwxr-xr-x 6 root root 4096 Nov 23 15:55 py312_litehost_gap_20261123_155113
+P=
+== 6. harness 日志（找 inductor_cache= 行）==
+-rw-r--r-- 1 root root 9361 Nov 23 16:39 /tmp/run_prime_py312_rest6.log
+-rw-r--r-- 1 root root 7822 Nov 23 16:21 /tmp/run_prime_py312_2048.log
+-rw-r--r-- 1 root root 7554 Nov 23 16:08 /tmp/run_prime_py312_1024.log
+-rw-r--r-- 1 root root 9813 Nov 23 09:58 /tmp/run_prime_py311_128.log
+-rw-r--r-- 1 root root 7550 Nov 20 17:00 /tmp/run_confirm_py312_128.log
+--- /tmp/run_prime_py312_rest6.log
+[2026-11-23 16:32:28] PREFIX=/usr/local
+[2026-11-23 16:32:28] inductor_cache=/home/huawei_ts_program/inductor_cache_py312 files=5
+[2026-11-23 16:32:40] TEST_ID=prime_py312_rest6 | MODE=off | WARMUP=16 | CPU_RANGE=0-63
+--- /tmp/run_prime_py312_2048.log
+[2026-11-23 16:17:57] PREFIX=/usr/local
+[2026-11-23 16:17:57] inductor_cache=/home/huawei_ts_program/inductor_cache_py312 files=5
+[2026-11-23 16:18:10] TEST_ID=prime_py312_2048 | MODE=off | WARMUP=16 | CPU_RANGE=0-63
+--- /tmp/run_prime_py312_1024.log
+[2026-11-23 16:06:03] PREFIX=/usr/local
+[2026-11-23 16:06:03] inductor_cache=/home/huawei_ts_program/inductor_cache_py312 files=5
+[2026-11-23 16:06:15] TEST_ID=prime_py312_1024 | MODE=off | WARMUP=16 | CPU_RANGE=0-63
+--- /tmp/run_prime_py311_128.log
+[2026-11-23 09:55:29] PREFIX=/opt/corex311
+[2026-11-23 09:55:29] inductor_cache=/home/huawei_ts_program/inductor_cache_py311 files=0
+== 7. 缓存与解释器 ==
+/home/huawei_ts_program/inductor_cache_py312: files=5
+/home/huawei_ts_program/inductor_cache_py311: files=5
+/tmp/torchinductor_root: files=5
+Python 3.12.11
+Python 3.11.6
+镜像 ENV 无 TORCHINDUCTOR
+== 8. qemu ==
+-- 对端 IP --
+90.91.147.145
+== 9. 抓栈工具 ==
+/usr/bin/gdb
++ set +x
+
+### exit: 0
