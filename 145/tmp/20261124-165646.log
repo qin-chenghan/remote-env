@@ -1,0 +1,353 @@
+### server: 145 -> 198  (FIX=0)
+### time:   2026-11-24T08:56:46Z
+
++ echo '== 0. 198 上 test-warmup/2 两次预热的实际结果（只读）=='
+== 0. 198 上 test-warmup/2 两次预热的实际结果（只读）==
++ cat
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -420
+
+Authorized users only. All activities may be monitored and reported.
+-- 两个 run 目录
+ls: cannot access '/home/huawei_ts_program/litehost_perf_opt/vllmBench/test-warmup2': No such file or directory
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/test-warmup:
+total 20
+drwxr-xr-x 3 root root 4096 2026-11-24 16:50 .
+drwxr-xr-x 1 root root 4096 2026-11-24 16:48 ..
+-rw-r--r-- 1 root root  428 2026-11-24 16:48 config.txt
+drwxr-xr-x 2 root root 4096 2026-11-24 16:49 logs
+-rw------- 1 root root   71 2026-11-24 16:49 server.process.json
+-- test-warmup config.txt
+test_id=test-warmup
+started=2026-11-24T16:48:52+08:00
+prefix=/usr/local
+multi_engine=unknown
+cpu_range=0-63
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+mock_env=MOCK_TP_CPUS=unset MOCK_TP_CPUS_DEFER=1 MOCK_STACK_DUMP=1 MOCK_THREADS=unset
+stall_guard=STALL_DUMP_SECONDS=300 STALL_ABORT_SECONDS=900 SERVER_WAIT_TIMEOUT=0 ENGINE_READY_TIMEOUT_S=1800
+warmup_only=1
+-- test-warmup 目录与日志
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/test-warmup:
+total 20
+drwxr-xr-x 3 root root 4096 Nov 24 16:50 .
+drwxr-xr-x 1 root root 4096 Nov 24 16:48 ..
+-rw-r--r-- 1 root root  428 Nov 24 16:48 config.txt
+drwxr-xr-x 2 root root 4096 Nov 24 16:49 logs
+-rw------- 1 root root   71 Nov 24 16:49 server.process.json
+
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/test-warmup/logs:
+total 56
+drwxr-xr-x 2 root root  4096 Nov 24 16:49 .
+drwxr-xr-x 3 root root  4096 Nov 24 16:50 ..
+-rw-r--r-- 1 root root 43990 Nov 24 16:49 server.log
+-- test-warmup 关键阶段
+400 /home/huawei_ts_program/litehost_perf_opt/vllmBench/test-warmup/logs/server.log
+319:(EngineCore pid=1022)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 110, in __init__
+320:(EngineCore pid=1022)     super().__init__(vllm_config)
+321:(EngineCore pid=1022)   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+322:(EngineCore pid=1022)     return func(*args, **kwargs)
+323:(EngineCore pid=1022)            ^^^^^^^^^^^^^^^^^^^^^
+324:(EngineCore pid=1022)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/abstract.py", line 109, in __init__
+325:(EngineCore pid=1022)     self._init_executor()
+326:(EngineCore pid=1022)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 203, in _init_executor
+327:(EngineCore pid=1022)     self.workers = WorkerProc.wait_for_ready(unready_workers)
+328:(EngineCore pid=1022)                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+329:(EngineCore pid=1022)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 764, in wait_for_ready
+330:(EngineCore pid=1022)     raise e from None
+331:(EngineCore pid=1022) Exception: WorkerProc initialization failed due to an exception in a background process. See stack trace for root cause.
+332:(EngineCore pid=1022) /usr/local/lib/python3.12/weakref.py:590: ResourceWarning: Unclosed socket <zmq.Socket(zmq.XPUB) at 0x7e1810e120>
+333:(EngineCore pid=1022)   return info.func(*info.args, **(info.kwargs or {}))
+334:(EngineCore pid=1022) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+335:(EngineCore pid=1022) /usr/local/lib/python3.12/weakref.py:590: ResourceWarning: Unclosed socket <zmq.Socket(zmq.PUB) at 0x7d95b3a270>
+336:(EngineCore pid=1022)   return info.func(*info.args, **(info.kwargs or {}))
+337:(EngineCore pid=1022) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+377:(APIServer pid=807)     self.engine_core = EngineCoreClient.make_async_mp_client(
+-- test-warmup 报错与结尾
+282:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 970, in __init__
+283:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]     super().__init__(
+284:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 123, in __init__
+285:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]     self.model_executor = executor_class(vllm_config)
+286:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+287:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 110, in __init__
+288:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]     super().__init__(vllm_config)
+289:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+290:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]     return func(*args, **kwargs)
+291:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]            ^^^^^^^^^^^^^^^^^^^^^
+292:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/abstract.py", line 109, in __init__
+293:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]     self._init_executor()
+294:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 203, in _init_executor
+295:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]     self.workers = WorkerProc.wait_for_ready(unready_workers)
+296:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+297:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 764, in wait_for_ready
+298:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]     raise e from None
+299:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235] Exception: WorkerProc initialization failed due to an exception in a background process. See stack trace for root cause.
+301:(EngineCore pid=1022) Traceback (most recent call last):
+307:(EngineCore pid=1022)     raise e
+330:(EngineCore pid=1022)     raise e from None
+331:(EngineCore pid=1022) Exception: WorkerProc initialization failed due to an exception in a background process. See stack trace for root cause.
+338:(APIServer pid=807) Traceback (most recent call last):
+398:(APIServer pid=807)     raise RuntimeError(
+399:(APIServer pid=807) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}
+--- tail ---
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 658, in run_server
+(APIServer pid=807)     await run_server_worker(listen_address, sock, args, **uvicorn_kwargs)
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 672, in run_server_worker
+(APIServer pid=807)     async with build_async_engine_client(
+(APIServer pid=807)                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=807)   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+(APIServer pid=807)     return await anext(self.gen)
+(APIServer pid=807)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 99, in build_async_engine_client
+(APIServer pid=807)     async with build_async_engine_client_from_engine_args(
+(APIServer pid=807)                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=807)   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+(APIServer pid=807)     return await anext(self.gen)
+(APIServer pid=807)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 135, in build_async_engine_client_from_engine_args
+(APIServer pid=807)     async_llm = AsyncLLM.from_vllm_config(
+(APIServer pid=807)                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/async_llm.py", line 217, in from_vllm_config
+(APIServer pid=807)     return cls(
+(APIServer pid=807)            ^^^^
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/async_llm.py", line 146, in __init__
+(APIServer pid=807)     self.engine_core = EngineCoreClient.make_async_mp_client(
+(APIServer pid=807)                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(APIServer pid=807)     return func(*args, **kwargs)
+(APIServer pid=807)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 132, in make_async_mp_client
+(APIServer pid=807)     return AsyncMPClient(*client_args)
+(APIServer pid=807)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(APIServer pid=807)     return func(*args, **kwargs)
+(APIServer pid=807)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 963, in __init__
+(APIServer pid=807)     super().__init__(
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 573, in __init__
+(APIServer pid=807)     with launch_core_engines(
+(APIServer pid=807)          ^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=807)   File "/usr/local/lib/python3.12/contextlib.py", line 144, in __exit__
+(APIServer pid=807)     next(self.gen)
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/utils.py", line 1190, in launch_core_engines
+(APIServer pid=807)     wait_for_engine_startup(
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/utils.py", line 1249, in wait_for_engine_startup
+(APIServer pid=807)     raise RuntimeError(
+(APIServer pid=807) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}
+(APIServer pid=807) sys:1: ResourceWarning: unclosed <socket.socket fd=13, family=2, type=1, proto=0, laddr=('127.0.0.1', 8948)>
+-- test-warmup2 config.txt
+cat: /home/huawei_ts_program/litehost_perf_opt/vllmBench/test-warmup2/config.txt: No such file or directory
+-- test-warmup2 目录与日志
+ls: cannot access '/home/huawei_ts_program/litehost_perf_opt/vllmBench/test-warmup2': No such file or directory
+ls: cannot access '/home/huawei_ts_program/litehost_perf_opt/vllmBench/test-warmup2/logs': No such file or directory
+-- test-warmup2 关键阶段
+wc: /home/huawei_ts_program/litehost_perf_opt/vllmBench/test-warmup2/logs/server.log: No such file or directory
+-- test-warmup2 报错与结尾
+--- tail ---
+tail: cannot open '/home/huawei_ts_program/litehost_perf_opt/vllmBench/test-warmup2/logs/server.log' for reading: No such file or directory
+-- test-warmup 根因：worker 自己的栈
+-- test-warmup server.log 140-300 行
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] stack dump armed (SIGUSR2)
+[mock_gpu] stack dump armed (SIGUSR2)
+[mock_gpu] worker patched
+[mock_gpu] worker patched
+[mock_gpu] stack dump armed (SIGUSR2)
+[mock_gpu] stack dump armed (SIGUSR2)
+[mock_gpu] worker patched
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+ERROR 11-24 16:49:48 [multiproc_executor.py:890] WorkerProc failed to start.
+ERROR 11-24 16:49:48 [multiproc_executor.py:890] Traceback (most recent call last):
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 857, in worker_main
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]     worker = WorkerProc(*args, **kwargs)
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]     return func(*args, **kwargs)
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]            ^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 620, in __init__
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]     wrapper.init_worker(all_kwargs)
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]     return func(*args, **kwargs)
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]            ^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/worker/worker_base.py", line 313, in init_worker
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]     self.worker = worker_class(**kwargs)
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]                   ^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]   File "/home/huawei_ts_program/litehost_perf_opt/light_host_worker.py", line 19, in __init__
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]     self._lh=Controller(os.environ['LIGHTHOST_SESSION'],int(self.rank),digest(os.environ['LIGHTHOST_LIB']))
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]   File "/home/huawei_ts_program/litehost_perf_opt/lh_runtime.py", line 12, in __init__
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]     self.session=read_json(session_file);self.rank=int(rank);self.pid=os.getpid();self.native_hash=native_hash
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]                  ^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]   File "/home/huawei_ts_program/litehost_perf_opt/lh_common.py", line 10, in read_json
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]     with Path(path).open(encoding='utf-8') as f: return json.load(f)
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/pathlib.py", line 1013, in open
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]     return io.open(self, mode, buffering, encoding, errors, newline)
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:48 [multiproc_executor.py:890] FileNotFoundError: [Errno 2] No such file or directory: '/home/huawei_ts_program/litehost_perf_opt/vllmBench/test-warmup/session.json'
+(EngineCore pid=1022) INFO 11-24 16:49:48 [multiproc_executor.py:428] [shutdown] Executor: waiting for worker exit count=4
+[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+ERROR 11-24 16:49:48 [multiproc_executor.py:890] WorkerProc failed to start.
+ERROR 11-24 16:49:48 [multiproc_executor.py:890] Traceback (most recent call last):
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 857, in worker_main
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]     worker = WorkerProc(*args, **kwargs)
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]     return func(*args, **kwargs)
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]            ^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 620, in __init__
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]     wrapper.init_worker(all_kwargs)
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]     return func(*args, **kwargs)
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]            ^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/worker/worker_base.py", line 313, in init_worker
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]     self.worker = worker_class(**kwargs)
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]                   ^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]   File "/home/huawei_ts_program/litehost_perf_opt/light_host_worker.py", line 19, in __init__
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]     self._lh=Controller(os.environ['LIGHTHOST_SESSION'],int(self.rank),digest(os.environ['LIGHTHOST_LIB']))
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]   File "/home/huawei_ts_program/litehost_perf_opt/lh_runtime.py", line 12, in __init__
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]     self.session=read_json(session_file);self.rank=int(rank);self.pid=os.getpid();self.native_hash=native_hash
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]                  ^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]   File "/home/huawei_ts_program/litehost_perf_opt/lh_common.py", line 10, in read_json
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]     with Path(path).open(encoding='utf-8') as f: return json.load(f)
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/pathlib.py", line 1013, in open
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]     return io.open(self, mode, buffering, encoding, errors, newline)
+ERROR 11-24 16:49:48 [multiproc_executor.py:890]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:48 [multiproc_executor.py:890] FileNotFoundError: [Errno 2] No such file or directory: '/home/huawei_ts_program/litehost_perf_opt/vllmBench/test-warmup/session.json'
+[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+ERROR 11-24 16:49:49 [multiproc_executor.py:890] WorkerProc failed to start.
+ERROR 11-24 16:49:49 [multiproc_executor.py:890] Traceback (most recent call last):
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 857, in worker_main
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]     worker = WorkerProc(*args, **kwargs)
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]     return func(*args, **kwargs)
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]            ^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 620, in __init__
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]     wrapper.init_worker(all_kwargs)
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]     return func(*args, **kwargs)
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]            ^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/worker/worker_base.py", line 313, in init_worker
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]     self.worker = worker_class(**kwargs)
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]                   ^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]   File "/home/huawei_ts_program/litehost_perf_opt/light_host_worker.py", line 19, in __init__
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]     self._lh=Controller(os.environ['LIGHTHOST_SESSION'],int(self.rank),digest(os.environ['LIGHTHOST_LIB']))
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]   File "/home/huawei_ts_program/litehost_perf_opt/lh_runtime.py", line 12, in __init__
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]     self.session=read_json(session_file);self.rank=int(rank);self.pid=os.getpid();self.native_hash=native_hash
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]                  ^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]   File "/home/huawei_ts_program/litehost_perf_opt/lh_common.py", line 10, in read_json
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]     with Path(path).open(encoding='utf-8') as f: return json.load(f)
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/pathlib.py", line 1013, in open
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]     return io.open(self, mode, buffering, encoding, errors, newline)
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:49 [multiproc_executor.py:890] FileNotFoundError: [Errno 2] No such file or directory: '/home/huawei_ts_program/litehost_perf_opt/vllmBench/test-warmup/session.json'
+[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+ERROR 11-24 16:49:49 [multiproc_executor.py:890] WorkerProc failed to start.
+ERROR 11-24 16:49:49 [multiproc_executor.py:890] Traceback (most recent call last):
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 857, in worker_main
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]     worker = WorkerProc(*args, **kwargs)
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]     return func(*args, **kwargs)
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]            ^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 620, in __init__
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]     wrapper.init_worker(all_kwargs)
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]     return func(*args, **kwargs)
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]            ^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/worker/worker_base.py", line 313, in init_worker
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]     self.worker = worker_class(**kwargs)
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]                   ^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]   File "/home/huawei_ts_program/litehost_perf_opt/light_host_worker.py", line 19, in __init__
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]     self._lh=Controller(os.environ['LIGHTHOST_SESSION'],int(self.rank),digest(os.environ['LIGHTHOST_LIB']))
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]   File "/home/huawei_ts_program/litehost_perf_opt/lh_runtime.py", line 12, in __init__
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]     self.session=read_json(session_file);self.rank=int(rank);self.pid=os.getpid();self.native_hash=native_hash
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]                  ^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]   File "/home/huawei_ts_program/litehost_perf_opt/lh_common.py", line 10, in read_json
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]     with Path(path).open(encoding='utf-8') as f: return json.load(f)
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]   File "/usr/local/lib/python3.12/pathlib.py", line 1013, in open
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]     return io.open(self, mode, buffering, encoding, errors, newline)
+ERROR 11-24 16:49:49 [multiproc_executor.py:890]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 11-24 16:49:49 [multiproc_executor.py:890] FileNotFoundError: [Errno 2] No such file or directory: '/home/huawei_ts_program/litehost_perf_opt/vllmBench/test-warmup/session.json'
+(EngineCore pid=1022) WARNING 11-24 16:49:53 [multiproc_executor.py:440] [shutdown] Executor: workers still running after grace period; sending SIGTERM count=2
+(EngineCore pid=1022) /usr/local/lib/python3.12/contextlib.py:191: ResourceWarning: Unclosed context <zmq.Context() at 0x7d95b32ab0>
+(EngineCore pid=1022)   exc.__traceback__ = traceback
+(EngineCore pid=1022) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235] EngineCore failed to start.
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235] Traceback (most recent call last):
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 1204, in run_engine_core
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]     return func(*args, **kwargs)
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 970, in __init__
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]     super().__init__(
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 123, in __init__
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]     self.model_executor = executor_class(vllm_config)
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 110, in __init__
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]     super().__init__(vllm_config)
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]     return func(*args, **kwargs)
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/abstract.py", line 109, in __init__
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]     self._init_executor()
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 203, in _init_executor
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]     self.workers = WorkerProc.wait_for_ready(unready_workers)
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 764, in wait_for_ready
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]     raise e from None
+(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235] Exception: WorkerProc initialization failed due to an exception in a background process. See stack trace for root cause.
+(EngineCore pid=1022) Process EngineCore:
+-- PCH 头文件（有没有今天 16:4x 之后的新增）
+-rw-r--r-- 1 root root 44 2026-11-21 16:23 /tmp/torchinductor_root/precompiled_headers/c2hveezg3bvkabtpvdlmbi3rzhgsfwnlhmbmsilaxbgcq7w5xwlf.h
+-rw-r--r-- 1 root root 44 2026-11-24 11:20 /tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h
+-rw-r--r-- 1 root root 44 2026-11-21 10:50 /tmp/torchinductor_root/precompiled_headers/cmm6ladfh5ak4rwlgjjanyyaxkkyyegwftuurmvg4rwdgiqr4iuf.h
+-- 16:40 之后的内核缓存写入
++ echo '== 1. 待同步文件（来自 145 仓库 clone）=='
+== 1. 待同步文件（来自 145 仓库 clone）==
++ md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+5266151fbd8e35c4b7409a4c11f4bba6  /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh
+068ff14851f7bc39ff7d3706d43082bf  /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh
++ echo '== 2. 当前部署版本（145 目录 / 198 容器）=='
+== 2. 当前部署版本（145 目录 / 198 容器）==
++ md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+5266151fbd8e35c4b7409a4c11f4bba6  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+068ff14851f7bc39ff7d3706d43082bf  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py; md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+5266151fbd8e35c4b7409a4c11f4bba6  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+068ff14851f7bc39ff7d3706d43082bf  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/mock_vllm/mock_gpu/worker_patch.py ]]
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh ]]
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh ]]
++ [[ 0 != 1 ]]
++ echo '== 3. 预览（未写入；执行 FIX=1 bash cmd.sh 才会同步）=='
+== 3. 预览（未写入；执行 FIX=1 bash cmd.sh 才会同步）==
++ echo '将覆盖：/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock{,_py312}.sh'
+将覆盖：/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock{,_py312}.sh
++ echo '        /home/qch/mock_vllm/mock_gpu/worker_patch.py'
+        /home/qch/mock_vllm/mock_gpu/worker_patch.py
++ echo '        /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock{,_py312}.sh'
+        /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock{,_py312}.sh
++ set +x
+
+### exit: 0
