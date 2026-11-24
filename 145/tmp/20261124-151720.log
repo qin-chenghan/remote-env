@@ -1,0 +1,96 @@
+### server: 145 -> 198  (FIX=1)
+### time:   2026-11-24T07:17:20Z
+
++ echo '== 0. 100823 卡住的 9 分钟在做什么（只读）=='
+== 0. 100823 卡住的 9 分钟在做什么（只读）==
++ cat
++ sed -i s#RUNLOG#/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823/logs/server.log#g /tmp/probe198i.sh
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -150
+
+Authorized users only. All activities may be monitored and reported.
+-- torch/inductor 缓存语义
+torch 2.10.0
+header_dir /tmp/torchinductor_root/precompiled_headers
+def default_cache_dir() -> str:
+    sanitized_username = re.sub(r'[\\/:*?"<>|]', "_", getpass.getuser())
+    return os.path.join(
+        tempfile.gettempdir() if not is_fbcode() else "/var/tmp",
+        "torchinductor_" + sanitized_username,
+    )
++ echo '== 1. 本地待同步文件（来自 145 仓库 clone）=='
+== 1. 本地待同步文件（来自 145 仓库 clone）==
++ md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+7ae9cfbab95ccb204fd2d064a5cc0cb5  /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh
+dcde541f98ce1a140a2e890c90343a17  /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh
++ echo '== 2. 145 部署目录 / 198 容器当前版本 =='
+== 2. 145 部署目录 / 198 容器当前版本 ==
++ md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+5ef27ddf6637aa0cd15e68c40d9aeaa6  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+f0200586ea2fffc40c1e4bfd9e5db1bd  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py; md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+5ef27ddf6637aa0cd15e68c40d9aeaa6  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+f0200586ea2fffc40c1e4bfd9e5db1bd  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/mock_vllm/mock_gpu/worker_patch.py ]]
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh ]]
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh ]]
++ [[ 1 != 1 ]]
++ echo '== 3. 备份 =='
+== 3. 备份 ==
++ cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh.bak-20261124b
++ cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh.bak-20261124b
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''
+      cp -f /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/qch/mock_vllm/mock_gpu/worker_patch.py.bak-20261124b &&
+      cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh.bak-20261124b &&
+      cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh.bak-20261124b &&
+      ls -l /home/qch/mock_vllm/mock_gpu/worker_patch.py.bak-20261124b /home/huawei_ts_program/litehost_perf_opt/*.bak-20261124b'\'''
+
+Authorized users only. All activities may be monitored and reported.
+-rwxr-xr-x 1 root root 14314 Nov 24 15:17 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh.bak-20261124b
+-rwxr-xr-x 1 root root 14397 Nov 24 15:17 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh.bak-20261124b
+-rw-r--r-- 1 root root 21980 Nov 24 15:17 /home/qch/mock_vllm/mock_gpu/worker_patch.py.bak-20261124b
++ echo '== 4. 同步到 145 部署目录 =='
+== 4. 同步到 145 部署目录 ==
++ cp -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ cp -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ chmod +x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ echo '== 5. 写入 198 容器 =='
+== 5. 写入 198 容器 ==
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''cat > /home/qch/mock_vllm/mock_gpu/worker_patch.py'\'''
+
+Authorized users only. All activities may be monitored and reported.
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''cat > /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''cat > /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
++ echo '== 6. 校验（应与第 1 节一致）=='
+== 6. 校验（应与第 1 节一致）==
++ md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+7ae9cfbab95ccb204fd2d064a5cc0cb5  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+dcde541f98ce1a140a2e890c90343a17  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''chmod +x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock*.sh; md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh; bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh && bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh && echo SCRIPT_OK'\'''
+
+Authorized users only. All activities may be monitored and reported.
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+7ae9cfbab95ccb204fd2d064a5cc0cb5  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+dcde541f98ce1a140a2e890c90343a17  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+SCRIPT_OK
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''grep -n "MOCK_STACK_DUMP:-1\|STALL_ABORT_SECONDS" /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh | head -4'\'''
+
+Authorized users only. All activities may be monitored and reported.
+27:STALL_ABORT_SECONDS="${STALL_ABORT_SECONDS:-1800}" # 停滞多久放弃本轮；0=关闭
+46:export MOCK_STACK_DUMP="${MOCK_STACK_DUMP:-1}"
+166:    # 但停滞会被单独盯住：抓栈（STALL_DUMP_SECONDS）和放弃（STALL_ABORT_SECONDS）。
+185:            if (( STALL_ABORT_SECONDS > 0 && stalled >= STALL_ABORT_SECONDS )); then
++ set +x
+
+### exit: 0
