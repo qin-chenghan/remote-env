@@ -1,0 +1,10 @@
+### server: 145 -> 198  (只读)
+### time:   2026-11-24T10:42:23Z
+
++ cat
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -300
+ssh: connect to host 90.91.147.198 port 22: No route to host
++ set +x
+
+### exit: 0
