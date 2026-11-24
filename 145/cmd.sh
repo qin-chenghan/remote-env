@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：一次跑完剩余 6 个 case（verbose），验证缓存是否已全覆盖（零编译）。
+# 本次：只读。为"捕获卡死"复现做准备：工具、核占用、缓存位置、容器状态。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,14 +9,6 @@ SERVER="$(basename "$DIR")"
 TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
-
-C=vllm
-TOOLS=/home/huawei_ts_program/litehost_perf_opt
-MODEL=/home/model/Qwen3-32B-W8A8
-CACHE=/home/huawei_ts_program/inductor_cache_py312
-TEST_ID=prime_py312_rest6
-LOG=/tmp/run_${TEST_ID}.log
-CASES=/tmp/cases_rest6.txt
 
 {
   echo "### server: $SERVER"
@@ -27,50 +19,50 @@ CASES=/tmp/cases_rest6.txt
 
   # ---- 命令开始 ----
 
-  echo "== 1. 空闲检查 =="
-  docker exec "$C" bash -lc 'pgrep -af "vllm[.]entrypoints[.]openai[.]api_server|bench_driver" | grep -v pgrep || echo "no server/bench"'
+  echo "== 1. 诊断工具 =="
+  command -v py-spy gdb perf mpstat pidstat sar 2>&1 | head -8
+  docker exec corex5-py311-mock bash -lc 'command -v py-spy gdb perf 2>&1 | head -4' 2>&1
+
+  echo "== 2. 两个容器的状态 =="
+  docker ps --format '{{.Names}} {{.Status}}' | grep -E "vllm|corex5-py311-mock" || true
   ss -ltn 2>/dev/null | grep -E ':(8948|8848)\b' || echo "8948/8848 free"
-  if docker exec "$C" bash -lc 'pgrep -f "vllm[.]entrypoints[.]openai[.]api_server" >/dev/null 2>&1'; then
-    echo "!! 有服务在跑，退出"; exit 5
-  fi
-  docker exec "$C" bash -lc "echo \"cache before=\$(find $CACHE -name '*.py' | wc -l)\""
 
-  echo "== 2. 启动剩余 6 case（CASE_INTERVAL=0, verbose）=="
-  docker exec "$C" bash -lc "cat > $CASES <<EOF
-128 1024
-128 2048
-1024 128
-1024 2048
-2048 128
-2048 1024
-EOF
-cat $CASES"
-  docker exec -d "$C" bash -lc "cd $TOOLS && \
-    CASES_FILE=$CASES TEST_ID=$TEST_ID HOST_MEASURE=off MODEL_PATH=$MODEL \
-    CASE_INTERVAL=0 TORCHDYNAMO_VERBOSE=1 \
-    nohup bash vllmBench_lite_base_mock_py312.sh > $LOG 2>&1"
-  sleep 30
-  docker exec "$C" bash -lc "grep -E 'PREFIX=|inductor_cache=|CASES:' $LOG | head -3; tail -2 $LOG"
-
-  echo "== 3. 等待完成（最多 20 分钟）=="
-  for i in $(seq 1 40); do
-    if docker exec "$C" test -f "$TOOLS/vllmBench/$TEST_ID/summary.csv" 2>/dev/null; then
-      echo "summary.csv 已生成"; break
-    fi
-    [ "$i" -eq 1 ] && echo "等待中（30s/轮）"
-    sleep 30
+  echo "== 3. 关键缓存位置 =="
+  echo "-- vllm 容器内（它自己的 /home）"
+  docker exec vllm bash -lc 'for c in /home/huawei_ts_program/inductor_cache_py312 /home/huawei_ts_program/inductor_cache_py311 /tmp/torchinductor_root; do echo -n "$c: "; [ -d $c ] && echo "files=$(find $c -name "*.py" | wc -l) mtime=$(stat -c %y $c | cut -d. -f1)" || echo missing; done'
+  echo "-- 宿主 /home（mock 容器可见的那份）"
+  for c in /home/huawei_ts_program/inductor_cache_py312 /home/huawei_ts_program/inductor_cache_py311 /tmp/torchinductor_root; do
+    echo -n "$c: "; [ -d "$c" ] && echo "files=$(find "$c" -name '*.py' 2>/dev/null | wc -l)" || echo missing
   done
 
-  echo "== 4. 各 case 结果 =="
-  docker exec "$C" bash -lc "cut -d, -f2,4,6,8,11 $TOOLS/vllmBench/$TEST_ID/summary.csv 2>/dev/null"
+  echo "== 4. 指定核当前的占用（8/10/12/14）=="
+  python3 - <<'PY'
+import time
+def stat():
+    out={}
+    for i in (8,10,12,14):
+        try:
+            f=open(f"/proc/stat").read().splitlines()
+        except Exception: return None
+        for line in f:
+            p=line.split()
+            if p[0]==f"cpu{i}":
+                vals=list(map(int,p[1:]))
+                idle=vals[3]+vals[4]
+                out[i]=(sum(vals), idle)
+    return out
+a=stat(); time.sleep(2); b=stat()
+for i in (8,10,12,14):
+    tot=b[i][0]-a[i][0]; idle=b[i][1]-a[i][1]
+    busy=100*(tot-idle)/tot if tot else 0
+    print(f"cpu{i}: busy={busy:.0f}%")
+PY
 
-  echo "== 5. 零编译验证 =="
-  docker exec "$C" bash -lc "echo \"Compiling lines: \$(grep -c 'Compiling' $TOOLS/vllmBench/$TEST_ID/logs/server.log 2>/dev/null || echo 0)\""
-  docker exec "$C" bash -lc "echo \"cache after=\$(find $CACHE -name '*.py' | wc -l)\"; du -sh $CACHE 2>/dev/null"
+  echo "== 5. 该核上跑着什么 =="
+  ps -eo pid,psr,pcpu,comm --sort=-pcpu 2>/dev/null | awk 'NR==1 || $2==8 || $2==10 || $2==12 || $2==14' | head -8
 
-  echo "== 6. 残留 =="
-  docker exec "$C" bash -lc 'pgrep -af "vllm[.]entrypoints|bench_driver" | grep -v pgrep || echo none'
-  ss -ltn 2>/dev/null | grep -E ':(8948|8848)\b' || echo "ports free"
+  echo "== 6. 容器内是否设置了缓存环境变量（来自镜像 ENV）=="
+  docker inspect vllm --format '{{json .Config.Env}}' | tr ',' '\n' | grep -iE "TORCHINDUCTOR|TORCHDYNAMO" || echo "镜像 ENV 无相关变量（说明只能靠脚本注入）"
 
   # ---- 命令结束 ----
 
