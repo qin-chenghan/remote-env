@@ -31,11 +31,10 @@ DOCKER_TOOL=/home/huawei_ts_program/litehost_perf_opt
 set -uo pipefail
 # 不带 -i：否则 docker 会从 stdin 抽走本探针脚本剩余的行
 D() { docker exec vllm bash -lc "$1" 2>&1 | sed '/^Authorized users only/d'; }
-D 'echo "-- 三份 PCH 的头文件"; H=/tmp/torchinductor_root/precompiled_headers; ls -la --time-style=long-iso $H/*.h* 2>&1; md5sum $H/*.h 2>/dev/null'
-D 'echo "-- 每个 .h 的内容（都很小）"; for f in /tmp/torchinductor_root/precompiled_headers/*.h; do echo "== $f"; cat "$f"; done 2>&1 | head -40'
-D 'echo "-- 编译器与 CPU 特性"; /usr/local/bin/python3 -c "import torch,sys,platform;print(sys.version.split()[0],torch.__version__);print(platform.machine())" 2>&1 | tail -3; g++ --version 2>&1 | head -1; grep -m1 "model name" /proc/cpuinfo; grep -m1 -oE "asimd|sve|bf16" /proc/cpuinfo | sort -u; getconf _NPROCESSORS_ONLN'
-D 'echo "-- 内核缓存里都有哪些键"; C=/home/huawei_ts_program/inductor_cache_py312; find $C -name "*.so" -o -name "*.py" | head -12; echo "count: $(find $C -type f | wc -l)"'
-D 'echo "-- /tmp 里内核产物（同一配置的对照）"; find /tmp/torchinductor_root -maxdepth 1 -type d | head; echo "files: $(find /tmp/torchinductor_root -type f | wc -l)"'
+D 'echo "-- 三份 gch 是否相同（同 .h + 同编译命令 => 相同）"; H=/tmp/torchinductor_root/precompiled_headers; md5sum $H/*.h.gch 2>&1'
+D 'echo "-- PCH 键在源码里怎么算的"; T=$(/usr/local/bin/python3 -c "import torch,os;print(os.path.dirname(torch.__file__))"); grep -n "precompiled" $T/_inductor/codecache.py $T/_inductor/cpp_builder.py 2>/dev/null | head -30'
+D 'echo "-- 当前环境算出的 PCH 路径（和上面三个文件名比）"; TORCHINDUCTOR_CACHE_DIR=/home/huawei_ts_program/inductor_cache_py312 /usr/local/bin/python3 -c "import torch,torch._inductor.codecache as c;ns=[n for n in dir(c) if \"precompiled\" in n.lower()];print(\"attrs:\",ns);[print(n,\"->\",getattr(c,n)()) for n in ns if callable(getattr(c,n))]" 2>&1 | tail -12'
+D 'echo "-- 环境现状"; uptime; getconf _NPROCESSORS_ONLN; grep -m1 -oE "asimd|sve|bf16|crc32|sha3" /proc/cpuinfo | sort -u; env | grep -E "^TORCHINDUCTOR|^VLLM" | sort'
 PROBE_EOF
   ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE" 2>&1 | head -220
 
