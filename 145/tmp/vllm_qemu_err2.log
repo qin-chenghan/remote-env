@@ -1,0 +1,437 @@
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 10:37:39 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-24 10:37:39 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-24 10:37:39 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-24 10:37:39 [__init__.py:238] Platform plugin iluvatar is activated
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 10:41:23 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-24 10:41:23 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 10:46:04 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-24 10:46:04 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-24 10:46:04 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-24 10:46:05 [__init__.py:238] Platform plugin iluvatar is activated
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 10:49:43 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-24 10:49:43 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+(APIServer pid=380) INFO 11-24 10:52:09 [api_utils.py:339] 
+(APIServer pid=380) INFO 11-24 10:52:09 [api_utils.py:339]        █     █     █▄   ▄█
+(APIServer pid=380) INFO 11-24 10:52:09 [api_utils.py:339]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.23.0
+(APIServer pid=380) INFO 11-24 10:52:09 [api_utils.py:339]   █▄█▀ █     █     █     █  model   /home/model/Qwen3-32B-W8A8
+(APIServer pid=380) INFO 11-24 10:52:09 [api_utils.py:339]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+(APIServer pid=380) INFO 11-24 10:52:09 [api_utils.py:339] 
+(APIServer pid=380) INFO 11-24 10:52:10 [api_utils.py:273] non-default args: {'host': '127.0.0.1', 'port': 8948, 'model': '/home/model/Qwen3-32B-W8A8', 'trust_remote_code': True, 'max_model_len': 4096, 'quantization': 'compressed-tensors', 'distributed_executor_backend': 'mp', 'tensor_parallel_size': 4, 'worker_cls': 'light_host_worker.LightHostWorker', 'gpu_memory_utilization': 0.9, 'enable_prefix_caching': False, 'enable_chunked_prefill': True, 'async_scheduling': True, 'compilation_config': {'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': None, 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}}
+(APIServer pid=380) WARNING 11-24 10:52:10 [envs.py:2005] Unknown vLLM environment variable detected: VLLM_USE_V1
+(APIServer pid=380) WARNING 11-24 10:52:10 [envs.py:2005] Unknown vLLM environment variable detected: VLLM_RPC_TIMEOUT
+(APIServer pid=380) INFO 11-24 10:52:10 [model.py:598] Resolved architecture: Qwen3ForCausalLM
+(APIServer pid=380) INFO 11-24 10:52:10 [model.py:1741] Using max model len 4096
+(APIServer pid=380) INFO 11-24 10:52:12 [model.py:121] DeepSeek-V4 mhc_pre: using ds4_mhc_pre_v2 (bf16 GEMM + epilogue)
+(APIServer pid=380) INFO 11-24 10:52:13 [vllm.py:1016] Asynchronous scheduling is enabled.
+(APIServer pid=380) WARNING 11-24 10:52:13 [vllm.py:1120] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(APIServer pid=380) INFO 11-24 10:52:13 [kernel.py:274] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 10:58:12 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-24 10:58:12 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-24 10:58:12 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-24 10:58:12 [__init__.py:238] Platform plugin iluvatar is activated
+INFO 11-24 10:58:13 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-24 10:58:13 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-24 10:58:13 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-24 10:58:13 [__init__.py:238] Platform plugin iluvatar is activated
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 11:02:06 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-24 11:02:06 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 11:02:07 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-24 11:02:07 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+(EngineCore pid=1286) INFO 11-24 11:04:37 [core.py:114] Initializing a V1 LLM engine (v0.23.0) with config: model='/home/model/Qwen3-32B-W8A8', speculative_config=None, tokenizer='/home/model/Qwen3-32B-W8A8', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=4096, download_dir=None, load_format=auto, tensor_parallel_size=4, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=compressed-tensors, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cpu, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_verbose=False), seed=0, served_model_name=/home/model/Qwen3-32B-W8A8, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [2048], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_rope_kvcache_cat_mla': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': True, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native']), enable_flashinfer_autotune=True, moe_backend='auto', linear_backend='auto')
+(EngineCore pid=1286) INFO 11-24 11:04:37 [multiproc_executor.py:142] DP group leader: node_rank=0, node_rank_within_dp=0, master_addr=127.0.0.1, mq_connect_ip=90.91.147.198 (local), world_size=4, local_world_size=4
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 11:07:48 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-24 11:07:48 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-24 11:07:48 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-24 11:07:48 [__init__.py:238] Platform plugin iluvatar is activated
+INFO 11-24 11:07:49 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-24 11:07:49 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-24 11:07:49 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-24 11:07:49 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-24 11:07:49 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-24 11:07:49 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-24 11:07:50 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-24 11:07:50 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-24 11:07:50 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-24 11:07:50 [__init__.py:238] Platform plugin iluvatar is activated
+INFO 11-24 11:07:50 [__init__.py:238] Platform plugin iluvatar is activated
+INFO 11-24 11:07:50 [__init__.py:238] Platform plugin iluvatar is activated
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 11:11:59 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-24 11:11:59 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 11:12:02 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-24 11:12:02 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 11:12:04 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-24 11:12:04 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 11:12:05 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-24 11:12:06 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+[mock_gpu] worker patched
+[mock_gpu] worker patched
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+(Worker pid=1808) [mock_gpu] rank 0 pinned to cpu 8
+(Worker pid=1808) INFO 11-24 11:14:40 [parallel_state.py:1582] world_size=4 rank=0 local_rank=0 distributed_init_method=tcp://127.0.0.1:60793 backend=gloo
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+(Worker pid=1811) [mock_gpu] rank 3 pinned to cpu 14
+(Worker pid=1811) INFO 11-24 11:14:46 [parallel_state.py:1582] world_size=4 rank=3 local_rank=3 distributed_init_method=tcp://127.0.0.1:60793 backend=gloo
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+(Worker pid=1809) [mock_gpu] rank 1 pinned to cpu 10
+(Worker pid=1809) INFO 11-24 11:14:48 [parallel_state.py:1582] world_size=4 rank=1 local_rank=1 distributed_init_method=tcp://127.0.0.1:60793 backend=gloo
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+(Worker pid=1810) [mock_gpu] rank 2 pinned to cpu 12
+(Worker pid=1810) INFO 11-24 11:14:48 [parallel_state.py:1582] world_size=4 rank=2 local_rank=2 distributed_init_method=tcp://127.0.0.1:60793 backend=gloo
+[Gloo] Rank 1 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 0 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 2 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 3 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 1 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 0 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 2 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 3 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 3 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 2 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 1 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 0 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+(Worker pid=1808) INFO 11-24 11:14:50 [parallel_state.py:1917] rank 0 in world size 4 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+(Worker pid=1808) INFO 11-24 11:14:51 [topk_topp_sampler.py:39] FlashInfer top-p/top-k sampling disabled via VLLM_USE_FLASHINFER_SAMPLER=0.
+(Worker pid=1810) INFO 11-24 11:14:57 [logging.py:355] Using ILU_FLASH_ATTN attention backend.
+(Worker pid=1811) INFO 11-24 11:14:57 [logging.py:355] Using ILU_FLASH_ATTN attention backend.
+(Worker pid=1808) INFO 11-24 11:14:57 [logging.py:355] Using ILU_FLASH_ATTN attention backend.
+(Worker pid=1809) INFO 11-24 11:14:57 [logging.py:355] Using ILU_FLASH_ATTN attention backend.
+(Worker pid=1808) INFO 11-24 11:14:57 [ilu_flash_attn.py:603] Using IluFlashAttention (ixformer backend), FA version None
+(Worker pid=1808) INFO 11-24 11:15:17 [weight_utils.py:849] Filesystem type for checkpoints: OVERLAY. Checkpoint size: 31.97 GiB. Available RAM: 111.50 GiB.
+(Worker pid=1808) INFO 11-24 11:15:17 [weight_utils.py:872] Auto-prefetch is disabled because the filesystem (OVERLAY) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+Loading safetensors checkpoint shards:   0% Completed | 0/7 [00:00<?, ?it/s]
+Loading safetensors checkpoint shards:  14% Completed | 1/7 [00:26<02:40, 26.70s/it]
+Loading safetensors checkpoint shards:  29% Completed | 2/7 [01:00<02:35, 31.00s/it]
+Loading safetensors checkpoint shards:  43% Completed | 3/7 [01:34<02:09, 32.44s/it]
+Loading safetensors checkpoint shards:  57% Completed | 4/7 [02:07<01:37, 32.34s/it]
+Loading safetensors checkpoint shards:  71% Completed | 5/7 [02:39<01:04, 32.26s/it]
+Loading safetensors checkpoint shards:  86% Completed | 6/7 [03:11<00:32, 32.26s/it]
+Loading safetensors checkpoint shards: 100% Completed | 7/7 [03:39<00:00, 31.05s/it]
+Loading safetensors checkpoint shards: 100% Completed | 7/7 [03:40<00:00, 31.43s/it]
+(Worker pid=1808) 
+(Worker pid=1808) INFO 11-24 11:19:00 [default_loader.py:397] Loading weights took 222.87 seconds
+(Worker pid=1808) INFO 11-24 11:19:00 [ilu_utils.py:169] [W8A8GemmInfo] format: NN, k: 5120 -> 5120, n: 2560 -> 2560
+(Worker pid=1808) INFO 11-24 11:19:00 [compressed_tensors_w8a8_int8.py:164] [IluCompressedTensorsW8A8Int8 process_weights_after_loading weight] use NN format out_size:2560 in_size:5120 weight:torch.Size([2560, 5120]) -> torch.Size([5120, 2560])
+(Worker pid=1808) INFO 11-24 11:19:00 [ilu_utils.py:169] [W8A8GemmInfo] format: NN, k: 2048 -> 2048, n: 5120 -> 5120
+(Worker pid=1808) INFO 11-24 11:19:00 [compressed_tensors_w8a8_int8.py:164] [IluCompressedTensorsW8A8Int8 process_weights_after_loading weight] use NN format out_size:5120 in_size:2048 weight:torch.Size([5120, 2048]) -> torch.Size([2048, 5120])
+(Worker pid=1808) INFO 11-24 11:19:00 [ilu_utils.py:169] [W8A8GemmInfo] format: NN, k: 5120 -> 5120, n: 12800 -> 12800
+(Worker pid=1808) INFO 11-24 11:19:00 [compressed_tensors_w8a8_int8.py:164] [IluCompressedTensorsW8A8Int8 process_weights_after_loading weight] use NN format out_size:12800 in_size:5120 weight:torch.Size([12800, 5120]) -> torch.Size([5120, 12800])
+(Worker pid=1808) INFO 11-24 11:19:00 [ilu_utils.py:169] [W8A8GemmInfo] format: NN, k: 6400 -> 6400, n: 5120 -> 5120
+(Worker pid=1808) INFO 11-24 11:19:00 [compressed_tensors_w8a8_int8.py:164] [IluCompressedTensorsW8A8Int8 process_weights_after_loading weight] use NN format out_size:5120 in_size:6400 weight:torch.Size([5120, 6400]) -> torch.Size([6400, 5120])
+(Worker pid=1810) [mock_gpu] runner ready (world_size=4)
+(Worker pid=1809) [mock_gpu] runner ready (world_size=4)
+(Worker pid=1811) [mock_gpu] runner ready (world_size=4)
+(Worker pid=1808) [mock_gpu] runner ready (world_size=4)
+(EngineCore pid=1286) INFO 11-24 11:19:08 [kv_cache_utils.py:2160] GPU KV cache size: 131,072 tokens
+(EngineCore pid=1286) INFO 11-24 11:19:08 [kv_cache_utils.py:2161] Maximum concurrency for 4,096 tokens per request: 32.00x
+Capturing CUDA graphs (decode, FULL):   0%|          | 0/35 [00:00<?, ?it/s](EngineCore pid=1286) INFO 11-24 11:20:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+(EngineCore pid=1286) INFO 11-24 11:21:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+(EngineCore pid=1286) INFO 11-24 11:22:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+(EngineCore pid=1286) INFO 11-24 11:23:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+(EngineCore pid=1286) INFO 11-24 11:24:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+(EngineCore pid=1286) INFO 11-24 11:25:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+(EngineCore pid=1286) INFO 11-24 11:26:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+(EngineCore pid=1286) INFO 11-24 11:27:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+(EngineCore pid=1286) INFO 11-24 11:28:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+(EngineCore pid=1286) ERROR 11-24 11:28:52 [multiproc_executor.py:286] Worker proc VllmWorker-2 died unexpectedly, shutting down executor.
+(EngineCore pid=1286) INFO 11-24 11:28:52 [multiproc_executor.py:428] [shutdown] Executor: waiting for worker exit count=3
+(EngineCore pid=1286) INFO 11-24 11:28:53 [multiproc_executor.py:435] [shutdown] Executor: all workers exited gracefully
+(EngineCore pid=1286) /usr/local/lib/python3.12/contextlib.py:167: ResourceWarning: Unclosed context <zmq.Context() at 0x7d49f067b0>
+(EngineCore pid=1286) /usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py:289: ResourceWarning: Unclosed socket <zmq.Socket(zmq.XPUB) at 0x7de4e420b0>
+(EngineCore pid=1286)   exc.__traceback__ = traceback
+(EngineCore pid=1286)   _self.shutdown()
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) /usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py:289: ResourceWarning: Unclosed socket <zmq.Socket(zmq.PUB) at 0x7d49f15d30>
+(EngineCore pid=1286)   _self.shutdown()
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) /usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py:289: ResourceWarning: Unclosed context <zmq.Context() at 0x7d49f07c50>
+(EngineCore pid=1286)   _self.shutdown()
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235] EngineCore failed to start.
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235] Traceback (most recent call last):
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 1204, in run_engine_core
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     return func(*args, **kwargs)
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 970, in __init__
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     super().__init__(
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 133, in __init__
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     kv_cache_config = self._initialize_kv_caches(vllm_config)
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     return func(*args, **kwargs)
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 325, in _initialize_kv_caches
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     self.model_executor.initialize_from_config(kv_cache_configs)
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/abstract.py", line 124, in initialize_from_config
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     compilation_times: list[CompilationTimes] = self.collective_rpc(
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]                                                 ^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 404, in collective_rpc
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     return future if non_block else future.result()
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]                                     ^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 93, in result
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     return super().result()
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]            ^^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     return self.__get_result()
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]            ^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     raise self._exception
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 97, in _wait_for_response
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     response = self.aggregate(self.get_response())
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]                               ^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 389, in get_response
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     status, result = mq.dequeue(timeout=dequeue_timeout)
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/distributed/device_communicators/shm_broadcast.py", line 779, in dequeue
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     with self.acquire_read(timeout, indefinite) as buf:
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/contextlib.py", line 137, in __enter__
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     return next(self.gen)
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]            ^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/distributed/device_communicators/shm_broadcast.py", line 701, in acquire_read
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     raise RuntimeError("cancelled")
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235] RuntimeError: cancelled
+(EngineCore pid=1286) Process EngineCore:
+(EngineCore pid=1286) Traceback (most recent call last):
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+(EngineCore pid=1286)     self.run()
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/multiprocessing/process.py", line 108, in run
+(EngineCore pid=1286)     self._target(*self._args, **self._kwargs)
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 1239, in run_engine_core
+(EngineCore pid=1286)     raise e
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 1204, in run_engine_core
+(EngineCore pid=1286)     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+(EngineCore pid=1286)                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=1286)     return func(*args, **kwargs)
+(EngineCore pid=1286)            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 970, in __init__
+(EngineCore pid=1286)     super().__init__(
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 133, in __init__
+(EngineCore pid=1286)     kv_cache_config = self._initialize_kv_caches(vllm_config)
+(EngineCore pid=1286)                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=1286)     return func(*args, **kwargs)
+(EngineCore pid=1286)            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 325, in _initialize_kv_caches
+(EngineCore pid=1286)     self.model_executor.initialize_from_config(kv_cache_configs)
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/abstract.py", line 124, in initialize_from_config
+(EngineCore pid=1286)     compilation_times: list[CompilationTimes] = self.collective_rpc(
+(EngineCore pid=1286)                                                 ^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 404, in collective_rpc
+(EngineCore pid=1286)     return future if non_block else future.result()
+(EngineCore pid=1286)                                     ^^^^^^^^^^^^^^^
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 93, in result
+(EngineCore pid=1286)     return super().result()
+(EngineCore pid=1286)            ^^^^^^^^^^^^^^^^
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+(EngineCore pid=1286)     return self.__get_result()
+(EngineCore pid=1286)            ^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+(EngineCore pid=1286)     raise self._exception
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 97, in _wait_for_response
+(EngineCore pid=1286)     response = self.aggregate(self.get_response())
+(EngineCore pid=1286)                               ^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 389, in get_response
+(EngineCore pid=1286)     status, result = mq.dequeue(timeout=dequeue_timeout)
+(EngineCore pid=1286)                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/site-packages/vllm/distributed/device_communicators/shm_broadcast.py", line 779, in dequeue
+(EngineCore pid=1286)     with self.acquire_read(timeout, indefinite) as buf:
+(EngineCore pid=1286)          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/contextlib.py", line 137, in __enter__
+(EngineCore pid=1286)     return next(self.gen)
+(EngineCore pid=1286)            ^^^^^^^^^^^^^^
+(EngineCore pid=1286)   File "/usr/local/lib/python3.12/site-packages/vllm/distributed/device_communicators/shm_broadcast.py", line 701, in acquire_read
+(EngineCore pid=1286)     raise RuntimeError("cancelled")
+(EngineCore pid=1286) RuntimeError: cancelled
+(EngineCore pid=1286) <frozen abc>:123: ResourceWarning: Unclosed socket <zmq.Socket(zmq.SUB) at 0x7d49f15cc0>
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) <frozen abc>:123: ResourceWarning: Unclosed socket <zmq.Socket(zmq.PAIR) at 0x7d49f15ef0>
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) <frozen abc>:123: ResourceWarning: Unclosed socket <zmq.Socket(zmq.PAIR) at 0x7d49f15f60>
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) <frozen abc>:123: ResourceWarning: Unclosed socket <zmq.Socket(zmq.SUB) at 0x7d49f15da0>
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) <frozen abc>:123: ResourceWarning: Unclosed socket <zmq.Socket(zmq.SUB) at 0x7d49f15940>
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) <frozen abc>:123: ResourceWarning: Unclosed socket <zmq.Socket(zmq.PAIR) at 0x7d49f15780>
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) <frozen abc>:123: ResourceWarning: Unclosed socket <zmq.Socket(zmq.PAIR) at 0x7d49f15a20>
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) <frozen abc>:123: ResourceWarning: Unclosed socket <zmq.Socket(zmq.SUB) at 0x7d49f159b0>
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) <frozen abc>:123: ResourceWarning: Unclosed socket <zmq.Socket(zmq.SUB) at 0x7d49f15a90>
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) <frozen abc>:123: ResourceWarning: Unclosed socket <zmq.Socket(zmq.PAIR) at 0x7d49f15b70>
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) <frozen abc>:123: ResourceWarning: Unclosed socket <zmq.Socket(zmq.PAIR) at 0x7d49f15be0>
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) <frozen abc>:123: ResourceWarning: Unclosed socket <zmq.Socket(zmq.SUB) at 0x7d49f15b00>
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) <frozen abc>:123: ResourceWarning: Unclosed socket <zmq.Socket(zmq.SUB) at 0x7d49f16040>
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) <frozen abc>:123: ResourceWarning: Unclosed socket <zmq.Socket(zmq.PAIR) at 0x7d49f16120>
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) <frozen abc>:123: ResourceWarning: Unclosed socket <zmq.Socket(zmq.PAIR) at 0x7d49f16190>
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) <frozen abc>:123: ResourceWarning: Unclosed socket <zmq.Socket(zmq.SUB) at 0x7d49f160b0>
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(APIServer pid=380) Traceback (most recent call last):
+(APIServer pid=380)   File "<frozen runpy>", line 198, in _run_module_as_main
+(APIServer pid=380)   File "<frozen runpy>", line 88, in _run_code
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 698, in <module>
+(APIServer pid=380)     uvloop.run(run_server(args))
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/uvloop/__init__.py", line 96, in run
+(APIServer pid=380)     return __asyncio.run(
+(APIServer pid=380)            ^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+(APIServer pid=380)     return runner.run(main)
+(APIServer pid=380)            ^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+(APIServer pid=380)     return self._loop.run_until_complete(task)
+(APIServer pid=380)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/uvloop/__init__.py", line 48, in wrapper
+(APIServer pid=380)     return await main
+(APIServer pid=380)            ^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 658, in run_server
+(APIServer pid=380)     await run_server_worker(listen_address, sock, args, **uvicorn_kwargs)
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 672, in run_server_worker
+(APIServer pid=380)     async with build_async_engine_client(
+(APIServer pid=380)                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+(APIServer pid=380)     return await anext(self.gen)
+(APIServer pid=380)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 99, in build_async_engine_client
+(APIServer pid=380)     async with build_async_engine_client_from_engine_args(
+(APIServer pid=380)                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+(APIServer pid=380)     return await anext(self.gen)
+(APIServer pid=380)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 135, in build_async_engine_client_from_engine_args
+(APIServer pid=380)     async_llm = AsyncLLM.from_vllm_config(
+(APIServer pid=380)                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/async_llm.py", line 217, in from_vllm_config
+(APIServer pid=380)     return cls(
+(APIServer pid=380)            ^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/async_llm.py", line 146, in __init__
+(APIServer pid=380)     self.engine_core = EngineCoreClient.make_async_mp_client(
+(APIServer pid=380)                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(APIServer pid=380)     return func(*args, **kwargs)
+(APIServer pid=380)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 132, in make_async_mp_client
+(APIServer pid=380)     return AsyncMPClient(*client_args)
+(APIServer pid=380)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(APIServer pid=380)     return func(*args, **kwargs)
+(APIServer pid=380)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 963, in __init__
+(APIServer pid=380)     super().__init__(
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 573, in __init__
+(APIServer pid=380)     with launch_core_engines(
+(APIServer pid=380)          ^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/contextlib.py", line 144, in __exit__
+(APIServer pid=380)     next(self.gen)
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/utils.py", line 1190, in launch_core_engines
+(APIServer pid=380)     wait_for_engine_startup(
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/utils.py", line 1249, in wait_for_engine_startup
+(APIServer pid=380)     raise RuntimeError(
+(APIServer pid=380) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {'EngineCore': 1}
+(APIServer pid=380) sys:1: ResourceWarning: unclosed <socket.socket fd=14, family=2, type=1, proto=0, laddr=('127.0.0.1', 8948)>
+/usr/local/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 4 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+/usr/local/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 5 leaked shared_memory objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
