@@ -1,0 +1,74 @@
+### server: 145 -> 198
+### time:   2026-11-24T06:12:53Z
+
++ cat
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -160
+
+Authorized users only. All activities may be monitored and reported.
+== 1. 开机/负载历史 ==
+2026-11-24 05:42:42
+ 06:12:53 up 30 min,  1 user,  load average: 0.00, 0.00, 0.00
+reboot   system boot  6.6.039bit_9b    Tue Nov 24 05:42   still running
+reboot   system boot  6.6.039bit_9b    Tue Nov 24 01:35   still running
+reboot   system boot  6.6.039bit_9b    Tue Nov 24 01:24   still running
+== 2. 11:15-11:35 内核日志（OOM/segfault）==
+(journalctl -k 不可用)
+-- systemd-coredump --
+(无 coredumpctl)
+== 3. pinned cache 全量 ==
+2026-11-20 16:51 10208 /home/huawei_ts_program/inductor_cache_py312/ja/cjavtv4n3luyfucbb6i5p2zymefx63rrnvuts436umrx6l5z6vyg.main.cpp
+2026-11-20 16:51 459 /home/huawei_ts_program/inductor_cache_py312/u4/cu4bzqib4o2n2s3hgdrios2d4uyy4hqtetsrd3licxebvqz5uvo2.cpp
+2026-11-20 16:51 59525 /home/huawei_ts_program/inductor_cache_py312/aotautograd/acqcdin36wlskxpzo4kajtxt7xda452kuyiu2uh2d2kfynnxg4uy/szocy7bqrzwre5dod5sizvs3dd2pic3g6anx445m243ie3viii3
+2026-11-20 16:51 59928 /home/huawei_ts_program/inductor_cache_py312/aotautograd/az6jmtqq6vocp2x5lu6yhzwpz7fof5hkyw3fl2doc4iaizpzem7g/brvb67jhvi6f6bwiu5etnq5uvmllz4sieazm4uowibfnt745h2i
+2026-11-20 16:51 59928 /home/huawei_ts_program/inductor_cache_py312/aotautograd/az6jmtqq6vocp2x5lu6yhzwpz7fof5hkyw3fl2doc4iaizpzem7g/xgx2pco4ptl2zrxryuxzkgrn733boj7fyzwjvdb6zofag5cbglw
+2026-11-20 16:51 6023 /home/huawei_ts_program/inductor_cache_py312/nl/cnl5nolx7roqekzqp7qew6n2axezaet4fp5xphg7m2eh5ngzzx2d.py
+2026-11-20 16:51 6371 /home/huawei_ts_program/inductor_cache_py312/zm/czmfxgpoh27q3ws2n7wsfdzy5wyhl2t3lmzlojongie6bfbwk6pl.main.cpp
+2026-11-20 16:51 67297 /home/huawei_ts_program/inductor_cache_py312/fxgraph/ge/fge2hbacpg6tlqmsdjc652dyg6otgmq42z7dmtyph7rsz37h27zf/7vxdmfc5xjs4p436dv2uio6wajbv57fhzi5mjptgmli2zhcdnzw
+2026-11-20 16:51 70144 /home/huawei_ts_program/inductor_cache_py312/u4/cu4bzqib4o2n2s3hgdrios2d4uyy4hqtetsrd3licxebvqz5uvo2.so
+2026-11-20 16:51 70967 /home/huawei_ts_program/inductor_cache_py312/fxgraph/kk/fkkw7xnfqf2hhdsm5leqzbm53brccbotkc6a3sy2e5szdkrkpyyl/yzfxa5ut6d37fw2uc2zdsbhqlhwscawwnt3vukd7wqaujb2b7nn
+2026-11-20 16:51 70982 /home/huawei_ts_program/inductor_cache_py312/fxgraph/kk/fkkw7xnfqf2hhdsm5leqzbm53brccbotkc6a3sy2e5szdkrkpyyl/mxdyfwqav6ohgd3f2xh2u2ehgxkjzdpozcla5udlmivh4slytwg
+2026-11-20 16:51 73632 /home/huawei_ts_program/inductor_cache_py312/zm/czmfxgpoh27q3ws2n7wsfdzy5wyhl2t3lmzlojongie6bfbwk6pl.main.so
+2026-11-20 16:51 73712 /home/huawei_ts_program/inductor_cache_py312/ja/cjavtv4n3luyfucbb6i5p2zymefx63rrnvuts436umrx6l5z6vyg.main.so
+2026-11-20 16:51 9915 /home/huawei_ts_program/inductor_cache_py312/ua/cua2fvqyaafgvd256l52ngwqkboc6vwwgpmgwquqov65vtkuqi6q.py
+2026-11-20 16:51 9920 /home/huawei_ts_program/inductor_cache_py312/tt/cttxc73muljznnta7kmxpqgfy7cfyypcaepmsgewry5b3uzy3c56.py
+2026-11-20 16:52 0 /home/huawei_ts_program/inductor_cache_py312/locks/cu4bzqib4o2n2s3hgdrios2d4uyy4hqtetsrd3licxebvqz5uvo2.lock
+2026-11-20 16:52 59928 /home/huawei_ts_program/inductor_cache_py312/aotautograd/az6jmtqq6vocp2x5lu6yhzwpz7fof5hkyw3fl2doc4iaizpzem7g/f4provgtwwhuzfyx355536wqe2ehxipwubrlhojvctkgc5isq3e
+2026-11-20 16:52 59928 /home/huawei_ts_program/inductor_cache_py312/aotautograd/az6jmtqq6vocp2x5lu6yhzwpz7fof5hkyw3fl2doc4iaizpzem7g/jbixp475uperaf7nnsllyvrkkyobhlgkbxu7utavjuoxq3hxyfq
+2026-11-20 16:52 70979 /home/huawei_ts_program/inductor_cache_py312/fxgraph/kk/fkkw7xnfqf2hhdsm5leqzbm53brccbotkc6a3sy2e5szdkrkpyyl/zbgq6ccvduqkuxndhk5qei6ydga3ix2aocgjicfwucbrive547t
+2026-11-20 16:52 70985 /home/huawei_ts_program/inductor_cache_py312/fxgraph/kk/fkkw7xnfqf2hhdsm5leqzbm53brccbotkc6a3sy2e5szdkrkpyyl/bqo2aowyc2y34p2arqbbpok7vdgqiv64amoluzk67v72okgwmz3
+2026-11-20 16:52 9919 /home/huawei_ts_program/inductor_cache_py312/4d/c4dhhvl6i66bgahdgw773zegd7skxsxxveortrovjhpkcbmneb2a.py
+2026-11-20 16:52 9921 /home/huawei_ts_program/inductor_cache_py312/sw/cswycifpddtbwlipmwdronb24b35hgy2gmu2rizq5rerlui6so3z.py
+2026-11-23 16:33 0 /home/huawei_ts_program/inductor_cache_py312/locks/czmfxgpoh27q3ws2n7wsfdzy5wyhl2t3lmzlojongie6bfbwk6pl.lock
+2026-11-24 11:23 0 /home/huawei_ts_program/inductor_cache_py312/locks/cjavtv4n3luyfucbb6i5p2zymefx63rrnvuts436umrx6l5z6vyg.lock
+== 4. 全机找 inductor 缓存目录 ==
+2026-11-21 16:23 73632 /tmp/torchinductor_root/nm/cnmss3hhm52qgrlibq62xpgd3e22syxipifuxol66mgtcfgfqyce.main.so
+2026-11-21 16:23 73712 /tmp/torchinductor_root/wp/cwpsez7lziz2zclhajemgjitykxfyaupvcfcusj6i5q4o4mi23ox.main.so
+2026-11-21 16:23 9915 /tmp/torchinductor_root/ua/cua2fvqyaafgvd256l52ngwqkboc6vwwgpmgwquqov65vtkuqi6q.py
+2026-11-21 16:23 9919 /tmp/torchinductor_root/4d/c4dhhvl6i66bgahdgw773zegd7skxsxxveortrovjhpkcbmneb2a.py
+2026-11-21 16:23 9920 /tmp/torchinductor_root/tt/cttxc73muljznnta7kmxpqgfy7cfyypcaepmsgewry5b3uzy3c56.py
+2026-11-21 16:24 59950 /tmp/torchinductor_root/aotautograd/a5m2vrz33vplur2qfxggf67epeopys32z5pks3vp5epzqnfgcfmp/iqgwcdyhvluo7oitflyskyxacjmhkdr2lg3wjliz7b5zrugxdep
+2026-11-21 16:24 70989 /tmp/torchinductor_root/fxgraph/ll/fll27guqnnhnfe22av5rxklvvwskm73iekeldmd5h2xkdr7r6blp/256bka3fds5nxbliplfxk7cwj2i5tyck5smik2jazfbt3jkoxtw
+2026-11-21 16:24 9921 /tmp/torchinductor_root/sw/cswycifpddtbwlipmwdronb24b35hgy2gmu2rizq5rerlui6so3z.py
+2026-11-23 16:33 0 /tmp/torchinductor_root/precompiled_headers/locks/cmm6ladfh5ak4rwlgjjanyyaxkkyyegwftuurmvg4rwdgiqr4iuf.lock
+2026-11-24 11:20 44 /tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h
+2026-11-24 11:23 0 /tmp/torchinductor_root/precompiled_headers/locks/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.lock
+2026-11-24 11:23 137260719 /tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h.gch
+== 5. 找新 key cjavtv4n 的产物 ==
+/home/huawei_ts_program/inductor_cache_py312/ja/cjavtv4n3luyfucbb6i5p2zymefx63rrnvuts436umrx6l5z6vyg.main.cpp
+/home/huawei_ts_program/inductor_cache_py312/ja/cjavtv4n3luyfucbb6i5p2zymefx63rrnvuts436umrx6l5z6vyg.main.so
+/home/huawei_ts_program/inductor_cache_py312/locks/cjavtv4n3luyfucbb6i5p2zymefx63rrnvuts436umrx6l5z6vyg.lock
+== 6. 11-23 成功运行是否也重建过 PCH ==
+/tmp/torchinductor_root/precompiled_headers/c2hveezg3bvkabtpvdlmbi3rzhgsfwnlhmbmsilaxbgcq7w5xwlf.h.gch 2026-11-21 16:23:41.000000000 +0800
+/tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h.gch 2026-11-24 11:23:17.044000000 +0800
+/tmp/torchinductor_root/precompiled_headers/cmm6ladfh5ak4rwlgjjanyyaxkkyyegwftuurmvg4rwdgiqr4iuf.h.gch 2026-11-21 10:50:51.000000000 +0800
+== 7. 容器内可见的 CPU 拓扑（与绑核 8/10/12/14 对应）==
+40
+40
+CPU(s):                             40
+Model name:                         virt-6.2  CPU @ 2.0GHz
+BIOS Model name:                    virt-6.2  CPU @ 2.0GHz
+NUMA node0 CPU(s):                  0-39
++ set +x
+
+### exit: 0
