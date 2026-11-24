@@ -25,14 +25,14 @@ DOCKER_TOOL=/home/huawei_ts_program/litehost_perf_opt
   echo
   set -x
 
-  echo "== 0. 198 上 testwarmup1/2 两次预热的实际结果（只读）=="
+  echo "== 0. 198 上 test-warmup/2 两次预热的实际结果（只读）=="
   cat > "$PROBE_SH" <<'PROBE_EOF'
 #!/usr/bin/env bash
 set -uo pipefail
 D() { docker exec vllm bash -lc "$1" 2>&1 | sed '/^Authorized users only/d'; }
 B=/home/huawei_ts_program/litehost_perf_opt/vllmBench
 D 'echo "-- 两个 run 目录"; ls -la --time-style=long-iso $B/testwarmup1 $B/testwarmup2 2>&1 | head -30'
-for r in testwarmup1 testwarmup2; do
+for r in test-warmup test-warmup2; do
   D "echo \"-- $r config.txt\"; cat $B/$r/config.txt 2>&1"
   D "echo \"-- $r server.log 关键阶段\"; L=$B/$r/logs/server.log; wc -l \$L 2>&1; grep -nE 'activated|pinned to cpu|Capturing CUDA graphs|Starting|EngineCore|ompil' \$L 2>/dev/null | tail -40"
 done
