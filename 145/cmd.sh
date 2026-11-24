@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：把 bench 脚本的 WARMUP_ONLY 预热模式同步到 145 部署目录和 198 容器（FIX=1 才写）。
+# 本次：只读核对「内核缓存是启动阶段产物还是 case 阶段产物」。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,83 +9,51 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 REMOTE=root@90.91.147.198
-FIX="${FIX:-0}"
-BAK=.bak-20261124c
 PROBE_SH=/tmp/probe198w.sh
 
-SRC_MOCK=/home/qch/mock_vllm/mock_gpu/worker_patch.py
-SRC_TOOL=/home/qch/tools/remote-env/litehost_toolkit          # 145 上的仓库 clone（git pull 后即最新）
-HOST_TOOL=/home/huawei_ts_program/litehost_perf_opt            # 145 上实际运行的部署目录
-DOCKER_MOCK=/home/qch/mock_vllm/mock_gpu/worker_patch.py
-DOCKER_TOOL=/home/huawei_ts_program/litehost_perf_opt
-
 {
-  echo "### server: 145 -> 198  (FIX=$FIX)"
+  echo "### server: 145 -> 198  (只读)"
   echo "### time:   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo
   set -x
 
-  echo "== 0. 198 上预热 run 的实际结果（只读）=="
   cat > "$PROBE_SH" <<'PROBE_EOF'
 #!/usr/bin/env bash
 set -uo pipefail
 D() { docker exec vllm bash -lc "$1" 2>&1 | sed '/^Authorized users only/d'; }
+
 D 'B=/home/huawei_ts_program/litehost_perf_opt/vllmBench
-for d in $B/test-warmup*; do
-  r=$(basename $d); echo "===== $r"
-  cat $d/config.txt 2>&1
-  L=$d/logs/server.log
-  echo "-- 阶段"; grep -nE "activated|pinned to cpu|Capturing CUDA graphs|ompil" $L 2>/dev/null | tail -12
-  echo "-- 报错"; grep -nE "ERROR|FileNotFoundError|RuntimeError|Traceback" $L 2>/dev/null | tail -6
-  echo "-- tail"; tail -n 20 $L 2>&1
+echo "-- 已有 run 的启动时间"
+for d in $B/*/; do
+  s=$(sed -n "s/^started=//p" $d/config.txt 2>/dev/null)
+  w=$(sed -n "s/^warmup_only=//p" $d/config.txt 2>/dev/null)
+  [[ -n "$s" ]] && echo "$(basename $d)  started=$s  warmup_only=${w:-0}"
+done | sort -k2'
+
+D 'B=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+for r in test-warmup test-warmup1 test-warmup2; do
+  L=$B/$r/logs/server.log
+  echo "===== $r"
+  [[ -f $L ]] || { echo "(无 server.log)"; continue; }
+  echo "-- 阶段时间戳"
+  grep -hoE "^\([A-Za-z_]+ pid=[0-9]+\) (INFO|WARNING) [0-9-]+ [0-9:]+ \[[^]]*\] (Platform plugin iluvatar is activated|Application startup complete|Starting vLLM API server)" $L 2>/dev/null | tail -3
+  grep -hoE "Capturing CUDA graphs \(decode, FULL\): 100%" $L | head -1
+  echo "-- 编译相关行"
+  grep -nE "ompil|Using cached|torch\.compile" $L 2>/dev/null | tail -8
 done'
-D 'echo "-- PCH 头文件"; ls -la --time-style=long-iso /tmp/torchinductor_root/precompiled_headers/*.h 2>&1'
-D 'echo "-- 最近 2 小时内核缓存写入"; find /home/huawei_ts_program/inductor_cache_py312 -newermt "-2 hours" -printf "%TH:%TM %f\n" 2>/dev/null | sort | head -20'
+
+D 'C=/home/huawei_ts_program/inductor_cache_py312
+echo "-- .so 总数"; find $C -name "*.so" 2>/dev/null | wc -l
+echo "-- .so 按分钟分布"
+find $C -name "*.so" -printf "%TY-%Tm-%Td %TH:%TM\n" 2>/dev/null | sort | uniq -c | sort -k2
+echo "-- .cpp/.py/.json 按天分布"
+find $C \( -name "*.cpp" -o -name "*.py" -o -name "*.json" \) -printf "%TY-%Tm-%Td\n" 2>/dev/null | sort | uniq -c
+echo "-- 最新 5 个 .so"
+find $C -name "*.so" -printf "%TY-%Tm-%Td %TH:%TM:%TS %p\n" 2>/dev/null | sort | tail -5
+echo "-- 缓存顶层项数"; ls -1 $C 2>/dev/null | wc -l
+echo "-- 顶层最新 8 项"; ls -1t $C 2>/dev/null | head -8'
 PROBE_EOF
-  ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE_SH" 2>&1 | head -420
-
-  echo "== 1. 待同步文件（来自 145 仓库 clone）=="
-  md5sum "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" \
-         "$SRC_TOOL/vllmBench_lite_base_mock.sh"
-
-  echo "== 2. 当前部署版本（145 目录 / 198 容器）=="
-  md5sum "$HOST_TOOL/vllmBench_lite_base_mock_py312.sh" "$HOST_TOOL/vllmBench_lite_base_mock.sh"
-  ssh "$REMOTE" "docker exec -i vllm bash -lc 'md5sum $DOCKER_MOCK; md5sum $DOCKER_TOOL/vllmBench_lite_base_mock_py312.sh $DOCKER_TOOL/vllmBench_lite_base_mock.sh'"
-
-  for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"; do
-    [[ -f "$f" ]] || { echo "ERROR: 缺少 $f（先在仓库 clone 里 git pull）"; exit 3; }
-  done
-
-  if [[ "$FIX" != 1 ]]; then
-    echo "== 3. 预览（未写入；执行 FIX=1 bash cmd.sh 才会同步）=="
-    echo "将覆盖：$HOST_TOOL/vllmBench_lite_base_mock{,_py312}.sh"
-    echo "        $DOCKER_MOCK"
-    echo "        $DOCKER_TOOL/vllmBench_lite_base_mock{,_py312}.sh"
-  else
-    echo "== 3. 备份 =="
-    cp -f "$HOST_TOOL/vllmBench_lite_base_mock_py312.sh" "$HOST_TOOL/vllmBench_lite_base_mock_py312.sh$BAK"
-    cp -f "$HOST_TOOL/vllmBench_lite_base_mock.sh" "$HOST_TOOL/vllmBench_lite_base_mock.sh$BAK"
-    ssh "$REMOTE" "docker exec -i vllm bash -lc '
-      cp -f $DOCKER_MOCK $DOCKER_MOCK$BAK &&
-      cp -f $DOCKER_TOOL/vllmBench_lite_base_mock_py312.sh $DOCKER_TOOL/vllmBench_lite_base_mock_py312.sh$BAK &&
-      cp -f $DOCKER_TOOL/vllmBench_lite_base_mock.sh $DOCKER_TOOL/vllmBench_lite_base_mock.sh$BAK &&
-      ls -l $DOCKER_MOCK$BAK $DOCKER_TOOL/*$BAK'"
-
-    echo "== 4. 同步到 145 部署目录 =="
-    cp -f "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$HOST_TOOL/vllmBench_lite_base_mock_py312.sh"
-    cp -f "$SRC_TOOL/vllmBench_lite_base_mock.sh" "$HOST_TOOL/vllmBench_lite_base_mock.sh"
-    chmod +x "$HOST_TOOL"/vllmBench_lite_base_mock{,_py312}.sh
-
-    echo "== 5. 写入 198 容器 =="
-    ssh "$REMOTE" "docker exec -i vllm bash -lc 'cat > $DOCKER_MOCK'" < "$SRC_MOCK"
-    ssh "$REMOTE" "docker exec -i vllm bash -lc 'cat > $DOCKER_TOOL/vllmBench_lite_base_mock_py312.sh'" < "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh"
-    ssh "$REMOTE" "docker exec -i vllm bash -lc 'cat > $DOCKER_TOOL/vllmBench_lite_base_mock.sh'" < "$SRC_TOOL/vllmBench_lite_base_mock.sh"
-
-    echo "== 6. 校验（应与第 1 节一致）=="
-    md5sum "$HOST_TOOL/vllmBench_lite_base_mock_py312.sh" "$HOST_TOOL/vllmBench_lite_base_mock.sh"
-    ssh "$REMOTE" "docker exec -i vllm bash -lc 'chmod +x $DOCKER_TOOL/vllmBench_lite_base_mock*.sh; md5sum $DOCKER_MOCK $DOCKER_TOOL/vllmBench_lite_base_mock_py312.sh $DOCKER_TOOL/vllmBench_lite_base_mock.sh; bash -n $DOCKER_TOOL/vllmBench_lite_base_mock_py312.sh && bash -n $DOCKER_TOOL/vllmBench_lite_base_mock.sh && echo SCRIPT_OK'"
-    ssh "$REMOTE" "docker exec -i vllm bash -lc 'grep -n \"WARMUP_ONLY\" $DOCKER_TOOL/vllmBench_lite_base_mock_py312.sh | head -5'"
-  fi
+  ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE_SH" 2>&1 | head -300
 
   set +x
 } 2>&1 | tee "$OUT"
