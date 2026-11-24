@@ -1,0 +1,138 @@
+### server: 145 -> 198
+### time:   2026-11-24T06:11:34Z
+
++ cat
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -200
+
+Authorized users only. All activities may be monitored and reported.
+== 1. mock 源码版本（sitecustomize 打印的 id = 源码哈希）==
+py312_litehost_gap_20261123_155113: [mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+py312_litehost_gap_20261123_155940: [mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+py312_litehost_gap_20261124_100823: [mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+-rw-r--r-- 1 root root     0 Nov 19 08:42 /home/qch/mock_vllm/mock_gpu/__init__.py
+-rw-r--r-- 1 root root  2615 Nov 19 10:59 /home/qch/mock_vllm/mock_gpu/autoload.py
+-rw-r--r-- 1 root root  1953 Nov 19 08:42 /home/qch/mock_vllm/mock_gpu/comm.py
+-rw-r--r-- 1 root root   653 Nov 19 08:42 /home/qch/mock_vllm/mock_gpu/counters.py
+-rw-r--r-- 1 root root  5727 Nov 19 08:42 /home/qch/mock_vllm/mock_gpu/dispatch.py
+-rw-r--r-- 1 root root  2225 Nov 19 08:42 /home/qch/mock_vllm/mock_gpu/fake_graph.py
+-rw-r--r-- 1 root root  9826 Nov 19 08:42 /home/qch/mock_vllm/mock_gpu/runner.py
+-rw-r--r-- 1 root root 20716 Nov 19 16:02 /home/qch/mock_vllm/mock_gpu/worker_patch.py
+0188d4c5b18957e47ad6bdfeee8e817e  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+5b0b0f95ca6ab5e4904b6470d4b18dcc  /home/qch/mock_vllm/mock_gpu/fake_graph.py
+39015d1274cd56f4d3e8341d36d3edc6  /home/qch/mock_vllm/sitecustomize.py
+== 2. worker 死亡判定（multiproc_executor.py:270-300）==
+            f"divisible by nnodes_within_dp "
+            f"({self.parallel_config.nnodes_within_dp}). "
+        )
+        self.local_world_size = self.parallel_config.local_world_size
+        tp_size = self.parallel_config.tensor_parallel_size
+        pp_size = self.parallel_config.pipeline_parallel_size
+        pcp_size = self.parallel_config.prefill_context_parallel_size
+        return tp_size, pp_size, pcp_size
+
+    def _post_init_executor(self) -> None:
+        pass
+
+    def _is_driver_worker(self, rank: int) -> bool:
+        return rank % self.parallel_config.tensor_parallel_size == 0
+
+    def start_worker_monitor(self, inline=False) -> None:
+        workers = self.workers
+        self_ref = weakref.ref(self)
+
+        # Monitors worker process liveness. If any die unexpectedly,
+        # logs an error, shuts down the executor and invokes the failure
+        # callback to inform the engine.
+        def monitor_workers():
+            sentinels = [h.proc.sentinel for h in workers]
+            died = multiprocessing.connection.wait(sentinels)
+            _self = self_ref()
+            if not _self or getattr(_self, "shutting_down", False):
+                logger.debug("MultiprocWorkerMonitor: shutdown already initiated")
+                return
+            _self.is_failed = True
+            proc_name = next(h.proc.name for h in workers if h.proc.sentinel == died[0])
+            logger.error(
+                "Worker proc %s died unexpectedly, shutting down executor.", proc_name
+            )
+            _self.shutdown()
+            callback = _self.failure_callback
+            if callback is not None:
+                _self.failure_callback = None
+                callback()
+
+        if not inline:
+            Thread(
+                target=monitor_workers, daemon=True, name="MultiprocWorkerMonitor"
+            ).start()
+            return
+
+108:    def __init__(self, vllm_config: VllmConfig, monitor_workers: bool = True):
+109:        self.monitor_workers = monitor_workers
+206:            if self.monitor_workers:
+277:        def monitor_workers():
+287:                "Worker proc %s died unexpectedly, shutting down executor.", proc_name
+297:                target=monitor_workers, daemon=True, name="MultiprocWorkerMonitor"
+301:        monitor_workers()
+416:                return all(not proc.is_alive() for proc in procs)
+419:                if all(not proc.is_alive() for proc in procs):
+424:        active_procs = lambda: [proc for proc in worker_procs if proc.is_alive()]
+== 3. PCH 目录选择逻辑（是否与 CACHE_DIR 无关）==
+2674:_HEADER_DIR = os.path.join(default_cache_dir(), "precompiled_headers")
+2789:                    f"{e}.  The most common reason this may occur is if the {tempfile.gettempdir()} folder "
+2791:                    f"as noexec).  Please remount {tempfile.gettempdir()} with exec enabled, or set another "
+== 4. 今天 100823 里 rank2 的日志与任何 stderr ==
+151:(Worker pid=1810) [mock_gpu] rank 2 pinned to cpu 12
+152:(Worker pid=1810) INFO 11-24 11:14:48 [parallel_state.py:1582] world_size=4 rank=2 local_rank=2 distributed_init_method=tcp://127.0.0.1:60793 backend=gloo
+183:(Worker pid=1810) INFO 11-24 11:14:57 [logging.py:355] Using ILU_FLASH_ATTN attention backend.
+209:(Worker pid=1810) [mock_gpu] runner ready (world_size=4)
+== 5. core dump ==
+/var/crash:
+total 16
+drwxr-xr-x 2 root root 4096 Nov  3 14:24 127.0.0.1-2026-11-03-14:21:38
+drwxr-xr-x 2 root root 4096 Oct 30 04:06 127.0.0.1-2026-10-30-04:01:17
+drwxr-xr-x 2 root root 4096 Mar 26  2026 127.0.0.1-2026-03-26-07:57:46
+-rw-r--r-- 1 root root     154822 Oct 17 23:23 /tmp/corex-prepare-inventory-r2.zip
+-rw-r--r-- 1 root root     155889 Oct 17 23:10 /tmp/corex-prepare-inventory-r1.zip
+-rw-r--r-- 1 root root      28876 Sep 28 11:09 /tmp/corex5_bench_all.txt
+-rw-r--r-- 1 root root       2650 Sep 28 11:06 /tmp/corex5_bench_help.txt
+-rw-r--r-- 1 root root       4825 Sep 28 11:05 /tmp/corex5_serve_help.txt
+|/usr/lib/systemd/systemd-coredump %P %u %g %s %t %c %h %d
+== 6. 100823 的 preflight 尾部（会话建立后有无异常）==
+INFO 11-24 10:20:07 [__init__.py:238] Platform plugin iluvatar is activated
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 10:23:41 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-24 10:23:41 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+SESSION: d2aa7fa1155741a3917c872abeadb133
+== 7. litehost 会话目录残留 ==
+drwx------ 2 root root 4096 Oct 28 09:09 /tmp/lhc-2yl30a7e
+drwx------ 2 root root 4096 Nov 19 19:57 /tmp/lhc-5ikb6ii1
+drwx------ 2 root root 4096 Nov 19 16:09 /tmp/lhc-5mu3b_jg
+drwx------ 2 root root 4096 Oct 27 13:22 /tmp/lhc-84gd16yg
+drwx------ 2 root root 4096 Oct 27 22:20 /tmp/lhc-94m9vr4i
+drwx------ 2 root root 4096 Nov 20 09:56 /tmp/lhc-_tqg6bbj
+drwx------ 2 root root 4096 Oct 29 10:45 /tmp/lhc-ecudvz7f
+drwx------ 2 root root 4096 Nov 20 09:45 /tmp/lhc-hw46j3dg
+drwx------ 2 root root 4096 Oct 28 17:16 /tmp/lhc-mkiqqwb_
+drwx------ 2 root root 4096 Oct 28 17:04 /tmp/lhc-qdd1kwgl
+4.0K	/tmp/lhc-2yl30a7e
+4.0K	/tmp/lhc-5ikb6ii1
+4.0K	/tmp/lhc-5mu3b_jg
+4.0K	/tmp/lhc-84gd16yg
+4.0K	/tmp/lhc-94m9vr4i
+4.0K	/tmp/lhc-_tqg6bbj
+4.0K	/tmp/lhc-ecudvz7f
+4.0K	/tmp/lhc-hw46j3dg
+4.0K	/tmp/lhc-mkiqqwb_
+4.0K	/tmp/lhc-qdd1kwgl
++ set +x
+
+### exit: 0
