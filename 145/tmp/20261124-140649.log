@@ -1,0 +1,163 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-24T06:06:49Z
+
++ cat
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -260
+
+Authorized users only. All activities may be monitored and reported.
+### 198 aarch64 nproc=40
+== 0. 全盘搜 100323 ==
+(以上为空即 198 上不存在)
+== 1. 100823 ==
+mtime=2026-11-24 11:39:44.488000000 +0800 ctime=2026-11-24 11:39:44.488000000 +0800
+-- tree
+  /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823
+  /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823/server.process.json
+  /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823/control
+  /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823/control/rank2.ready.json
+  /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823/control/rank3.ready.json
+  /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823/control/rank1.ready.json
+  /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823/control/rank0.ready.json
+  /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823/logs
+  /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823/logs/server.log
+  /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823/logs/preflight.log
+  /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823/config.txt
+  /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823/session.json
+-- config.txt
+test_id=py312_litehost_gap_20261124_100823
+started=2026-11-24T10:17:09+08:00
+prefix=/usr/local
+multi_engine=unknown
+cpu_range=0-63
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+-- summary.csv
+-- server.log 关键行
+142:(Worker pid=1808) [mock_gpu] rank 0 pinned to cpu 8
+145:(Worker pid=1811) [mock_gpu] rank 3 pinned to cpu 14
+148:(Worker pid=1809) [mock_gpu] rank 1 pinned to cpu 10
+151:(Worker pid=1810) [mock_gpu] rank 2 pinned to cpu 12
+215:(Worker_TP0 pid=1808) Capturing CUDA graphs (decode, FULL):   0%|          | 0/35 [00:00<?, ?it/s](EngineCore pid=1286) INFO 11-24 11:20:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+224:(EngineCore pid=1286) ERROR 11-24 11:28:52 [multiproc_executor.py:286] Worker proc VllmWorker-2 died unexpectedly, shutting down executor.
+240:(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235] Traceback (most recent call last):
+284:(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     raise RuntimeError("cancelled")
+285:(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235] RuntimeError: cancelled
+287:(EngineCore pid=1286) Traceback (most recent call last):
+337:(EngineCore pid=1286)     raise RuntimeError("cancelled")
+338:(EngineCore pid=1286) RuntimeError: cancelled
+371:(APIServer pid=380) Traceback (most recent call last):
+431:(APIServer pid=380)     raise RuntimeError(
+432:(APIServer pid=380) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {'EngineCore': 1}
+-- server.log 尾部
+(APIServer pid=380)     return func(*args, **kwargs)
+(APIServer pid=380)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 132, in make_async_mp_client
+(APIServer pid=380)     return AsyncMPClient(*client_args)
+(APIServer pid=380)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(APIServer pid=380)     return func(*args, **kwargs)
+(APIServer pid=380)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 963, in __init__
+(APIServer pid=380)     super().__init__(
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 573, in __init__
+(APIServer pid=380)     with launch_core_engines(
+(APIServer pid=380)          ^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/contextlib.py", line 144, in __exit__
+(APIServer pid=380)     next(self.gen)
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/utils.py", line 1190, in launch_core_engines
+(APIServer pid=380)     wait_for_engine_startup(
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/utils.py", line 1249, in wait_for_engine_startup
+(APIServer pid=380)     raise RuntimeError(
+(APIServer pid=380) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {'EngineCore': 1}
+(APIServer pid=380) sys:1: ResourceWarning: unclosed <socket.socket fd=14, family=2, type=1, proto=0, laddr=('127.0.0.1', 8948)>
+/usr/local/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 4 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+/usr/local/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 5 leaked shared_memory objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+== 2. 094434 ==
+mtime=2026-11-24 09:53:52.060000000 +0800 ctime=2026-11-24 09:53:52.060000000 +0800
+-- tree
+  /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_094434
+  /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_094434/logs
+  /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_094434/logs/preflight.log
+  /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_094434/config.txt
+-- config.txt
+test_id=py312_litehost_gap_20261124_094434
+started=2026-11-24T09:53:52+08:00
+prefix=/usr/local
+multi_engine=unknown
+cpu_range=0-63
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+-- summary.csv
+-- server.log 关键行
+-- server.log 尾部
+== 3. 今天 09:00 之后容器里所有新文件（找 harness 输出）==
+/tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h.gch
+/tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h
+/tmp/perf-1810.map
+/tmp/perf-1809.map
+/tmp/perf-62.map
+/tmp/perf-169.map
+/tmp/perf-380.map
+/tmp/perf-1808.map
+/tmp/perf-1286.map
+/tmp/perf-270.map
+/tmp/perf-3421.map
+/tmp/perf-3316.map
+/tmp/perf-1285.map
+/tmp/perf-1811.map
+/root/.bash_history
+/root/.viminfo
+== 4. 容器 shell 历史（看测试者的实际命令）==
+cat vllmBench_lite_base_mock_py312.sh | grep "等�-A 5 -B 5��服务中"
+cat vllmBench_lite_base_mock_py312.sh | grep "rep
+q
+
+cat vllmBench_lite_base_mock_py312.sh | grep -A 5 -B 5 "等待服务中"
+cat vllmBench_lite_base_mock_py312.sh | grep -A 10 -B 10 "等待服务中"
+ps- ef 
+ps -ef 
+top
+ps -ef 
+taskset -pc 380
+ps -ef 
+date
+ps -ef 
+top
+ps -ef 
+top
+ps -ef 
+-
+ps -ef 
+top
+ps -ef 
+top
+vim /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823/logs/server.log
+cat /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823/logs/server.log
+ps -ef 
+cd /home
+ls
+cd qch/
+ls
+cd tools/
+ls
+cd ..
+ls
+cd ..
+cd huawei_ts_program/litehost_perf_opt/
+ls
+cd vllmBench
+ls
+exit
+-rw------- 1 root root 32511 Nov 24 13:56 /root/.bash_history
+== 5. 现状 ==
++ set +x
+
+### exit: 0
