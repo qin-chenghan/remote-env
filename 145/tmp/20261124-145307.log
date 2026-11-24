@@ -1,0 +1,33 @@
+### server: 145 -> 198
+### time:   2026-11-24T06:53:07Z
+
++ cat
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -60
+
+Authorized users only. All activities may be monitored and reported.
+== 1. mock 目录形态 ==
+ls: cannot access '/home/qch/mock_vllm': No such file or directory
+ls: cannot access '/home/qch/mock_vllm/mock_gpu': No such file or directory
+ls: cannot access '/home/qch/tools/remote-env': No such file or directory
+drwxr-xr-x 4 root root 4096 Nov 24 05:57 /home/qch
+/home/qch/mock_vllm
+-- 仓库状态（若有）--
+fatal: cannot change to '/home/qch/tools/remote-env': No such file or directory
+== 2. 当前 worker_patch.py（期望旧版 0188d4c5…）==
+== 3. 容器内看到的同一路径 ==
+/home/qch/tools/remote-env/mock_vllm
+0188d4c5b18957e47ad6bdfeee8e817e  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+== 4. bench 脚本是否也是软链 ==
+ls: cannot access '/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh': No such file or directory
+-rwxr-xr-x 1 root root 14424 Nov 23 15:59 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ echo '== 5. 145 本地仓库与 mock =='
+== 5. 145 本地仓库与 mock ==
++ git -C /home/qch/tools/remote-env log --oneline -1
++ head -2
+25a77b1 145: check how mock code is laid out on 198 before syncing
++ md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
++ set +x
+
+### exit: 0
