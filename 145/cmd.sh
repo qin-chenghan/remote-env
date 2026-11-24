@@ -31,9 +31,27 @@ DOCKER_TOOL=/home/huawei_ts_program/litehost_perf_opt
 set -uo pipefail
 # 不带 -i：否则 docker 会从 stdin 抽走本探针脚本剩余的行
 D() { docker exec vllm bash -lc "$1" 2>&1 | sed '/^Authorized users only/d'; }
-D 'echo "-- 键的源头：_HEADER_DIR 与相关函数"; T=/usr/local/lib/python3.12/site-packages/torch; grep -n "_HEADER_DIR\|def _precompile_header\|def get_cpp_header\|def _get_cpp_header\|hash_\|sha256" $T/_inductor/codecache.py | sed -n "1,60p"'
-D 'echo "-- codecache.py 2600-2845"; sed -n "2600,2845p" /usr/local/lib/python3.12/site-packages/torch/_inductor/codecache.py'
-D 'echo "-- cpp_builder.py 1895-1995"; sed -n "1895,1995p" /usr/local/lib/python3.12/site-packages/torch/_inductor/cpp_builder.py'
+D 'echo "-- 复算当前环境的 PCH 键（mock 掉写盘，不产生文件）"
+TORCHINDUCTOR_CACHE_DIR=/home/huawei_ts_program/inductor_cache_py312 /usr/local/bin/python3 - <<PYEOF
+import torch, torch._inductor.codecache as c
+from torch._inductor.cpp_builder import CppBuilder, CppTorchDeviceOptions
+from torch._inductor.cpu_vec_isa import pick_vec_isa
+isa = pick_vec_isa()
+print("vec_isa:", type(isa).__name__, "flags:", getattr(isa, "flags", None))
+cc = {**c.CppCodeCache.cpp_compile_command_flags, "device_type": "cpu",
+      "extra_flags": (), "use_relative_path": False, "vec_isa": isa}
+bo = CppTorchDeviceOptions(compile_only=False, min_optimize=False, **cc)
+cmd = CppBuilder(name="probe", sources="probe.cpp", BuildOption=bo).get_command_line()
+print("cmdline:", cmd[:600])
+def fake_write(content, extension, extra="", specified_dir=None):
+    return c.get_hash(content.strip(), extra, "code"), "MOCK"
+c.write = fake_write
+c._worker_compile_cpp = lambda *a, **k: None
+print("PCH key now:", c._precompile_header("torch/csrc/inductor/cpp_prefix.h", cmd, **cc))
+PYEOF'
+D 'echo "-- hashable_cmd_line 的定义"; sed -n "2286,2320p" /usr/local/lib/python3.12/site-packages/torch/_inductor/codecache.py'
+D 'echo "-- 调用点（传了哪些参数）"; sed -n "2225,2300p" /usr/local/lib/python3.12/site-packages/torch/_inductor/codecache.py'
+D 'echo "-- 另一处调用点"; sed -n "2850,2900p" /usr/local/lib/python3.12/site-packages/torch/_inductor/codecache.py'
 PROBE_EOF
   ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE" 2>&1 | head -420
 
