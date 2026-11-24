@@ -1,0 +1,85 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-24T05:49:47Z
+
++ echo '== 1. 在 vllm 容器里找 run 目录 =='
+== 1. 在 vllm 容器里找 run 目录 ==
++ docker exec vllm bash -lc 'find / -maxdepth 4 -type d -name '\''py312_litehost_gap_20261124_100323'\'' 2>/dev/null | head -5'
++ docker exec vllm bash -lc 'ls -d /vllmBench /tmp/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench 2>/dev/null'
+/home/huawei_ts_program/litehost_perf_opt/vllmBench
++ echo '== 2. 找到就打印关键文件 =='
+== 2. 找到就打印关键文件 ==
+++ docker exec vllm bash -lc 'find / -maxdepth 4 -type d -name '\''py312_litehost_gap_20261124_100323'\'' 2>/dev/null | head -1'
++ P=
++ '[' -n '' ']'
++ echo '未找到 py312_litehost_gap_20261124_100323'
+未找到 py312_litehost_gap_20261124_100323
++ echo '== 3. qemu 测量工具的占核情况 =='
+== 3. qemu 测量工具的占核情况 ==
++ ps -eo pid,psr,pcpu,comm --sort=-pcpu
++ head -6
+    PID PSR %CPU COMMAND
+2246013  68  166 MainThread
+1543977  67  8.1 MainThread
+2234315  97  7.0 qemu-system-aar
+2657186 207  4.5 java
+   9291  90  3.7 dockerd
++ echo '-- qemu 进程与亲和 --'
+-- qemu 进程与亲和 --
+++ pgrep -f qemu-system
+++ head -3
++ for p in $(pgrep -f qemu-system 2> /dev/null | head -3)
++ echo pid=1010859
+pid=1010859
++ ps -o pid,etime,pcpu,nlwp,args -p 1010859
++ cut -c1-110
+    PID     ELAPSED %CPU NLWP COMMAND
+1010859  1-03:27:33  0.0    1 bash -c __dsh_find_shell() {   __dsh_count=0; __dsh_seen=0; __dsh_busy=0; __dsh_
++ taskset -cp 1010859
++ tail -1
+pid 1010859's current affinity list: 0-255
++ for p in $(pgrep -f qemu-system 2> /dev/null | head -3)
++ echo pid=1016599
+pid=1016599
++ ps -o pid,etime,pcpu,nlwp,args -p 1016599
++ cut -c1-110
+    PID     ELAPSED %CPU NLWP COMMAND
+1016599  1-03:27:30  0.0    2 /spark_trace/paoding/server/tool/qemu-system-aarch64-lh -M none -display none
++ tail -1
++ taskset -cp 1016599
+pid 1016599's current affinity list: 0-255
++ for p in $(pgrep -f qemu-system 2> /dev/null | head -3)
++ echo pid=2234315
+pid=2234315
++ ps -o pid,etime,pcpu,nlwp,args -p 2234315
++ cut -c1-110
+    PID     ELAPSED %CPU NLWP COMMAND
+2234315       07:20  7.0   42 qemu-system-aarch64 -nographic -m 122880 -cpu max,sve=on,sve256=on,pauth=off -M 
++ taskset -cp 2234315
++ tail -1
+pid 2234315's current affinity list: 0-255
++ echo '== 4. 8/10/12/14 的占用 =='
+== 4. 8/10/12/14 的占用 ==
++ python3 -
+cpu8: busy=0%
+cpu10: busy=0%
+cpu12: busy=0%
+cpu14: busy=0%
++ echo '== 5. 哪些进程在这些核上 =='
+== 5. 哪些进程在这些核上 ==
++ ps -eLo pid,psr,pcpu,comm --sort=-pcpu
++ awk 'NR==1 || $2==8 || $2==10 || $2==12 || $2==14'
++ head -10
+    PID PSR %CPU COMMAND
+1826020   8  0.2 VLLM::Worker_TP
+1826022  10  0.2 VLLM::Worker_TP
+  10209  10  0.2 node_exporter
+1268857  12  0.1 VLLM::Worker_TP
+1268856  10  0.1 VLLM::Worker_TP
+1268858  14  0.1 VLLM::Worker_TP
+1268855   8  0.1 VLLM::Worker_TP
+1236004  14  0.0 VLLM::Worker_TP
+1236003  12  0.0 VLLM::Worker_TP
++ set +x
+
+### exit: 0
