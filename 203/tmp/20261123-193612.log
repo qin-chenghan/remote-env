@@ -1,0 +1,102 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-23T11:36:12Z
+
+++ uname -r
++ K=6.6.0-159.4.21.175.oe2403sp4.x86_64
++ MOD=/lib/modules/6.6.0-159.4.21.175.oe2403sp4.x86_64/updates/iluvatar.ko
++ echo '== 0. 现状（确认没人用）=='
+== 0. 现状（确认没人用）==
++ lsmod
++ grep iluvatar
++ echo 模块未加载
+模块未加载
++ cat /sys/module/iluvatar/parameters/itr_multi_compute_engine
++ echo 无参数文件
+无参数文件
++ ls -l /lib/modules/6.6.0-159.4.21.175.oe2403sp4.x86_64/updates/iluvatar.ko
+-rw-r--r--. 1 root root 15631600 Nov 18 15:16 /lib/modules/6.6.0-159.4.21.175.oe2403sp4.x86_64/updates/iluvatar.ko
++ modinfo -p /lib/modules/6.6.0-159.4.21.175.oe2403sp4.x86_64/updates/iluvatar.ko
++ grep -i multi
+itr_multi_compute_engine:Enable multi compute engine. (int)
++ echo '-- GPU 进程 --'
+-- GPU 进程 --
++ timeout 20 /usr/local/corex/bin/ixsmi
++ sed -n '/Processes/,$p'
++ head -10
++ echo '-- 谁打开着设备 --'
+-- 谁打开着设备 --
++ head -10
++ fuser -vm '/dev/iluvatar*'
+Specified filename /dev/iluvatar* does not exist.
++ echo 无进程占用
+无进程占用
++ echo '-- 相关进程 --'
+-- 相关进程 --
++ pgrep -af 'vllm.entrypoints|bench_driver|api_server'
++ head -5
++ echo '无 vllm/bench 进程'
+无 vllm/bench 进程
++ echo '== 1. 卸载模块 =='
+== 1. 卸载模块 ==
++ rmmod iluvatar
+rmmod: ERROR: Module iluvatar is not currently loaded
++ echo 'rmmod rc=1'
+rmmod rc=1
++ lsmod
++ grep iluvatar
++ echo 已卸载
+已卸载
++ head -3
++ ls '/dev/iluvatar*'
+ls: cannot access '/dev/iluvatar*': No such file or directory
++ echo '== 2. 以 multi_engine=0 重新加载 =='
+== 2. 以 multi_engine=0 重新加载 ==
++ insmod /lib/modules/6.6.0-159.4.21.175.oe2403sp4.x86_64/updates/iluvatar.ko itr_multi_compute_engine=0
++ echo 'insmod rc=0'
+insmod rc=0
++ echo '== 3. 验证 =='
+== 3. 验证 ==
++ lsmod
++ grep iluvatar
+iluvatar             1802240  0
++ cat /sys/module/iluvatar/parameters/itr_multi_compute_engine
+0
++ dmesg
++ grep 'is okay'
++ tail -8
+[   27.060459] iluvatar 0000:10:00.0: DEV-0 is okay.
+[   27.568435] iluvatar 0000:13:00.0: DEV-1 is okay.
+[   27.961278] iluvatar 0000:19:00.0: DEV-2 is okay.
+[   28.334415] iluvatar 0000:1c:00.0: DEV-3 is okay.
+[14339.999637] iluvatar 0000:10:00.0: DEV-0 is okay.
+[14340.387597] iluvatar 0000:13:00.0: DEV-1 is okay.
+[14340.775796] iluvatar 0000:19:00.0: DEV-2 is okay.
+[14341.164713] iluvatar 0000:1c:00.0: DEV-3 is okay.
++ head -5
++ ls -l /dev/iluvatar0 /dev/iluvatar1 /dev/iluvatar2 /dev/iluvatar3
+crw-rw-rw-. 1 root root 240, 0 Nov 23 19:36 /dev/iluvatar0
+crw-rw-rw-. 1 root root 240, 1 Nov 23 19:36 /dev/iluvatar1
+crw-rw-rw-. 1 root root 240, 2 Nov 23 19:36 /dev/iluvatar2
+crw-rw-rw-. 1 root root 240, 3 Nov 23 19:36 /dev/iluvatar3
++ timeout 20 /usr/local/corex/bin/ixsmi --query-gpu=index,memory.used --format=csv,noheader
++ head -8
+0, 66 MiB
+1, 66 MiB
+2, 66 MiB
+3, 66 MiB
++ echo '== 4. 容器内是否仍可用 =='
+== 4. 容器内是否仍可用 ==
++ docker ps --filter name=corex5-py311 --format '{{.Names}}\t{{.Status}}'
+corex5-py311	Up 3 hours
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 /opt/corex311/bin/python -c 'import torch;print("devices",torch.cuda.device_count())'
++ tail -3
+devices 4
++ echo '== 5. 收尾 =='
+== 5. 收尾 ==
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  804G  757G  6.8G 100% /home
++ set +x
+
+### exit: 0
