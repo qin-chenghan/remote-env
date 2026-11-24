@@ -1,0 +1,80 @@
+### server: 145 -> 198  (FIX=1)
+### time:   2026-11-24T08:43:10Z
+
++ echo '== 1. 待同步文件（来自 145 仓库 clone）=='
+== 1. 待同步文件（来自 145 仓库 clone）==
++ md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+5266151fbd8e35c4b7409a4c11f4bba6  /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh
+068ff14851f7bc39ff7d3706d43082bf  /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh
++ echo '== 2. 当前部署版本（145 目录 / 198 容器）=='
+== 2. 当前部署版本（145 目录 / 198 容器）==
++ md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+9c92a49989f677edc96c527946dd42d2  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+589ec5543a0b761c0308db180ca1e252  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py; md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+9c92a49989f677edc96c527946dd42d2  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+589ec5543a0b761c0308db180ca1e252  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/mock_vllm/mock_gpu/worker_patch.py ]]
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh ]]
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh ]]
++ [[ 1 != 1 ]]
++ echo '== 3. 备份 =='
+== 3. 备份 ==
++ cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh.bak-20261124c
++ cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh.bak-20261124c
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''
+      cp -f /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/qch/mock_vllm/mock_gpu/worker_patch.py.bak-20261124c &&
+      cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh.bak-20261124c &&
+      cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh.bak-20261124c &&
+      ls -l /home/qch/mock_vllm/mock_gpu/worker_patch.py.bak-20261124c /home/huawei_ts_program/litehost_perf_opt/*.bak-20261124c'\'''
+
+Authorized users only. All activities may be monitored and reported.
+-rwxr-xr-x 1 root root 17904 Nov 24 16:43 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh.bak-20261124c
+-rwxr-xr-x 1 root root 17987 Nov 24 16:43 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh.bak-20261124c
+-rw-r--r-- 1 root root 21980 Nov 24 16:43 /home/qch/mock_vllm/mock_gpu/worker_patch.py.bak-20261124c
++ echo '== 4. 同步到 145 部署目录 =='
+== 4. 同步到 145 部署目录 ==
++ cp -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ cp -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ chmod +x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ echo '== 5. 写入 198 容器 =='
+== 5. 写入 198 容器 ==
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''cat > /home/qch/mock_vllm/mock_gpu/worker_patch.py'\'''
+
+Authorized users only. All activities may be monitored and reported.
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''cat > /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''cat > /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
++ echo '== 6. 校验（应与第 1 节一致）=='
+== 6. 校验（应与第 1 节一致）==
++ md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+5266151fbd8e35c4b7409a4c11f4bba6  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+068ff14851f7bc39ff7d3706d43082bf  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''chmod +x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock*.sh; md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh; bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh && bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh && echo SCRIPT_OK'\'''
+
+Authorized users only. All activities may be monitored and reported.
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+5266151fbd8e35c4b7409a4c11f4bba6  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+068ff14851f7bc39ff7d3706d43082bf  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+SCRIPT_OK
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''grep -n "WARMUP_ONLY" /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh | head -5'\'''
+
+Authorized users only. All activities may be monitored and reported.
+31:WARMUP_ONLY="${WARMUP_ONLY:-0}"                     # 1 = 只启动到就绪后停止，用于重启后预热编译
+44:[[ "$WARMUP_ONLY" == 0 || "$WARMUP_ONLY" == 1 ]] || { echo 'ERROR: WARMUP_ONLY=0|1' >&2; exit 2; }
+295:    echo "warmup_only=$WARMUP_ONLY"
+298:if [[ "$HOST_MEASURE" == lite && "$WARMUP_ONLY" != 1 ]]; then
+308:if [[ "$WARMUP_ONLY" == 1 ]]; then
++ set +x
+
+### exit: 0
