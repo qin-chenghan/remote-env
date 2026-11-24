@@ -1,0 +1,86 @@
+### server: 145 -> 198  (FIX=0)
+### time:   2026-11-24T08:35:14Z
+
++ echo '== 0. 100823 卡住的 9 分钟在做什么（只读）=='
+== 0. 100823 卡住的 9 分钟在做什么（只读）==
++ cat
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -420
+
+Authorized users only. All activities may be monitored and reported.
+-- 复算 PCH 键（mock 掉写盘；同宿主连算两次）
+vec_isa: VecNEON flags: None
+min_optimize=True  -> cevqgjbb2fwkbhcg3b2uzzasgijquv2pnlojz2ry3n3uooaii5j2
+min_optimize=False -> cml3jcekyn6nf22ufo32x5y76tjttrrnp476kkvi34zwa3bu7nae
+min_optimize=True  -> cevqgjbb2fwkbhcg3b2uzzasgijquv2pnlojz2ry3n3uooaii5j2
+-- -march=native 展开出的 ARM 特性宏（host 相关，进 preprocessor_hash）
+#define __ARM_ARCH 8
+#define __ARM_FEATURE_AES 1
+#define __ARM_FEATURE_ATOMICS 1
+#define __ARM_FEATURE_BF16 1
+#define __ARM_FEATURE_BF16_SCALAR_ARITHMETIC 1
+#define __ARM_FEATURE_BF16_VECTOR_ARITHMETIC 1
+#define __ARM_FEATURE_CLZ 1
+#define __ARM_FEATURE_CRC32 1
+#define __ARM_FEATURE_CRYPTO 1
+#define __ARM_FEATURE_DOTPROD 1
+#define __ARM_FEATURE_FMA 1
+#define __ARM_FEATURE_FP16_FML 1
+#define __ARM_FEATURE_FP16_SCALAR_ARITHMETIC 1
+#define __ARM_FEATURE_FP16_VECTOR_ARITHMETIC 1
+#define __ARM_FEATURE_IDIV 1
+#define __ARM_FEATURE_MATMUL_INT8 1
+#define __ARM_FEATURE_NUMERIC_MAXMIN 1
+#define __ARM_FEATURE_QRDMX 1
+#define __ARM_FEATURE_RCPC 1
+#define __ARM_FEATURE_RNG 1
+#define __ARM_FEATURE_SHA2 1
+#define __ARM_FEATURE_SHA3 1
+#define __ARM_FEATURE_SHA512 1
+#define __ARM_FEATURE_SM3 1
+#define __ARM_FEATURE_SM4 1
+#define __ARM_FEATURE_SVE 1
+#define __ARM_FEATURE_SVE_BF16 1
+#define __ARM_FEATURE_SVE_BITS 0
+#define __ARM_FEATURE_SVE_MATMUL_INT8 1
+#define __ARM_FEATURE_SVE_VECTOR_OPERATORS 1
+#define __ARM_FEATURE_UNALIGNED 1
+-- 磁盘上已有的 PCH 键
+c2hveezg3bvkabtpvdlmbi3rzhgsfwnlhmbmsilaxbgcq7w5xwlf
+cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz
+cmm6ladfh5ak4rwlgjjanyyaxkkyyegwftuurmvg4rwdgiqr4iuf
++ echo '== 1. 本地待同步文件（来自 145 仓库 clone）=='
+== 1. 本地待同步文件（来自 145 仓库 clone）==
++ md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+9c92a49989f677edc96c527946dd42d2  /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh
+589ec5543a0b761c0308db180ca1e252  /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh
++ echo '== 2. 145 部署目录 / 198 容器当前版本 =='
+== 2. 145 部署目录 / 198 容器当前版本 ==
++ md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+9c92a49989f677edc96c527946dd42d2  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+589ec5543a0b761c0308db180ca1e252  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py; md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+9c92a49989f677edc96c527946dd42d2  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+589ec5543a0b761c0308db180ca1e252  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/mock_vllm/mock_gpu/worker_patch.py ]]
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh ]]
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh ]]
++ [[ 0 != 1 ]]
++ echo '== 3. 预览（未写入；执行 FIX=1 bash cmd.sh 才会同步）=='
+== 3. 预览（未写入；执行 FIX=1 bash cmd.sh 才会同步）==
++ echo '将覆盖：/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock{,_py312}.sh'
+将覆盖：/home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock{,_py312}.sh
++ echo '        /home/qch/mock_vllm/mock_gpu/worker_patch.py'
+        /home/qch/mock_vllm/mock_gpu/worker_patch.py
++ echo '        /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock{,_py312}.sh'
+        /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock{,_py312}.sh
++ set +x
+
+### exit: 0
