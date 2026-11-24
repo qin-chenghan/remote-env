@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。正确深度找 run 目录；查残留 VLLM worker 的来源与状态。
+# 本次：只读。检查 093257 那次 py312 lite 运行；确认 py-spy/gdb 是否可用于抓栈。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,7 +11,8 @@ OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
 C=vllm
-ID=py312_litehost_gap_20261124_100323
+VB=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+ID=py312_litehost_gap_20261124_093257
 
 {
   echo "### server: $SERVER"
@@ -22,38 +23,29 @@ ID=py312_litehost_gap_20261124_100323
 
   # ---- 命令开始 ----
 
-  echo "== 1. 正确深度找 run 目录 =="
-  docker exec "$C" bash -lc "find / -maxdepth 6 -type d -name '$ID' 2>/dev/null | head -5"
-  docker exec "$C" bash -lc "ls -lt /home/huawei_ts_program/litehost_perf_opt/vllmBench 2>/dev/null | head -6"
-  docker exec "$C" bash -lc "ls -lt /tmp/vllmBench 2>/dev/null | head -4"
+  echo "== 1. 最近几次 py312 lite 运行（config 摘要）=="
+  for d in $(docker exec "$C" bash -lc "ls -dt $VB/py312_litehost_gap_* 2>/dev/null | head -4"); do
+    echo "-- $d"
+    docker exec "$C" bash -lc "grep -E 'test_id|prefix|prompts|started' $d/config.txt 2>/dev/null | tr '\n' ' '; echo; grep -cE 'Capturing' $d/logs/server.log 2>/dev/null; grep -m1 -oE '服务就绪 \([0-9]+s\)' $d/logs/server.log 2>/dev/null"
+  done 2>&1 | head -20
 
-  echo "== 2. 找到后的关键信息 =="
-  P=$(docker exec "$C" bash -lc "find / -maxdepth 6 -type d -name '$ID' 2>/dev/null | head -1")
-  echo "P=$P"
-  if [ -n "$P" ]; then
-    docker exec "$C" bash -lc "
-      echo '-- config.txt'; cat '$P/config.txt'
-      echo '-- 文件'; ls -la '$P' | head -8
-      echo '-- server.log 关键行'; grep -nE 'loading took|Capturing|startup complete|pinned to cpu' '$P/logs/server.log' | head -10
-    " 2>&1 | head -30
-    echo "-- harness 日志（同目录外）--"
-    docker exec "$C" bash -lc "ls -lt /tmp/run_*$ID*.log /tmp/run_*20261124*.log 2>/dev/null | head -4"
-  fi
+  echo "== 2. 093257 那次的关键日志 =="
+  docker exec "$C" bash -lc "
+    f=$VB/$ID/logs/server.log
+    if [ -f \$f ]; then
+      grep -nE 'loading took|Capturing|startup complete|pinned to cpu|shm_broadcast|died unexpectedly' \$f | head -12
+    else echo '无 server.log'; fi
+    ls $VB/$ID 2>/dev/null | head -6
+    cat $VB/$ID/summary.csv 2>/dev/null | cut -d, -f2,6,8,11"
 
-  echo "== 3. 残留 VLLM worker 的来源 =="
-  ps -eo pid,ppid,lstart,stat,psr,pcpu,args 2>/dev/null | grep "VLLM::Worker_TP" | grep -v grep | cut -c1-140 | head -10
+  echo "== 3. 抓栈工具 =="
+  command -v py-spy gdb perf 2>&1 | head -4
+  docker exec "$C" bash -lc 'command -v py-spy gdb perf 2>&1 | head -4'
 
-  echo "-- 每个残留 worker 的 cgroup（属于哪个容器）--"
-  for p in $(pgrep -f "VLLM::Worker_TP" 2>/dev/null | head -8); do
-    cid=$(grep -oE 'docker/[0-9a-f]{12,}' /proc/$p/cgroup 2>/dev/null | head -1 | cut -d/ -f2)
-    name=$(docker ps -a --no-trunc --filter "id=$cid" --format '{{.Names}}' 2>/dev/null)
-    echo "pid=$p container=${name:-$cid} state=$(awk '{print $3}' /proc/$p/stat 2>/dev/null) started=$(ps -o lstart= -p $p 2>/dev/null)"
-  done
-
-  echo "== 4. 是否有对应父进程（api_server/engine）还活着 =="
-  docker exec "$C" bash -lc 'pgrep -af "vllm[.]entrypoints|bench_driver" | grep -v pgrep || echo none'
-  echo "-- 宿主全局 --"
-  ps -eo pid,ppid,etime,args 2>/dev/null | grep -E "vllm[.]entrypoints|VLLM::Worker" | grep -v grep | cut -c1-130 | head -12
+  echo "== 4. 当前容器状态 =="
+  docker exec "$C" bash -lc 'pgrep -af "vllm[.]entrypoints|bench_driver" | grep -v pgrep || echo idle'
+  ss -ltn 2>/dev/null | grep -E ':(8948|8848)\b' || echo "ports free"
+  docker ps --filter name=vllm --format '{{.Names}} {{.Status}}'
 
   # ---- 命令结束 ----
 
