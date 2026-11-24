@@ -1,0 +1,218 @@
+### server: 145 -> 198  (FIX=1)
+### time:   2026-11-24T07:25:39Z
+
++ echo '== 0. 100823 卡住的 9 分钟在做什么（只读）=='
+== 0. 100823 卡住的 9 分钟在做什么（只读）==
++ cat
++ sed -i s#RUNLOG#/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823/logs/server.log#g /tmp/probe198i.sh
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -220
+
+Authorized users only. All activities may be monitored and reported.
+-- torch/inductor 缓存语义
+torch 2.10.0
+header_dir /tmp/torchinductor_root/precompiled_headers
+def default_cache_dir() -> str:
+    sanitized_username = re.sub(r'[\\/:*?"<>|]', "_", getpass.getuser())
+    return os.path.join(
+        tempfile.gettempdir() if not is_fbcode() else "/var/tmp",
+        "torchinductor_" + sanitized_username,
+    )
+-- 11:14 之后到死亡前的完整主日志（略去 shm 刷屏）
+22
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 133, in __init__
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     kv_cache_config = self._initialize_kv_caches(vllm_config)
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     return func(*args, **kwargs)
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 325, in _initialize_kv_caches
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     self.model_executor.initialize_from_config(kv_cache_configs)
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/abstract.py", line 124, in initialize_from_config
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     compilation_times: list[CompilationTimes] = self.collective_rpc(
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]                                                 ^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 404, in collective_rpc
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     return future if non_block else future.result()
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]                                     ^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 93, in result
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     return super().result()
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]            ^^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     return self.__get_result()
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]            ^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     raise self._exception
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 97, in _wait_for_response
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     response = self.aggregate(self.get_response())
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]                               ^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 389, in get_response
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     status, result = mq.dequeue(timeout=dequeue_timeout)
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     with self.acquire_read(timeout, indefinite) as buf:
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]   File "/usr/local/lib/python3.12/contextlib.py", line 137, in __enter__
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     return next(self.gen)
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]            ^^^^^^^^^^^^^^
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]     raise RuntimeError("cancelled")
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235] RuntimeError: cancelled
+-- 死亡前 30 行（含 worker 自己的报错）
+(APIServer pid=380)            ^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+(APIServer pid=380)     return runner.run(main)
+(APIServer pid=380)            ^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+(APIServer pid=380)     return self._loop.run_until_complete(task)
+(APIServer pid=380)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/uvloop/__init__.py", line 48, in wrapper
+(APIServer pid=380)     return await main
+(APIServer pid=380)            ^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 658, in run_server
+(APIServer pid=380)     await run_server_worker(listen_address, sock, args, **uvicorn_kwargs)
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 672, in run_server_worker
+(APIServer pid=380)     async with build_async_engine_client(
+(APIServer pid=380)                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+(APIServer pid=380)     return await anext(self.gen)
+(APIServer pid=380)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 99, in build_async_engine_client
+(APIServer pid=380)     async with build_async_engine_client_from_engine_args(
+(APIServer pid=380)                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+(APIServer pid=380)     return await anext(self.gen)
+(APIServer pid=380)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 135, in build_async_engine_client_from_engine_a
+(APIServer pid=380)     async_llm = AsyncLLM.from_vllm_config(
+(APIServer pid=380)                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/async_llm.py", line 217, in from_vllm_config
+(APIServer pid=380)     return cls(
+(APIServer pid=380)            ^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/async_llm.py", line 146, in __init__
+(APIServer pid=380)     self.engine_core = EngineCoreClient.make_async_mp_client(
+(APIServer pid=380)                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(APIServer pid=380)     return func(*args, **kwargs)
+(APIServer pid=380)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 132, in make_async_mp_client
+(APIServer pid=380)     return AsyncMPClient(*client_args)
+(APIServer pid=380)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(APIServer pid=380)     return func(*args, **kwargs)
+(APIServer pid=380)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 963, in __init__
+(APIServer pid=380)     super().__init__(
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 573, in __init__
+(APIServer pid=380)     with launch_core_engines(
+(APIServer pid=380)          ^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=380)   File "/usr/local/lib/python3.12/contextlib.py", line 144, in __exit__
+(APIServer pid=380)     next(self.gen)
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/utils.py", line 1190, in launch_core_engines
+(APIServer pid=380)     wait_for_engine_startup(
+(APIServer pid=380)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/utils.py", line 1249, in wait_for_engine_startup
+(APIServer pid=380)     raise RuntimeError(
+(APIServer pid=380) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {'EngineCore': 1}
+(APIServer pid=380) sys:1: ResourceWarning: unclosed <socket.socket fd=14, family=2, type=1, proto=0, laddr=('127.0.0.1', 8948)>
+/usr/local/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 4 leaked semaphore objects to clean up at s
+  warnings.warn('resource_tracker: There appear to be %d '
+/usr/local/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 5 leaked shared_memory objects to clean up 
+  warnings.warn('resource_tracker: There appear to be %d '
+-- pin 的 cache 目录在 11-24 有没有写入
+24
+2026-11-24 11:23 /home/huawei_ts_program/inductor_cache_py312/locks/cjavtv4n3luyfucbb6i5p2zymefx63rrnvuts436umrx6l5z6vyg.lock
+total 64
+drwxr-xr-x 1 root root 4096 2026-11-20 16:52 .
+drwxr-xr-x 1 root root 4096 2026-11-23 09:55 ..
+drwxr-xr-x 2 root root 4096 2026-11-20 16:52 4d
+drwxr-xr-x 4 root root 4096 2026-11-20 16:51 aotautograd
+drwxr-xr-x 4 root root 4096 2026-11-20 16:51 fxgraph
+-- /tmp 代码缓存 11-24 的写入
+11:20 44 /tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h
+11:23 0 /tmp/torchinductor_root/precompiled_headers/locks/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.lock
+11:23 137260719 /tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h.gch
+total: 29
+-- 相关超时默认值
+/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py:385:                dequeue_timeout = (
+/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py:389:                    status, result = mq.dequeue(timeout=dequeue_timeout)
+/usr/local/lib/python3.12/site-packages/vllm/envs.py:26:    VLLM_ENGINE_ITERATION_TIMEOUT_S: int = 60
+/usr/local/lib/python3.12/site-packages/vllm/envs.py:27:    VLLM_ENGINE_READY_TIMEOUT_S: int = 600
+/usr/local/lib/python3.12/site-packages/vllm/envs.py:731:    "VLLM_ENGINE_ITERATION_TIMEOUT_S": lambda: int(
+/usr/local/lib/python3.12/site-packages/vllm/envs.py:732:        os.environ.get("VLLM_ENGINE_ITERATION_TIMEOUT_S", "60")
+/usr/local/lib/python3.12/site-packages/vllm/envs.py:736:    "VLLM_ENGINE_READY_TIMEOUT_S": lambda: int(
+/usr/local/lib/python3.12/site-packages/vllm/envs.py:737:        os.environ.get("VLLM_ENGINE_READY_TIMEOUT_S", "600")
+/usr/local/lib/python3.12/site-packages/vllm/envs.py:2047:        "VLLM_ENGINE_ITERATION_TIMEOUT_S",
++ echo '== 1. 本地待同步文件（来自 145 仓库 clone）=='
+== 1. 本地待同步文件（来自 145 仓库 clone）==
++ md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+9c92a49989f677edc96c527946dd42d2  /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh
+589ec5543a0b761c0308db180ca1e252  /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh
++ echo '== 2. 145 部署目录 / 198 容器当前版本 =='
+== 2. 145 部署目录 / 198 容器当前版本 ==
++ md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+3be02d896796fd36e846d6fd7ee0d9e2  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+d37f894f2c2de524fe6c90cba97e6d27  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py; md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+3be02d896796fd36e846d6fd7ee0d9e2  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+d37f894f2c2de524fe6c90cba97e6d27  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/mock_vllm/mock_gpu/worker_patch.py ]]
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh ]]
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh ]]
++ [[ 1 != 1 ]]
++ echo '== 3. 备份 =='
+== 3. 备份 ==
++ cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh.bak-20261124b
++ cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh.bak-20261124b
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''
+      cp -f /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/qch/mock_vllm/mock_gpu/worker_patch.py.bak-20261124b &&
+      cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh.bak-20261124b &&
+      cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh.bak-20261124b &&
+      ls -l /home/qch/mock_vllm/mock_gpu/worker_patch.py.bak-20261124b /home/huawei_ts_program/litehost_perf_opt/*.bak-20261124b'\'''
+
+Authorized users only. All activities may be monitored and reported.
+-rwxr-xr-x 1 root root 17538 Nov 24 15:25 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh.bak-20261124b
+-rwxr-xr-x 1 root root 17621 Nov 24 15:25 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh.bak-20261124b
+-rw-r--r-- 1 root root 21980 Nov 24 15:25 /home/qch/mock_vllm/mock_gpu/worker_patch.py.bak-20261124b
++ echo '== 4. 同步到 145 部署目录 =='
+== 4. 同步到 145 部署目录 ==
++ cp -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ cp -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ chmod +x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ echo '== 5. 写入 198 容器 =='
+== 5. 写入 198 容器 ==
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''cat > /home/qch/mock_vllm/mock_gpu/worker_patch.py'\'''
+
+Authorized users only. All activities may be monitored and reported.
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''cat > /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''cat > /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
++ echo '== 6. 校验（应与第 1 节一致）=='
+== 6. 校验（应与第 1 节一致）==
++ md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+9c92a49989f677edc96c527946dd42d2  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+589ec5543a0b761c0308db180ca1e252  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''chmod +x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock*.sh; md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh; bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh && bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh && echo SCRIPT_OK'\'''
+
+Authorized users only. All activities may be monitored and reported.
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+9c92a49989f677edc96c527946dd42d2  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+589ec5543a0b761c0308db180ca1e252  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+SCRIPT_OK
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''grep -n "MOCK_STACK_DUMP:-1\|STALL_ABORT_SECONDS" /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh | head -4'\'''
+
+Authorized users only. All activities may be monitored and reported.
+30:STALL_ABORT_SECONDS="${STALL_ABORT_SECONDS:-900}"  # 停滞多久放弃本轮（正常启动 3 分钟）；0=关闭
+49:export MOCK_STACK_DUMP="${MOCK_STACK_DUMP:-1}"
+169:    # 但停滞会被单独盯住：抓栈（STALL_DUMP_SECONDS）和放弃（STALL_ABORT_SECONDS）。
+188:            if (( STALL_ABORT_SECONDS > 0 && stalled >= STALL_ABORT_SECONDS )); then
++ set +x
+
+### exit: 0
