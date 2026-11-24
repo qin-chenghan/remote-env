@@ -1,0 +1,50 @@
+### server: 145 -> 198  (FIX=0)
+### time:   2026-11-24T06:59:22Z
+
++ echo '== 0. 启动时长对比（只读）=='
+== 0. 启动时长对比（只读）==
++ cat
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -40
+
+Authorized users only. All activities may be monitored and reported.
+---- py312_litehost_gap_20261123_155113
+first: 11-23 15:51:53
+last:  11-23 15:55:22
+11-23 15:52:36 [default_loader.py:397] Loading weights took
+11-23 15:52:42 [gpu_model_runner.py:6785] Graph capturing finished
+---- py312_litehost_gap_20261123_155940
+first: 11-23 16:00:21
+last:  11-23 16:02:51
+11-23 16:01:04 [default_loader.py:397] Loading weights took
+11-23 16:01:11 [gpu_model_runner.py:6785] Graph capturing finished
+---- py312_litehost_gap_20261124_100823
+first: 11-24 10:37:39
+last:  11-24 11:28:53
+11-24 11:19:00 [default_loader.py:397] Loading weights took
++ echo '== 1. 本地待同步文件 =='
+== 1. 本地待同步文件 ==
++ md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+5ef27ddf6637aa0cd15e68c40d9aeaa6  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+f0200586ea2fffc40c1e4bfd9e5db1bd  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ echo '== 2. 198 当前版本 =='
+== 2. 198 当前版本 ==
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py; grep -c MOCK_TP_CPUS_DEFER /home/qch/mock_vllm/mock_gpu/worker_patch.py; md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
+0188d4c5b18957e47ad6bdfeee8e817e  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+0
+85df78dbbf1780f59779e3d8b8b88c7f  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ [[ 0 != 1 ]]
++ echo '== 3. 预览（未写入；执行 FIX=1 bash cmd.sh 才会同步）=='
+== 3. 预览（未写入；执行 FIX=1 bash cmd.sh 才会同步）==
++ echo 将覆盖：/home/qch/mock_vllm/mock_gpu/worker_patch.py
+将覆盖：/home/qch/mock_vllm/mock_gpu/worker_patch.py
++ echo '        /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh'
+        /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ echo '        /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'
+        /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ set +x
+
+### exit: 0
