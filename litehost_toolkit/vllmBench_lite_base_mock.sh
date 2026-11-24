@@ -23,7 +23,7 @@ HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Pr
 VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
 SERVER_WAIT_TIMEOUT="${SERVER_WAIT_TIMEOUT:-0}"   # 0 = 不设上限，直到服务就绪或进程退出
 STALL_DUMP_SECONDS="${STALL_DUMP_SECONDS:-300}"   # graph capture 进度停滞多久自动抓栈；0=关闭
-STALL_ABORT_SECONDS="${STALL_ABORT_SECONDS:-1800}" # 停滞多久放弃本轮；0=关闭
+STALL_ABORT_SECONDS="${STALL_ABORT_SECONDS:-900}"  # 停滞多久放弃本轮（正常启动 3 分钟）；0=关闭
 HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
 HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
 HOST_MAX_SCOPES="${HOST_MAX_SCOPES:-200000}"
