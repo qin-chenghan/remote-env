@@ -1,0 +1,12 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-24T05:52:17Z
+
++ echo '== 1. 在 vllm 容器里找 run 目录 =='
+== 1. 在 vllm 容器里找 run 目录 ==
++ docker exec vllm bash -lc 'find / -maxdepth 4 -type d -name '\''py312_litehost_gap_20261124_100323'\'' 2>/dev/null | head -5'
++ docker exec vllm bash -lc 'ls -d /vllmBench /tmp/vllmBench /home/huawei_ts_program/litehost_perf_opt/vllmBench 2>/dev/null'
+/home/huawei_ts_program/litehost_perf_opt/vllmBench
++ echo '== 2. 找到就打印关键文件 =='
+== 2. 找到就打印关键文件 ==
+++ docker exec vllm bash -lc 'find / -maxdepth 4 -type d -name '\''py312_litehost_gap_20261124_100323'\'' 2>/dev/null | head -1'

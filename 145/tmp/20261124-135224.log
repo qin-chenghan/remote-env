@@ -1,0 +1,157 @@
+### server: 145
+### host:   localhost.localdomain
+### time:   2026-11-24T05:52:24Z
+
++ echo '== 1. 正确深度找 run 目录 =='
+== 1. 正确深度找 run 目录 ==
++ docker exec vllm bash -lc 'find / -maxdepth 6 -type d -name '\''py312_litehost_gap_20261124_100323'\'' 2>/dev/null | head -5'
++ docker exec vllm bash -lc 'ls -lt /home/huawei_ts_program/litehost_perf_opt/vllmBench 2>/dev/null | head -6'
+total 148
+drwxr-xr-x. 6 root root 4096 Nov 24 09:36 py312_litehost_gap_20261124_093257
+drwxr-xr-x. 3 root root 4096 Nov 23 16:39 prime_py312_rest6
+drwxr-xr-x. 3 root root 4096 Nov 23 16:21 prime_py312_2048
+drwxr-xr-x. 3 root root 4096 Nov 23 16:08 prime_py312_1024
+drwxr-xr-x. 6 root root 4096 Nov 23 16:03 py312_litehost_gap_20261123_155940
++ docker exec vllm bash -lc 'ls -lt /tmp/vllmBench 2>/dev/null | head -4'
++ echo '== 2. 找到后的关键信息 =='
+== 2. 找到后的关键信息 ==
+++ docker exec vllm bash -lc 'find / -maxdepth 6 -type d -name '\''py312_litehost_gap_20261124_100323'\'' 2>/dev/null | head -1'
++ P=
++ echo P=
+P=
++ '[' -n '' ']'
++ echo '== 3. 残留 VLLM worker 的来源 =='
+== 3. 残留 VLLM worker 的来源 ==
++ ps -eo pid,ppid,lstart,stat,psr,pcpu,args
++ grep VLLM::Worker_TP
++ grep -v grep
++ cut -c1-140
++ head -10
+1153965 1151917 Mon Nov 23 14:03:11 2026 Z      8  0.0 [VLLM::Worker_TP] <defunct>
+1153966 1151917 Mon Nov 23 14:03:11 2026 Z     10  0.0 [VLLM::Worker_TP] <defunct>
+1153967 1151917 Mon Nov 23 14:03:11 2026 Z     12  0.0 [VLLM::Worker_TP] <defunct>
+1153968 1151917 Mon Nov 23 14:03:11 2026 Z     14  0.0 [VLLM::Worker_TP] <defunct>
+1159985 1151917 Mon Nov 23 14:08:29 2026 Z      8  0.0 [VLLM::Worker_TP] <defunct>
+1159986 1151917 Mon Nov 23 14:08:29 2026 Z     10  0.0 [VLLM::Worker_TP] <defunct>
+1159987 1151917 Mon Nov 23 14:08:29 2026 Z     12  0.0 [VLLM::Worker_TP] <defunct>
+1159988 1151917 Mon Nov 23 14:08:29 2026 Z     14  0.0 [VLLM::Worker_TP] <defunct>
+1167244 1151917 Mon Nov 23 14:18:12 2026 Z      8  0.0 [VLLM::Worker_TP] <defunct>
+1167245 1151917 Mon Nov 23 14:18:12 2026 Z     10  0.0 [VLLM::Worker_TP] <defunct>
++ echo '-- 每个残留 worker 的 cgroup（属于哪个容器）--'
+-- 每个残留 worker 的 cgroup（属于哪个容器）--
+++ pgrep -f VLLM::Worker_TP
+++ head -8
++ for p in $(pgrep -f "VLLM::Worker_TP" 2> /dev/null | head -8)
+++ grep -oE 'docker/[0-9a-f]{12,}' /proc/1153965/cgroup
+++ head -1
+++ cut -d/ -f2
++ cid=
+++ docker ps -a --no-trunc --filter id= --format '{{.Names}}'
++ name=
+++ awk '{print $3}' /proc/1153965/stat
+++ ps -o lstart= -p 1153965
++ echo 'pid=1153965 container= state=Z started=Mon Nov 23 14:03:11 2026'
+pid=1153965 container= state=Z started=Mon Nov 23 14:03:11 2026
++ for p in $(pgrep -f "VLLM::Worker_TP" 2> /dev/null | head -8)
+++ grep -oE 'docker/[0-9a-f]{12,}' /proc/1153966/cgroup
+++ head -1
+++ cut -d/ -f2
++ cid=
+++ docker ps -a --no-trunc --filter id= --format '{{.Names}}'
++ name=
+++ awk '{print $3}' /proc/1153966/stat
+++ ps -o lstart= -p 1153966
++ echo 'pid=1153966 container= state=Z started=Mon Nov 23 14:03:11 2026'
+pid=1153966 container= state=Z started=Mon Nov 23 14:03:11 2026
++ for p in $(pgrep -f "VLLM::Worker_TP" 2> /dev/null | head -8)
+++ grep -oE 'docker/[0-9a-f]{12,}' /proc/1153967/cgroup
+++ head -1
+++ cut -d/ -f2
++ cid=
+++ docker ps -a --no-trunc --filter id= --format '{{.Names}}'
++ name=
+++ awk '{print $3}' /proc/1153967/stat
+++ ps -o lstart= -p 1153967
++ echo 'pid=1153967 container= state=Z started=Mon Nov 23 14:03:11 2026'
+pid=1153967 container= state=Z started=Mon Nov 23 14:03:11 2026
++ for p in $(pgrep -f "VLLM::Worker_TP" 2> /dev/null | head -8)
+++ grep -oE 'docker/[0-9a-f]{12,}' /proc/1153968/cgroup
+++ head -1
+++ cut -d/ -f2
++ cid=
+++ docker ps -a --no-trunc --filter id= --format '{{.Names}}'
++ name=
+++ awk '{print $3}' /proc/1153968/stat
+++ ps -o lstart= -p 1153968
++ echo 'pid=1153968 container= state=Z started=Mon Nov 23 14:03:11 2026'
+pid=1153968 container= state=Z started=Mon Nov 23 14:03:11 2026
++ for p in $(pgrep -f "VLLM::Worker_TP" 2> /dev/null | head -8)
+++ grep -oE 'docker/[0-9a-f]{12,}' /proc/1159985/cgroup
+++ head -1
+++ cut -d/ -f2
++ cid=
+++ docker ps -a --no-trunc --filter id= --format '{{.Names}}'
++ name=
+++ awk '{print $3}' /proc/1159985/stat
+++ ps -o lstart= -p 1159985
++ echo 'pid=1159985 container= state=Z started=Mon Nov 23 14:08:29 2026'
+pid=1159985 container= state=Z started=Mon Nov 23 14:08:29 2026
++ for p in $(pgrep -f "VLLM::Worker_TP" 2> /dev/null | head -8)
+++ grep -oE 'docker/[0-9a-f]{12,}' /proc/1159986/cgroup
+++ head -1
+++ cut -d/ -f2
++ cid=
+++ docker ps -a --no-trunc --filter id= --format '{{.Names}}'
++ name=
+++ awk '{print $3}' /proc/1159986/stat
+++ ps -o lstart= -p 1159986
++ echo 'pid=1159986 container= state=Z started=Mon Nov 23 14:08:29 2026'
+pid=1159986 container= state=Z started=Mon Nov 23 14:08:29 2026
++ for p in $(pgrep -f "VLLM::Worker_TP" 2> /dev/null | head -8)
+++ grep -oE 'docker/[0-9a-f]{12,}' /proc/1159987/cgroup
+++ head -1
+++ cut -d/ -f2
++ cid=
+++ docker ps -a --no-trunc --filter id= --format '{{.Names}}'
++ name=
+++ awk '{print $3}' /proc/1159987/stat
+++ ps -o lstart= -p 1159987
++ echo 'pid=1159987 container= state=Z started=Mon Nov 23 14:08:29 2026'
+pid=1159987 container= state=Z started=Mon Nov 23 14:08:29 2026
++ for p in $(pgrep -f "VLLM::Worker_TP" 2> /dev/null | head -8)
+++ grep -oE 'docker/[0-9a-f]{12,}' /proc/1159988/cgroup
+++ head -1
+++ cut -d/ -f2
++ cid=
+++ docker ps -a --no-trunc --filter id= --format '{{.Names}}'
++ name=
+++ awk '{print $3}' /proc/1159988/stat
+++ ps -o lstart= -p 1159988
++ echo 'pid=1159988 container= state=Z started=Mon Nov 23 14:08:29 2026'
+pid=1159988 container= state=Z started=Mon Nov 23 14:08:29 2026
++ echo '== 4. 是否有对应父进程（api_server/engine）还活着 =='
+== 4. 是否有对应父进程（api_server/engine）还活着 ==
++ docker exec vllm bash -lc 'pgrep -af "vllm[.]entrypoints|bench_driver" | grep -v pgrep || echo none'
+none
++ echo '-- 宿主全局 --'
+-- 宿主全局 --
++ ps -eo pid,ppid,etime,args
++ grep -E 'vllm[.]entrypoints|VLLM::Worker'
++ grep -v grep
++ cut -c1-130
++ head -12
+1153965 1151917    23:49:14 [VLLM::Worker_TP] <defunct>
+1153966 1151917    23:49:14 [VLLM::Worker_TP] <defunct>
+1153967 1151917    23:49:14 [VLLM::Worker_TP] <defunct>
+1153968 1151917    23:49:14 [VLLM::Worker_TP] <defunct>
+1159985 1151917    23:43:56 [VLLM::Worker_TP] <defunct>
+1159986 1151917    23:43:56 [VLLM::Worker_TP] <defunct>
+1159987 1151917    23:43:56 [VLLM::Worker_TP] <defunct>
+1159988 1151917    23:43:56 [VLLM::Worker_TP] <defunct>
+1167244 1151917    23:34:13 [VLLM::Worker_TP] <defunct>
+1167245 1151917    23:34:13 [VLLM::Worker_TP] <defunct>
+1167246 1151917    23:34:13 [VLLM::Worker_TP] <defunct>
+1167247 1151917    23:34:13 [VLLM::Worker_TP] <defunct>
++ set +x
+
+### exit: 0
