@@ -1,0 +1,231 @@
+### server: 145 -> 198
+### time:   2026-11-24T06:07:41Z
+
++ cat
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -240
+
+Authorized users only. All activities may be monitored and reported.
+== 1. 100823 server.log 前 30 行 ==
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 10:37:39 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-24 10:37:39 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-24 10:37:39 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-24 10:37:39 [__init__.py:238] Platform plugin iluvatar is activated
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 10:41:23 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-24 10:41:23 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 10:46:04 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-24 10:46:04 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-24 10:46:04 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-24 10:46:05 [__init__.py:238] Platform plugin iluvatar is activated
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 10:49:43 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-24 10:49:43 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+== 2. capture 前后（第 190-235 行）==
+(Worker pid=1808) Loading safetensors checkpoint shards:   0% Completed | 0/7 [00:00<?, ?it/s]
+(Worker pid=1808) Loading safetensors checkpoint shards:  14% Completed | 1/7 [00:26<02:40, 26.70s/it]
+(Worker pid=1808) Loading safetensors checkpoint shards:  29% Completed | 2/7 [01:00<02:35, 31.00s/it]
+(Worker pid=1808) Loading safetensors checkpoint shards:  43% Completed | 3/7 [01:34<02:09, 32.44s/it]
+(Worker pid=1808) Loading safetensors checkpoint shards:  57% Completed | 4/7 [02:07<01:37, 32.34s/it]
+(Worker pid=1808) Loading safetensors checkpoint shards:  71% Completed | 5/7 [02:39<01:04, 32.26s/it]
+(Worker pid=1808) Loading safetensors checkpoint shards:  86% Completed | 6/7 [03:11<00:32, 32.26s/it]
+(Worker pid=1808) Loading safetensors checkpoint shards: 100% Completed | 7/7 [03:39<00:00, 31.05s/it]
+(Worker pid=1808) Loading safetensors checkpoint shards: 100% Completed | 7/7 [03:40<00:00, 31.43s/it]
+(Worker pid=1808) 
+(Worker pid=1808) INFO 11-24 11:19:00 [default_loader.py:397] Loading weights took 222.87 seconds
+(Worker pid=1808) INFO 11-24 11:19:00 [ilu_utils.py:169] [W8A8GemmInfo] format: NN, k: 5120 -> 5120, n: 2560 -> 2560
+(Worker pid=1808) INFO 11-24 11:19:00 [compressed_tensors_w8a8_int8.py:164] [IluCompressedTensorsW8A8Int8 process_weights_after_loading weight] use NN format out_size:2560 in_size:5120 weight:torch.Size([2560, 5120]) -> 
+(Worker pid=1808) INFO 11-24 11:19:00 [ilu_utils.py:169] [W8A8GemmInfo] format: NN, k: 2048 -> 2048, n: 5120 -> 5120
+(Worker pid=1808) INFO 11-24 11:19:00 [compressed_tensors_w8a8_int8.py:164] [IluCompressedTensorsW8A8Int8 process_weights_after_loading weight] use NN format out_size:5120 in_size:2048 weight:torch.Size([5120, 2048]) -> 
+(Worker pid=1808) INFO 11-24 11:19:00 [ilu_utils.py:169] [W8A8GemmInfo] format: NN, k: 5120 -> 5120, n: 12800 -> 12800
+(Worker pid=1808) INFO 11-24 11:19:00 [compressed_tensors_w8a8_int8.py:164] [IluCompressedTensorsW8A8Int8 process_weights_after_loading weight] use NN format out_size:12800 in_size:5120 weight:torch.Size([12800, 5120]) -
+(Worker pid=1808) INFO 11-24 11:19:00 [ilu_utils.py:169] [W8A8GemmInfo] format: NN, k: 6400 -> 6400, n: 5120 -> 5120
+(Worker pid=1808) INFO 11-24 11:19:00 [compressed_tensors_w8a8_int8.py:164] [IluCompressedTensorsW8A8Int8 process_weights_after_loading weight] use NN format out_size:5120 in_size:6400 weight:torch.Size([5120, 6400]) -> 
+(Worker pid=1810) [mock_gpu] runner ready (world_size=4)
+(Worker pid=1809) [mock_gpu] runner ready (world_size=4)
+(Worker pid=1811) [mock_gpu] runner ready (world_size=4)
+(Worker pid=1808) [mock_gpu] runner ready (world_size=4)
+(EngineCore pid=1286) INFO 11-24 11:19:08 [kv_cache_utils.py:2160] GPU KV cache size: 131,072 tokens
+(EngineCore pid=1286) INFO 11-24 11:19:08 [kv_cache_utils.py:2161] Maximum concurrency for 4,096 tokens per request: 32.00x
+(Worker_TP0 pid=1808) Capturing CUDA graphs (decode, FULL):   0%|          | 0/35 [00:00<?, ?it/s](EngineCore pid=1286) INFO 11-24 11:20:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 s
+(EngineCore pid=1286) INFO 11-24 11:21:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e
+(EngineCore pid=1286) INFO 11-24 11:22:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e
+(EngineCore pid=1286) INFO 11-24 11:23:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e
+(EngineCore pid=1286) INFO 11-24 11:24:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e
+(EngineCore pid=1286) INFO 11-24 11:25:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e
+(EngineCore pid=1286) INFO 11-24 11:26:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e
+(EngineCore pid=1286) INFO 11-24 11:27:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e
+(EngineCore pid=1286) INFO 11-24 11:28:28 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e
+(EngineCore pid=1286) ERROR 11-24 11:28:52 [multiproc_executor.py:286] Worker proc VllmWorker-2 died unexpectedly, shutting down executor.
+(EngineCore pid=1286) INFO 11-24 11:28:52 [multiproc_executor.py:428] [shutdown] Executor: waiting for worker exit count=3
+(EngineCore pid=1286) INFO 11-24 11:28:53 [multiproc_executor.py:435] [shutdown] Executor: all workers exited gracefully
+(EngineCore pid=1286) /usr/local/lib/python3.12/contextlib.py:167: ResourceWarning: Unclosed context <zmq.Context() at 0x7d49f067b0>
+(EngineCore pid=1286) /usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py:289: ResourceWarning: Unclosed socket <zmq.Socket(zmq.XPUB) at 0x7de4e420b0>
+(EngineCore pid=1286)   exc.__traceback__ = traceback
+(EngineCore pid=1286)   _self.shutdown()
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=1286) /usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py:289: ResourceWarning: Unclosed socket <zmq.Socket(zmq.PUB) at 0x7d49f15d30>
+(EngineCore pid=1286)   _self.shutdown()
+(EngineCore pid=1286) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+== 3. 所有带时间戳的行（间隔取样）==
+(APIServer pid=380) INFO 11-24 10:52:09 [api_utils.py:339]
+(APIServer pid=380) INFO 11-24 10:52:10 [api_utils.py:273]
+(APIServer pid=380) WARNING 11-24 10:52:10 [envs.py:2005]
+(APIServer pid=380) INFO 11-24 10:52:10 [model.py:598]
+(APIServer pid=380) INFO 11-24 10:52:10 [model.py:1741]
+(APIServer pid=380) INFO 11-24 10:52:12 [model.py:121]
+(APIServer pid=380) INFO 11-24 10:52:13 [vllm.py:1016]
+(APIServer pid=380) WARNING 11-24 10:52:13 [vllm.py:1120]
+(APIServer pid=380) INFO 11-24 10:52:13 [kernel.py:274]
+(EngineCore pid=1286) INFO 11-24 11:04:37 [core.py:114]
+(EngineCore pid=1286) INFO 11-24 11:04:37 [multiproc_executor.py:142]
+(Worker pid=1808) INFO 11-24 11:14:40 [parallel_state.py:1582]
+(Worker pid=1811) INFO 11-24 11:14:46 [parallel_state.py:1582]
+(Worker pid=1809) INFO 11-24 11:14:48 [parallel_state.py:1582]
+(Worker pid=1810) INFO 11-24 11:14:48 [parallel_state.py:1582]
+(Worker pid=1808) INFO 11-24 11:14:50 [parallel_state.py:1917]
+(Worker pid=1808) INFO 11-24 11:14:51 [topk_topp_sampler.py:39]
+(Worker pid=1810) INFO 11-24 11:14:57 [logging.py:355]
+(Worker pid=1811) INFO 11-24 11:14:57 [logging.py:355]
+(Worker pid=1808) INFO 11-24 11:14:57 [logging.py:355]
+(Worker pid=1809) INFO 11-24 11:14:57 [logging.py:355]
+(Worker pid=1808) INFO 11-24 11:14:57 [ilu_flash_attn.py:603]
+(Worker pid=1808) INFO 11-24 11:15:17 [weight_utils.py:849]
+(Worker pid=1808) INFO 11-24 11:15:17 [weight_utils.py:872]
+(Worker pid=1808) INFO 11-24 11:19:00 [default_loader.py:397]
+(Worker pid=1808) INFO 11-24 11:19:00 [ilu_utils.py:169]
+(Worker pid=1808) INFO 11-24 11:19:00 [compressed_tensors_w8a8_int8.py:164]
+(Worker pid=1808) INFO 11-24 11:19:00 [ilu_utils.py:169]
+(Worker pid=1808) INFO 11-24 11:19:00 [compressed_tensors_w8a8_int8.py:164]
+(Worker pid=1808) INFO 11-24 11:19:00 [ilu_utils.py:169]
+(Worker pid=1808) INFO 11-24 11:19:00 [compressed_tensors_w8a8_int8.py:164]
+(Worker pid=1808) INFO 11-24 11:19:00 [ilu_utils.py:169]
+(Worker pid=1808) INFO 11-24 11:19:00 [compressed_tensors_w8a8_int8.py:164]
+(EngineCore pid=1286) INFO 11-24 11:19:08 [kv_cache_utils.py:2160]
+(EngineCore pid=1286) INFO 11-24 11:19:08 [kv_cache_utils.py:2161]
+(EngineCore pid=1286) INFO 11-24 11:21:28 [shm_broadcast.py:705]
+(EngineCore pid=1286) INFO 11-24 11:22:28 [shm_broadcast.py:705]
+(EngineCore pid=1286) INFO 11-24 11:23:28 [shm_broadcast.py:705]
+(EngineCore pid=1286) INFO 11-24 11:24:28 [shm_broadcast.py:705]
+(EngineCore pid=1286) INFO 11-24 11:25:28 [shm_broadcast.py:705]
+(EngineCore pid=1286) INFO 11-24 11:26:28 [shm_broadcast.py:705]
+(EngineCore pid=1286) INFO 11-24 11:27:28 [shm_broadcast.py:705]
+(EngineCore pid=1286) INFO 11-24 11:28:28 [shm_broadcast.py:705]
+(EngineCore pid=1286) ERROR 11-24 11:28:52 [multiproc_executor.py:286]
+(EngineCore pid=1286) INFO 11-24 11:28:52 [multiproc_executor.py:428]
+(EngineCore pid=1286) INFO 11-24 11:28:53 [multiproc_executor.py:435]
+(EngineCore pid=1286) ERROR 11-24 11:28:53 [core.py:1235]
+== 4. preflight ==
+-- 100823
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 10:20:06 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-24 10:20:06 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-24 10:20:06 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-24 10:20:07 [__init__.py:238] Platform plugin iluvatar is activated
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 10:23:41 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-24 10:23:41 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=626372f835)
+SESSION: d2aa7fa1155741a3917c872abeadb133
+-- 094434
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-24 09:56:56 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-24 09:56:56 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-24 09:56:56 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-24 09:56:56 [__init__.py:238] Platform plugin iluvatar is activated
+Fatal Python error: init_import_site: Failed to import the site module
+Python runtime state: initialized
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/pathlib.py", line 441, in __str__
+    return self._str
+           ^^^^^^^^^
+AttributeError: 'PosixPath' object has no attribute '_str'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/pathlib.py", line 555, in drive
+    return self._drv
+           ^^^^^^^^^
+AttributeError: 'PosixPath' object has no attribute '_drv'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1176, in exec_module
+  File "<frozen site>", line 636, in <module>
+== 5. 内存与 OOM ==
+               total        used        free      shared  buff/cache   available
+Mem:             117           1         116           0           0         116
+Swap:              0           0           0
+mem_limit=0 shm=67108864 started=2026-11-24T05:43:22.91442766Z restarts=0
+(dmesg 不可读)
+== 6. 现场脚本版本 ==
+-rwxr-xr-x 1 root root 14311 Nov 23 10:11 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+-rwxr-xr-x 1 root root 14424 Nov 23 15:59 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+-rwxr-xr-x 1 root root 19716 Nov 23 09:58 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline.sh
+-rwxr-xr-x 1 root root 19733 Nov 23 09:58 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_timeline_py312.sh
+-- /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+85df78dbbf1780f59779e3d8b8b88c7f  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+7:MODEL_PATH="${MODEL_PATH:-/home/model/Qwen3-32B-W8A8}"
+11:export TORCHINDUCTOR_CACHE_DIR="${TORCHINDUCTOR_CACHE_DIR:-/home/huawei_ts_program/inductor_cache_py312}"
+13:mkdir -p "$TORCHINDUCTOR_CACHE_DIR" 2>/dev/null || true
+14:PREFIX="${PREFIX:-/usr/local}"
+26:SERVER_WAIT_TIMEOUT="${SERVER_WAIT_TIMEOUT:-0}"   # 0 = 不设上限，直到服务就绪或进程退出
+77:SERVER_PREFIX=()
+78:[[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
+112:log "PREFIX=$PREFIX"
+== 7. inductor 缓存现状 ==
+-- /tmp/torchinductor_root
+total 52
+drwxr-xr-x 2 root root 4096 Nov 21 16:23 4d
+drwxr-xr-x 4 root root 4096 Nov 21 16:23 aotautograd
+drwxr-xr-x 4 root root 4096 Nov 21 16:23 fxgraph
+drwxr-xr-x 2 root root 4096 Nov 21 16:24 locks
+drwxr-xr-x 2 root root 4096 Nov 21 16:23 nm
+-- /home/huawei_ts_program/inductor_cache_py312
+total 48
+drwxr-xr-x 2 root root 4096 Nov 20 16:52 4d
+drwxr-xr-x 4 root root 4096 Nov 20 16:51 aotautograd
+drwxr-xr-x 4 root root 4096 Nov 20 16:51 fxgraph
+drwxr-xr-x 2 root root 4096 Nov 20 16:51 ja
+drwxr-xr-x 1 root root 4096 Nov 20 16:51 locks
+count=5
+== 8. 198 磁盘/内存概况 ==
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/vda2       136G   94G   36G  73% /
+/dev/vda2       136G   94G   36G  73% /
+MemTotal:       123153200 kB
+MemAvailable:   121845040 kB
+SwapTotal:             0 kB
++ set +x
+
+### exit: 0
