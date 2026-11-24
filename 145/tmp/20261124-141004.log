@@ -1,0 +1,122 @@
+### server: 145 -> 198
+### time:   2026-11-24T06:10:04Z
+
++ cat
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -200
+
+Authorized users only. All activities may be monitored and reported.
+== 1. 11-23 两次运行的 capture 时间线 ==
+---- py312_litehost_gap_20261123_155113
+142:(Worker pid=29540) [mock_gpu] rank 2 pinned to cpu 12
+145:(Worker pid=29538) [mock_gpu] rank 0 pinned to cpu 8
+148:(Worker pid=29539) [mock_gpu] rank 1 pinned to cpu 10
+151:(Worker pid=29541) [mock_gpu] rank 3 pinned to cpu 14
+200:(Worker pid=29538) INFO 11-23 15:52:36 [default_loader.py:397] Loading weights took 3.68 seconds
+215:(Worker_TP0 pid=29538) Capturing CUDA graphs (decode, FULL):   0%|          | 0/35 [00:00<?, ?it/s]Capturing CUDA graphs (decode, FULL):   3%|▎         | 1/35 [00:01<00:42,
+221:(Worker_TP0 pid=29538) Capturing CUDA graphs (decode, FULL): 100%|██████████| 35/35 [00:02<00:00, 11.89it/s]
+224:(Worker_TP0 pid=29538) INFO 11-23 15:52:42 [gpu_model_runner.py:6785] Graph capturing finished in 4 secs, took 0.00 GiB
+248:(APIServer pid=28962) INFO:     Application startup complete.
+bench.process.json
+bs8_in128_out2048.json
+config.txt
+control
+host_summary
+litehost
+logs
+server.process.json
+session.json
+summary.csv
+-- summary
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+py312_litehost_gap_20261123_155113,bs8_in128_out2048,100,62.20700625993777,1.6075359676069394,3292.233661659012,3497.9982655127,72.60228860192001,66.67034502606839,108.97455249796622,2.309503427357584,2.2489592061550043,2.5730604457311355,2.3152492190167573,1.8168700044043362,7.357208014000207
+---- py312_litehost_gap_20261123_155940
+142:(Worker pid=32751) [mock_gpu] rank 3 pinned to cpu 14
+145:(Worker pid=32749) [mock_gpu] rank 1 pinned to cpu 10
+148:(Worker pid=32750) [mock_gpu] rank 2 pinned to cpu 12
+151:(Worker pid=32748) [mock_gpu] rank 0 pinned to cpu 8
+200:(Worker pid=32748) INFO 11-23 16:01:04 [default_loader.py:397] Loading weights took 3.70 seconds
+215:(Worker_TP0 pid=32748) Capturing CUDA graphs (decode, FULL):   0%|          | 0/35 [00:00<?, ?it/s]Capturing CUDA graphs (decode, FULL):   3%|▎         | 1/35 [00:01<00:45,
+217:Capturing CUDA graphs (decode, FULL):  94%|█████████▍| 33/35 [00:02<00:00, 20.41it/s]/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: U
+221:(Worker_TP0 pid=32748) Capturing CUDA graphs (decode, FULL): 100%|██████████| 35/35 [00:03<00:00, 11.44it/s]
+225:(Worker_TP0 pid=32748) INFO 11-23 16:01:11 [gpu_model_runner.py:6785] Graph capturing finished in 4 secs, took 0.00 GiB
+248:(APIServer pid=32181) INFO:     Application startup complete.
+bench.process.json
+bs8_in2048_out128.json
+config.txt
+control
+host_summary
+litehost
+logs
+server.process.json
+session.json
+summary.csv
+-- summary
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+py312_litehost_gap_20261123_155940,bs8_in2048_out128,100,9.405256279977039,10.63235248707589,1360.941118345714,23135.99901187714,194.44746159366332,187.2334549552761,316.33085487643257,4.2338773228803745,4.1735999604254435,5.724365389465875,4.464855641469218,1.8442400032654405,53.83034975733607
+== 2. 11-23 运行的 config（含 MOCK_TP_CPUS 吗）==
+test_id=py312_litehost_gap_20261123_155940
+started=2026-11-23T15:59:53+08:00
+prefix=/usr/local
+multi_engine=unknown
+cpu_range=0-63
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+== 3. capture 起止在 100823 日志中的精确行 ==
+215:(Worker_TP0 pid=1808) Capturing CUDA graphs (decode, FULL):   0%|          | 0/35 [00:00<?, ?it/s](EngineCore pid=1286) INFO 11-24 11:20:28 [shm_broadcast.
+== 4. 今天缓存有没有被写过 ==
+-- pinned cache 今日新文件:
+/home/huawei_ts_program/inductor_cache_py312/locks/cjavtv4n3luyfucbb6i5p2zymefx63rrnvuts436umrx6l5z6vyg.lock
+-- 全部文件数:
+24
+-- /tmp/torchinductor_root 今日新文件:
+/tmp/torchinductor_root/precompiled_headers/locks/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.lock
+/tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h.gch
+/tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h
+/tmp/torchinductor_root/precompiled_headers/c2hveezg3bvkabtpvdlmbi3rzhgsfwnlhmbmsilaxbgcq7w5xwlf.h.gch 2026-11-21 16:23:41.000000000 +0800 137264789
+/tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h.gch 2026-11-24 11:23:17.044000000 +0800 137260719
+/tmp/torchinductor_root/precompiled_headers/cmm6ladfh5ak4rwlgjjanyyaxkkyyegwftuurmvg4rwdgiqr4iuf.h.gch 2026-11-21 10:50:51.000000000 +0800 137264793
+== 5. 缓存里的 5 个 py（变体名）==
+-rw-r--r-- 1 root root 9919 Nov 20 16:52 /home/huawei_ts_program/inductor_cache_py312/4d/c4dhhvl6i66bgahdgw773zegd7skxsxxveortrovjhpkcbmneb2a.py
+-rw-r--r-- 1 root root 6023 Nov 20 16:51 /home/huawei_ts_program/inductor_cache_py312/nl/cnl5nolx7roqekzqp7qew6n2axezaet4fp5xphg7m2eh5ngzzx2d.py
+-rw-r--r-- 1 root root 9921 Nov 20 16:52 /home/huawei_ts_program/inductor_cache_py312/sw/cswycifpddtbwlipmwdronb24b35hgy2gmu2rizq5rerlui6so3z.py
+-rw-r--r-- 1 root root 9920 Nov 20 16:51 /home/huawei_ts_program/inductor_cache_py312/tt/cttxc73muljznnta7kmxpqgfy7cfyypcaepmsgewry5b3uzy3c56.py
+-rw-r--r-- 1 root root 9915 Nov 20 16:51 /home/huawei_ts_program/inductor_cache_py312/ua/cua2fvqyaafgvd256l52ngwqkboc6vwwgpmgwquqov65vtkuqi6q.py
+== 6. 负载与 cgroup ==
+ 06:10:05 up 27 min,  1 user,  load average: 0.00, 0.00, 0.00
+0.00 0.00 0.00 2/420 5434
+cpuset= cpuquota=0 cpushares=0 nano=0
+40
+pid 349's current affinity list: 0-39
+== 7. 测试留下的 perf 数据 ==
+-rw------- 1 root root 3281793 Nov 24 11:29 /tmp/perf-1285.map
+-rw------- 1 root root 3505976 Nov 24 11:28 /tmp/perf-1286.map
+-rw------- 1 root root 3294687 Nov 24 10:25 /tmp/perf-169.map
+-rw------- 1 root root 3843181 Nov 24 11:23 /tmp/perf-1808.map
+== 8. session.json / 其它证据 ==
+{
+  "version": "0.4.0-compat",
+  "session_id": "d2aa7fa1155741a3917c872abeadb133",
+  "token": "c455ede48e9240d786960b844929a7b266d00a192da04e449c29941df2db4fe1",
+  "run_dir": "/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823",
+  "control_dir": "/tmp/lhc-v3d401jp",
+  "timeout": 120.0,
+  "max_scopes": 200000,
+  "native_hash": "b70d07e38c4e1f2665d6aa407a82e751209fb9af67e0ca70a5a74e0bd1e3048d",
+  "source_check": {
+    "status": "pass",
+    "source_root": "/usr/local/lib/python3.12/site-packages/vllm",
+    "files": {
+      "benchmarks/serve.py": "b09e85eed6f5f7a9075b40a19fc1dd8e94a1c449665c2c6510f349e0409e77b7",
+      "benchmarks/lib/endpoint_request_func.py": "5fd4b66d9ac6a88a278c2b7d65dcd17b8a9424279859ade14bddb69e342a312d",
+      "v1/worker/gpu_worker.py
+total 16
+-rw------- 1 root root 197 Nov 24 11:14 rank0.ready.json
+-rw------- 1 root root 197 Nov 24 11:14 rank1.ready.json
+-rw------- 1 root root 197 Nov 24 11:14 rank2.ready.json
+-rw------- 1 root root 197 Nov 24 11:14 rank3.ready.json
++ set +x
+
+### exit: 0
