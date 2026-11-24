@@ -31,7 +31,7 @@ DOCKER_TOOL=/home/huawei_ts_program/litehost_perf_opt
 set -uo pipefail
 D() { docker exec vllm bash -lc "$1" 2>&1 | sed '/^Authorized users only/d'; }
 B=/home/huawei_ts_program/litehost_perf_opt/vllmBench
-D 'echo "-- 两个 run 目录"; ls -la --time-style=long-iso $B/testwarmup1 $B/testwarmup2 2>&1 | head -30'
+D 'echo "-- 两个 run 目录"; ls -la --time-style=long-iso $B/test-warmup $B/test-warmup2 2>&1 | head -30'
 for r in test-warmup test-warmup2; do
   D "echo \"-- $r config.txt\"; cat $B/$r/config.txt 2>&1"
   D "echo \"-- $r server.log 关键阶段\"; L=$B/$r/logs/server.log; wc -l \$L 2>&1; grep -nE 'activated|pinned to cpu|Capturing CUDA graphs|Starting|EngineCore|ompil' \$L 2>/dev/null | tail -40"
