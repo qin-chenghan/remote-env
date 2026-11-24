@@ -11,6 +11,7 @@ mkdir -p "$DIR/tmp"
 REMOTE=root@90.91.147.198
 FIX="${FIX:-0}"
 BAK=.bak-20261124c
+PROBE_SH=/tmp/probe198w.sh
 
 SRC_MOCK=/home/qch/mock_vllm/mock_gpu/worker_patch.py
 SRC_TOOL=/home/qch/tools/remote-env/litehost_toolkit          # 145 上的仓库 clone（git pull 后即最新）
@@ -23,6 +24,22 @@ DOCKER_TOOL=/home/huawei_ts_program/litehost_perf_opt
   echo "### time:   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo
   set -x
+
+  echo "== 0. 198 上 testwarmup1/2 两次预热的实际结果（只读）=="
+  cat > "$PROBE_SH" <<'PROBE_EOF'
+#!/usr/bin/env bash
+set -uo pipefail
+D() { docker exec vllm bash -lc "$1" 2>&1 | sed '/^Authorized users only/d'; }
+B=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+D 'echo "-- 两个 run 目录"; ls -la --time-style=long-iso $B/testwarmup1 $B/testwarmup2 2>&1 | head -30'
+for r in testwarmup1 testwarmup2; do
+  D "echo \"-- $r config.txt\"; cat $B/$r/config.txt 2>&1"
+  D "echo \"-- $r server.log 关键阶段\"; L=$B/$r/logs/server.log; wc -l \$L 2>&1; grep -nE 'activated|pinned to cpu|Capturing CUDA graphs|Starting|EngineCore|ompil' \$L 2>/dev/null | tail -40"
+done
+D 'echo "-- PCH 头文件（有没有今天 16:4x 之后的新增）"; ls -la --time-style=long-iso /tmp/torchinductor_root/precompiled_headers/*.h 2>&1'
+D 'echo "-- 16:40 之后的内核缓存写入"; find /home/huawei_ts_program/inductor_cache_py312 -newermt "2026-11-24 16:40" -printf "%TH:%TM:%TS %p\n" 2>/dev/null | sort | head -20'
+PROBE_EOF
+  ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE_SH" 2>&1 | head -300
 
   echo "== 1. 待同步文件（来自 145 仓库 clone）=="
   md5sum "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" \
