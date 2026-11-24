@@ -1,0 +1,145 @@
+### server: 145 -> 198  (FIX=1)
+### time:   2026-11-24T08:57:58Z
+
++ echo '== 0. 198 上预热 run 的实际结果（只读）=='
+== 0. 198 上预热 run 的实际结果（只读）==
++ cat
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -420
+
+Authorized users only. All activities may be monitored and reported.
+===== test-warmup
+test_id=test-warmup
+started=2026-11-24T16:48:52+08:00
+prefix=/usr/local
+multi_engine=unknown
+cpu_range=0-63
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+mock_env=MOCK_TP_CPUS=unset MOCK_TP_CPUS_DEFER=1 MOCK_STACK_DUMP=1 MOCK_THREADS=unset
+stall_guard=STALL_DUMP_SECONDS=300 STALL_ABORT_SECONDS=900 SERVER_WAIT_TIMEOUT=0 ENGINE_READY_TIMEOUT_S=1800
+warmup_only=1
+-- 阶段
+99:INFO 11-24 16:49:42 [__init__.py:238] Platform plugin iluvatar is activated
+100:INFO 11-24 16:49:42 [__init__.py:238] Platform plugin iluvatar is activated
+104:INFO 11-24 16:49:42 [__init__.py:238] Platform plugin iluvatar is activated
+108:INFO 11-24 16:49:42 [__init__.py:238] Platform plugin iluvatar is activated
+117:/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+119:/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+129:/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+131:/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+149:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+180:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+210:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+240:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+-- 报错
+298:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235]     raise e from None
+299:(EngineCore pid=1022) ERROR 11-24 16:49:53 [core.py:1235] Exception: WorkerProc initialization failed due to an exception in a background process. See stack trace for root cause.
+301:(EngineCore pid=1022) Traceback (most recent call last):
+338:(APIServer pid=807) Traceback (most recent call last):
+398:(APIServer pid=807)     raise RuntimeError(
+399:(APIServer pid=807) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}
+-- tail
+(APIServer pid=807)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 132, in make_async_mp_client
+(APIServer pid=807)     return AsyncMPClient(*client_args)
+(APIServer pid=807)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(APIServer pid=807)     return func(*args, **kwargs)
+(APIServer pid=807)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 963, in __init__
+(APIServer pid=807)     super().__init__(
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 573, in __init__
+(APIServer pid=807)     with launch_core_engines(
+(APIServer pid=807)          ^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=807)   File "/usr/local/lib/python3.12/contextlib.py", line 144, in __exit__
+(APIServer pid=807)     next(self.gen)
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/utils.py", line 1190, in launch_core_engines
+(APIServer pid=807)     wait_for_engine_startup(
+(APIServer pid=807)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/utils.py", line 1249, in wait_for_engine_startup
+(APIServer pid=807)     raise RuntimeError(
+(APIServer pid=807) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}
+(APIServer pid=807) sys:1: ResourceWarning: unclosed <socket.socket fd=13, family=2, type=1, proto=0, laddr=('127.0.0.1', 8948)>
+-- PCH 头文件
+-rw-r--r-- 1 root root 44 2026-11-21 16:23 /tmp/torchinductor_root/precompiled_headers/c2hveezg3bvkabtpvdlmbi3rzhgsfwnlhmbmsilaxbgcq7w5xwlf.h
+-rw-r--r-- 1 root root 44 2026-11-24 11:20 /tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h
+-rw-r--r-- 1 root root 44 2026-11-21 10:50 /tmp/torchinductor_root/precompiled_headers/cmm6ladfh5ak4rwlgjjanyyaxkkyyegwftuurmvg4rwdgiqr4iuf.h
+-- 最近 2 小时内核缓存写入
++ echo '== 1. 待同步文件（来自 145 仓库 clone）=='
+== 1. 待同步文件（来自 145 仓库 clone）==
++ md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+93fa31e217f11d807667dd485891f322  /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh
+32403c12e271ced274a683ecbad1e683  /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh
++ echo '== 2. 当前部署版本（145 目录 / 198 容器）=='
+== 2. 当前部署版本（145 目录 / 198 容器）==
++ md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+5266151fbd8e35c4b7409a4c11f4bba6  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+068ff14851f7bc39ff7d3706d43082bf  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py; md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+5266151fbd8e35c4b7409a4c11f4bba6  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+068ff14851f7bc39ff7d3706d43082bf  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/mock_vllm/mock_gpu/worker_patch.py ]]
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh ]]
++ for f in "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" "$SRC_TOOL/vllmBench_lite_base_mock.sh"
++ [[ -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh ]]
++ [[ 1 != 1 ]]
++ echo '== 3. 备份 =='
+== 3. 备份 ==
++ cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh.bak-20261124c
++ cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh.bak-20261124c
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''
+      cp -f /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/qch/mock_vllm/mock_gpu/worker_patch.py.bak-20261124c &&
+      cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh.bak-20261124c &&
+      cp -f /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh.bak-20261124c &&
+      ls -l /home/qch/mock_vllm/mock_gpu/worker_patch.py.bak-20261124c /home/huawei_ts_program/litehost_perf_opt/*.bak-20261124c'\'''
+
+Authorized users only. All activities may be monitored and reported.
+-rwxr-xr-x 1 root root 18843 Nov 24 16:57 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh.bak-20261124c
+-rwxr-xr-x 1 root root 18926 Nov 24 16:57 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh.bak-20261124c
+-rw-r--r-- 1 root root 21980 Nov 24 16:57 /home/qch/mock_vllm/mock_gpu/worker_patch.py.bak-20261124c
++ echo '== 4. 同步到 145 部署目录 =='
+== 4. 同步到 145 部署目录 ==
++ cp -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ cp -f /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ chmod +x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ echo '== 5. 写入 198 容器 =='
+== 5. 写入 198 容器 ==
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''cat > /home/qch/mock_vllm/mock_gpu/worker_patch.py'\'''
+
+Authorized users only. All activities may be monitored and reported.
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''cat > /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''cat > /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'\'''
+
+Authorized users only. All activities may be monitored and reported.
++ echo '== 6. 校验（应与第 1 节一致）=='
+== 6. 校验（应与第 1 节一致）==
++ md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+93fa31e217f11d807667dd485891f322  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+32403c12e271ced274a683ecbad1e683  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''chmod +x /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock*.sh; md5sum /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh; bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh && bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh && echo SCRIPT_OK'\'''
+
+Authorized users only. All activities may be monitored and reported.
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+93fa31e217f11d807667dd485891f322  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+32403c12e271ced274a683ecbad1e683  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+SCRIPT_OK
++ ssh root@90.91.147.198 'docker exec -i vllm bash -lc '\''grep -n "WARMUP_ONLY" /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh | head -5'\'''
+
+Authorized users only. All activities may be monitored and reported.
+31:WARMUP_ONLY="${WARMUP_ONLY:-0}"                     # 1 = 只启动到就绪后停止，用于重启后预热编译
+44:[[ "$WARMUP_ONLY" == 0 || "$WARMUP_ONLY" == 1 ]] || { echo 'ERROR: WARMUP_ONLY=0|1' >&2; exit 2; }
+295:    echo "warmup_only=$WARMUP_ONLY"
+308:if [[ "$WARMUP_ONLY" == 1 ]]; then
++ set +x
+
+### exit: 0
