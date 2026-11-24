@@ -38,6 +38,8 @@ for r in test-warmup test-warmup2; do
   D "echo \"-- $r 关键阶段\"; L=$B/$r/logs/server.log; wc -l \$L 2>&1; grep -nE 'activated|pinned to cpu|Capturing CUDA graphs|Starting|EngineCore|ompil' \$L 2>/dev/null | tail -20"
   D "echo \"-- $r 报错与结尾\"; L=$B/$r/logs/server.log; grep -nE 'ERROR|Error|Traceback|RuntimeError|raise |failed|FATAL|停滞|取消|cancelled' \$L 2>/dev/null | tail -25; echo '--- tail ---'; tail -n 45 \$L 2>&1"
 done
+D 'echo "-- test-warmup 根因：worker 自己的栈"; L=$B/test-warmup/logs/server.log; grep -nE "litehost|LIGHTHOST|session|Connection|connect|Permission|No such file|AttributeError|ImportError|OSError|abort|Abort|signal" \$L 2>/dev/null | head -40'
+D 'echo "-- test-warmup server.log 140-300 行"; sed -n "140,300p" $B/test-warmup/logs/server.log'
 D 'echo "-- PCH 头文件（有没有今天 16:4x 之后的新增）"; ls -la --time-style=long-iso /tmp/torchinductor_root/precompiled_headers/*.h 2>&1'
 D 'echo "-- 16:40 之后的内核缓存写入"; find /home/huawei_ts_program/inductor_cache_py312 -newermt "2026-11-24 16:40" -printf "%TH:%TM:%TS %p\n" 2>/dev/null | sort | head -20'
 PROBE_EOF
