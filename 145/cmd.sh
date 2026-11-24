@@ -1,82 +1,64 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：从 145 ssh 到 198，详查今天两次 py312 运行（100823 / 094434），并搜索 100323 痕迹。
+# 本次：198 上取 100823 的完整时间线、preflight、内存/OOM、以及现场 py312 脚本版本。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SERVER="$(basename "$DIR")"
 TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
-
 REMOTE=root@90.91.147.198
-PROBE=/tmp/probe198.sh
+PROBE=/tmp/probe198b.sh
 
 {
-  echo "### server: $SERVER"
-  echo "### host:   $(hostname)"
+  echo "### server: 145 -> 198"
   echo "### time:   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo
   set -x
-
-  # ---- 命令开始 ----
 
   cat > "$PROBE" <<'PROBE_EOF'
 #!/usr/bin/env bash
 set -uo pipefail
 C=vllm
 VB=/home/huawei_ts_program/litehost_perf_opt/vllmBench
-echo "### 198 $(uname -m) nproc=$(nproc)"
+D=$VB/py312_litehost_gap_20261124_100823
 
-echo "== 0. 全盘搜 100323 =="
-docker exec $C bash -lc "find /home /tmp /root /vllmBench -maxdepth 9 -name '*100323*' 2>/dev/null | head -10"
-echo "(以上为空即 198 上不存在)"
+echo "== 1. 100823 server.log 前 30 行 =="
+docker exec $C bash -lc "head -30 $D/logs/server.log | cut -c1-200"
 
-echo "== 1. 100823 =="
-docker exec $C bash -lc "
-  D=$VB/py312_litehost_gap_20261124_100823
-  stat -c 'mtime=%y ctime=%z' \$D
-  echo '-- tree'; find \$D -maxdepth 3 | sed 's|^|  |' | head -30
-  echo '-- config.txt'; cat \$D/config.txt 2>/dev/null | head -20
-  echo '-- summary.csv'; head -4 \$D/summary.csv 2>/dev/null
-  echo '-- server.log 关键行'
-  grep -nE 'loading took|Capturing|startup complete|pinned to cpu|Compiling|died unexpectedly|Engine core|Traceback|Error' \$D/logs/server.log 2>/dev/null | head -25
-  echo '-- server.log 尾部'
-  tail -25 \$D/logs/server.log 2>/dev/null
-" 2>&1 | head -110
+echo "== 2. capture 前后（第 190-235 行）=="
+docker exec $C bash -lc "sed -n '190,235p' $D/logs/server.log | cut -c1-220"
 
-echo "== 2. 094434 =="
-docker exec $C bash -lc "
-  D=$VB/py312_litehost_gap_20261124_094434
-  stat -c 'mtime=%y ctime=%z' \$D
-  echo '-- tree'; find \$D -maxdepth 3 | sed 's|^|  |' | head -20
-  echo '-- config.txt'; cat \$D/config.txt 2>/dev/null | head -20
-  echo '-- summary.csv'; head -4 \$D/summary.csv 2>/dev/null
-  echo '-- server.log 关键行'
-  grep -nE 'loading took|Capturing|startup complete|pinned to cpu|Compiling|died unexpectedly|Engine core|Traceback|Error' \$D/logs/server.log 2>/dev/null | head -25
-  echo '-- server.log 尾部'
-  tail -20 \$D/logs/server.log 2>/dev/null
-" 2>&1 | head -95
+echo "== 3. 所有带时间戳的行（间隔取样）=="
+docker exec $C bash -lc "grep -E '^\((Worker|EngineCore|APIServer|Worker_TP)[^)]*\) ' $D/logs/server.log | grep -oE '^\([^)]*\) [A-Z]+ [0-9-]+ [0-9:]+ \[[^]]*\]' | uniq | head -60"
 
-echo "== 3. 今天 09:00 之后容器里所有新文件（找 harness 输出）=="
-docker exec $C bash -lc "find /tmp /root /home/huawei_ts_program -maxdepth 3 -newermt '2026-11-24 09:00' -type f 2>/dev/null | grep -vE 'inductor_cache|/proc/' | head -25"
+echo "== 4. preflight =="
+docker exec $C bash -lc "echo '-- 100823'; cat $D/logs/preflight.log 2>/dev/null | head -40"
+docker exec $C bash -lc "echo '-- 094434'; cat $VB/py312_litehost_gap_20261124_094434/logs/preflight.log 2>/dev/null | head -30"
 
-echo "== 4. 容器 shell 历史（看测试者的实际命令）=="
-docker exec $C bash -lc "tail -40 /root/.bash_history 2>/dev/null; ls -l /root/.bash_history 2>/dev/null"
+echo "== 5. 内存与 OOM =="
+free -g | head -3
+docker inspect $C --format 'mem_limit={{.HostConfig.Memory}} shm={{.HostConfig.ShmSize}} started={{.State.StartedAt}} restarts={{.RestartCount}}'
+dmesg 2>/dev/null | grep -iE 'out of memory|oom-kill|killed process' | tail -8 || echo "(dmesg 不可读)"
 
-echo "== 5. 现状 =="
-docker exec $C bash -lc "ps -eo pid,pcpu,nlwp,args | grep -E 'vllm|python' | grep -v grep | cut -c1-120 | head -10"
+echo "== 6. 现场脚本版本 =="
+docker exec $C bash -lc "ls -l /home/huawei_ts_program/litehost_perf_opt/*.sh 2>/dev/null; ls -l /home/huawei_ts_program/litehost_perf_opt/tools 2>/dev/null | head"
+docker exec $C bash -lc "for f in /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei/qch/tools/vllmBench_lite_base_mock_py312.sh; do [ -f \$f ] && { echo \"-- \$f\"; md5sum \$f; grep -nE 'TORCHINDUCTOR|SERVER_WAIT_TIMEOUT|PREFIX=|MODEL_PATH=' \$f | head -8; }; done"
 
+echo "== 7. inductor 缓存现状 =="
+docker exec $C bash -lc "for c in /tmp/torchinductor_root /home/huawei_ts_program/inductor_cache_py312; do echo \"-- \$c\"; ls -l \$c | head -6; done"
+docker exec $C bash -lc "find /tmp/torchinductor_root -name '*.py' -newermt '2026-11-24 09:00' | head -10; echo count=\$(find /tmp/torchinductor_root -name '*.py' | wc -l)"
+
+echo "== 8. 198 磁盘/内存概况 =="
+df -h / /home 2>/dev/null | head -5
+grep -cE 'MemTotal' /proc/meminfo >/dev/null; awk '/MemTotal|MemAvailable|SwapTotal/{print}' /proc/meminfo
 PROBE_EOF
 
-  ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE" 2>&1 | head -260
-
-  # ---- 命令结束 ----
+  ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE" 2>&1 | head -240
 
   set +x
 } 2>&1 | tee "$OUT"
 
-STATUS=${PIPESTATUS[0]}
-printf '\n### exit: %s\n' "$STATUS" | tee -a "$OUT"
+printf '\n### exit: %s\n' "${PIPESTATUS[0]}" | tee -a "$OUT"
 echo "结果已写入: $OUT"
