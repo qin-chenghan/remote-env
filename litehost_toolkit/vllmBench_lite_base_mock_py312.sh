@@ -28,6 +28,7 @@ VLLM_ENGINE_READY_TIMEOUT_S="${VLLM_ENGINE_READY_TIMEOUT_S:-1800}"
 SERVER_WAIT_TIMEOUT="${SERVER_WAIT_TIMEOUT:-0}"   # 0 = 不设上限，直到服务就绪或进程退出
 STALL_DUMP_SECONDS="${STALL_DUMP_SECONDS:-300}"   # graph capture 进度停滞多久自动抓栈；0=关闭
 STALL_ABORT_SECONDS="${STALL_ABORT_SECONDS:-900}"  # 停滞多久放弃本轮（正常启动 3 分钟）；0=关闭
+WARMUP_ONLY="${WARMUP_ONLY:-0}"                     # 1 = 只启动到就绪后停止，用于重启后预热编译
 HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
 HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
 HOST_MAX_SCOPES="${HOST_MAX_SCOPES:-200000}"
@@ -40,6 +41,7 @@ SERVER_EXTRA_ENV=(
 HOST_TOOLKIT=/home/huawei_ts_program/litehost_perf_opt
 [[ -x "$PYTHON_BIN" && -f "$HOST_TOOLKIT/lhctl.py" ]] || { echo 'ERROR: Python 或配套文件缺失' >&2; exit 2; }
 [[ "$HOST_MEASURE" == lite || "$HOST_MEASURE" == off ]] || { echo 'ERROR: HOST_MEASURE=lite|off' >&2; exit 2; }
+[[ "$WARMUP_ONLY" == 0 || "$WARMUP_ONLY" == 1 ]] || { echo 'ERROR: WARMUP_ONLY=0|1' >&2; exit 2; }
 [[ "$GPUS_PER_INSTANCE" == 4 ]] || { echo 'ERROR: 此版要求四卡 TP=4, PP=1, DP=1' >&2; exit 2; }
 MOCK_DIR=/home/qch/mock_vllm
 [[ -d "$MOCK_DIR/mock_gpu" ]] || { echo "ERROR: mock 目录不存在: $MOCK_DIR" >&2; exit 2; }
@@ -290,13 +292,25 @@ mkdir -p "$LOG_DIR"
     echo "prompts=$NUM_PROMPTS concurrency=$MAX_CONCURRENCY warmups=$NUM_WARMUPS"
     echo "mock_env=MOCK_TP_CPUS=${MOCK_TP_CPUS:-unset} MOCK_TP_CPUS_DEFER=${MOCK_TP_CPUS_DEFER:-0} MOCK_STACK_DUMP=${MOCK_STACK_DUMP:-0} MOCK_THREADS=${MOCK_THREADS:-unset}"
     echo "stall_guard=STALL_DUMP_SECONDS=${STALL_DUMP_SECONDS} STALL_ABORT_SECONDS=${STALL_ABORT_SECONDS} SERVER_WAIT_TIMEOUT=${SERVER_WAIT_TIMEOUT} ENGINE_READY_TIMEOUT_S=${VLLM_ENGINE_READY_TIMEOUT_S}"
+    echo "warmup_only=$WARMUP_ONLY"
 } > "$RUN_DIR/config.txt" 2>/dev/null || true
-if [[ "$HOST_MEASURE" == lite ]]; then
+# 预热只需要编译，不需要控制通道/测量端
+if [[ "$HOST_MEASURE" == lite && "$WARMUP_ONLY" != 1 ]]; then
     "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" init --run-dir "$RUN_DIR" \
         --timeout "$HOST_TIMEOUT" --max-scopes "$HOST_MAX_SCOPES" > "$LOG_DIR/preflight.log" 2>&1 || { cat "$LOG_DIR/preflight.log"; exit 2; }
     INIT_DONE=1
 fi
+PCH_DIR=/tmp/torchinductor_root/precompiled_headers
+_pch_count() { ls -1 "$PCH_DIR"/*.h 2>/dev/null | wc -l; }
+_so_count() { find "$TORCHINDUCTOR_CACHE_DIR" -name '*.so' 2>/dev/null | wc -l; }
+PCH_BEFORE=$(_pch_count); SO_BEFORE=$(_so_count)
 if ! start_server; then log 'FATAL: 启动失败'; exit 1; fi
+if [[ "$WARMUP_ONLY" == 1 ]]; then
+    # 预热不改动测量口径：编译已全部落在启动阶段，这里只是提前付掉
+    log "预热完成：PCH 新增 $(( $(_pch_count) - PCH_BEFORE )) 个，内核 .so 新增 $(( $(_so_count) - SO_BEFORE )) 个"
+    log '服务已停止；现在按正常命令跑测量即可，不会再触发编译'
+    exit 0
+fi
 FAILED=0
 for idx in "${!CASES[@]}"; do
     read -r input_len output_len <<< "${CASES[$idx]}"

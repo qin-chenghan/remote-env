@@ -38,3 +38,19 @@ litehost 的测量工具包（来自 32 的 `/home/huawei_ts_program/litehost_pe
 | `VLLM_ENGINE_READY_TIMEOUT_S` | 1800 | vLLM 等待引擎初始化 RPC（权重加载后到 capture 完成）的时间；vLLM 默认只有 600，冷缓存编译会因此被判死 |
 
 服务进程退出或停滞放弃时，脚本会把 `server.log` 最后 40 行直接打到 stdout（`stall_guard=` 行记录当前取值）。
+
+## 重启/迁移后的预热
+
+虚机重启后可能落到 CPU 特性不同的宿主上。inductor 的 PCH 键（`codecache.py:_precompile_header`）
+由 头文件内容 + g++ 命令行 + **预处理结果** + g++ 版本 组成，而命令行里是 `-march=native`，
+所以宿主变了键就变，PCH 与内核必须按新宿主编一遍。这是正确行为，不是缓存损坏。
+
+重启后先付款，正式测量就只剩缓存命中：
+
+```bash
+WARMUP_ONLY=1 bash vllmBench_lite_base_mock_py312.sh
+```
+
+预热沿用同一份启动参数，只启动到 `/health`（含权重加载与 graph capture）然后停掉服务，
+不跑 case、不需要测量端在线；结束时打印本次新增的 PCH 与 `.so` 数量。
+之后按平时的命令跑测量即可。`config.txt` 里会记 `warmup_only=1`，便于事后区分。
