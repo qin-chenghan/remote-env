@@ -294,8 +294,8 @@ mkdir -p "$LOG_DIR"
     echo "stall_guard=STALL_DUMP_SECONDS=${STALL_DUMP_SECONDS} STALL_ABORT_SECONDS=${STALL_ABORT_SECONDS} SERVER_WAIT_TIMEOUT=${SERVER_WAIT_TIMEOUT} ENGINE_READY_TIMEOUT_S=${VLLM_ENGINE_READY_TIMEOUT_S}"
     echo "warmup_only=$WARMUP_ONLY"
 } > "$RUN_DIR/config.txt" 2>/dev/null || true
-# 预热只需要编译，不需要控制通道/测量端
-if [[ "$HOST_MEASURE" == lite && "$WARMUP_ONLY" != 1 ]]; then
+# 预热与正常跑共用同一套初始化：LightHostWorker 会读 lhctl 生成的 session.json
+if [[ "$HOST_MEASURE" == lite ]]; then
     "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" init --run-dir "$RUN_DIR" \
         --timeout "$HOST_TIMEOUT" --max-scopes "$HOST_MAX_SCOPES" > "$LOG_DIR/preflight.log" 2>&1 || { cat "$LOG_DIR/preflight.log"; exit 2; }
     INIT_DONE=1
