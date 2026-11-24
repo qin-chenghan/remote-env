@@ -31,12 +31,11 @@ DOCKER_TOOL=/home/huawei_ts_program/litehost_perf_opt
 set -uo pipefail
 # 不带 -i：否则 docker 会从 stdin 抽走本探针脚本剩余的行
 D() { docker exec vllm bash -lc "$1" 2>&1 | sed '/^Authorized users only/d'; }
-D 'echo "-- 三份 gch 是否相同（同 .h + 同编译命令 => 相同）"; H=/tmp/torchinductor_root/precompiled_headers; md5sum $H/*.h.gch 2>&1'
-D 'echo "-- PCH 键在源码里怎么算的"; T=$(/usr/local/bin/python3 -c "import torch,os;print(os.path.dirname(torch.__file__))"); grep -n "precompiled" $T/_inductor/codecache.py $T/_inductor/cpp_builder.py 2>/dev/null | head -30'
-D 'echo "-- 当前环境算出的 PCH 路径（和上面三个文件名比）"; TORCHINDUCTOR_CACHE_DIR=/home/huawei_ts_program/inductor_cache_py312 /usr/local/bin/python3 -c "import torch,torch._inductor.codecache as c;ns=[n for n in dir(c) if \"precompiled\" in n.lower()];print(\"attrs:\",ns);[print(n,\"->\",getattr(c,n)()) for n in ns if callable(getattr(c,n))]" 2>&1 | tail -12'
-D 'echo "-- 环境现状"; uptime; getconf _NPROCESSORS_ONLN; grep -m1 -oE "asimd|sve|bf16|crc32|sha3" /proc/cpuinfo | sort -u; env | grep -E "^TORCHINDUCTOR|^VLLM" | sort'
+D 'echo "-- 键的源头：_HEADER_DIR 与相关函数"; T=/usr/local/lib/python3.12/site-packages/torch; grep -n "_HEADER_DIR\|def _precompile_header\|def get_cpp_header\|def _get_cpp_header\|hash_\|sha256" $T/_inductor/codecache.py | sed -n "1,60p"'
+D 'echo "-- codecache.py 2600-2845"; sed -n "2600,2845p" /usr/local/lib/python3.12/site-packages/torch/_inductor/codecache.py'
+D 'echo "-- cpp_builder.py 1895-1995"; sed -n "1895,1995p" /usr/local/lib/python3.12/site-packages/torch/_inductor/cpp_builder.py'
 PROBE_EOF
-  ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE" 2>&1 | head -220
+  ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE" 2>&1 | head -420
 
   echo "== 1. 本地待同步文件（来自 145 仓库 clone）=="
   md5sum "$SRC_MOCK" "$SRC_TOOL/vllmBench_lite_base_mock_py312.sh" \
