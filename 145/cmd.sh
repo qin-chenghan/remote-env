@@ -18,7 +18,6 @@ SRC_TOOL=/home/qch/tools/remote-env/litehost_toolkit          # 145 上的仓库
 HOST_TOOL=/home/huawei_ts_program/litehost_perf_opt            # 145 上实际运行的部署目录
 DOCKER_MOCK=/home/qch/mock_vllm/mock_gpu/worker_patch.py
 DOCKER_TOOL=/home/huawei_ts_program/litehost_perf_opt
-RUN=/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823
 
 {
   echo "### server: 145 -> 198  (FIX=$FIX)"
@@ -32,14 +31,12 @@ RUN=/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261
 set -uo pipefail
 # 不带 -i：否则 docker 会从 stdin 抽走本探针脚本剩余的行
 D() { docker exec vllm bash -lc "$1" 2>&1 | sed '/^Authorized users only/d'; }
-D 'echo "-- torch/inductor 缓存语义"; /usr/local/bin/python3 -c "import inspect,torch,torch._inductor.codecache as c;print(\"torch\",torch.__version__);print(\"header_dir\",getattr(c,\"_HEADER_DIR\",\"NA\"));print(inspect.getsource(c.default_cache_dir).strip())" 2>&1 | tail -12'
-D 'echo "-- 11:14 之后到死亡前的完整主日志（略去 shm 刷屏）"; L=RUNLOG; grep -cEi "compil" $L; grep -E "11:(1[4-9]|2[0-9]):" $L | grep -vE "No available shared memory|shm_broadcast" | tail -35'
-D 'echo "-- 死亡前 30 行（含 worker 自己的报错）"; L=RUNLOG; tail -n 60 $L | cut -c1-160'
-D 'echo "-- pin 的 cache 目录在 11-24 有没有写入"; C=/home/huawei_ts_program/inductor_cache_py312; find $C -type f | wc -l; find $C -newermt "2026-11-24 00:00" -printf "%TY-%Tm-%Td %TH:%TM %p\n" 2>/dev/null | sort | tail -8; ls -la --time-style=long-iso $C 2>&1 | head -6'
-D 'echo "-- /tmp 代码缓存 11-24 的写入"; find /tmp/torchinductor_root -newermt "2026-11-24 00:00" -type f -printf "%TH:%TM %s %p\n" 2>/dev/null | sort | tail -8; echo "total: $(find /tmp/torchinductor_root -type f 2>/dev/null | wc -l)"'
-D 'echo "-- 相关超时默认值"; V=/usr/local/lib/python3.12/site-packages/vllm; grep -nE "dequeue_timeout|VLLM_RPC_TIMEOUT|VLLM_ENGINE|DISTRIBUTED_TIMEOUT" $V/v1/executor/multiproc_executor.py $V/envs.py 2>/dev/null | head -12; grep -rnE "timedelta\(minutes=10\)|timedelta\(seconds=600\)|timeout=600" $V/distributed/*.py $V/v1/executor/*.py 2>/dev/null | head -8'
+D 'echo "-- 三份 PCH 的头文件"; H=/tmp/torchinductor_root/precompiled_headers; ls -la --time-style=long-iso $H/*.h* 2>&1; md5sum $H/*.h 2>/dev/null'
+D 'echo "-- 每个 .h 的内容（都很小）"; for f in /tmp/torchinductor_root/precompiled_headers/*.h; do echo "== $f"; cat "$f"; done 2>&1 | head -40'
+D 'echo "-- 编译器与 CPU 特性"; /usr/local/bin/python3 -c "import torch,sys,platform;print(sys.version.split()[0],torch.__version__);print(platform.machine())" 2>&1 | tail -3; g++ --version 2>&1 | head -1; grep -m1 "model name" /proc/cpuinfo; grep -m1 -oE "asimd|sve|bf16" /proc/cpuinfo | sort -u; getconf _NPROCESSORS_ONLN'
+D 'echo "-- 内核缓存里都有哪些键"; C=/home/huawei_ts_program/inductor_cache_py312; find $C -name "*.so" -o -name "*.py" | head -12; echo "count: $(find $C -type f | wc -l)"'
+D 'echo "-- /tmp 里内核产物（同一配置的对照）"; find /tmp/torchinductor_root -maxdepth 1 -type d | head; echo "files: $(find /tmp/torchinductor_root -type f | wc -l)"'
 PROBE_EOF
-  sed -i "s#RUNLOG#$RUN/logs/server.log#g" "$PROBE"
   ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE" 2>&1 | head -220
 
   echo "== 1. 本地待同步文件（来自 145 仓库 clone）=="
