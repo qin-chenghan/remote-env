@@ -1,0 +1,53 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-25T11:41:08Z
+
+### 本轮只读：只以 sqlite ro 打开 ixsys trace，不写、不删
+== 0. trace 文件 ==
+-rw-r--r--. 1 root root 701505536 Nov 25 12:46 /home/qch/1125analysis/ixsys_base/ixsys/bs8_in128_out128/bs8_in128_out128.ixsys.ptrace
+-- 1125 三份目录 --
+/home/qch/1125analysis/ixsys_base/
+/home/qch/1125analysis/timeline_base/
+/home/qch/1125analysis/vllm_base/
+-- ixsys_base summary --
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+vllmBase_ixsys_1125,bs8_in128_out128,100,42.00274360500043,2.380796857948465,304.7419978174035,609.483995634807,312.77831356041133,330.12605499243364,396.0204163889284,23.040491779743668,22.91105107867661,24.41160453192424,23.040493588404654,22.874622489325702,24.44658271793742
+-- 空间 --
+/dev/mapper/openeuler-home  804G  759G  4.3G 100% /home
+
+== 1. 选择解释器（需 sqlite3）==
+  跳过 /opt/corex311/bin/python3
+使用宿主解释器: python3
+trace_bounds: dur=152.5s
+  cuda_kernel_data   rows=732668
+  cuda_api_data      rows=11628217
+  cuda_graph_data    rows=7680
+RUN 203-base
+  trace=152.5s window=+75..+105s (30.0s) dev=3 pid=3964985
+  steps=1180 period=22.88ms busy=94.9% graph=20.95 tail=1.20 tailgap=0.45 postidle=0.27 idle=0.73 (ms)
+  graphs: backbone=1185 small/step=0.00 small_time/step=0.00ms
+  host api / step:
+    cudaGraphLaunch        n=1.00 dur=0.127ms
+    cudaLaunchKernel       n=56.46 dur=0.659ms
+    cudaMemcpyAsync        n=15.21 dur=0.119ms
+    cudaStreamSynchronize  n=2.02 dur=18.932ms
+    cudaEventSynchronize   n=1.02 dur=0.002ms
+  small graphs by dur:
+  out-of-graph kernels (window rows=67882, 58/step):
+        0.683ms total  cuinfer::impl::kernel::GemvImpl<__ix_bfloat16, __ix_bfloat16, float, float, __ix_bfloat16,
+        0.489ms total  void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<256u, 256u, 64u, 64u, 64u, true,
+        0.386ms total  void ixformer::comm::allreduce_ring_step_sum_fused<__ix_bfloat16, 4u>(ixformer::comm::OpPa
+        0.384ms total  void at::native::reduce_kernel<1024, 1, at::native::ReduceOp<float, at::native::ArgMaxOps<
+        0.364ms total  void ixformer::comm::allreduce_ring_step_copy<__ix_bfloat16, 4u>(ixformer::comm::OpParams,
+        0.187ms total  void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<128u, 256u, 64u, 32u, 64u, true,
+        0.159ms total  void cuinfer::impl::kernel::mr_fast_gemm_f_f_i8_i8_h_tcuh<256u, 256u, 64u, 64u, 64u, true,
+        0.158ms total  void ixformer::comm::allreduce_ring_step_copy_fused<__ix_bfloat16, 4u>(ixformer::comm::OpP
+        0.139ms total  ixcclDevKernel_AllGather_RING_SIMPLE(ixcclDevKernelArgsStorage<512ul>)
+        0.088ms total  void ixformer::kernels::infer::residual_rms_norm_kernel<__ix_bfloat16, 5u, 2u, false, true
+        0.079ms total  void ixformer::comm::allreduce_ring_last_step_copy<__ix_bfloat16>(ixformer::comm::OpParams
+        0.057ms total  void ixformer::comm::allreduce_ring_step_sum<__ix_bfloat16, 4u>(ixformer::comm::OpParams, 
+
+== 2. ixsys 报告里的 GPU 汇总（若 server.log 留了）==
+无
+
+### exit: 0
