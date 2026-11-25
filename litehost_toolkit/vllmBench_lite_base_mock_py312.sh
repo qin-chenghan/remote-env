@@ -33,8 +33,9 @@ CASE_INTERVAL="${CASE_INTERVAL:-60}"
 CPU_RANGE="${CPU_RANGE-0-63}"
 HOST_MEASURE="${HOST_MEASURE:-lite}"         # lite | off (never enable Torch Profiler here)
 VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
-# 引擎初始化 RPC（含 graph capture/编译）的等待时间，vllm 默认只有 600 秒；
-# 冷缓存编译超过 10 分钟就会把 worker 判死，这里放宽到 30 分钟。
+# 引擎初始化 RPC（含 graph capture/编译）的等待时间，vllm 默认 600 秒；
+# 冷缓存编译可以超过 10 分钟，这里放宽到 30 分钟。注意它只影响父进程等多久，
+# worker 被信号打死（SIGSEGV 等）是另一回事，调这个值救不回来。
 VLLM_ENGINE_READY_TIMEOUT_S="${VLLM_ENGINE_READY_TIMEOUT_S:-1800}"
 SERVER_WAIT_TIMEOUT="${SERVER_WAIT_TIMEOUT:-0}"   # 0 = 不设上限，直到服务就绪或进程退出
 STALL_DUMP_SECONDS="${STALL_DUMP_SECONDS:-300}"   # graph capture 进度停滞多久自动抓栈；0=关闭
