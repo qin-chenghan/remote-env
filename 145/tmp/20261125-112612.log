@@ -1,0 +1,95 @@
+### server: 145 -> 198  (只读)
+### time:   2026-11-25T03:26:12Z
+
++ cat
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -400
+
+Authorized users only. All activities may be monitored and reported.
+-- 主机
+ 11:26:13 up 4 min,  0 user,  load average: 0.00, 0.00, 0.00
+               total        used        free      shared  buff/cache   available
+Mem:          120266        1273      119527           8         393      118993
+Swap:              0           0           0
+-- 容器
+bash: line 2: docker: command not found
+-- run 目录
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261125_093806/
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/test-warmup2/
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/test-warmup1/
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823/
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_094434/
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/prime_py312_rest6/
+-- 宿主指纹
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 sm3 sm4 asimddp sha512 sve asimdfhm dit uscat ilrcpc flagm ssbs sb dcpodp flagm2 frint svei8mm svef32mm svef64mm svebf16 i8mm bf16 dgh rng bti ecv
+host_tag=f48c1ee258
+g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0
+-- 缓存目录
+/home/huawei_ts_program/inductor_cache_py311
+/home/huawei_ts_program/inductor_cache_py312
+-- 旧 .so
+2026-11-20 16:51 73712 /home/huawei_ts_program/inductor_cache_py312/ja/cjavtv4n3luyfucbb6i5p2zymefx63rrnvuts436umrx6l5z6vyg.main.so
+2026-11-20 16:51 73632 /home/huawei_ts_program/inductor_cache_py312/zm/czmfxgpoh27q3ws2n7wsfdzy5wyhl2t3lmzlojongie6bfbwk6pl.main.so
+2026-11-20 16:51 70144 /home/huawei_ts_program/inductor_cache_py312/u4/cu4bzqib4o2n2s3hgdrios2d4uyy4hqtetsrd3licxebvqz5uvo2.so
+-- PCH
+total 402176
+drwxr-xr-x 1 root root      4096 2026-11-24 11:23 .
+drwxr-xr-x 1 root root      4096 2026-11-21 16:24 ..
+-rw-r--r-- 1 root root        44 2026-11-21 16:23 c2hveezg3bvkabtpvdlmbi3rzhgsfwnlhmbmsilaxbgcq7w5xwlf.h
+-rw-r--r-- 1 root root 137264789 2026-11-21 16:23 c2hveezg3bvkabtpvdlmbi3rzhgsfwnlhmbmsilaxbgcq7w5xwlf.h.gch
+-rw-r--r-- 1 root root        44 2026-11-24 11:20 cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h
+-rw-r--r-- 1 root root 137260719 2026-11-24 11:23 cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h.gch
+-rw-r--r-- 1 root root        44 2026-11-21 10:50 cmm6ladfh5ak4rwlgjjanyyaxkkyyegwftuurmvg4rwdgiqr4iuf.h
+-rw-r--r-- 1 root root 137264793 2026-11-21 10:50 cmm6ladfh5ak4rwlgjjanyyaxkkyyegwftuurmvg4rwdgiqr4iuf.h.gch
+drwxr-xr-x 1 root root      4096 2026-11-24 11:20 locks
+-- 缓存 .so 的 SVE 类指令计数（>0 表示编进了 SVE）
+0  cjavtv4n3luyfucbb6i5p2zymefx63rrnvuts436umrx6l5z6vyg.main.so
+0  czmfxgpoh27q3ws2n7wsfdzy5wyhl2t3lmzlojongie6bfbwk6pl.main.so
+0  cu4bzqib4o2n2s3hgdrios2d4uyy4hqtetsrd3licxebvqz5uvo2.so
+-- core 配置
+|/usr/lib/systemd/systemd-coredump %P %u %g %s %t %c %h %d
+unlimited
+-- core 文件
+-- dmesg 信号相关
+-- dmesg 尾部
+[    2.850712] systemd[1]: Finished Load Kernel Module fuse.
+[    2.851838] systemd[1]: Mounting FUSE Control File System...
+[    2.852197] systemd[1]: Started Journal Service.
+[    2.868805] systemd-journald[804]: Received client request to flush runtime journal.
+[    3.126986] FAT-fs (vda1): Volume was not properly unmounted. Some data may be corrupt. Please run fsck.
+[    3.297969] EXT4-fs (vda3): mounted filesystem a963b4d8-3a5e-4bd5-9ebf-0331a3f4c419 r/w with ordered data mode. Quota mode: none.
+[    3.726954] bridge: filtering via arp/ip/ip6tables is no longer available by default. Update your scripts to load br_netfilter if you need this.
+[    3.730325] Bridge firewalling registered
+[    3.762328] block vda: the capability attribute has been deprecated.
+[    4.000548] IPv6: eth0: IPv6 duplicate address fe80::c1e6:be4b:ec7c:25 used by 52:54:00:3e:8f:21 detected!
+[   14.273021] IPv6: eth0: IPv6 duplicate address fe80::c1e6:be4b:ec7c:25 used by 52:54:00:3e:8f:21 detected!
+[   19.017928] exe[2660]: memfd_create() called without MFD_EXEC or MFD_NOEXEC_SEAL set
+-- /etc/hosts
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.3.83     hostserver
+-- resolv.conf
+-- 主机名解析（最多 30s）
+::1             localhost localhost.localdomain localhost6 localhost6.localdomain6
+-- import torch 计时（最多 200s）
+
+real	0m0.006s
+user	0m0.003s
+sys	0m0.000s
+2.10.0
+
+real	0m4.438s
+user	0m6.772s
+sys	0m0.514s
+-- import vllm 最慢包（最多 320s）
+import time:       523 |    3910457 |           vllm.v1
+import time:       695 |    3911151 |         vllm.v1.worker
+import time:     12091 |    4098850 |           vllm.config.model
+import time:      1614 |    5437644 |         vllm.config
+import time:      1250 |   11619201 |       vllm.v1.worker.gpu_worker
+import time:      6389 |   11722968 |     mock_gpu.autoload
+import time:       614 |   11723581 |   sitecustomize
+import time:       832 |   11727151 | site
++ set +x
+
+### exit: 0
