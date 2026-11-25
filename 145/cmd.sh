@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读核对「内核缓存是启动阶段产物还是 case 阶段产物」。
+# 本次：只读诊断 py312_litehost_gap_20261125_093806；顺带核对缓存产物来自启动窗口还是 case 窗口。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -23,37 +23,45 @@ set -uo pipefail
 D() { docker exec vllm bash -lc "$1" 2>&1 | sed '/^Authorized users only/d'; }
 
 D 'B=/home/huawei_ts_program/litehost_perf_opt/vllmBench
-echo "-- 已有 run 的启动时间"
+R=$B/py312_litehost_gap_20261125_093806
+echo "-- run 目录"; ls -la --time-style=long-iso $R 2>&1
+echo "-- config.txt"; cat $R/config.txt 2>&1
+echo "-- logs 目录"; ls -la --time-style=long-iso $R/logs 2>&1
+echo "-- lint"; wc -l $R/logs/*.log 2>&1'
+
+D 'B=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+R=$B/py312_litehost_gap_20261125_093806
+L=$R/logs/server.log
+echo "-- 阶段"; grep -nE "activated|pinned to cpu|Capturing CUDA graphs|ompil|Application startup complete" $L 2>/dev/null | tail -20
+echo "-- 报错"; grep -nE "ERROR|Traceback|FileNotFoundError|RuntimeError|Killed|OOM|No space|stalled" $L 2>/dev/null | tail -25
+echo "-- tail 60"; tail -n 60 $L 2>&1'
+
+D 'B=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+R=$B/py312_litehost_gap_20261125_093806
+for f in $R/logs/*.log; do
+  case $f in *server.log) continue;; esac
+  echo "-- $(basename $f) tail"; tail -n 15 $f 2>&1
+done'
+
+D 'echo "-- 磁盘"; df -h / /tmp /home/huawei_ts_program 2>&1 | tail -4
+echo "-- 内存"; free -m 2>&1 | tail -3
+echo "-- PCH"; ls -la --time-style=long-iso /tmp/torchinductor_root/precompiled_headers/*.h 2>&1'
+
+D 'C=/home/huawei_ts_program/inductor_cache_py312
+echo "-- .so 总数"; find $C -name "*.so" 2>/dev/null | wc -l
+echo "-- .so 按分钟分布（最近两天）"
+find $C -name "*.so" -newermt "2026-11-23" -printf "%TY-%Tm-%Td %TH:%TM\n" 2>/dev/null | sort | uniq -c | sort -k2
+echo "-- 缓存顶层最新 8 项"; ls -1t $C 2>/dev/null | head -8'
+
+D 'B=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+echo "-- 最近 run 与启动时间"
 for d in $B/*/; do
   s=$(sed -n "s/^started=//p" $d/config.txt 2>/dev/null)
   w=$(sed -n "s/^warmup_only=//p" $d/config.txt 2>/dev/null)
   [[ -n "$s" ]] && echo "$(basename $d)  started=$s  warmup_only=${w:-0}"
-done | sort -k2'
-
-D 'B=/home/huawei_ts_program/litehost_perf_opt/vllmBench
-for r in test-warmup test-warmup1 test-warmup2; do
-  L=$B/$r/logs/server.log
-  echo "===== $r"
-  [[ -f $L ]] || { echo "(无 server.log)"; continue; }
-  echo "-- 阶段时间戳"
-  grep -hoE "^\([A-Za-z_]+ pid=[0-9]+\) (INFO|WARNING) [0-9-]+ [0-9:]+ \[[^]]*\] (Platform plugin iluvatar is activated|Application startup complete|Starting vLLM API server)" $L 2>/dev/null | tail -3
-  grep -hoE "Capturing CUDA graphs \(decode, FULL\): 100%" $L | head -1
-  echo "-- 编译相关行"
-  grep -nE "ompil|Using cached|torch\.compile" $L 2>/dev/null | tail -8
-done'
-
-D 'C=/home/huawei_ts_program/inductor_cache_py312
-echo "-- .so 总数"; find $C -name "*.so" 2>/dev/null | wc -l
-echo "-- .so 按分钟分布"
-find $C -name "*.so" -printf "%TY-%Tm-%Td %TH:%TM\n" 2>/dev/null | sort | uniq -c | sort -k2
-echo "-- .cpp/.py/.json 按天分布"
-find $C \( -name "*.cpp" -o -name "*.py" -o -name "*.json" \) -printf "%TY-%Tm-%Td\n" 2>/dev/null | sort | uniq -c
-echo "-- 最新 5 个 .so"
-find $C -name "*.so" -printf "%TY-%Tm-%Td %TH:%TM:%TS %p\n" 2>/dev/null | sort | tail -5
-echo "-- 缓存顶层项数"; ls -1 $C 2>/dev/null | wc -l
-echo "-- 顶层最新 8 项"; ls -1t $C 2>/dev/null | head -8'
+done | sort -k2 | tail -8'
 PROBE_EOF
-  ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE_SH" 2>&1 | head -300
+  ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE_SH" 2>&1 | head -400
 
   set +x
 } 2>&1 | tee "$OUT"
