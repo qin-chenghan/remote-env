@@ -1,0 +1,174 @@
+### server: 145 -> 198 vllm 容器  (写入)
+### time:   2026-11-25T03:29:19Z
+### backup: /home/qch/deploy_backup_20261125-112919
+
++ echo '== 0. 本地待部署文件 =='
+== 0. 本地待部署文件 ==
++ md5sum /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh /home/qch/tools/remote-env/mock_vllm/mock_gpu/worker_patch.py
+02a704e20b8fa2a5ab7331907f35f7ee  /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh
+1abd90328bb0dd0239ed842b7b62fd65  /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh
+6715ed9852db4c6402f4ed18e2e91d50  /home/qch/tools/remote-env/mock_vllm/mock_gpu/worker_patch.py
++ echo '== 1. 远端现状（只读）=='
+== 1. 远端现状（只读）==
+++ D 'for f in /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/qch/mock_vllm/mock_gpu/worker_patch.py; do test -f $f && echo "ok $f" || echo "MISSING $f"; done
+           md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/qch/mock_vllm/mock_gpu/worker_patch.py 2>/dev/null; python3 -V'
+++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec vllm bash -lc '\''for f in /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/qch/mock_vllm/mock_gpu/worker_patch.py; do test -f $f && echo "ok $f" || echo "MISSING $f"; done
+           md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/qch/mock_vllm/mock_gpu/worker_patch.py 2>/dev/null; python3 -V'\'''
+++ sed '/^Authorized users only/d'
++ PRE='
+ok /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+ok /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+ok /home/qch/mock_vllm/mock_gpu/worker_patch.py
+c6afb92a48d12bc2e1621b324ed755e4  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+32403c12e271ced274a683ecbad1e683  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+Python 3.12.11'
++ echo '
+ok /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+ok /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+ok /home/qch/mock_vllm/mock_gpu/worker_patch.py
+c6afb92a48d12bc2e1621b324ed755e4  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+32403c12e271ced274a683ecbad1e683  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+Python 3.12.11'
+
+ok /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+ok /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+ok /home/qch/mock_vllm/mock_gpu/worker_patch.py
+c6afb92a48d12bc2e1621b324ed755e4  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+32403c12e271ced274a683ecbad1e683  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+Python 3.12.11
++ VID 'mock_VERSION_ID(before)='
++ D 'python3 -c "import hashlib,pathlib; h=hashlib.sha1(); [h.update(p.name.encode()) or h.update(p.read_bytes()) for p in sorted(pathlib.Path('\''/home/qch/mock_vllm/mock_gpu'\'').glob('\''*.py'\''))]; print('\''mock_VERSION_ID(before)='\'', h.hexdigest()[:10])"'
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec vllm bash -lc '\''python3 -c "import hashlib,pathlib; h=hashlib.sha1(); [h.update(p.name.encode()) or h.update(p.read_bytes()) for p in sorted(pathlib.Path('\''/home/qch/mock_vllm/mock_gpu'\'').glob('\''*.py'\''))]; print('\''mock_VERSION_ID(before)='\'', h.hexdigest()[:10])"'\'''
++ sed '/^Authorized users only/d'
+
+bash: -c: line 1: syntax error near unexpected token `('
+bash: -c: line 1: `docker exec vllm bash -lc 'python3 -c "import hashlib,pathlib; h=hashlib.sha1(); [h.update(p.name.encode()) or h.update(p.read_bytes()) for p in sorted(pathlib.Path('/home/qch/mock_vllm/mock_gpu').glob('*.py'))]; print('mock_VERSION_ID(before)=', h.hexdigest()[:10])"''
++ echo '== 2. 备份 =='
+== 2. 备份 ==
++ echo '
+ok /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+ok /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+ok /home/qch/mock_vllm/mock_gpu/worker_patch.py
+c6afb92a48d12bc2e1621b324ed755e4  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+32403c12e271ced274a683ecbad1e683  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+7b03918a8a6556e110d96d85fa8b6d22  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+Python 3.12.11'
++ grep -q '^MISSING'
++ D 'mkdir -p /home/qch/deploy_backup_20261125-112919 && cp -a /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/qch/deploy_backup_20261125-112919/ && ls -l /home/qch/deploy_backup_20261125-112919'
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec vllm bash -lc '\''mkdir -p /home/qch/deploy_backup_20261125-112919 && cp -a /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/qch/mock_vllm/mock_gpu/worker_patch.py /home/qch/deploy_backup_20261125-112919/ && ls -l /home/qch/deploy_backup_20261125-112919'\'''
++ sed '/^Authorized users only/d'
+
+total 64
+-rwxr-xr-x 1 root root 18861 Nov 24 17:07 vllmBench_lite_base_mock.sh
+-rwxr-xr-x 1 root root 18971 Nov 25 09:35 vllmBench_lite_base_mock_py312.sh
+-rw-r--r-- 1 root root 21980 Nov 24 17:07 worker_patch.py
++ echo '== 3. 推送 =='
+== 3. 推送 ==
++ push /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ base64
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec -i vllm bash -c '\''base64 -d > /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh.new && chmod 755 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh.new && mv /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh.new /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh'\'''
++ sed '/^Authorized users only/d'
+
++ local rc=0
+++ basename /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh
++ echo 'push rc=0  vllmBench_lite_base_mock_py312.sh -> /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh'
+push rc=0  vllmBench_lite_base_mock_py312.sh -> /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
++ return 0
++ push /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ base64
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec -i vllm bash -c '\''base64 -d > /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh.new && chmod 755 /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh.new && mv /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh.new /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'\'''
++ sed '/^Authorized users only/d'
+
++ local rc=0
+++ basename /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh
++ echo 'push rc=0  vllmBench_lite_base_mock.sh -> /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh'
+push rc=0  vllmBench_lite_base_mock.sh -> /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
++ return 0
++ push /home/qch/tools/remote-env/mock_vllm/mock_gpu/worker_patch.py /home/qch/mock_vllm/mock_gpu/worker_patch.py
++ base64
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec -i vllm bash -c '\''base64 -d > /home/qch/mock_vllm/mock_gpu/worker_patch.py.new && chmod 755 /home/qch/mock_vllm/mock_gpu/worker_patch.py.new && mv /home/qch/mock_vllm/mock_gpu/worker_patch.py.new /home/qch/mock_vllm/mock_gpu/worker_patch.py'\'''
++ sed '/^Authorized users only/d'
+
++ local rc=0
+++ basename /home/qch/tools/remote-env/mock_vllm/mock_gpu/worker_patch.py
++ echo 'push rc=0  worker_patch.py -> /home/qch/mock_vllm/mock_gpu/worker_patch.py'
+push rc=0  worker_patch.py -> /home/qch/mock_vllm/mock_gpu/worker_patch.py
++ return 0
++ echo '== 4. 远端校验 =='
+== 4. 远端校验 ==
++ D 'md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/qch/mock_vllm/mock_gpu/worker_patch.py
+       bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh && echo SYNTAX_OK_py312
+       bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh && echo SYNTAX_OK_py311
+       python3 -c "import py_compile; py_compile.compile('\''/home/qch/mock_vllm/mock_gpu/worker_patch.py'\'', doraise=True); print('\''PY_OK'\'')"'
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec vllm bash -lc '\''md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/qch/mock_vllm/mock_gpu/worker_patch.py
+       bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh && echo SYNTAX_OK_py312
+       bash -n /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh && echo SYNTAX_OK_py311
+       python3 -c "import py_compile; py_compile.compile('\''/home/qch/mock_vllm/mock_gpu/worker_patch.py'\'', doraise=True); print('\''PY_OK'\'')"'\'''
++ sed '/^Authorized users only/d'
+
+02a704e20b8fa2a5ab7331907f35f7ee  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh
+1abd90328bb0dd0239ed842b7b62fd65  /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh
+6715ed9852db4c6402f4ed18e2e91d50  /home/qch/mock_vllm/mock_gpu/worker_patch.py
+SYNTAX_OK_py312
+SYNTAX_OK_py311
+  File "<string>", line 1
+    import py_compile; py_compile.compile(/home/qch/mock_vllm/mock_gpu/worker_patch.py, doraise=True); print(PY_OK)
+                                          ^
+SyntaxError: invalid syntax
++ VID 'mock_VERSION_ID(after)='
++ D 'python3 -c "import hashlib,pathlib; h=hashlib.sha1(); [h.update(p.name.encode()) or h.update(p.read_bytes()) for p in sorted(pathlib.Path('\''/home/qch/mock_vllm/mock_gpu'\'').glob('\''*.py'\''))]; print('\''mock_VERSION_ID(after)='\'', h.hexdigest()[:10])"'
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec vllm bash -lc '\''python3 -c "import hashlib,pathlib; h=hashlib.sha1(); [h.update(p.name.encode()) or h.update(p.read_bytes()) for p in sorted(pathlib.Path('\''/home/qch/mock_vllm/mock_gpu'\'').glob('\''*.py'\''))]; print('\''mock_VERSION_ID(after)='\'', h.hexdigest()[:10])"'\'''
++ sed '/^Authorized users only/d'
+
+bash: -c: line 1: syntax error near unexpected token `('
+bash: -c: line 1: `docker exec vllm bash -lc 'python3 -c "import hashlib,pathlib; h=hashlib.sha1(); [h.update(p.name.encode()) or h.update(p.read_bytes()) for p in sorted(pathlib.Path('/home/qch/mock_vllm/mock_gpu').glob('*.py'))]; print('mock_VERSION_ID(after)=', h.hexdigest()[:10])"''
++ D 'echo '\''-- 关键行'\''; grep -n '\''host_tag\|PYTHONFAULTHANDLER'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh | head -6
+       grep -n '\''faulthandler'\'' /home/qch/mock_vllm/mock_gpu/worker_patch.py | head -4'
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec vllm bash -lc '\''echo '\''-- 关键行'\''; grep -n '\''host_tag\|PYTHONFAULTHANDLER'\'' /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh | head -6
+       grep -n '\''faulthandler'\'' /home/qch/mock_vllm/mock_gpu/worker_patch.py | head -4'\'''
++ sed '/^Authorized users only/d'
+
+--
++ echo '== 5. 本地/远端 md5 比对 =='
+== 5. 本地/远端 md5 比对 ==
+++ md5sum /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock_py312.sh /home/qch/tools/remote-env/litehost_toolkit/vllmBench_lite_base_mock.sh /home/qch/tools/remote-env/mock_vllm/mock_gpu/worker_patch.py
+++ awk '{print $1}'
++ L='02a704e20b8fa2a5ab7331907f35f7ee
+1abd90328bb0dd0239ed842b7b62fd65
+6715ed9852db4c6402f4ed18e2e91d50'
+++ D 'md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/qch/mock_vllm/mock_gpu/worker_patch.py'
+++ awk '{print $1}'
+++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec vllm bash -lc '\''md5sum /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock_py312.sh /home/huawei_ts_program/litehost_perf_opt/vllmBench_lite_base_mock.sh /home/qch/mock_vllm/mock_gpu/worker_patch.py'\'''
+++ sed '/^Authorized users only/d'
++ R='
+02a704e20b8fa2a5ab7331907f35f7ee
+1abd90328bb0dd0239ed842b7b62fd65
+6715ed9852db4c6402f4ed18e2e91d50'
++ '[' '02a704e20b8fa2a5ab7331907f35f7ee
+1abd90328bb0dd0239ed842b7b62fd65
+6715ed9852db4c6402f4ed18e2e91d50' = '
+02a704e20b8fa2a5ab7331907f35f7ee
+1abd90328bb0dd0239ed842b7b62fd65
+6715ed9852db4c6402f4ed18e2e91d50' ']'
++ echo MD5_MISMATCH
+MD5_MISMATCH
++ echo 'local: 02a704e20b8fa2a5ab7331907f35f7ee
+1abd90328bb0dd0239ed842b7b62fd65
+6715ed9852db4c6402f4ed18e2e91d50'
+local: 02a704e20b8fa2a5ab7331907f35f7ee
+1abd90328bb0dd0239ed842b7b62fd65
+6715ed9852db4c6402f4ed18e2e91d50
++ echo 'remote: 
+02a704e20b8fa2a5ab7331907f35f7ee
+1abd90328bb0dd0239ed842b7b62fd65
+6715ed9852db4c6402f4ed18e2e91d50'
+remote: 
+02a704e20b8fa2a5ab7331907f35f7ee
+1abd90328bb0dd0239ed842b7b62fd65
+6715ed9852db4c6402f4ed18e2e91d50
++ set +x
+
+### exit: 0
