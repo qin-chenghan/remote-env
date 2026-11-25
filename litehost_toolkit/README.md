@@ -54,3 +54,10 @@ WARMUP_ONLY=1 bash vllmBench_lite_base_mock_py312.sh
 预热沿用同一份启动参数，只启动到 `/health`（含权重加载与 graph capture）然后停掉服务，
 不跑 case、不需要测量端在线；结束时打印本次新增的 PCH 与 `.so` 数量。
 之后按平时的命令跑测量即可。`config.txt` 里会记 `warmup_only=1`，便于事后区分。
+
+PCH 有宿主相关的键，内核 `.so` 却没有：同一个 `.so` 在不同宿主间会被直接复用，
+执行到本机不支持的指令就把 worker 打死（表现为 capture 卡在 0/N 后
+`Worker proc ... died unexpectedly`，日志里没有 Python 栈）。所以
+`TORCHINDUCTOR_CACHE_DIR` 现在按 `CPU Features + g++ 版本` 的哈希分片
+（`inductor_cache_py312/h-<10位哈希>`），`config.txt` 里记 `host_tag=`。
+宿主没变照常复用；宿主变了自动换目录重编，预热承担这一次开销。

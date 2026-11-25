@@ -557,10 +557,14 @@ def arm_stack_dump():
 
     try:
         faulthandler.register(signal.SIGUSR2, all_threads=True)
+        # 致命信号（SIGSEGV/SIGILL/SIGBUS/SIGABRT）默认不留 Python 栈，
+        # worker 被信号打死时日志里只剩 "died unexpectedly"；enable 之后
+        # 同一个信号会先打印所有线程的栈再退出。
+        faulthandler.enable(all_threads=True)
     except (AttributeError, ValueError) as exc:
         print(f"[mock_gpu] stack dump unavailable: {exc}", flush=True)
         return
-    print("[mock_gpu] stack dump armed (SIGUSR2)", flush=True)
+    print("[mock_gpu] stack dump armed (SIGUSR2 + fatal)", flush=True)
 
 
 def _pin_worker(rank, when=""):

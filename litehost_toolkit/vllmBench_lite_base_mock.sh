@@ -7,7 +7,18 @@ set -uo pipefail
 MODEL_PATH="${MODEL_PATH:-/home/model/ts/Qwen3-32B-W8A8}"
 TEST_ID="${TEST_ID:-"litehost_gap_$(date +%Y%m%d_%H%M%S)"}"
 # JIT artifacts outlive /tmp cleanup and container restarts.
-export TORCHINDUCTOR_CACHE_DIR="${TORCHINDUCTOR_CACHE_DIR:-/home/huawei_ts_program/inductor_cache_py311}"
+# 内核 .so 是 -march=native 编译的：重启后如果落到另一台物理机，复用旧 .so
+# 会执行到本机不支持的指令（worker 被信号打死）。目录按 CPU 特征 + g++ 版本
+# 分片：宿主不变零成本复用，宿主变了自动落新目录重新编译。
+_host_tag() {
+    { grep -m1 '^Features' /proc/cpuinfo 2>/dev/null
+      { g++ -dumpfullversion -dumpversion 2>/dev/null || gcc --version 2>/dev/null | head -1; }
+    } | md5sum | cut -c1-10
+}
+HOST_TAG="${HOST_TAG:-$(_host_tag)}"
+TORCHINDUCTOR_CACHE_DIR="${TORCHINDUCTOR_CACHE_DIR:-/home/huawei_ts_program/inductor_cache_py311}"
+[[ "$TORCHINDUCTOR_CACHE_DIR" == */h-* ]] || TORCHINDUCTOR_CACHE_DIR="$TORCHINDUCTOR_CACHE_DIR/h-$HOST_TAG"
+export TORCHINDUCTOR_CACHE_DIR
 mkdir -p "$TORCHINDUCTOR_CACHE_DIR" 2>/dev/null || true
 PREFIX="${PREFIX:-/opt/corex311}"
 PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
@@ -119,7 +130,7 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 log "PREFIX=$PREFIX"
-log "inductor_cache=$TORCHINDUCTOR_CACHE_DIR files=$(find "$TORCHINDUCTOR_CACHE_DIR" -name '*.py' 2>/dev/null | wc -l)"
+log "host_tag=$HOST_TAG inductor_cache=$TORCHINDUCTOR_CACHE_DIR files=$(find "$TORCHINDUCTOR_CACHE_DIR" -name '*.py' 2>/dev/null | wc -l)"
 
 check_gpu_memory() {
     local gpu free_mib
@@ -210,6 +221,7 @@ PY
     check_gpu_memory "$GPU_LIST"
     local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1 \
         VLLM_RPC_TIMEOUT="$VLLM_RPC_TIMEOUT" VLLM_ENGINE_READY_TIMEOUT_S="$VLLM_ENGINE_READY_TIMEOUT_S"
+        PYTHONFAULTHANDLER=1
         "${SERVER_EXTRA_ENV[@]}")
     if [[ "$HOST_MEASURE" == lite ]]; then
         env_args+=(PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}"
@@ -289,6 +301,7 @@ mkdir -p "$LOG_DIR"
     echo "model_path=$MODEL_PATH"
     echo "gpus=$GPU_LIST tp=$GPUS_PER_INSTANCE"
     echo "prompts=$NUM_PROMPTS concurrency=$MAX_CONCURRENCY warmups=$NUM_WARMUPS"
+    echo "host_tag=$HOST_TAG"
     echo "mock_env=MOCK_TP_CPUS=${MOCK_TP_CPUS:-unset} MOCK_TP_CPUS_DEFER=${MOCK_TP_CPUS_DEFER:-0} MOCK_STACK_DUMP=${MOCK_STACK_DUMP:-0} MOCK_THREADS=${MOCK_THREADS:-unset}"
     echo "stall_guard=STALL_DUMP_SECONDS=${STALL_DUMP_SECONDS} STALL_ABORT_SECONDS=${STALL_ABORT_SECONDS} SERVER_WAIT_TIMEOUT=${SERVER_WAIT_TIMEOUT} ENGINE_READY_TIMEOUT_S=${VLLM_ENGINE_READY_TIMEOUT_S}"
     echo "warmup_only=$WARMUP_ONLY"
