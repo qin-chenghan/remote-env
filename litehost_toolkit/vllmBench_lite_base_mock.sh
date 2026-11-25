@@ -304,6 +304,16 @@ _pch_count() { ls -1 "$PCH_DIR"/*.h 2>/dev/null | wc -l; }
 _so_count() { find "$TORCHINDUCTOR_CACHE_DIR" -name '*.so' 2>/dev/null | wc -l; }
 PCH_BEFORE=$(_pch_count); SO_BEFORE=$(_so_count)
 if ! start_server; then log 'FATAL: 启动失败'; exit 1; fi
+# 绑核审计：MOCK_TP_CPUS_DEFER=1 的绑定发生在 capture 结束的 finally 里，
+# 只有在这里回读 /proc 才能证明它真的生效了（而不是静默跳过）。
+_affinity_audit() {
+    local p out=''
+    for p in $(pgrep -f 'VLLM::Worker' 2>/dev/null); do
+        out+=" $p=$(awk '/Cpus_allowed_list/{print $2}' "/proc/$p/status" 2>/dev/null)"
+    done
+    log "worker 绑核（Cpus_allowed_list）:${out:- 未找到 worker 进程}"
+}
+_affinity_audit
 if [[ "$WARMUP_ONLY" == 1 ]]; then
     # 预热不改动测量口径：编译已全部落在启动阶段，这里只是提前付掉
     log "预热完成：PCH 新增 $(( $(_pch_count) - PCH_BEFORE )) 个，内核 .so 新增 $(( $(_so_count) - SO_BEFORE )) 个"
