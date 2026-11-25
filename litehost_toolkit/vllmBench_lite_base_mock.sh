@@ -57,10 +57,10 @@ HOST_TOOLKIT=/home/huawei_ts_program/litehost_perf_opt
 MOCK_DIR=/home/qch/mock_vllm
 [[ -d "$MOCK_DIR/mock_gpu" ]] || { echo "ERROR: mock 目录不存在: $MOCK_DIR" >&2; exit 2; }
 export PYTHONPATH="$MOCK_DIR${PYTHONPATH:+:$PYTHONPATH}"
-# 启动保护默认开启，测试人员的命令行不用变：抓栈只注册信号、不影响测量；
-# 绑核推迟到 capture 结束后，测出来的部分仍是单核。
+# 启动保护默认开启，测试人员的命令行不用变：抓栈只注册信号、不影响测量。
+# 绑核不进服务进程：准备阶段（导入/加载/capture）完全不绑，服务就绪后
+# 由本脚本用 taskset -apc 给每个 worker 绑核（见 pin_workers_runtime）。
 export MOCK_STACK_DUMP="${MOCK_STACK_DUMP:-1}"
-export MOCK_TP_CPUS_DEFER="${MOCK_TP_CPUS_DEFER:-1}"
 
 [[ "$TEST_ID" =~ ^[A-Za-z0-9_.-]+$ && "$TEST_ID" != . && "$TEST_ID" != .. ]] || { echo 'ERROR: TEST_ID 不能包含路径分隔符' >&2; exit 2; }
 
@@ -90,7 +90,12 @@ if [[ -n "${CASES_FILE:-}" ]]; then
     [[ -f "$CASES_FILE" ]] || { echo "ERROR: 找不到 CASES_FILE=$CASES_FILE" >&2; exit 2; }
     mapfile -t CASES < <(grep -Ev '^[[:space:]]*(#|$)' "$CASES_FILE")
 fi
-log() { printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"; }
+log() {
+    local line; line="[$(date '+%Y-%m-%d %H:%M:%S')] $*"
+    printf '%s\n' "$line"
+    # 同时落盘：停滞保护/绑核这些判定只在这里出现，事后要能查
+    if [[ -d "${LOG_DIR:-}" ]]; then printf '%s\n' "$line" >> "$LOG_DIR/harness.log"; fi
+}
 # Child processes only: drop old measurement/audit injection; keep CoreX library paths.
 CLEAN_ENV=(env -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
     -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR)
@@ -220,9 +225,11 @@ import socket,sys
 with socket.socket() as s:s.bind(('127.0.0.1',int(sys.argv[1])))
 PY
     check_gpu_memory "$GPU_LIST"
+    # MOCK_TP_CPUS 显式置空：服务进程一律不自行绑核（含 mock 的 DEFER 路径），
+    # 绑核只发生在服务就绪之后，由 pin_workers_runtime 从外面用 taskset 施加。
     local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1 \
         VLLM_RPC_TIMEOUT="$VLLM_RPC_TIMEOUT" VLLM_ENGINE_READY_TIMEOUT_S="$VLLM_ENGINE_READY_TIMEOUT_S"
-        PYTHONFAULTHANDLER=1
+        PYTHONFAULTHANDLER=1 MOCK_TP_CPUS= MOCK_TP_CPUS_DEFER=0
         "${SERVER_EXTRA_ENV[@]}")
     if [[ "$HOST_MEASURE" == lite ]]; then
         env_args+=(PYTHONPATH="${HOST_TOOLKIT}${PYTHONPATH:+:$PYTHONPATH}"
@@ -303,7 +310,7 @@ mkdir -p "$LOG_DIR"
     echo "gpus=$GPU_LIST tp=$GPUS_PER_INSTANCE"
     echo "prompts=$NUM_PROMPTS concurrency=$MAX_CONCURRENCY warmups=$NUM_WARMUPS"
     echo "host_tag=$HOST_TAG"
-    echo "mock_env=MOCK_TP_CPUS=${MOCK_TP_CPUS:-unset} MOCK_TP_CPUS_DEFER=${MOCK_TP_CPUS_DEFER:-0} MOCK_STACK_DUMP=${MOCK_STACK_DUMP:-0} MOCK_THREADS=${MOCK_THREADS:-unset}"
+    echo "mock_env=MOCK_TP_CPUS=${MOCK_TP_CPUS:-unset}@runtime MOCK_STACK_DUMP=${MOCK_STACK_DUMP:-0} MOCK_THREADS=${MOCK_THREADS:-unset}"
     echo "stall_guard=STALL_DUMP_SECONDS=${STALL_DUMP_SECONDS} STALL_ABORT_SECONDS=${STALL_ABORT_SECONDS} SERVER_WAIT_TIMEOUT=${SERVER_WAIT_TIMEOUT} ENGINE_READY_TIMEOUT_S=${VLLM_ENGINE_READY_TIMEOUT_S}"
     echo "warmup_only=$WARMUP_ONLY"
 } > "$RUN_DIR/config.txt" 2>/dev/null || true
@@ -316,24 +323,77 @@ fi
 PCH_DIR=/tmp/torchinductor_root/precompiled_headers
 _pch_count() { ls -1 "$PCH_DIR"/*.h 2>/dev/null | wc -l; }
 _so_count() { find "$TORCHINDUCTOR_CACHE_DIR" -name '*.so' 2>/dev/null | wc -l; }
+preflight_import() {
+    # 启动前量一次 import vllm：机器异常慢时（见过单进程 3m45）与其等一小时
+    # 才发现，不如在这里先看到耗时；顺带把解释器和库预热进页缓存。
+    local t0 t1 rc
+    t0=$(date +%s)
+    "${CLEAN_ENV[@]}" timeout "${PREFLIGHT_IMPORT_TIMEOUT:-600}" \
+        env PYTHONPATH="$MOCK_DIR" MOCK_TP_CPUS= \
+        "$PYTHON_BIN" -c 'import vllm' >> "$LOG_DIR/preflight.log" 2>&1
+    rc=$?
+    t1=$(date +%s)
+    if (( rc == 124 )); then
+        log "ERROR: 预检 import vllm 超过 ${PREFLIGHT_IMPORT_TIMEOUT:-600}s，机器状态异常，放弃本轮"
+        return 1
+    elif (( rc != 0 )); then
+        log "ERROR: 预检 import vllm 失败 (rc=$rc)，详见 $LOG_DIR/preflight.log"
+        return 1
+    fi
+    log "预检：import vllm 用时 $((t1-t0))s"
+    (( t1-t0 <= 60 )) || log "WARNING: import vllm 明显偏慢（正常 <15s），本机当前状态不佳"
+    return 0
+}
 PCH_BEFORE=$(_pch_count); SO_BEFORE=$(_so_count)
+preflight_import || exit 1
 if ! start_server; then log 'FATAL: 启动失败'; exit 1; fi
-# 绑核审计：MOCK_TP_CPUS_DEFER=1 的绑定发生在 capture 结束的 finally 里，
-# 只有在这里回读 /proc 才能证明它真的生效了（而不是静默跳过）。
+# 回读 /proc/<pid>/status 的 Cpus_allowed_list，证明绑核真的生效了（而不是静默跳过）。
 _affinity_audit() {
     local p out=''
     for p in $(pgrep -f 'VLLM::Worker' 2>/dev/null); do
         out+=" $p=$(awk '/Cpus_allowed_list/{print $2}' "/proc/$p/status" 2>/dev/null)"
     done
-    log "worker 绑核（Cpus_allowed_list）:${out:- 未找到 worker 进程}"
+    log "$1（Cpus_allowed_list）:${out:- 未找到 worker 进程}"
 }
-_affinity_audit
+_affinity_audit "准备阶段绑核状态（应未绑核）"
+
+_worker_pid() {
+    # rank -> pid：优先用 litehost 就绪文件，off 模式退回解析 server.log
+    local f="$RUN_DIR/control/rank$1.ready.json" pid=''
+    [[ -r "$f" ]] && pid=$(grep -oE '"pid": *[0-9]+' "$f" 2>/dev/null | grep -oE '[0-9]+' | head -1)
+    if [[ -z "$pid" ]]; then
+        pid=$(grep -m1 -E "\(Worker pid=[0-9]+\) .*[[:space:]]rank=$1[[:space:]]" "$SERVER_LOG" 2>/dev/null \
+              | grep -oE 'Worker pid=[0-9]+' | cut -d= -f2)
+    fi
+    printf '%s' "$pid"
+}
+pin_workers_runtime() {
+    # 运行期绑核：服务已就绪，准备工作（导入/权重/编译/capture）全部结束，
+    # 此时再绑不影响测量口径，也不再拖慢任何启动步骤。
+    [[ -n "${MOCK_TP_CPUS:-}" ]] || { log '绑核：MOCK_TP_CPUS 未设置，跳过'; return 0; }
+    command -v taskset >/dev/null || { log '绑核：容器内没有 taskset'; return 1; }
+    local -a cpus; IFS=',' read -ra cpus <<< "$MOCK_TP_CPUS"
+    local i pid ok=0 fail=0
+    for i in "${!cpus[@]}"; do
+        pid=$(_worker_pid "$i")
+        if [[ -z "$pid" ]]; then log "绑核：找不到 rank $i 的 pid"; fail=$((fail+1)); continue; fi
+        if taskset -apc "${cpus[$i]}" "$pid" >/dev/null 2>&1; then
+            log "绑核：rank $i pid=$pid -> cpu ${cpus[$i]}"; ok=$((ok+1))
+        else
+            log "绑核：rank $i pid=$pid -> cpu ${cpus[$i]} 失败"; fail=$((fail+1))
+        fi
+    done
+    log "绑核完成：成功 $ok 个，失败 $fail 个"
+    (( fail == 0 ))
+}
 if [[ "$WARMUP_ONLY" == 1 ]]; then
     # 预热不改动测量口径：编译已全部落在启动阶段，这里只是提前付掉
     log "预热完成：PCH 新增 $(( $(_pch_count) - PCH_BEFORE )) 个，内核 .so 新增 $(( $(_so_count) - SO_BEFORE )) 个"
     log '服务已停止；现在按正常命令跑测量即可，不会再触发编译'
     exit 0
 fi
+if ! pin_workers_runtime; then log 'FATAL: 运行期绑核失败，放弃本轮（不产出未绑核的数据）'; exit 1; fi
+_affinity_audit "运行阶段绑核状态"
 FAILED=0
 for idx in "${!CASES[@]}"; do
     read -r input_len output_len <<< "${CASES[$idx]}"
