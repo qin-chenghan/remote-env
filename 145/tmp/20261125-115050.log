@@ -1,0 +1,138 @@
+### server: 145 -> 198 vllm 容器  (只读)
+### time:   2026-11-25T03:50:50Z
+
++ echo '== 1. 各轮 config 对比（成功 vs 失败）=='
+== 1. 各轮 config 对比（成功 vs 失败）==
++ D 'V=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+     for d in py312_warmup_20261125 test-warmup1 test-warmup2 py312_litehost_gap_20261125_093806 py312_litehost_gap_20261124_100823; do
+       echo "##### $d"
+       grep -hE "^(started|host_tag|mock_env|warmup_only|stall_guard|cpu_range)=" "$V/$d/config.txt" 2>/dev/null
+     done'
++ printf '%s\n' 'V=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+     for d in py312_warmup_20261125 test-warmup1 test-warmup2 py312_litehost_gap_20261125_093806 py312_litehost_gap_20261124_100823; do
+       echo "##### $d"
+       grep -hE "^(started|host_tag|mock_env|warmup_only|stall_guard|cpu_range)=" "$V/$d/config.txt" 2>/dev/null
+     done'
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec -i vllm bash -s'
++ sed '/^Authorized users only/d'
+
+##### py312_warmup_20261125
+started=2026-11-25T11:33:09+08:00
+cpu_range=0-63
+host_tag=f48c1ee258
+mock_env=MOCK_TP_CPUS=unset MOCK_TP_CPUS_DEFER=1 MOCK_STACK_DUMP=1 MOCK_THREADS=unset
+stall_guard=STALL_DUMP_SECONDS=300 STALL_ABORT_SECONDS=900 SERVER_WAIT_TIMEOUT=0 ENGINE_READY_TIMEOUT_S=1800
+warmup_only=1
+##### test-warmup1
+started=2026-11-24T16:58:54+08:00
+cpu_range=0-63
+mock_env=MOCK_TP_CPUS=unset MOCK_TP_CPUS_DEFER=1 MOCK_STACK_DUMP=1 MOCK_THREADS=unset
+stall_guard=STALL_DUMP_SECONDS=300 STALL_ABORT_SECONDS=900 SERVER_WAIT_TIMEOUT=0 ENGINE_READY_TIMEOUT_S=1800
+warmup_only=1
+##### test-warmup2
+started=2026-11-24T17:03:01+08:00
+cpu_range=0-63
+mock_env=MOCK_TP_CPUS=unset MOCK_TP_CPUS_DEFER=1 MOCK_STACK_DUMP=1 MOCK_THREADS=unset
+stall_guard=STALL_DUMP_SECONDS=300 STALL_ABORT_SECONDS=900 SERVER_WAIT_TIMEOUT=0 ENGINE_READY_TIMEOUT_S=1800
+warmup_only=1
+##### py312_litehost_gap_20261125_093806
+started=2026-11-25T09:47:24+08:00
+cpu_range=0-63
+mock_env=MOCK_TP_CPUS=8,10,12,14 MOCK_TP_CPUS_DEFER=1 MOCK_STACK_DUMP=1 MOCK_THREADS=unset
+stall_guard=STALL_DUMP_SECONDS=300 STALL_ABORT_SECONDS=900 SERVER_WAIT_TIMEOUT=0 ENGINE_READY_TIMEOUT_S=1800
+warmup_only=1
+##### py312_litehost_gap_20261124_100823
+started=2026-11-24T10:17:09+08:00
+cpu_range=0-63
++ echo '== 2. 失败轮的服务器日志时间线 =='
+== 2. 失败轮的服务器日志时间线 ==
++ D 'V=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+     for d in py312_litehost_gap_20261125_093806 py312_litehost_gap_20261124_100823; do
+       echo "##### $d"
+       L="$V/$d/logs/server.log"
+       [ -f "$L" ] && stat -c "%y %s %n" "$L"
+       grep -nE "runner ready|Capturing CUDA graphs|died unexpectedly|RuntimeError|pinned to cpu" "$L" 2>/dev/null | head -8
+       tr "\r" "\n" < "$L" 2>/dev/null | grep -oE "\| *[0-9]+/35" | tail -2
+     done'
++ printf '%s\n' 'V=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+     for d in py312_litehost_gap_20261125_093806 py312_litehost_gap_20261124_100823; do
+       echo "##### $d"
+       L="$V/$d/logs/server.log"
+       [ -f "$L" ] && stat -c "%y %s %n" "$L"
+       grep -nE "runner ready|Capturing CUDA graphs|died unexpectedly|RuntimeError|pinned to cpu" "$L" 2>/dev/null | head -8
+       tr "\r" "\n" < "$L" 2>/dev/null | grep -oE "\| *[0-9]+/35" | tail -2
+     done'
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec -i vllm bash -s'
++ sed '/^Authorized users only/d'
+
+##### py312_litehost_gap_20261125_093806
+2026-11-25 10:57:15.004000000 +0800 47602 /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261125_093806/logs/server.log
+213:(Worker pid=3367) [mock_gpu] runner ready (world_size=4)
+214:(Worker pid=3366) [mock_gpu] runner ready (world_size=4)
+215:(Worker pid=3365) [mock_gpu] runner ready (world_size=4)
+216:(Worker pid=3368) [mock_gpu] runner ready (world_size=4)
+219:(Worker_TP0 pid=3365) Capturing CUDA graphs (decode, FULL):   0%|          | 0/35 [00:00<?, ?it/s](EngineCore pid=2345) INFO 11-25 10:50:50 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+225:(EngineCore pid=2345) ERROR 11-25 10:56:27 [multiproc_executor.py:286] Worker proc VllmWorker-3 died unexpectedly, shutting down executor.
+285:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]     raise RuntimeError("cancelled")
+286:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235] RuntimeError: cancelled
+| 0/35
+##### py312_litehost_gap_20261124_100823
+2026-11-24 11:29:38.836000000 +0800 48489 /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823/logs/server.log
+142:(Worker pid=1808) [mock_gpu] rank 0 pinned to cpu 8
+145:(Worker pid=1811) [mock_gpu] rank 3 pinned to cpu 14
+148:(Worker pid=1809) [mock_gpu] rank 1 pinned to cpu 10
+151:(Worker pid=1810) [mock_gpu] rank 2 pinned to cpu 12
+209:(Worker pid=1810) [mock_gpu] runner ready (world_size=4)
+210:(Worker pid=1809) [mock_gpu] runner ready (world_size=4)
+211:(Worker pid=1811) [mock_gpu] runner ready (world_size=4)
+212:(Worker pid=1808) [mock_gpu] runner ready (world_size=4)
+| 0/35
++ echo '== 3. 成功轮的关键时间点（预热总耗时）=='
+== 3. 成功轮的关键时间点（预热总耗时）==
++ D 'P=/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_warmup_20261125
+     L="$P/logs/server.log"
+     grep -nE "runner ready|Capturing CUDA graphs|route|Started server|Application startup|ready" "$L" 2>/dev/null | head -10
+     echo "-- 文件时间线"; ls -la --time-style=long-iso "$P" "$P/logs" 2>/dev/null
+     echo "-- 新 .so 时间"; find /home/huawei_ts_program/inductor_cache_py312/h-* -name "*.so" -printf "%TH:%TM:%TS %s %f\n" 2>/dev/null | sort'
++ printf '%s\n' 'P=/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_warmup_20261125
+     L="$P/logs/server.log"
+     grep -nE "runner ready|Capturing CUDA graphs|route|Started server|Application startup|ready" "$L" 2>/dev/null | head -10
+     echo "-- 文件时间线"; ls -la --time-style=long-iso "$P" "$P/logs" 2>/dev/null
+     echo "-- 新 .so 时间"; find /home/huawei_ts_program/inductor_cache_py312/h-* -name "*.so" -printf "%TH:%TM:%TS %s %f\n" 2>/dev/null | sort'
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec -i vllm bash -s'
++ sed '/^Authorized users only/d'
+
+83:(EngineCore pid=786) INFO 11-25 11:34:06 [core.py:114] Initializing a V1 LLM engine (v0.23.0) with config: model='/home/model/Qwen3-32B-W8A8', speculative_config=None, tokenizer='/home/model/Qwen3-32B-W8A8', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=4096, download_dir=None, load_format=auto, tensor_parallel_size=4, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=compressed-tensors, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cpu, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_verbose=False), seed=0, served_model_name=/home/model/Qwen3-32B-W8A8, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [2048], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_rope_kvcache_cat_mla': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': True, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native']), enable_flashinfer_autotune=True, moe_backend='auto', linear_backend='auto')
+213:(Worker pid=973) [mock_gpu] runner ready (world_size=4)
+214:(Worker pid=974) [mock_gpu] runner ready (world_size=4)
+215:(Worker pid=975) [mock_gpu] runner ready (world_size=4)
+216:(Worker pid=976) [mock_gpu] runner ready (world_size=4)
+219:(Worker_TP0 pid=973) Capturing CUDA graphs (decode, FULL):   0%|          | 0/35 [00:00<?, ?it/s]/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+276:(Worker_TP0 pid=973) Capturing CUDA graphs (decode, FULL):   3%|▎         | 1/35 [00:44<25:07, 44.34s/it]Capturing CUDA graphs (decode, FULL):  11%|█▏        | 4/35 [00:44<04:21,  8.43s/it]Capturing CUDA graphs (decode, FULL):  20%|██        | 7/35 [00:44<01:50,  3.93s/it]Capturing CUDA graphs (decode, FULL):  29%|██▊       | 10/35 [00:44<00:56,  2.25s/it]Capturing CUDA graphs (decode, FULL):  37%|███▋      | 13/35 [00:44<00:30,  1.40s/it]Capturing CUDA graphs (decode, FULL):  46%|████▌     | 16/35 [00:45<00:17,  1.08it/s]Capturing CUDA graphs (decode, FULL):  54%|█████▍    | 19/35 [00:45<00:10,  1.59it/s]Capturing CUDA graphs (decode, FULL):  63%|██████▎   | 22/35 [00:45<00:05,  2.27it/s]Capturing CUDA graphs (decode, FULL):  71%|███████▏  | 25/35 [00:45<00:03,  3.16it/s]Capturing CUDA graphs (decode, FULL):  80%|████████  | 28/35 [00:45<00:01,  4.29it/s]Capturing CUDA graphs (decode, FULL):  89%|████████▊ | 31/35 [00:45<00:00,  5.71it/s]Capturing CUDA graphs (decode, FULL):  97%|█████████▋| 34/35 [00:45<00:00,  7.42it/s]Capturing CUDA graphs (decode, FULL): 100%|██████████| 35/35 [00:46<00:00,  1.31s/it]
+302:(APIServer pid=571) INFO 11-25 11:36:16 [launcher.py:37] Available routes are:
+308:(APIServer pid=571) INFO:     Started server process [571]
+310:(APIServer pid=571) INFO:     Application startup complete.
+-- 文件时间线
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_warmup_20261125:
+total 28
+drwxr-xr-x 4 root root 4096 2026-11-25 11:36 .
+drwxr-xr-x 1 root root 4096 2026-11-25 11:33 ..
+-rw-r--r-- 1 root root  458 2026-11-25 11:33 config.txt
+drwxr-xr-x 2 root root 4096 2026-11-25 11:34 control
+drwxr-xr-x 2 root root 4096 2026-11-25 11:33 logs
+-rw------- 1 root root   70 2026-11-25 11:33 server.process.json
+-rw------- 1 root root  869 2026-11-25 11:33 session.json
+
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_warmup_20261125/logs:
+total 56
+drwxr-xr-x 2 root root  4096 2026-11-25 11:33 .
+drwxr-xr-x 4 root root  4096 2026-11-25 11:36 ..
+-rw-r--r-- 1 root root  1483 2026-11-25 11:33 preflight.log
+-rw-r--r-- 1 root root 38205 2026-11-25 11:36 server.log
+-- 新 .so 时间
+11:35:19.2160000000 70144 cu4bzqib4o2n2s3hgdrios2d4uyy4hqtetsrd3licxebvqz5uvo2.so
+11:35:34.3160000000 73712 cjavtv4n3luyfucbb6i5p2zymefx63rrnvuts436umrx6l5z6vyg.main.so
+11:35:36.5080000000 73632 czmfxgpoh27q3ws2n7wsfdzy5wyhl2t3lmzlojongie6bfbwk6pl.main.so
++ set +x
+
+### exit: 0
