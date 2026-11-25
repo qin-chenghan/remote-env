@@ -1,0 +1,147 @@
+### server: 145 -> 198 vllm 容器  (只读)
+### time:   2026-11-25T03:42:15Z
+
++ echo '== 1. 最近三轮 run =='
+== 1. 最近三轮 run ==
++ D 'ls -1dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ | head -3'
++ printf '%s\n' 'ls -1dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ | head -3'
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec -i vllm bash -s'
++ sed '/^Authorized users only/d'
+
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_warmup_20261125/
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261125_093806/
+/home/huawei_ts_program/litehost_perf_opt/vllmBench/test-warmup2/
++ echo '== 2. 最新 run 的 config =='
+== 2. 最新 run 的 config ==
++ D 'P=$(ls -1dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ | head -1); echo "P=$P"
+     cat "$P/config.txt" 2>/dev/null | head -40'
++ printf '%s\n' 'P=$(ls -1dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ | head -1); echo "P=$P"
+     cat "$P/config.txt" 2>/dev/null | head -40'
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec -i vllm bash -s'
++ sed '/^Authorized users only/d'
+
+P=/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_warmup_20261125/
+test_id=py312_warmup_20261125
+started=2026-11-25T11:33:09+08:00
+prefix=/usr/local
+multi_engine=unknown
+cpu_range=0-63
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+host_tag=f48c1ee258
+mock_env=MOCK_TP_CPUS=unset MOCK_TP_CPUS_DEFER=1 MOCK_STACK_DUMP=1 MOCK_THREADS=unset
+stall_guard=STALL_DUMP_SECONDS=300 STALL_ABORT_SECONDS=900 SERVER_WAIT_TIMEOUT=0 ENGINE_READY_TIMEOUT_S=1800
+warmup_only=1
++ echo '== 3. harness 日志的关键行 =='
+== 3. harness 日志的关键行 ==
++ D 'P=$(ls -1dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ | head -1)
+     grep -nE "host_tag=|inductor_cache=|预热完成|PCH 新增|绑核|warmup_only|FATAL|退出码" "$P"/run.log 2>/dev/null | head -20
+     ls "$P" 2>/dev/null'
++ printf '%s\n' 'P=$(ls -1dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ | head -1)
+     grep -nE "host_tag=|inductor_cache=|预热完成|PCH 新增|绑核|warmup_only|FATAL|退出码" "$P"/run.log 2>/dev/null | head -20
+     ls "$P" 2>/dev/null'
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec -i vllm bash -s'
++ sed '/^Authorized users only/d'
+
+config.txt
+control
+logs
+server.process.json
+session.json
++ echo '== 4. server.log 启动时间线与关键行 =='
+== 4. server.log 启动时间线与关键行 ==
++ D 'P=$(ls -1dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ | head -1)
+     L="$P/logs/server.log"
+     ls -l "$L" 2>/dev/null
+     grep -nE "mock_gpu\]|loading took|Capturing CUDA graphs|startup complete|pinned to cpu|Cpus_allowed|died unexpectedly|RuntimeError|Traceback|SIGSEGV|SIGILL" "$L" 2>/dev/null | head -30
+     echo "-- 首末时间"; head -3 "$L" 2>/dev/null; tail -5 "$L" 2>/dev/null'
++ printf '%s\n' 'P=$(ls -1dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ | head -1)
+     L="$P/logs/server.log"
+     ls -l "$L" 2>/dev/null
+     grep -nE "mock_gpu\]|loading took|Capturing CUDA graphs|startup complete|pinned to cpu|Cpus_allowed|died unexpectedly|RuntimeError|Traceback|SIGSEGV|SIGILL" "$L" 2>/dev/null | head -30
+     echo "-- 首末时间"; head -3 "$L" 2>/dev/null; tail -5 "$L" 2>/dev/null'
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec -i vllm bash -s'
++ sed '/^Authorized users only/d'
+
+-rw-r--r-- 1 root root 38205 Nov 25 11:36 /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_warmup_20261125//logs/server.log
+15:[mock_gpu] stack dump armed (SIGUSR2 + fatal)
+16:[mock_gpu] worker patched
+31:[mock_gpu] stack dump armed (SIGUSR2 + fatal)
+32:[mock_gpu] worker patched
+33:[mock_gpu] activated: no Iluvatar device visible (id=84ce7d7273)
+77:[mock_gpu] stack dump armed (SIGUSR2 + fatal)
+78:[mock_gpu] stack dump armed (SIGUSR2 + fatal)
+79:[mock_gpu] worker patched
+80:[mock_gpu] activated: no Iluvatar device visible (id=84ce7d7273)
+81:[mock_gpu] worker patched
+82:[mock_gpu] activated: no Iluvatar device visible (id=84ce7d7273)
+141:[mock_gpu] stack dump armed (SIGUSR2 + fatal)
+142:[mock_gpu] worker patched
+143:[mock_gpu] stack dump armed (SIGUSR2 + fatal)
+144:[mock_gpu] stack dump armed (SIGUSR2 + fatal)
+145:[mock_gpu] stack dump armed (SIGUSR2 + fatal)
+146:[mock_gpu] worker patched
+147:[mock_gpu] worker patched
+148:[mock_gpu] worker patched
+149:[mock_gpu] activated: no Iluvatar device visible (id=84ce7d7273)
+151:[mock_gpu] activated: no Iluvatar device visible (id=84ce7d7273)
+153:[mock_gpu] activated: no Iluvatar device visible (id=84ce7d7273)
+155:[mock_gpu] activated: no Iluvatar device visible (id=84ce7d7273)
+213:(Worker pid=973) [mock_gpu] runner ready (world_size=4)
+214:(Worker pid=974) [mock_gpu] runner ready (world_size=4)
+215:(Worker pid=975) [mock_gpu] runner ready (world_size=4)
+216:(Worker pid=976) [mock_gpu] runner ready (world_size=4)
+219:(Worker_TP0 pid=973) Capturing CUDA graphs (decode, FULL):   0%|          | 0/35 [00:00<?, ?it/s]/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+241:[mock_gpu] stack dump armed (SIGUSR2 + fatal)
+242:[mock_gpu] worker patched
+-- 首末时间
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-25 11:33:37 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+(APIServer pid=571) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/local/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 4 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+/usr/local/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 6 leaked shared_memory objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
++ echo '== 5. capture 进度（tqdm 最后几个快照）=='
+== 5. capture 进度（tqdm 最后几个快照）==
++ D 'P=$(ls -1dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ | head -1)
+     tr "\r" "\n" < "$P/logs/server.log" 2>/dev/null | grep -oE "Capturing CUDA graphs[^|]*\| *[0-9]+/[0-9]+" | tail -5
+     tr "\r" "\n" < "$P/logs/server.log" 2>/dev/null | grep -oE "Adding requests: *[0-9]+%" | tail -3'
++ printf '%s\n' 'P=$(ls -1dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ | head -1)
+     tr "\r" "\n" < "$P/logs/server.log" 2>/dev/null | grep -oE "Capturing CUDA graphs[^|]*\| *[0-9]+/[0-9]+" | tail -5
+     tr "\r" "\n" < "$P/logs/server.log" 2>/dev/null | grep -oE "Adding requests: *[0-9]+%" | tail -3'
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec -i vllm bash -s'
++ sed '/^Authorized users only/d'
+
++ echo '== 6. 缓存现状 =='
+== 6. 缓存现状 ==
++ D 'C=/home/huawei_ts_program/inductor_cache_py312
+     ls -1d $C $C/h-* 2>/dev/null
+     for d in $C/h-*; do echo "$d: so=$(find $d -name "*.so" 2>/dev/null | wc -l) py=$(find $d -name "*.py" 2>/dev/null | wc -l)"; done
+     echo "-- 最新 .so"; find $C -name "*.so" -newermt "2026-11-25 00:00" -printf "%TH:%TM %s %p\n" 2>/dev/null | sort | tail -6
+     echo "-- PCH"; ls -la --time-style=long-iso /tmp/torchinductor_root/precompiled_headers/*.gch 2>/dev/null'
++ printf '%s\n' 'C=/home/huawei_ts_program/inductor_cache_py312
+     ls -1d $C $C/h-* 2>/dev/null
+     for d in $C/h-*; do echo "$d: so=$(find $d -name "*.so" 2>/dev/null | wc -l) py=$(find $d -name "*.py" 2>/dev/null | wc -l)"; done
+     echo "-- 最新 .so"; find $C -name "*.so" -newermt "2026-11-25 00:00" -printf "%TH:%TM %s %p\n" 2>/dev/null | sort | tail -6
+     echo "-- PCH"; ls -la --time-style=long-iso /tmp/torchinductor_root/precompiled_headers/*.gch 2>/dev/null'
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'docker exec -i vllm bash -s'
++ sed '/^Authorized users only/d'
+
+/home/huawei_ts_program/inductor_cache_py312
+/home/huawei_ts_program/inductor_cache_py312/h-f48c1ee258
+/home/huawei_ts_program/inductor_cache_py312/h-f48c1ee258: so=3 py=5
+-- 最新 .so
+11:35 70144 /home/huawei_ts_program/inductor_cache_py312/h-f48c1ee258/u4/cu4bzqib4o2n2s3hgdrios2d4uyy4hqtetsrd3licxebvqz5uvo2.so
+11:35 73632 /home/huawei_ts_program/inductor_cache_py312/h-f48c1ee258/zm/czmfxgpoh27q3ws2n7wsfdzy5wyhl2t3lmzlojongie6bfbwk6pl.main.so
+11:35 73712 /home/huawei_ts_program/inductor_cache_py312/h-f48c1ee258/ja/cjavtv4n3luyfucbb6i5p2zymefx63rrnvuts436umrx6l5z6vyg.main.so
+-- PCH
+-rw-r--r-- 1 root root 137264789 2026-11-21 16:23 /tmp/torchinductor_root/precompiled_headers/c2hveezg3bvkabtpvdlmbi3rzhgsfwnlhmbmsilaxbgcq7w5xwlf.h.gch
+-rw-r--r-- 1 root root 137260719 2026-11-24 11:23 /tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h.gch
+-rw-r--r-- 1 root root 137264793 2026-11-21 10:50 /tmp/torchinductor_root/precompiled_headers/cmm6ladfh5ak4rwlgjjanyyaxkkyyegwftuurmvg4rwdgiqr4iuf.h.gch
++ set +x
+
+### exit: 0
