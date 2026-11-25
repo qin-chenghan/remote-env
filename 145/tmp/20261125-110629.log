@@ -1,0 +1,202 @@
+### server: 145 -> 198  (只读)
+### time:   2026-11-25T03:06:29Z
+
++ cat
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -400
+
+Authorized users only. All activities may be monitored and reported.
+-- run 目录
+total 32
+drwxr-xr-x 4 root root 4096 2026-11-25 10:45 .
+drwxr-xr-x 1 root root 4096 2026-11-25 09:47 ..
+-rw-r--r-- 1 root root  456 2026-11-25 09:47 config.txt
+drwxr-xr-x 2 root root 4096 2026-11-25 10:45 control
+drwxr-xr-x 2 root root 4096 2026-11-25 10:04 logs
+-rw-r--r-- 1 root root    4 2026-11-25 10:04 server.pid
+-rw------- 1 root root   71 2026-11-25 10:13 server.process.json
+-rw------- 1 root root  882 2026-11-25 09:55 session.json
+-- config.txt
+test_id=py312_litehost_gap_20261125_093806
+started=2026-11-25T09:47:24+08:00
+prefix=/usr/local
+multi_engine=unknown
+cpu_range=0-63
+hotspot_opt=unset
+model_path=/home/model/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+mock_env=MOCK_TP_CPUS=8,10,12,14 MOCK_TP_CPUS_DEFER=1 MOCK_STACK_DUMP=1 MOCK_THREADS=unset
+stall_guard=STALL_DUMP_SECONDS=300 STALL_ABORT_SECONDS=900 SERVER_WAIT_TIMEOUT=0 ENGINE_READY_TIMEOUT_S=1800
+warmup_only=1
+-- logs 目录
+total 64
+drwxr-xr-x 2 root root  4096 2026-11-25 10:04 .
+drwxr-xr-x 4 root root  4096 2026-11-25 10:45 ..
+-rw-r--r-- 1 root root  1475 2026-11-25 09:55 preflight.log
+-rw-r--r-- 1 root root 47602 2026-11-25 10:57 server.log
+-- lint
+   18 /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261125_093806/logs/preflight.log
+  438 /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261125_093806/logs/server.log
+  456 total
+-- 阶段
+96:INFO 11-25 10:38:38 [__init__.py:238] Platform plugin iluvatar is activated
+106:INFO 11-25 10:38:38 [__init__.py:238] Platform plugin iluvatar is activated
+107:INFO 11-25 10:38:39 [__init__.py:238] Platform plugin iluvatar is activated
+108:INFO 11-25 10:38:39 [__init__.py:238] Platform plugin iluvatar is activated
+125:/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+127:/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+129:/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+131:/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+149:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+151:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+153:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+155:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+219:(Worker_TP0 pid=3365) Capturing CUDA graphs (decode, FULL):   0%|          | 0/35 [00:00<?, ?it/s](EngineCore pid=2345) INFO 11-25 10:50:50 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+220:(EngineCore pid=2345) INFO 11-25 10:51:50 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+221:(EngineCore pid=2345) INFO 11-25 10:52:50 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+222:(EngineCore pid=2345) INFO 11-25 10:53:50 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+223:(EngineCore pid=2345) INFO 11-25 10:54:50 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+224:(EngineCore pid=2345) INFO 11-25 10:55:50 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+259:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]     compilation_times: list[CompilationTimes] = self.collective_rpc(
+312:(EngineCore pid=2345)     compilation_times: list[CompilationTimes] = self.collective_rpc(
+-- 报错
+268:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]     return self.__get_result()
+269:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]            ^^^^^^^^^^^^^^^^^^^
+270:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]   File "/usr/local/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+271:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]     raise self._exception
+272:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 97, in _wait_for_response
+273:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]     response = self.aggregate(self.get_response())
+274:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]                               ^^^^^^^^^^^^^^^^^^^
+275:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 389, in get_response
+276:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]     status, result = mq.dequeue(timeout=dequeue_timeout)
+277:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+278:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/distributed/device_communicators/shm_broadcast.py", line 779, in dequeue
+279:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]     with self.acquire_read(timeout, indefinite) as buf:
+280:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+281:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]   File "/usr/local/lib/python3.12/contextlib.py", line 137, in __enter__
+282:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]     return next(self.gen)
+283:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]            ^^^^^^^^^^^^^^
+284:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/distributed/device_communicators/shm_broadcast.py", line 701, in acquire_read
+285:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]     raise RuntimeError("cancelled")
+286:(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235] RuntimeError: cancelled
+288:(EngineCore pid=2345) Traceback (most recent call last):
+338:(EngineCore pid=2345)     raise RuntimeError("cancelled")
+339:(EngineCore pid=2345) RuntimeError: cancelled
+372:(APIServer pid=358) Traceback (most recent call last):
+432:(APIServer pid=358)     raise RuntimeError(
+433:(APIServer pid=358) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {'EngineCore': 1}
+-- tail 60
+(APIServer pid=358)            ^^^^^^^^^^^^^^
+(APIServer pid=358)   File "/usr/local/lib/python3.12/asyncio/runners.py", line 195, in run
+(APIServer pid=358)     return runner.run(main)
+(APIServer pid=358)            ^^^^^^^^^^^^^^^^
+(APIServer pid=358)   File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+(APIServer pid=358)     return self._loop.run_until_complete(task)
+(APIServer pid=358)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=358)   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+(APIServer pid=358)   File "/usr/local/lib/python3.12/site-packages/uvloop/__init__.py", line 48, in wrapper
+(APIServer pid=358)     return await main
+(APIServer pid=358)            ^^^^^^^^^^
+(APIServer pid=358)   File "/usr/local/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 658, in run_server
+(APIServer pid=358)     await run_server_worker(listen_address, sock, args, **uvicorn_kwargs)
+(APIServer pid=358)   File "/usr/local/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 672, in run_server_worker
+(APIServer pid=358)     async with build_async_engine_client(
+(APIServer pid=358)                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=358)   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+(APIServer pid=358)     return await anext(self.gen)
+(APIServer pid=358)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=358)   File "/usr/local/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 99, in build_async_engine_client
+(APIServer pid=358)     async with build_async_engine_client_from_engine_args(
+(APIServer pid=358)                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=358)   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+(APIServer pid=358)     return await anext(self.gen)
+(APIServer pid=358)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=358)   File "/usr/local/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py", line 135, in build_async_engine_client_from_engine_args
+(APIServer pid=358)     async_llm = AsyncLLM.from_vllm_config(
+(APIServer pid=358)                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=358)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/async_llm.py", line 217, in from_vllm_config
+(APIServer pid=358)     return cls(
+(APIServer pid=358)            ^^^^
+(APIServer pid=358)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/async_llm.py", line 146, in __init__
+(APIServer pid=358)     self.engine_core = EngineCoreClient.make_async_mp_client(
+(APIServer pid=358)                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=358)   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(APIServer pid=358)     return func(*args, **kwargs)
+(APIServer pid=358)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=358)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 132, in make_async_mp_client
+(APIServer pid=358)     return AsyncMPClient(*client_args)
+(APIServer pid=358)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=358)   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(APIServer pid=358)     return func(*args, **kwargs)
+(APIServer pid=358)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=358)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 963, in __init__
+(APIServer pid=358)     super().__init__(
+(APIServer pid=358)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 573, in __init__
+(APIServer pid=358)     with launch_core_engines(
+(APIServer pid=358)          ^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=358)   File "/usr/local/lib/python3.12/contextlib.py", line 144, in __exit__
+(APIServer pid=358)     next(self.gen)
+(APIServer pid=358)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/utils.py", line 1190, in launch_core_engines
+(APIServer pid=358)     wait_for_engine_startup(
+(APIServer pid=358)   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/utils.py", line 1249, in wait_for_engine_startup
+(APIServer pid=358)     raise RuntimeError(
+(APIServer pid=358) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {'EngineCore': 1}
+(APIServer pid=358) sys:1: ResourceWarning: unclosed <socket.socket fd=14, family=2, type=1, proto=0, laddr=('127.0.0.1', 8948)>
+/usr/local/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 4 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+/usr/local/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 5 leaked shared_memory objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+-- preflight.log tail
+INFO 11-25 09:50:22 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-25 09:50:22 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-25 09:50:22 [__init__.py:238] Platform plugin iluvatar is activated
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-25 09:53:59 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-25 09:53:59 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] stack dump armed (SIGUSR2)
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+SESSION: ffbf1e8a7ab346649166c69cd8adb044
+-- 磁盘
+Filesystem      Size  Used Avail Use% Mounted on
+overlay         492G  316G  151G  68% /
+overlay         492G  316G  151G  68% /
+overlay         492G  316G  151G  68% /
+-- 内存
+               total        used        free      shared  buff/cache   available
+Mem:          149641        1667      113843           8       35363      147973
+Swap:              0           0           0
+-- PCH
+-rw-r--r-- 1 root root 44 2026-11-21 16:23 /tmp/torchinductor_root/precompiled_headers/c2hveezg3bvkabtpvdlmbi3rzhgsfwnlhmbmsilaxbgcq7w5xwlf.h
+-rw-r--r-- 1 root root 44 2026-11-24 11:20 /tmp/torchinductor_root/precompiled_headers/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.h
+-rw-r--r-- 1 root root 44 2026-11-21 10:50 /tmp/torchinductor_root/precompiled_headers/cmm6ladfh5ak4rwlgjjanyyaxkkyyegwftuurmvg4rwdgiqr4iuf.h
+-- .so 总数
+3
+-- .so 按分钟分布（最近两天）
+-- 缓存顶层最新 8 项
+4d
+sw
+tt
+aotautograd
+fxgraph
+locks
+nl
+zm
+-- 最近 run 与启动时间
+prime_py312_1024  started=2026-11-23T16:06:15+08:00  warmup_only=0
+prime_py312_2048  started=2026-11-23T16:18:10+08:00  warmup_only=0
+prime_py312_rest6  started=2026-11-23T16:32:40+08:00  warmup_only=0
+py312_litehost_gap_20261124_094434  started=2026-11-24T09:53:52+08:00  warmup_only=0
+py312_litehost_gap_20261124_100823  started=2026-11-24T10:17:09+08:00  warmup_only=0
+test-warmup1  started=2026-11-24T16:58:54+08:00  warmup_only=1
+test-warmup2  started=2026-11-24T17:03:01+08:00  warmup_only=1
+py312_litehost_gap_20261125_093806  started=2026-11-25T09:47:24+08:00  warmup_only=1
++ set +x
+
+### exit: 0
