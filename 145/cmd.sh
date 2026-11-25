@@ -1,63 +1,90 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：qemu 重启后只读巡检 —— 宿主指纹、旧缓存 .so、崩溃残留、导入耗时。
+# 本次：**写入**（非只读）。把 py312/py311 两个 bench 脚本和 mock 的
+#       worker_patch.py 同步到 198 的 vllm 容器：先备份、再逐字节校验。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$DIR/.." && pwd)"
 TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 REMOTE=root@90.91.147.198
-PROBE_SH=/tmp/probe198w.sh
+CT=vllm
+TOOLKIT=/home/huawei_ts_program/litehost_perf_opt
+MOCK=/home/qch/mock_vllm/mock_gpu
+BK=/home/qch/deploy_backup_$TS
+A="$TOOLKIT/vllmBench_lite_base_mock_py312.sh"
+B="$TOOLKIT/vllmBench_lite_base_mock.sh"
+C="$MOCK/worker_patch.py"
+
+SSH=(ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE")
+D() { "${SSH[@]}" "docker exec $CT bash -lc '$1'" 2>&1 | sed '/^Authorized users only/d'; }
+
+# push <本地文件> <容器内目标路径>：base64 过 ssh 管道，容器里解码后原子替换
+push() {
+  base64 < "$1" | "${SSH[@]}" \
+    "docker exec -i $CT bash -c 'base64 -d > $2.new && chmod 755 $2.new && mv $2.new $2'" 2>&1 \
+    | sed '/^Authorized users only/d'
+  local rc=${PIPESTATUS[1]}
+  echo "push rc=$rc  $(basename "$1") -> $2"
+  return "$rc"
+}
+
+VID() {
+  D "python3 -c \"import hashlib,pathlib; h=hashlib.sha1(); [h.update(p.name.encode()) or h.update(p.read_bytes()) for p in sorted(pathlib.Path('$MOCK').glob('*.py'))]; print('$1', h.hexdigest()[:10])\""
+}
 
 {
-  echo "### server: 145 -> 198  (只读)"
+  echo "### server: 145 -> 198 vllm 容器  (写入)"
   echo "### time:   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo "### backup: $BK"
   echo
   set -x
 
-  cat > "$PROBE_SH" <<'PROBE_EOF'
-#!/usr/bin/env bash
-set -uo pipefail
-D() { docker exec vllm bash -lc "$1" 2>&1 | sed '/^Authorized users only/d'; }
+  echo "== 0. 本地待部署文件 =="
+  md5sum "$ROOT/litehost_toolkit/vllmBench_lite_base_mock_py312.sh" \
+         "$ROOT/litehost_toolkit/vllmBench_lite_base_mock.sh" \
+         "$ROOT/mock_vllm/mock_gpu/worker_patch.py"
 
-D 'echo "-- 主机"; uptime; free -m | tail -3
-echo "-- 容器"; docker ps --format "{{.Names}}  {{.RunningFor}}  {{.Status}}" 2>&1 | head -5
-echo "-- run 目录"; ls -1dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ 2>/dev/null | head -6'
+  echo "== 1. 远端现状（只读）=="
+  PRE=$(D "for f in $A $B $C; do test -f \$f && echo \"ok \$f\" || echo \"MISSING \$f\"; done
+           md5sum $A $B $C 2>/dev/null; python3 -V")
+  echo "$PRE"
+  VID "mock_VERSION_ID(before)="
 
-D 'echo "-- 宿主指纹"
-grep -m1 "^Features" /proc/cpuinfo
-{ grep -m1 "^Features" /proc/cpuinfo; g++ -dumpfullversion -dumpversion 2>/dev/null; } | md5sum | cut -c1-10 | sed "s/^/host_tag=/"
-g++ --version 2>&1 | head -1
-echo "-- 缓存目录"; ls -1d /home/huawei_ts_program/inductor_cache_py* /home/huawei_ts_program/inductor_cache_py*/h-* 2>/dev/null
-echo "-- 旧 .so"; find /home/huawei_ts_program/inductor_cache_py312 -name "*.so" -printf "%TY-%Tm-%Td %TH:%TM %s %p\n" 2>/dev/null
-echo "-- PCH"; ls -la --time-style=long-iso /tmp/torchinductor_root/precompiled_headers/ 2>&1 | head -12'
+  echo "== 2. 备份 =="
+  if echo "$PRE" | grep -q '^MISSING'; then
+    echo "!! 目标文件缺失，停止部署"
+  else
+    D "mkdir -p $BK && cp -a $A $B $C $BK/ && ls -l $BK"
 
-D 'C=/home/huawei_ts_program/inductor_cache_py312
-echo "-- 缓存 .so 的 SVE 类指令计数（>0 表示编进了 SVE）"
-for f in $(find $C -name "*.so" 2>/dev/null); do
-  n=$(objdump -d "$f" 2>/dev/null | grep -cE "ptrue|whilelo|ld1w|ld1b|st1w|sdot|bfdot|[[:space:]]z[0-9]+\.")
-  echo "$n  $(basename $f)"
-done'
+    echo "== 3. 推送 =="
+    push "$ROOT/litehost_toolkit/vllmBench_lite_base_mock_py312.sh" "$A"
+    push "$ROOT/litehost_toolkit/vllmBench_lite_base_mock.sh" "$B"
+    push "$ROOT/mock_vllm/mock_gpu/worker_patch.py" "$C"
 
-D 'echo "-- core 配置"; cat /proc/sys/kernel/core_pattern 2>&1; ulimit -c 2>&1
-echo "-- core 文件"; ls -la /var/lib/systemd/coredump/ /var/crash 2>/dev/null | head -10
-find /home/huawei_ts_program -maxdepth 3 -name "core*" -newermt "2026-11-24" 2>/dev/null | head -10
-echo "-- dmesg 信号相关"; dmesg 2>/dev/null | grep -iE "traps:|segfault|invalid opcode|illegal|killed process|out of memory|coredump" | tail -20
-echo "-- dmesg 尾部"; dmesg 2>/dev/null | tail -12'
+    echo "== 4. 远端校验 =="
+    D "md5sum $A $B $C
+       bash -n $A && echo SYNTAX_OK_py312
+       bash -n $B && echo SYNTAX_OK_py311
+       python3 -c \"import py_compile; py_compile.compile('$C', doraise=True); print('PY_OK')\""
+    VID "mock_VERSION_ID(after)="
+    D "echo '-- 关键行'; grep -n 'host_tag\\|PYTHONFAULTHANDLER' $A | head -6
+       grep -n 'faulthandler' $C | head -4"
 
-D 'P=/usr/local/bin/python3
-echo "-- /etc/hosts"; cat /etc/hosts 2>&1 | head -10
-echo "-- resolv.conf"; cat /etc/resolv.conf 2>&1 | head -6
-echo "-- 主机名解析（最多 30s）"; time timeout 30 getent hosts $(hostname) 2>&1
-echo "-- import torch 计时（最多 200s）"; time timeout 200 $P -c "import torch; print(torch.__version__)" 2>&1 | tail -4
-echo "-- import vllm 最慢包（最多 320s）"; timeout 320 env PYTHONPATH=/home/qch/mock_vllm CUDA_VISIBLE_DEVICES=0,1,2,3 $P -X importtime -c "import vllm" 2>&1 | sort -t"|" -k2 -n | tail -8'
-PROBE_EOF
-  ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE_SH" 2>&1 | head -400
+    echo "== 5. 本地/远端 md5 比对 =="
+    L=$(md5sum "$ROOT/litehost_toolkit/vllmBench_lite_base_mock_py312.sh" \
+                "$ROOT/litehost_toolkit/vllmBench_lite_base_mock.sh" \
+                "$ROOT/mock_vllm/mock_gpu/worker_patch.py" | awk '{print $1}')
+    R=$(D "md5sum $A $B $C" | awk '{print $1}')
+    if [ "$L" = "$R" ]; then echo "MD5_MATCH"; else echo "MD5_MISMATCH"; echo "local: $L"; echo "remote: $R"; fi
+  fi
 
   set +x
 } 2>&1 | tee "$OUT"
 
-printf '\n### exit: %s\n' "${PIPESTATUS[0]}" | tee -a "$OUT"
+STATUS=${PIPESTATUS[0]}
+printf '\n### exit: %s\n' "$STATUS" | tee -a "$OUT"
 echo "结果已写入: $OUT"
