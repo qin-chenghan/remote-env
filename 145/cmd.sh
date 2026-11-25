@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读取证 20261125_093806 —— 启动时间线、capture 卡点、残留进程、今日缓存写入。
+# 本次：只读取证 worker 崩溃信号 + 缓存 .so 指令集是否与当前 CPU 匹配。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -21,37 +21,48 @@ PROBE_SH=/tmp/probe198w.sh
 #!/usr/bin/env bash
 set -uo pipefail
 D() { docker exec vllm bash -lc "$1" 2>&1 | sed '/^Authorized users only/d'; }
-R=/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261125_093806
 
-D 'echo "-- 当前进程"; ps -eo pid,ppid,stat,pcpu,etime,cmd --sort=-pcpu 2>/dev/null | head -15
-echo "-- VLLM worker 进程数"; ps -ef 2>/dev/null | grep -c "[V]LLM::"
-echo "-- dmesg 尾部"; dmesg 2>/dev/null | tail -15 || echo "(dmesg 不可用)"'
+D 'echo "-- dmesg 信号/崩溃相关"
+dmesg 2>/dev/null | grep -iE "traps:|segfault|invalid opcode|illegal|killed process|oom|out of memory|audit" | tail -25
+echo "-- dmesg 最后 40 行"
+dmesg 2>/dev/null | tail -40'
 
-D 'L=/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261125_093806/logs/server.log
-echo "===== server.log 1-130"
-sed -n "1,130p" $L'
+D 'echo "-- core 配置"
+cat /proc/sys/kernel/core_pattern 2>&1
+ulimit -c 2>&1
+echo "-- core 文件"
+ls -la /var/lib/systemd/coredump/ /var/lib/apport/coredump /cores /tmp/core* 2>/dev/null | head -20
+echo "-- 目录下 core"
+find /home/huawei_ts_program/litehost_perf_opt -maxdepth 2 -name "core*" -newermt "2026-11-25 00:00" 2>/dev/null | head'
 
-D 'L=/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261125_093806/logs/server.log
-echo "===== server.log 131-262"
-sed -n "131,262p" $L'
-
-D 'L=/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261125_093806/logs/server.log
-echo "-- Worker_TP 全部消息"; grep -n "Worker_TP" $L 2>/dev/null | tail -30
-echo "-- mock_gpu 全部消息"; grep -n "mock_gpu" $L 2>/dev/null | tail -30'
-
-D 'P=/usr/local/lib/python3.12/site-packages/vllm
-echo "-- compilation_times 调用点"; grep -n "compilation_times" $P/v1/engine/core.py | head -5
-echo "-- core.py 950-985"; sed -n "950,985p" $P/v1/engine/core.py
-echo "-- cancelled 来源"; grep -n "cancelled" $P/distributed/device_communicators/shm_broadcast.py | head -5
-echo "-- shm_broadcast 690-712"; sed -n "690,712p" $P/distributed/device_communicators/shm_broadcast.py'
+D 'echo "-- CPU"
+grep -m1 "^Features" /proc/cpuinfo
+grep -m1 -E "CPU part|CPU implementer|model name" /proc/cpuinfo
+echo "-- gcc"
+g++ --version 2>&1 | head -2
+echo "-- 工具"
+command -v objdump llvm-objdump readelf 2>&1'
 
 D 'C=/home/huawei_ts_program/inductor_cache_py312
-echo "-- 今日缓存新文件（09:00 之后）"; find $C -newermt "2026-11-25 09:00" -printf "%TH:%TM %p\n" 2>/dev/null | sort | head -30
-echo "-- /tmp/torchinductor_root 今日新文件"; find /tmp/torchinductor_root -newermt "2026-11-25 09:00" -printf "%TH:%TM %p\n" 2>/dev/null | sort | head -20
-echo "-- control 目录"; ls -la --time-style=long-iso /home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261125_093806/control 2>&1
-echo "-- perf 采样文件"; ls -la --time-style=long-iso /tmp/perf-*.map 2>/dev/null | tail -6'
+echo "-- 缓存 .so"
+find $C -name "*.so" -printf "%TY-%Tm-%Td %TH:%TM %s %p\n" 2>/dev/null
+echo "-- 缓存 .py"
+find $C -name "*.py" -printf "%TY-%Tm-%Td %TH:%TM %p\n" 2>/dev/null | head -10
+echo "-- SVE/高级指令计数（缓存 .so）"
+for f in $(find $C -name "*.so" 2>/dev/null); do
+  n=$(objdump -d "$f" 2>/dev/null | grep -cE "ptrue|whilelo|ld1w|ld1b|st1w|sdot|bfdot|[[:space:]]z[0-9]+\.")
+  echo "$n  $(basename $f)"
+done'
+
+D 'C=/home/huawei_ts_program/inductor_cache_py312
+echo "-- 缓存文件里的编译命令行/宏（如有）"
+grep -rhoE "\-march=[a-z0-9.+_-]+|AT_BUILD_ARM_VEC256[A-Z_]*|__ARM_FEATURE_[A-Z0-9_]+" $C 2>/dev/null | sort | uniq -c | head -20
+echo "-- PCH 目录全量"
+ls -la --time-style=long-iso /tmp/torchinductor_root/precompiled_headers/ 2>&1 | head -15
+echo "-- PCH gch 大小"
+ls -la --time-style=long-iso /tmp/torchinductor_root/precompiled_headers/*.gch 2>&1'
 PROBE_EOF
-  ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE_SH" 2>&1 | head -600
+  ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE" 'bash -s' < "$PROBE_SH" 2>&1 | head -400
 
   set +x
 } 2>&1 | tee "$OUT"
