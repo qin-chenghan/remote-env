@@ -1,0 +1,414 @@
+### server: 145 -> 198  (只读)
+### time:   2026-11-25T03:12:07Z
+
++ cat
++ ssh -o BatchMode=yes -o ConnectTimeout=8 root@90.91.147.198 'bash -s'
++ head -600
+
+Authorized users only. All activities may be monitored and reported.
+-- 当前进程
+    PID    PPID STAT %CPU     ELAPSED CMD
+   6280    6273 R     106       00:00 ps -eo pid,ppid,stat,pcpu,etime,cmd --sort=-pcpu
+   6273       0 Ss   72.0       00:00 bash -lc echo "-- ????????????"; ps -eo pid,ppid,stat,pcpu,etime,cmd --sort=-pcpu 2>/dev/null | head -15 echo "-- VLLM worker ?????????"; ps -ef 2>/dev/null | grep -c "[V]LLM::" echo "-- dmesg ??????"; dmesg 2>/dev/null | tail -15 || echo "(dmesg ?????????)"
+   6281    6273 S    33.3       00:00 head -15
+   5891       0 Ss+   0.1       14:22 bash
+      7       0 Ss+   0.0    01:51:08 bash
+      1       0 Ss+   0.0    01:51:42 sleep infinity
+-- VLLM worker 进程数
+0
+-- dmesg 尾部
+[ 5801.102929] task:python3         state:D stack:0     pid:6646  ppid:5522   flags:0x0000000c
+[ 5801.102986] Call trace:
+[ 5801.103005]  __switch_to+0xa8/0xc8
+[ 5801.103044]  __schedule+0x288/0x8a0
+[ 5801.103077]  schedule+0x58/0xf0
+[ 5801.103109]  coredump_task_exit+0xb4/0x150
+[ 5801.103145]  do_exit+0x6c/0x3a0
+[ 5801.103179]  do_group_exit+0x3c/0xa0
+[ 5801.103214]  get_signal+0x74c/0x758
+[ 5801.103249]  do_signal+0x94/0x1f8
+[ 5801.103279]  do_notify_resume+0xc8/0x1f0
+[ 5801.103311]  el0_svc+0xd4/0xd8
+[ 5801.103345]  el0t_64_sync_handler+0xc0/0xc8
+[ 5801.103380]  el0t_64_sync+0x190/0x198
+[ 5801.103426] Future hung task reports are suppressed, see sysctl kernel.hung_task_warnings
+===== server.log 1-130
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-25 10:07:59 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-25 10:07:59 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-25 10:07:59 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-25 10:07:59 [__init__.py:238] Platform plugin iluvatar is activated
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-25 10:11:45 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-25 10:11:45 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] stack dump armed (SIGUSR2)
+[mock_gpu] worker patched
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-25 10:16:34 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-25 10:16:34 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-25 10:16:34 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-25 10:16:34 [__init__.py:238] Platform plugin iluvatar is activated
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-25 10:20:22 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-25 10:20:22 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] stack dump armed (SIGUSR2)
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+(APIServer pid=358) INFO 11-25 10:22:51 [api_utils.py:339] 
+(APIServer pid=358) INFO 11-25 10:22:51 [api_utils.py:339]        █     █     █▄   ▄█
+(APIServer pid=358) INFO 11-25 10:22:51 [api_utils.py:339]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.23.0
+(APIServer pid=358) INFO 11-25 10:22:51 [api_utils.py:339]   █▄█▀ █     █     █     █  model   /home/model/Qwen3-32B-W8A8
+(APIServer pid=358) INFO 11-25 10:22:51 [api_utils.py:339]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+(APIServer pid=358) INFO 11-25 10:22:51 [api_utils.py:339] 
+(APIServer pid=358) INFO 11-25 10:22:52 [api_utils.py:273] non-default args: {'host': '127.0.0.1', 'port': 8948, 'model': '/home/model/Qwen3-32B-W8A8', 'trust_remote_code': True, 'max_model_len': 4096, 'quantization': 'compressed-tensors', 'distributed_executor_backend': 'mp', 'tensor_parallel_size': 4, 'worker_cls': 'light_host_worker.LightHostWorker', 'gpu_memory_utilization': 0.9, 'enable_prefix_caching': False, 'enable_chunked_prefill': True, 'async_scheduling': True, 'compilation_config': {'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': None, 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}}
+(APIServer pid=358) WARNING 11-25 10:22:52 [envs.py:2005] Unknown vLLM environment variable detected: VLLM_USE_V1
+(APIServer pid=358) WARNING 11-25 10:22:52 [envs.py:2005] Unknown vLLM environment variable detected: VLLM_RPC_TIMEOUT
+(APIServer pid=358) INFO 11-25 10:22:52 [model.py:598] Resolved architecture: Qwen3ForCausalLM
+(APIServer pid=358) INFO 11-25 10:22:52 [model.py:1741] Using max model len 4096
+(APIServer pid=358) INFO 11-25 10:22:53 [model.py:121] DeepSeek-V4 mhc_pre: using ds4_mhc_pre_v2 (bf16 GEMM + epilogue)
+(APIServer pid=358) INFO 11-25 10:22:55 [vllm.py:1016] Asynchronous scheduling is enabled.
+(APIServer pid=358) WARNING 11-25 10:22:55 [vllm.py:1120] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(APIServer pid=358) INFO 11-25 10:22:55 [kernel.py:274] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-25 10:28:53 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-25 10:28:53 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-25 10:28:53 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-25 10:28:53 [__init__.py:238] Platform plugin iluvatar is activated
+INFO 11-25 10:28:54 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-25 10:28:54 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-25 10:28:54 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-25 10:28:54 [__init__.py:238] Platform plugin iluvatar is activated
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-25 10:32:44 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-25 10:32:44 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-25 10:32:48 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-25 10:32:48 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] stack dump armed (SIGUSR2)
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+[mock_gpu] stack dump armed (SIGUSR2)
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+(EngineCore pid=2345) INFO 11-25 10:35:21 [core.py:114] Initializing a V1 LLM engine (v0.23.0) with config: model='/home/model/Qwen3-32B-W8A8', speculative_config=None, tokenizer='/home/model/Qwen3-32B-W8A8', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=4096, download_dir=None, load_format=auto, tensor_parallel_size=4, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=compressed-tensors, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cpu, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_verbose=False), seed=0, served_model_name=/home/model/Qwen3-32B-W8A8, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [2048], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_rope_kvcache_cat_mla': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': True, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native']), enable_flashinfer_autotune=True, moe_backend='auto', linear_backend='auto')
+(EngineCore pid=2345) INFO 11-25 10:35:21 [multiproc_executor.py:142] DP group leader: node_rank=0, node_rank_within_dp=0, master_addr=127.0.0.1, mq_connect_ip=90.91.147.198 (local), world_size=4, local_world_size=4
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-25 10:38:37 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-25 10:38:37 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-25 10:38:37 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-25 10:38:38 [__init__.py:238] Platform plugin iluvatar is activated
+INFO 11-25 10:38:38 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-25 10:38:38 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-25 10:38:38 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-25 10:38:38 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-25 10:38:38 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-25 10:38:38 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-25 10:38:38 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-25 10:38:38 [__init__.py:46] - iluvatar -> vllm.iluvatar.platforms.ilu_platform:iluvatar_platform_plugin
+INFO 11-25 10:38:38 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-25 10:38:38 [__init__.py:238] Platform plugin iluvatar is activated
+INFO 11-25 10:38:39 [__init__.py:238] Platform plugin iluvatar is activated
+INFO 11-25 10:38:39 [__init__.py:238] Platform plugin iluvatar is activated
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-25 10:42:52 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-25 10:42:52 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-25 10:42:55 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-25 10:42:55 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-25 10:42:55 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-25 10:42:55 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+INFO 11-25 10:42:57 [importing.py:46] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 11-25 10:42:57 [importing.py:81] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+===== server.log 131-262
+/usr/local/lib/python3.12/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] stack dump armed (SIGUSR2)
+/usr/local/lib/python3.12/site-packages/torch/cuda/__init__.py:1025: UserWarning: Can't initialize NVML
+  raw_cnt = _raw_device_count_nvml()
+[mock_gpu] stack dump armed (SIGUSR2)
+[mock_gpu] worker patched
+[mock_gpu] stack dump armed (SIGUSR2)
+[mock_gpu] worker patched
+[mock_gpu] worker patched
+[mock_gpu] stack dump armed (SIGUSR2)
+[mock_gpu] worker patched
+[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+(Worker pid=3367) INFO 11-25 10:45:39 [parallel_state.py:1582] world_size=4 rank=2 local_rank=2 distributed_init_method=tcp://127.0.0.1:50319 backend=gloo
+[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+(Worker pid=3368) INFO 11-25 10:45:40 [parallel_state.py:1582] world_size=4 rank=3 local_rank=3 distributed_init_method=tcp://127.0.0.1:50319 backend=gloo
+[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+(Worker pid=3365) INFO 11-25 10:45:43 [parallel_state.py:1582] world_size=4 rank=0 local_rank=0 distributed_init_method=tcp://127.0.0.1:50319 backend=gloo
+[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+(Worker pid=3366) INFO 11-25 10:45:47 [parallel_state.py:1582] world_size=4 rank=1 local_rank=1 distributed_init_method=tcp://127.0.0.1:50319 backend=gloo
+[Gloo] Rank 0 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 1 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 2 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 3 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 0 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 1 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 2 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 3 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 0 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 1 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 3 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 2 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+(Worker pid=3365) INFO 11-25 10:45:49 [parallel_state.py:1917] rank 0 in world size 4 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+(Worker pid=3365) INFO 11-25 10:45:49 [topk_topp_sampler.py:39] FlashInfer top-p/top-k sampling disabled via VLLM_USE_FLASHINFER_SAMPLER=0.
+(Worker pid=3368) INFO 11-25 10:45:54 [logging.py:355] Using ILU_FLASH_ATTN attention backend.
+(Worker pid=3367) INFO 11-25 10:45:54 [logging.py:355] Using ILU_FLASH_ATTN attention backend.
+(Worker pid=3366) INFO 11-25 10:45:54 [logging.py:355] Using ILU_FLASH_ATTN attention backend.
+(Worker pid=3365) INFO 11-25 10:45:54 [logging.py:355] Using ILU_FLASH_ATTN attention backend.
+(Worker pid=3365) INFO 11-25 10:45:54 [ilu_flash_attn.py:603] Using IluFlashAttention (ixformer backend), FA version None
+(Worker pid=3365) INFO 11-25 10:46:06 [weight_utils.py:849] Filesystem type for checkpoints: OVERLAY. Checkpoint size: 31.97 GiB. Available RAM: 140.05 GiB.
+(Worker pid=3365) INFO 11-25 10:46:06 [weight_utils.py:872] Auto-prefetch is disabled because the filesystem (OVERLAY) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+(Worker pid=3365) Loading safetensors checkpoint shards:   0% Completed | 0/7 [00:00<?, ?it/s]
+(Worker pid=3365) Loading safetensors checkpoint shards:  14% Completed | 1/7 [00:23<02:18, 23.06s/it]
+(Worker pid=3365) Loading safetensors checkpoint shards:  29% Completed | 2/7 [00:52<02:15, 27.04s/it]
+(Worker pid=3365) Loading safetensors checkpoint shards:  43% Completed | 3/7 [01:22<01:53, 28.35s/it]
+(Worker pid=3365) Loading safetensors checkpoint shards:  57% Completed | 4/7 [01:52<01:26, 28.84s/it]
+(Worker pid=3365) Loading safetensors checkpoint shards:  71% Completed | 5/7 [02:22<00:58, 29.19s/it]
+(Worker pid=3365) Loading safetensors checkpoint shards:  86% Completed | 6/7 [02:52<00:29, 29.44s/it]
+(Worker pid=3365) Loading safetensors checkpoint shards: 100% Completed | 7/7 [03:17<00:00, 27.97s/it]
+(Worker pid=3365) Loading safetensors checkpoint shards: 100% Completed | 7/7 [03:17<00:00, 28.15s/it]
+(Worker pid=3365) 
+(Worker pid=3365) INFO 11-25 10:49:26 [default_loader.py:397] Loading weights took 200.30 seconds
+(Worker pid=3365) INFO 11-25 10:49:27 [ilu_utils.py:169] [W8A8GemmInfo] format: NN, k: 5120 -> 5120, n: 2560 -> 2560
+(Worker pid=3365) INFO 11-25 10:49:27 [compressed_tensors_w8a8_int8.py:164] [IluCompressedTensorsW8A8Int8 process_weights_after_loading weight] use NN format out_size:2560 in_size:5120 weight:torch.Size([2560, 5120]) -> torch.Size([5120, 2560])
+(Worker pid=3365) INFO 11-25 10:49:27 [ilu_utils.py:169] [W8A8GemmInfo] format: NN, k: 2048 -> 2048, n: 5120 -> 5120
+(Worker pid=3365) INFO 11-25 10:49:27 [compressed_tensors_w8a8_int8.py:164] [IluCompressedTensorsW8A8Int8 process_weights_after_loading weight] use NN format out_size:5120 in_size:2048 weight:torch.Size([5120, 2048]) -> torch.Size([2048, 5120])
+(Worker pid=3365) INFO 11-25 10:49:27 [ilu_utils.py:169] [W8A8GemmInfo] format: NN, k: 5120 -> 5120, n: 12800 -> 12800
+(Worker pid=3365) INFO 11-25 10:49:27 [compressed_tensors_w8a8_int8.py:164] [IluCompressedTensorsW8A8Int8 process_weights_after_loading weight] use NN format out_size:12800 in_size:5120 weight:torch.Size([12800, 5120]) -> torch.Size([5120, 12800])
+(Worker pid=3365) INFO 11-25 10:49:27 [ilu_utils.py:169] [W8A8GemmInfo] format: NN, k: 6400 -> 6400, n: 5120 -> 5120
+(Worker pid=3365) INFO 11-25 10:49:27 [compressed_tensors_w8a8_int8.py:164] [IluCompressedTensorsW8A8Int8 process_weights_after_loading weight] use NN format out_size:5120 in_size:6400 weight:torch.Size([5120, 6400]) -> torch.Size([6400, 5120])
+(Worker pid=3367) [mock_gpu] runner ready (world_size=4)
+(Worker pid=3366) [mock_gpu] runner ready (world_size=4)
+(Worker pid=3365) [mock_gpu] runner ready (world_size=4)
+(Worker pid=3368) [mock_gpu] runner ready (world_size=4)
+(EngineCore pid=2345) INFO 11-25 10:49:35 [kv_cache_utils.py:2160] GPU KV cache size: 131,072 tokens
+(EngineCore pid=2345) INFO 11-25 10:49:35 [kv_cache_utils.py:2161] Maximum concurrency for 4,096 tokens per request: 32.00x
+(Worker_TP0 pid=3365) Capturing CUDA graphs (decode, FULL):   0%|          | 0/35 [00:00<?, ?it/s](EngineCore pid=2345) INFO 11-25 10:50:50 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+(EngineCore pid=2345) INFO 11-25 10:51:50 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+(EngineCore pid=2345) INFO 11-25 10:52:50 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+(EngineCore pid=2345) INFO 11-25 10:53:50 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+(EngineCore pid=2345) INFO 11-25 10:54:50 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+(EngineCore pid=2345) INFO 11-25 10:55:50 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+(EngineCore pid=2345) ERROR 11-25 10:56:27 [multiproc_executor.py:286] Worker proc VllmWorker-3 died unexpectedly, shutting down executor.
+(EngineCore pid=2345) INFO 11-25 10:56:27 [multiproc_executor.py:428] [shutdown] Executor: waiting for worker exit count=2
+(EngineCore pid=2345) INFO 11-25 10:56:28 [multiproc_executor.py:435] [shutdown] Executor: all workers exited gracefully
+(EngineCore pid=2345) /usr/local/lib/python3.12/contextlib.py:167: ResourceWarning: Unclosed context <zmq.Context() at 0x7d71686990>
+(EngineCore pid=2345) /usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py:289: ResourceWarning: Unclosed socket <zmq.Socket(zmq.XPUB) at 0x7e0c5a20b0>
+(EngineCore pid=2345)   exc.__traceback__ = traceback
+(EngineCore pid=2345)   _self.shutdown()
+(EngineCore pid=2345) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=2345) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=2345) /usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py:289: ResourceWarning: Unclosed socket <zmq.Socket(zmq.PUB) at 0x7d71695d30>
+(EngineCore pid=2345)   _self.shutdown()
+(EngineCore pid=2345) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=2345) /usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py:289: ResourceWarning: Unclosed context <zmq.Context() at 0x7d71687e30>
+(EngineCore pid=2345)   _self.shutdown()
+(EngineCore pid=2345) ResourceWarning: Enable tracemalloc to get the object allocation traceback
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235] EngineCore failed to start.
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235] Traceback (most recent call last):
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 1204, in run_engine_core
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]     return func(*args, **kwargs)
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 970, in __init__
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]     super().__init__(
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 133, in __init__
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]     kv_cache_config = self._initialize_kv_caches(vllm_config)
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]     return func(*args, **kwargs)
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/engine/core.py", line 325, in _initialize_kv_caches
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]     self.model_executor.initialize_from_config(kv_cache_configs)
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/abstract.py", line 124, in initialize_from_config
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]     compilation_times: list[CompilationTimes] = self.collective_rpc(
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]                                                 ^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]   File "/usr/local/lib/python3.12/site-packages/vllm/v1/executor/multiproc_executor.py", line 404, in collective_rpc
+(EngineCore pid=2345) ERROR 11-25 10:56:28 [core.py:1235]     return future if non_block else future.result()
+-- Worker_TP 全部消息
+219:(Worker_TP0 pid=3365) Capturing CUDA graphs (decode, FULL):   0%|          | 0/35 [00:00<?, ?it/s](EngineCore pid=2345) INFO 11-25 10:50:50 [shm_broadcast.py:705] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+-- mock_gpu 全部消息
+15:[mock_gpu] stack dump armed (SIGUSR2)
+16:[mock_gpu] worker patched
+31:[mock_gpu] stack dump armed (SIGUSR2)
+32:[mock_gpu] worker patched
+33:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+77:[mock_gpu] stack dump armed (SIGUSR2)
+78:[mock_gpu] worker patched
+79:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+80:[mock_gpu] stack dump armed (SIGUSR2)
+81:[mock_gpu] worker patched
+82:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+139:[mock_gpu] stack dump armed (SIGUSR2)
+142:[mock_gpu] stack dump armed (SIGUSR2)
+143:[mock_gpu] worker patched
+144:[mock_gpu] stack dump armed (SIGUSR2)
+145:[mock_gpu] worker patched
+146:[mock_gpu] worker patched
+147:[mock_gpu] stack dump armed (SIGUSR2)
+148:[mock_gpu] worker patched
+149:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+151:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+153:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+155:[mock_gpu] activated: no Iluvatar device visible (id=f87b4e9ffc)
+213:(Worker pid=3367) [mock_gpu] runner ready (world_size=4)
+214:(Worker pid=3366) [mock_gpu] runner ready (world_size=4)
+215:(Worker pid=3365) [mock_gpu] runner ready (world_size=4)
+216:(Worker pid=3368) [mock_gpu] runner ready (world_size=4)
+-- compilation_times 调用点
+-- core.py 950-985
+                self.has_coordinator,
+                self.frontend_stats_publish_address,
+            )
+            internal_dp_balancing = (
+                self.has_coordinator
+                and not vllm_config.parallel_config.data_parallel_external_lb
+            )
+            # Only publish request queue stats to coordinator for "internal"
+            # and "hybrid" LB modes.
+            self.publish_dp_lb_stats = internal_dp_balancing
+
+            self.addresses = addresses
+            self.process_input_queue_block = True
+            if envs.VLLM_ELASTIC_EP_SCALE_UP_LAUNCH:
+                self._eep_send_engine_core_notification(
+                    EEPNotificationType.NEW_CORE_ENGINES_INIT_READY,
+                    vllm_config=vllm_config,
+                )
+            self._init_data_parallel(vllm_config)
+
+            super().__init__(
+                vllm_config,
+                executor_class,
+                log_stats,
+                executor_fail_callback,
+                internal_dp_balancing,
+            )
+
+            # Background Threads and Queues for IO. These enable us to
+            # overlap ZMQ socket IO with GPU since they release the GIL,
+            # and to overlap some serialization/deserialization with the
+            # model forward pass.
+            # Threads handle Socket <-> Queues and core_busy_loop uses Queue.
+            ready_event = threading.Event()
+            input_thread = threading.Thread(
+                target=self.process_input_sockets,
+-- cancelled 来源
+701:                        raise RuntimeError("cancelled")
+-- shm_broadcast 690-712
+                if not check():
+                    # this block is either
+                    # (1) not written
+                    # (2) already read by this reader
+
+                    # for readers, `self.current_idx` is the next block to read
+                    # if this block is not ready,
+                    # we need to wait until it is written
+                    self._spin_condition.wait(timeout_ms=read_timeout.timeout_ms())
+
+                    if self.shutting_down:
+                        raise RuntimeError("cancelled")
+
+                    # if we wait for a long time, log a message
+                    if read_timeout.should_warn():
+                        logger.info(
+                            LONG_WAIT_TIME_LOG_MSG, VLLM_RINGBUFFER_WARNING_INTERVAL
+                        )
+
+                    continue
+                # found a block that is not read by this reader
+                # let caller read from the buffer
+                with self.buffer.get_data(self.current_idx) as buf:
+-- 今日缓存新文件（09:00 之后）
+10:50 /home/huawei_ts_program/inductor_cache_py312/locks/cjavtv4n3luyfucbb6i5p2zymefx63rrnvuts436umrx6l5z6vyg.lock
+-- /tmp/torchinductor_root 今日新文件
+10:50 /tmp/torchinductor_root/precompiled_headers/locks/cl3ak2zxzlxrvfx5mhllou7tjqdw57lbzotalynrhrnqb55awbtz.lock
+-- control 目录
+total 24
+drwxr-xr-x 2 root root 4096 2026-11-25 10:45 .
+drwxr-xr-x 4 root root 4096 2026-11-25 10:45 ..
+-rw------- 1 root root  197 2026-11-25 10:45 rank0.ready.json
+-rw------- 1 root root  197 2026-11-25 10:45 rank1.ready.json
+-rw------- 1 root root  197 2026-11-25 10:45 rank2.ready.json
+-rw------- 1 root root  197 2026-11-25 10:45 rank3.ready.json
+-- perf 采样文件
+-rw------- 1 root root 3286810 2026-11-24 11:47 /tmp/perf-3421.map
+-rw------- 1 root root 6858780 2026-11-25 10:57 /tmp/perf-358.map
+-rw------- 1 root root 6858162 2026-11-24 11:30 /tmp/perf-380.map
+-rw------- 1 root root 3281918 2026-11-25 09:46 /tmp/perf-42.map
+-rw------- 1 root root  281993 2026-11-25 10:59 /tmp/perf-5951.map
+-rw------- 1 root root 3281378 2026-11-24 10:16 /tmp/perf-62.map
++ set +x
+
+### exit: 0
