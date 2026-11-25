@@ -1,37 +1,43 @@
 #!/usr/bin/env bash
-# 203 专用：base 配置的 torch profiler timeline 采集（无 fastpath / 无 host-opt / 无 PGO）。
+# Adapted from the uploaded vllmBench_lite.sh. Keep one server for all cases.
+# Defaults retained: warmups=16, cache OFF, CPUs 192-255 (NUMA node 3), backend=vllm.
+# Requires the matching files in this slim folder (included in the ZIP).
 #
-# 只保留两项非默认设置：
-#   · 绑核：taskset -c $CPU_RANGE（203 四卡都在 NUMA node 0，对应 0-15,128-143）
-#   · buffer：UMD_MAXCOMMANDBUFFERNUMBER / UMD_MAXCOMMANDBUFFERSIZE
-# 其余与 vllmBench_lite_base_timeline.sh 相同（torch profiler + bench serve --profile）。
+# 32 base timeline：服务参数、SERVER_EXTRA_ENV、case、prompts、warmups、并发、seed
+# 与 32 的 vllmBench_lite_base.sh 保持一致，只加 torch profiler 相关行。
 #
-# 环境：容器 corex5-py311 内的 /opt/corex311（203 只有一个 venv，没有 PGO 版）。
-# 脚本在容器内执行：
-#   docker exec corex5-py311 bash -lc 'cd /home/qch/scripts/litehost_perf && \
-#     TEST_ID=xxx bash vllmBench_lite_base_timeline.sh'
-#
-# 与 32 的 base_timeline 的差异：
-#   · MODEL_PATH 默认 /home/hc/modules/Qwen3-32B-W8A8
-#   · CPU_RANGE 默认 0-15,128-143（203 GPU 的 NUMA 节点）
-#   · 工具包按 203 布局查找（/home/qch/transfer/litehost_perf）
-#   · timeline 模式（HOST_MEASURE=off）不要求 lhctl.py，只要求 procutil.py
+# 为什么必须 HOST_MEASURE=off：lite 测量层与 torch profiler 互斥——
+#   bench_driver.py:67      `if bind.arguments.get('profile'): raise ValueError('Torch profiler must be disabled')`
+#   light_host_worker.py:12 `if getattr(self,'profiler',None): raise RuntimeError('Disable Torch Profiler for Lite measurement')`
+# 所以 trace 只能用默认 worker + vllm bench serve --profile 采集。
 set -uo pipefail
 
 MODEL_PATH="${MODEL_PATH:-/home/hc/modules/Qwen3-32B-W8A8}"
-TEST_ID="${TEST_ID:-"timeline_$(date +%Y%m%d_%H%M%S)"}"
+if [[ -z "${MOCK_DIR:-}" && ! -e /dev/iluvatar0 ]]; then
+    MOCK_DIR=/home/qch/mock_vllm
+fi
+MOCK_DIR="${MOCK_DIR:-}"
+_timeline_prefix=timeline
+_timeline_port=8848
+_timeline_cpu_range=0-15,128-143
+if [[ -n "${MOCK_DIR:-}" ]]; then
+    _timeline_prefix=mocktimeline
+    _timeline_port=8948
+    _timeline_cpu_range=0-63
+fi
+TEST_ID="${TEST_ID:-"${_timeline_prefix}_$(date +%Y%m%d_%H%M%S)"}"
 PREFIX="${PREFIX:-/opt/corex311}"
 PYTHON_BIN="${PYTHON_BIN:-${PREFIX}/bin/python3}"
 GPU_LIST="${GPU_LIST:-0,1,2,3}"
 GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
-PORT="${PORT:-8848}"
+PORT="${PORT:-$_timeline_port}"
 NUM_PROMPTS="${NUM_PROMPTS:-100}"
 NUM_WARMUPS="${NUM_WARMUPS:-16}"
 MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
 CASE_INTERVAL="${CASE_INTERVAL:-60}"
-CPU_RANGE="${CPU_RANGE-0-15,128-143}"
+CPU_RANGE="${CPU_RANGE-$_timeline_cpu_range}"
 HOST_MEASURE="${HOST_MEASURE:-off}"         # 本脚本要求 off；lite 与 torch profiler 互斥
-HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}"
+HOST_LINK_PERCENT="${HOST_LINK_PERCENT:-0}" # 5 means 5%, computed offline
 HOST_TIMEOUT="${HOST_TIMEOUT:-120}"
 HOST_MAX_SCOPES="${HOST_MAX_SCOPES:-200000}"
 HOST_DRY_RUN="${HOST_DRY_RUN:-0}"
@@ -43,27 +49,23 @@ PROFILE_ACTIVE_ITERATIONS="${PROFILE_ACTIVE_ITERATIONS:-2000}"
 PROFILE_FLUSH_TIMEOUT="${PROFILE_FLUSH_TIMEOUT:-300}"
 VLLM_RPC_TIMEOUT="${VLLM_RPC_TIMEOUT:-1800000}"
 SERVER_EXTRA_ENV=(
-    UMD_MAXCOMMANDBUFFERNUMBER="${UMD_MAXCOMMANDBUFFERNUMBER:-256}"
-    UMD_MAXCOMMANDBUFFERSIZE="${UMD_MAXCOMMANDBUFFERSIZE:-16384}"
+    UMD_MAXCOMMANDBUFFERNUMBER=256
+    UMD_MAXCOMMANDBUFFERSIZE=16384
 )
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-# timeline 模式只需要 procutil.py；lite 模式才需要 lhctl.py / liblitehost.so。
+# 脚本与 lhctl.py 同目录时直接用脚本所在目录；否则退回脚本旁的 slim 包，再退回固定路径。
 if [[ -z "${HOST_TOOLKIT:-}" ]]; then
-    for cand in "$SCRIPT_DIR" "$SCRIPT_DIR/litehost_compat_slim" \
-                /home/qch/transfer/litehost_perf \
-                /home/huawei_ts_program/litehost_perf_opt; do
-        [[ -f "$cand/procutil.py" ]] && { HOST_TOOLKIT="$cand"; break; }
+    for _cand in "$SCRIPT_DIR" "$SCRIPT_DIR/litehost_compat_slim" \
+                 /home/qch/scripts/litehost_perf /home/qch/transfer/litehost_perf; do
+        [[ -f "$_cand/procutil.py" ]] && { HOST_TOOLKIT="$_cand"; break; }
     done
 fi
-[[ -n "${HOST_TOOLKIT:-}" ]] || { echo 'ERROR: 找不到轻量测量工具包（procutil.py），请用 HOST_TOOLKIT=<目录> 指定' >&2; exit 2; }
-HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo "ERROR: HOST_TOOLKIT 无效: $HOST_TOOLKIT" >&2; exit 2; }
-[[ -f "$HOST_TOOLKIT/procutil.py" ]] || { echo "ERROR: $HOST_TOOLKIT/procutil.py 不存在" >&2; exit 2; }
-[[ -x "$PYTHON_BIN" ]] || { echo "ERROR: $PYTHON_BIN 不存在" >&2; exit 2; }
+HOST_TOOLKIT="$(cd -- "$HOST_TOOLKIT" 2>/dev/null && pwd)" || { echo 'ERROR: 设置 HOST_TOOLKIT 或解压完整 litehost_compat_slim_v041.zip' >&2; exit 2; }
+[[ -x "$PYTHON_BIN" && -f "$HOST_TOOLKIT/procutil.py" ]] || { echo 'ERROR: Python 或 procutil.py 缺失' >&2; exit 2; }
 [[ "$HOST_MEASURE" == lite || "$HOST_MEASURE" == off ]] || { echo 'ERROR: HOST_MEASURE=lite|off' >&2; exit 2; }
-[[ "$HOST_MEASURE" == lite && ! -f "$HOST_TOOLKIT/lhctl.py" ]] && { echo 'ERROR: lite 模式需要 lhctl.py' >&2; exit 2; }
 [[ "$PROFILE" == 0 || "$PROFILE" == 1 ]] || { echo 'ERROR: PROFILE=0|1' >&2; exit 2; }
 if [[ "$PROFILE" == 1 && "$HOST_MEASURE" != off ]]; then
-    echo 'ERROR: lite 测量层与 torch profiler 互斥；PROFILE=1 时必须 HOST_MEASURE=off' >&2
+    echo 'ERROR: lite 测量层与 torch profiler 互斥（bench_driver.py 与 LightHostWorker 都会拒绝）；PROFILE=1 时必须 HOST_MEASURE=off' >&2
     exit 2
 fi
 [[ "$GPUS_PER_INSTANCE" == 4 ]] || { echo 'ERROR: 此版要求四卡 TP=4, PP=1, DP=1' >&2; exit 2; }
@@ -79,7 +81,7 @@ PID_FILE="${RUN_DIR}/server.pid"
 PROFILE_DIR="${RUN_DIR}/timeline"
 SERVER_PID=""; BENCH_PID=""; CLEANED=0; INIT_DONE=0
 
-# 开 profiler 时 trace 体积按步数增长，只建议一次采一个 case。
+# Original case matrix: only 128/128 enabled; uncomment the others as before.
 CASES=(
     "128 128"
     # "128 1024"
@@ -91,20 +93,20 @@ CASES=(
     # "2048 1024"
     # "2048 2048"
 )
+# Optional text file, one 'input output' case per nonblank/non-comment line.
 if [[ -n "${CASES_FILE:-}" ]]; then
     [[ -f "$CASES_FILE" ]] || { echo "ERROR: 找不到 CASES_FILE=$CASES_FILE" >&2; exit 2; }
     mapfile -t CASES < <(grep -Ev '^[[:space:]]*(#|$)' "$CASES_FILE")
 fi
 log() { printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"; }
-# base 口径：同时剥离调用方环境里可能残留的 host-opt / profiler 注入。
+# Child processes only: drop old measurement/audit injection; keep CoreX library paths.
+# base：同时剥离调用方环境里可能残留的 host-opt 开关。
 CLEAN_ENV=(env -u PYTHONPATH -u PYTHONHOME -u LD_PRELOAD -u LD_AUDIT -u LD_DEBUG -u LD_DEBUG_OUTPUT -u LD_BIND_NOT
     -u LD_PROFILE -u VLLM_TORCH_PROFILER_DIR -u PROFILER_CONFIG -u TORCH_PROFILER_DIR
     -u VLLM_HOST_OPT -u VLLM_HOST_OPT_INPUTS -u VLLM_HOST_OPT_ARENA -u VLLM_HOST_OPT_BOOKKEEPING
     -u VLLM_HOST_OPT_POSITIONS -u VLLM_HOST_OPT_ARENA_MAX_REQS -u VLLM_HOST_OPT_DIAGNOSTICS)
-
 SERVER_PREFIX=()
 [[ -n "$CPU_RANGE" ]] && SERVER_PREFIX=(taskset -c "$CPU_RANGE")
-
 SERVER_ARGS=(
     -m vllm.entrypoints.openai.api_server
     --host 127.0.0.1 --port "$PORT" --model "$MODEL_PATH" --trust_remote_code --dtype auto
@@ -164,7 +166,8 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-log "PREFIX=$PREFIX | HOST_TOOLKIT=$HOST_TOOLKIT"
+log "PREFIX=$PREFIX"
+
 check_gpu_memory() {
     local gpu free_mib
     local -a gpus=()
@@ -199,6 +202,10 @@ PY
     local -a env_args=(CUDA_VISIBLE_DEVICES="$GPU_LIST" VLLM_ENFORCE_CUDA_GRAPH=1 VLLM_USE_V1=1
         "${SERVER_EXTRA_ENV[@]}")
     [[ "$PROFILE" == 1 ]] && env_args+=(VLLM_RPC_TIMEOUT="$VLLM_RPC_TIMEOUT")
+    if [[ -n "$MOCK_DIR" ]]; then
+        [[ -d "$MOCK_DIR/mock_gpu" ]] || { echo "ERROR: MOCK_DIR 无效: $MOCK_DIR" >&2; return 1; }
+        env_args+=(PYTHONPATH="$MOCK_DIR")
+    fi
     if [[ "$HOST_MEASURE" == lite ]]; then
         env_args+=(PYTHONPATH="$HOST_TOOLKIT"
             LD_PRELOAD="$HOST_TOOLKIT/liblitehost.so"
@@ -208,7 +215,15 @@ PY
         "${SERVER_PREFIX[@]}" "$PYTHON_BIN" "${SERVER_ARGS[@]}" >> "$SERVER_LOG" 2>&1 &
     SERVER_PID=$!; echo "$SERVER_PID" > "$PID_FILE"
     log "服务 PID=$SERVER_PID；所有 case 复用；日志=$SERVER_LOG"
-    wait_for_server
+    wait_for_server || return 1
+    if [[ "$PROFILE" == 1 ]]; then
+        if grep -qE "Profiler with mode|Torch profiling enabled" "$SERVER_LOG" 2>/dev/null; then
+            log "profiler 已生效：$PROFILER_CONFIG_JSON"
+        else
+            log "WARNING: server.log 里没找到 profiler 关键字，确认 --profiler-config 已生效"
+        fi
+    fi
+    return 0
 }
 run_case() {
     local input_len="$1" output_len="$2"
@@ -276,10 +291,11 @@ mkdir -p "$LOG_DIR"
     echo "prefix=$PREFIX"
     echo "multi_engine=$(cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>/dev/null || echo unknown)"
     echo "cpu_range=$CPU_RANGE"
+    echo "hotspot_opt=${HOTSPOT_OPT:-unset}"
     echo "model_path=$MODEL_PATH"
     echo "gpus=$GPU_LIST tp=$GPUS_PER_INSTANCE"
+    echo "mock_dir=${MOCK_DIR:-none}"
     echo "prompts=$NUM_PROMPTS concurrency=$MAX_CONCURRENCY warmups=$NUM_WARMUPS"
-    echo "host_toolkit=$HOST_TOOLKIT"
     echo "host_measure=$HOST_MEASURE profile=$PROFILE profile_dir=$PROFILE_DIR"
 } > "$RUN_DIR/config.txt" 2>/dev/null || true
 if [[ "$HOST_MEASURE" == lite ]]; then
@@ -296,17 +312,19 @@ for idx in "${!CASES[@]}"; do
     fi
     if (( idx < ${#CASES[@]}-1 )); then log "等待 ${CASE_INTERVAL}s"; sleep "$CASE_INTERVAL"; fi
 done
+# Intermediate case results have already been validated and saved by
+# lhctl.py finish (quietly). Build all-case CSV + Host report SILENTLY;
+# print both result summaries only ONCE, after all cases and server cleanup.
 if ! "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/lhctl.py" summary "$RUN_DIR" \
-        > "$LOG_DIR/summary_build.log" 2>/dev/null; then
-    # timeline 模式没有 lhctl 的状态文件时，summary 失败不影响 trace；自己拼一份简易 CSV。
-    log "WARN: lhctl summary 未生成，跳过（timeline 指标见 bench_*.log）"
+        > "$LOG_DIR/summary_build.log"; then
+    FAILED=1
 fi
 if [[ "$HOST_MEASURE" == lite && "$FAILED" == 0 ]]; then
     "${CLEAN_ENV[@]}" "$PYTHON_BIN" "$HOST_TOOLKIT/analyze_litehost.py" "$RUN_DIR/litehost" \
         --link-percent "$HOST_LINK_PERCENT" --out "$RUN_DIR/host_summary" --quiet || FAILED=1
 fi
 cleanup
-# profiler 可能在停服时才落盘（大 trace 要十几分钟），停服后最多等 180s。
+# profiler 可能在停服时才落盘（timeline_opt.sh 里 flush 要几分钟），停服后最多等 180s。
 if [[ "$PROFILE" == 1 && "$FAILED" == 0 ]]; then
     local_i=0
     while (( local_i < 60 )); do
@@ -321,9 +339,8 @@ if [[ "$PROFILE" == 1 && "$FAILED" == 0 ]]; then
 fi
 (( FAILED == 0 )) || { log "部分失败，保留诊断：$RUN_DIR"; exit 2; }
 
-if [[ -f "$SUMMARY_CSV" ]]; then
-    log "========== 所有 case 最终结果（仅此处打印一次） =========="
-    "${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$SUMMARY_CSV" "$MAX_CONCURRENCY" "${CASES[@]}" <<'PY' || true
+log "========== 所有 case 最终结果（仅此处打印一次） =========="
+"${CLEAN_ENV[@]}" "$PYTHON_BIN" - "$SUMMARY_CSV" "$MAX_CONCURRENCY" "${CASES[@]}" <<'PY' || exit 2
 import csv,sys
 from pathlib import Path
 path=Path(sys.argv[1]);bs=sys.argv[2]
@@ -343,12 +360,13 @@ for spec in sys.argv[3:]:
           f'TTFT_mean={fmt("mean_ttft_ms")}ms '
           f'TPOT_mean={fmt("mean_tpot_ms")}ms ITL_mean={fmt("mean_itl_ms")}ms')
 PY
-else
-    log "WARN: summary.csv 不存在，跳过最终结果打印"
+if [[ "$HOST_MEASURE" == lite ]]; then
+    echo '===== LiteHost：四 rank、所有 case 的 H 与 H+G ====='
+    cat "$RUN_DIR/host_summary/report.txt"
 fi
 if [[ "$PROFILE" == 1 ]]; then
     echo '===== Timeline 产物 ====='
     find "$PROFILE_DIR" -type f 2>/dev/null | head -50
     echo "Timeline 目录(Perfetto JSON): $PROFILE_DIR"
 fi
-log "全部完成 | benchmark=$SUMMARY_CSV | host=OFF/未采集"
+log "全部完成 | benchmark=$SUMMARY_CSV | host=$([[ "$HOST_MEASURE" == lite ]] && echo "$RUN_DIR/host_summary/report.txt" || echo 'OFF/未采集')"

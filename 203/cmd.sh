@@ -17,46 +17,69 @@ mkdir -p "$DIR/tmp"
   set -x
 
   # ---- 命令开始 ----
-  # 关闭多流：rmmod + insmod itr_multi_compute_engine=0（203 的模块在 updates/ 下）。
+  SRC="$DIR/scripts"
+  DST=/home/qch/scripts/litehost_perf
+  mkdir -p "$DST"
 
-  K=$(uname -r)
-  MOD="/lib/modules/$K/updates/iluvatar.ko"
+  echo "== 0. 安装三份 base 采集脚本 + 驱动（会覆盖同名旧文件，先备份差异）=="
+  for f in vllmBench_lite_base.sh vllmBench_lite_base_timeline.sh \
+           timeline_ixsys_base.sh run_1125_203.sh; do
+    if [[ -f "$DST/$f" && ! "$SRC/$f" -ef "$DST/$f" ]] && ! cmp -s "$SRC/$f" "$DST/$f"; then
+      cp -a "$DST/$f" "$DST/$f.bak-$TS"
+    fi
+    install -m 0755 "$SRC/$f" "$DST/$f"
+  done
+  ls -l "$DST" | head -40
 
-  echo "== 0. 现状（确认没人用）=="
-  lsmod | grep iluvatar || echo "模块未加载"
+  echo "== 1. 宿主机环境 =="
+  uname -m; uname -r; nproc
+  free -g | head -2
+  df -h / /home | tail -3
+  echo "-- taskset 绑核范围是否有效 --"
+  taskset -c 0-15,128-143 true; echo "taskset 0-15,128-143 rc=$?"
+  echo "-- 多流参数 --"
   cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>/dev/null || echo "无参数文件"
-  ls -l "$MOD" 2>&1
-  modinfo -p "$MOD" 2>&1 | grep -i multi || echo "modinfo 无 multi 参数"
-  echo "-- GPU 进程 --"
-  timeout 20 /usr/local/corex/bin/ixsmi 2>&1 | sed -n '/Processes/,$p' | head -10
-  echo "-- 谁打开着设备 --"
-  fuser -vm /dev/iluvatar* 2>&1 | head -10 || echo "无进程占用"
-  echo "-- 相关进程 --"
-  pgrep -af 'vllm.entrypoints|bench_driver|api_server' 2>/dev/null | head -5 || echo "无 vllm/bench 进程"
+  echo "-- GPU --"
+  timeout 20 /usr/local/corex/bin/ixsmi 2>&1 | sed -n '1,12p;/Processes/,$p' | head -20
+  echo "-- 占用与在跑进程 --"
+  fuser -vm /dev/iluvatar* 2>&1 | head -5 || true
+  pgrep -af 'vllm.entrypoints|ixsys|bench_driver' 2>/dev/null | head -5 || echo "无相关进程"
+  echo "-- 容器 --"
+  docker ps --filter name=corex5-py311 --format '{{.Names}}\t{{.Status}}'
 
-  echo "== 1. 卸载模块 =="
-  rmmod iluvatar 2>&1
-  echo "rmmod rc=$?"
-  lsmod | grep iluvatar || echo "已卸载"
-  ls /dev/iluvatar* 2>&1 | head -3
+  echo "== 2. 容器内能力（只读）=="
+  docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 bash -lc '
+    echo "-- python/venv --"
+    /opt/corex311/bin/python3 -V
+    ls -d /opt/corex311 /opt/corex311-cpython-vllm 2>&1
+    /opt/corex311/bin/python3 - <<PY
+import torch
+print("torch", torch.__version__, "devices", torch.cuda.device_count())
+PY
+    echo "-- ixsys --"
+    ls -l /usr/local/corex/bin/ixsys 2>&1
+    /usr/local/corex/bin/ixsys --version 2>&1 | head -3
+    echo "-- litehost 工具包 --"
+    ls -l /home/qch/scripts/litehost_perf | head -40
+    file /home/qch/scripts/litehost_perf/liblitehost.so 2>&1
+    for f in procutil.py lhctl.py bench_driver.py light_host_worker.py analyze_litehost.py liblitehost.so; do
+      [[ -e /home/qch/scripts/litehost_perf/$f ]] || echo "MISSING $f"
+    done
+    echo "-- 模型 --"
+    ls /home/hc/modules/Qwen3-32B-W8A8 2>&1 | head -12
+    du -sh /home/hc/modules/Qwen3-32B-W8A8 2>/dev/null
+    echo "-- vllm 版本（信息）--"
+    /opt/corex311/bin/python3 -c "import vllm;print(vllm.__version__, vllm.__file__)" 2>&1
+    echo "-- mimalloc --"
+    ls -l /home/ssh_t/mimalloc-3.6.1/build/libmimalloc.so.3.6 2>&1
+    ls /usr/local/lib/libmimalloc* /usr/lib/libmimalloc* 2>&1 | head -5
+    echo "-- 空间/端口 --"
+    df -h /home | tail -1
+    ss -ltn 2>/dev/null | grep -E ":8848|:8948" || echo "8848/8948 空闲"
+    ls -la /home/qch/1125analysis 2>&1 | head -10
+  '
 
-  echo "== 2. 以 multi_engine=0 重新加载 =="
-  insmod "$MOD" itr_multi_compute_engine=0 2>&1
-  echo "insmod rc=$?"
-
-  echo "== 3. 验证 =="
-  lsmod | grep iluvatar
-  cat /sys/module/iluvatar/parameters/itr_multi_compute_engine 2>&1
-  dmesg 2>/dev/null | grep 'is okay' | tail -8
-  ls -l /dev/iluvatar* 2>&1 | head -5
-  timeout 20 /usr/local/corex/bin/ixsmi --query-gpu=index,memory.used --format=csv,noheader 2>&1 | head -8
-
-  echo "== 4. 容器内是否仍可用 =="
-  docker ps --filter name=corex5-py311 --format '{{.Names}}\t{{.Status}}' 2>&1
-  docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 \
-    /opt/corex311/bin/python -c 'import torch;print("devices",torch.cuda.device_count())' 2>&1 | tail -3
-
-  echo "== 5. 收尾 =="
+  echo "== 3. 收尾 =="
   df -h /home | tail -1
 
   # ---- 命令结束 ----
