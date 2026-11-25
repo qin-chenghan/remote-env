@@ -370,7 +370,10 @@ _worker_pid() {
 pin_workers_runtime() {
     # 运行期绑核：服务已就绪，准备工作（导入/权重/编译/capture）全部结束，
     # 此时再绑不影响测量口径，也不再拖慢任何启动步骤。
-    [[ -n "${MOCK_TP_CPUS:-}" ]] || { log '绑核：MOCK_TP_CPUS 未设置，跳过'; return 0; }
+    if [[ -z "${MOCK_TP_CPUS:-}" ]]; then
+        log 'WARNING: MOCK_TP_CPUS 未设置，本轮 worker 未绑核；测量口径要求单核，这批数据不能当测量结果用'
+        return 0
+    fi
     command -v taskset >/dev/null || { log '绑核：容器内没有 taskset'; return 1; }
     local -a cpus; IFS=',' read -ra cpus <<< "$MOCK_TP_CPUS"
     local i pid ok=0 fail=0
