@@ -23,9 +23,15 @@ mkdir -p "$DIR/tmp"
   RUN="$(ls -dt /home/qch/9case/vllmBench/vllmBase_9case_* 2>/dev/null | head -1)"
   if [[ -z "$RUN" ]]; then
     echo "!! /home/qch/9case/vllmBench 下没有 vllmBase_9case_*，全局回退搜索"
-    RUN="$(find /home/qch -maxdepth 4 -type d -name 'vllmBase_9case_*' -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)"
+    RUN="$(find /home/qch -maxdepth 6 -type d -name 'vllmBase_9case_*' -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)"
   fi
   echo "RUN=${RUN:-<none>}"
+  echo "-- 名字含 9case 的目录 --"
+  find /home/qch -maxdepth 6 -type d -iname '*9case*' 2>/dev/null | head -15
+  echo "-- 近期 summary.csv（近 2 天）--"
+  find /home/qch -maxdepth 6 -name 'summary.csv' -mtime -2 -printf '%TY-%Tm-%Td %TH:%TM %p\n' 2>/dev/null | sort -r | head -10
+  echo "-- cases_9.txt --"
+  cat /home/qch/scripts/litehost_perf/cases_9.txt 2>&1
   echo "-- 9case 根目录 --"
   ls -la /home/qch/9case 2>&1 | head -15
   echo "-- DONE/FAILED 标志 --"
