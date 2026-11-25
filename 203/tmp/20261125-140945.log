@@ -1,0 +1,247 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-25T06:09:45Z
+
++ SRC=/home/qch/tools/remote-env/203/scripts
++ DST=/home/qch/scripts/litehost_perf
++ mkdir -p /home/qch/scripts/litehost_perf
++ echo '== 0. 安装三份 base 采集脚本 + 驱动（会覆盖同名旧文件，先备份差异）=='
+== 0. 安装三份 base 采集脚本 + 驱动（会覆盖同名旧文件，先备份差异）==
++ for f in vllmBench_lite_base.sh vllmBench_lite_base_timeline.sh timeline_ixsys_base.sh run_1125_203.sh
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh ]]
++ [[ ! /home/qch/tools/remote-env/203/scripts/vllmBench_lite_base.sh -ef /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh ]]
++ cmp -s /home/qch/tools/remote-env/203/scripts/vllmBench_lite_base.sh /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
++ install -m 0755 /home/qch/tools/remote-env/203/scripts/vllmBench_lite_base.sh /home/qch/scripts/litehost_perf/vllmBench_lite_base.sh
++ for f in vllmBench_lite_base.sh vllmBench_lite_base_timeline.sh timeline_ixsys_base.sh run_1125_203.sh
++ [[ -f /home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh ]]
++ [[ ! /home/qch/tools/remote-env/203/scripts/vllmBench_lite_base_timeline.sh -ef /home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh ]]
++ cmp -s /home/qch/tools/remote-env/203/scripts/vllmBench_lite_base_timeline.sh /home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh
++ install -m 0755 /home/qch/tools/remote-env/203/scripts/vllmBench_lite_base_timeline.sh /home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh
++ for f in vllmBench_lite_base.sh vllmBench_lite_base_timeline.sh timeline_ixsys_base.sh run_1125_203.sh
++ [[ -f /home/qch/scripts/litehost_perf/timeline_ixsys_base.sh ]]
++ [[ ! /home/qch/tools/remote-env/203/scripts/timeline_ixsys_base.sh -ef /home/qch/scripts/litehost_perf/timeline_ixsys_base.sh ]]
++ cmp -s /home/qch/tools/remote-env/203/scripts/timeline_ixsys_base.sh /home/qch/scripts/litehost_perf/timeline_ixsys_base.sh
++ install -m 0755 /home/qch/tools/remote-env/203/scripts/timeline_ixsys_base.sh /home/qch/scripts/litehost_perf/timeline_ixsys_base.sh
++ for f in vllmBench_lite_base.sh vllmBench_lite_base_timeline.sh timeline_ixsys_base.sh run_1125_203.sh
++ [[ -f /home/qch/scripts/litehost_perf/run_1125_203.sh ]]
++ [[ ! /home/qch/tools/remote-env/203/scripts/run_1125_203.sh -ef /home/qch/scripts/litehost_perf/run_1125_203.sh ]]
++ cmp -s /home/qch/tools/remote-env/203/scripts/run_1125_203.sh /home/qch/scripts/litehost_perf/run_1125_203.sh
++ install -m 0755 /home/qch/tools/remote-env/203/scripts/run_1125_203.sh /home/qch/scripts/litehost_perf/run_1125_203.sh
++ ls -l /home/qch/scripts/litehost_perf
++ head -40
+total 340
+-rw-r--r--.  1 root root 12719 Oct 27 11:46 analyze_litehost.py
+-rw-r--r--.  1 root root  6332 Oct 27 11:46 bench_driver.py
+-rw-r--r--.  1 root root  9147 Oct 27 11:46 build_corex.py
+-rw-r--r--.  1 root root  1682 Oct 27 11:46 collect_results.py
+drwxr-xr-x.  2 root root  4096 Oct 13 18:24 docs
+-rw-r--r--.  1 root root  2764 Oct 27 11:46 lh_common.py
+-rw-r--r--.  1 root root  7600 Oct 27 11:46 lhctl.py
+-rw-r--r--.  1 root root  7525 Oct 27 11:46 lh_diagnostics.py
+-rw-r--r--.  1 root root 10404 Oct 27 11:46 lh_runtime.py
+-rw-------.  1 root root   743 Oct 27 11:46 liblitehost.build.json
+-rw-r--r--.  1 root root 43580 Oct 13 18:52 liblitehost.build.log
+-rw-r--r--.  1 root root   978 Oct 27 11:46 liblitehost.exports.txt
+-rwxr-xr-x.  1 root root 22440 Oct 27 11:46 liblitehost.so
+-rw-r--r--.  1 root root  4598 Oct 27 11:46 liblitehost.wrappers.cpp
+-rw-r--r--.  1 root root  3047 Oct 27 11:46 light_host_worker.py
+-rw-r--r--.  1 root root  3288 Oct 13 08:27 litehost.c
+-rw-r--r--.  1 root root   407 Oct 13 08:27 litehost_internal.h
+-rw-r--r--.  1 root root   344 Oct 13 08:27 Makefile
+-rw-r--r--.  1 root root  1696 Oct 27 11:46 procutil.py
+drwxr-xr-x.  2 root root  4096 Nov 25 12:38 __pycache__
+-rw-r--r--.  1 root root  9625 Oct 13 18:25 README.md
+-rwxr-xr-x.  1 root root  3393 Nov 25 14:09 run_1125_203.sh
+-rw-r--r--.  1 root root  1559 Oct 13 08:45 SHA256SUMS
+drwxr-xr-x.  2 root root  4096 Oct 13 18:24 tests
+-rwxr-xr-x.  1 root root 21991 Nov 25 14:09 timeline_ixsys_base.sh
+-rw-r--r--.  1 root root  4595 Oct 13 08:27 verify_torch.py
+drwxr-xr-x. 12 root root  4096 Nov 19 11:45 vllmBench
+-rwxr-xr-x.  1 root root   279 Oct 28 11:01 vllmBench_lite_all.sh
+-rwxr-xr-x.  1 root root 19653 Nov 25 14:09 vllmBench_lite_base.sh
+-rwxr-xr-x.  1 root root 13017 Nov 10 09:27 vllmBench_lite_base.sh.bak-20261125-123710
+-rwxr-xr-x.  1 root root 18955 Nov 25 14:09 vllmBench_lite_base_timeline.sh
+-rwxr-xr-x.  1 root root 18192 Nov 19 11:40 vllmBench_lite_base_timeline.sh.bak-20261125-123710
+-rwxr-xr-x.  1 root root 12826 Oct 28 14:28 vllmBench_lite.sh
++ echo '== 1. 宿主机环境 =='
+== 1. 宿主机环境 ==
++ uname -m
+x86_64
++ uname -r
+6.6.0-159.4.21.175.oe2403sp4.x86_64
++ nproc
+255
++ free -g
++ head -2
+               total        used        free      shared  buff/cache   available
+Mem:             720          12         657           0          55         707
++ df -h / /home
++ tail -3
+Filesystem                  Size  Used Avail Use% Mounted on
+/dev/mapper/openeuler-root   69G   62G  3.3G  96% /
+/dev/mapper/openeuler-home  804G  759G  4.5G 100% /home
++ echo '-- taskset 绑核范围是否有效 --'
+-- taskset 绑核范围是否有效 --
++ taskset -c 0-15,128-143 true
++ echo 'taskset 0-15,128-143 rc=0'
+taskset 0-15,128-143 rc=0
++ echo '-- 多流参数 --'
+-- 多流参数 --
++ cat /sys/module/iluvatar/parameters/itr_multi_compute_engine
+1
++ echo '-- GPU --'
+-- GPU --
++ timeout 20 /usr/local/corex/bin/ixsmi
++ sed -n '1,12p;/Processes/,$p'
++ head -20
+Timestamp    Wed Nov 25 14:09:45 2026
++--------------------------------------------------------------------------------+
+|  IX-ML: 5.0.0            Driver Version: 5.0.0          CUDA Version: 10.2     |
+|----------------------------------+----------------------+----------------------|
+| GPU  Name                        | Bus-Id               | Clock-SM  Clock-Mem  |
+| Fan  Temp  Perf    Pwr:Usage/Cap |      Memory-Usage    | GPU-Util  Compute M. |
+|==================================+======================+======================|
+| 0    Iluvatar BI-V150            | 00000000:10:00.0     | 1500MHz   1600MHz    |
+| N/A  40C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 1    Iluvatar BI-V150            | 00000000:13:00.0     | 1500MHz   1600MHz    |
+| N/A  40C   P0       92W / 350W   | 66MiB / 32768MiB     | 0%        Default    |
+| Processes:                                                          GPU Memory |
+|  GPU        PID      Process name                                   Usage(MiB) |
+|================================================================================|
+|  No running processes found                                                    |
++--------------------------------------------------------------------------------+
++ echo '-- 占用与在跑进程 --'
+-- 占用与在跑进程 --
++ head -5
++ fuser -vm /dev/iluvatar0 /dev/iluvatar1 /dev/iluvatar2 /dev/iluvatar3
+                     USER        PID ACCESS COMMAND
+/dev/iluvatar0:      root     kernel swap  /dev/dm-1
+                     root     kernel mount /dev
+                     root       1834 .rc.. kdevtmpfs
+/dev/iluvatar1:      root     kernel swap  /dev/dm-1
++ true
++ pgrep -af 'vllm.entrypoints|ixsys|bench_driver'
++ head -5
++ echo 无相关进程
+无相关进程
++ echo '-- 容器 --'
+-- 容器 --
++ docker ps --filter name=corex5-py311 --format '{{.Names}}\t{{.Status}}'
+corex5-py311	Up 46 hours
++ echo '== 2. 容器内能力（只读）=='
+== 2. 容器内能力（只读）==
++ docker exec -e PYTHONPATH= -e PYTHONHOME= corex5-py311 bash -lc '
+    echo "-- python/venv --"
+    /opt/corex311/bin/python3 -V
+    ls -d /opt/corex311 /opt/corex311-cpython-vllm 2>&1
+    /opt/corex311/bin/python3 - <<PY
+import torch
+print("torch", torch.__version__, "devices", torch.cuda.device_count())
+PY
+    echo "-- ixsys --"
+    ls -l /usr/local/corex/bin/ixsys 2>&1
+    /usr/local/corex/bin/ixsys --version 2>&1 | head -3
+    echo "-- litehost 工具包 --"
+    ls -l /home/qch/scripts/litehost_perf | head -40
+    file /home/qch/scripts/litehost_perf/liblitehost.so 2>&1
+    for f in procutil.py lhctl.py bench_driver.py light_host_worker.py analyze_litehost.py liblitehost.so; do
+      [[ -e /home/qch/scripts/litehost_perf/$f ]] || echo "MISSING $f"
+    done
+    echo "-- 模型 --"
+    ls /home/hc/modules/Qwen3-32B-W8A8 2>&1 | head -12
+    du -sh /home/hc/modules/Qwen3-32B-W8A8 2>/dev/null
+    echo "-- vllm 版本（信息）--"
+    /opt/corex311/bin/python3 -c "import vllm;print(vllm.__version__, vllm.__file__)" 2>&1
+    echo "-- mimalloc --"
+    ls -l /home/ssh_t/mimalloc-3.6.1/build/libmimalloc.so.3.6 2>&1
+    ls /usr/local/lib/libmimalloc* /usr/lib/libmimalloc* 2>&1 | head -5
+    echo "-- 空间/端口 --"
+    df -h /home | tail -1
+    ss -ltn 2>/dev/null | grep -E ":8848|:8948" || echo "8848/8948 空闲"
+    ls -la /home/qch/1125analysis 2>&1 | head -10
+  '
+-- python/venv --
+Python 3.11.6
+ls: cannot access '/opt/corex311-cpython-vllm': No such file or directory
+/opt/corex311
+torch 2.10.0 devices 4
+-- ixsys --
+-rwxr-xr-x. 1 root root 18573984 Sep  8 12:57 /usr/local/corex/bin/ixsys
+ixsys V5.0.0
+Based on: Perfetto v22.0-e9e81c015 (e9e81c01529610f02f63a87122c5bd878972ef7b)
+-- litehost 工具包 --
+total 340
+-rw-r--r--.  1 root root 12719 Oct 27 11:46 analyze_litehost.py
+-rw-r--r--.  1 root root  6332 Oct 27 11:46 bench_driver.py
+-rw-r--r--.  1 root root  9147 Oct 27 11:46 build_corex.py
+-rw-r--r--.  1 root root  1682 Oct 27 11:46 collect_results.py
+drwxr-xr-x.  2 root root  4096 Oct 13 18:24 docs
+-rw-r--r--.  1 root root  2764 Oct 27 11:46 lh_common.py
+-rw-r--r--.  1 root root  7600 Oct 27 11:46 lhctl.py
+-rw-r--r--.  1 root root  7525 Oct 27 11:46 lh_diagnostics.py
+-rw-r--r--.  1 root root 10404 Oct 27 11:46 lh_runtime.py
+-rw-------.  1 root root   743 Oct 27 11:46 liblitehost.build.json
+-rw-r--r--.  1 root root 43580 Oct 13 18:52 liblitehost.build.log
+-rw-r--r--.  1 root root   978 Oct 27 11:46 liblitehost.exports.txt
+-rwxr-xr-x.  1 root root 22440 Oct 27 11:46 liblitehost.so
+-rw-r--r--.  1 root root  4598 Oct 27 11:46 liblitehost.wrappers.cpp
+-rw-r--r--.  1 root root  3047 Oct 27 11:46 light_host_worker.py
+-rw-r--r--.  1 root root  3288 Oct 13 08:27 litehost.c
+-rw-r--r--.  1 root root   407 Oct 13 08:27 litehost_internal.h
+-rw-r--r--.  1 root root   344 Oct 13 08:27 Makefile
+-rw-r--r--.  1 root root  1696 Oct 27 11:46 procutil.py
+drwxr-xr-x.  2 root root  4096 Nov 25 12:38 __pycache__
+-rw-r--r--.  1 root root  9625 Oct 13 18:25 README.md
+-rwxr-xr-x.  1 root root  3393 Nov 25 14:09 run_1125_203.sh
+-rw-r--r--.  1 root root  1559 Oct 13 08:45 SHA256SUMS
+drwxr-xr-x.  2 root root  4096 Oct 13 18:24 tests
+-rwxr-xr-x.  1 root root 21991 Nov 25 14:09 timeline_ixsys_base.sh
+-rw-r--r--.  1 root root  4595 Oct 13 08:27 verify_torch.py
+drwxr-xr-x. 12 root root  4096 Nov 19 11:45 vllmBench
+-rwxr-xr-x.  1 root root   279 Oct 28 11:01 vllmBench_lite_all.sh
+-rwxr-xr-x.  1 root root 19653 Nov 25 14:09 vllmBench_lite_base.sh
+-rwxr-xr-x.  1 root root 13017 Nov 10 09:27 vllmBench_lite_base.sh.bak-20261125-123710
+-rwxr-xr-x.  1 root root 18955 Nov 25 14:09 vllmBench_lite_base_timeline.sh
+-rwxr-xr-x.  1 root root 18192 Nov 19 11:40 vllmBench_lite_base_timeline.sh.bak-20261125-123710
+-rwxr-xr-x.  1 root root 12826 Oct 28 14:28 vllmBench_lite.sh
+bash: line 14: file: command not found
+-- 模型 --
+added_tokens.json
+config.json
+generation_config.json
+index.html
+merges.txt
+model-00001-of-00007.safetensors
+model-00002-of-00007.safetensors
+model-00003-of-00007.safetensors
+model-00004-of-00007.safetensors
+model-00005-of-00007.safetensors
+model-00006-of-00007.safetensors
+model-00007-of-00007.safetensors
+32G	/home/hc/modules/Qwen3-32B-W8A8
+-- vllm 版本（信息）--
+0.23.0 /opt/corex311/lib/python3.11/site-packages/vllm/__init__.py
+-- mimalloc --
+ls: cannot access '/home/ssh_t/mimalloc-3.6.1/build/libmimalloc.so.3.6': No such file or directory
+ls: cannot access '/usr/local/lib/libmimalloc*': No such file or directory
+ls: cannot access '/usr/lib/libmimalloc*': No such file or directory
+-- 空间/端口 --
+/dev/mapper/openeuler-home  804G  759G  4.5G 100% /home
+8848/8948 空闲
+total 32
+drwxr-xr-x.  5 root root 4096 Nov 25 12:51 .
+drwxr-xr-x. 11 root root 4096 Nov 25 12:30 ..
+-rw-r--r--.  1 root root    0 Nov 25 12:51 DRIVER_DONE_1125
+-rw-r--r--.  1 root root 9404 Nov 25 12:51 driver.log
+drwxr-xr-x.  4 root root 4096 Nov 25 12:46 ixsys_base
+drwxr-xr-x.  4 root root 4096 Nov 25 12:51 timeline_base
+drwxr-xr-x.  6 root root 4096 Nov 25 12:40 vllm_base
++ echo '== 3. 收尾 =='
+== 3. 收尾 ==
++ df -h /home
++ tail -1
+/dev/mapper/openeuler-home  804G  759G  4.5G 100% /home
++ set +x
+
+### exit: 0
