@@ -1,0 +1,15 @@
+H = T - S + S * 0/100. Formal scopes only. Unit = SECONDS.
+G = sum(start_next - end_current) across adjacent formal scopes on EACH rank.
+H+G = H_total + G_total (gap wall time included; sync/idle within G NOT removed).
+Primary H remains unchanged; four-rank means are TOTAL seconds, NOT per iteration or instance latency.
+
+CASE: bs8_in128_out128  run_id=cdd0ac781e1447c8adeb2a4cb8c9eaa5
+  rank0 pid=3963923 formal=1692 warmup_excluded=262 T_total=38.090988s S_total=34.467340s H_total=3.623648s G_total=0.909811s H+G=4.533458s
+  rank1 pid=3963924 formal=1692 warmup_excluded=262 T_total=38.179366s S_total=34.370998s H_total=3.808368s G_total=0.821468s H+G=4.629835s
+  rank2 pid=3963925 formal=1692 warmup_excluded=262 T_total=38.221971s S_total=34.583963s H_total=3.638008s G_total=0.778849s H+G=4.416856s
+  rank3 pid=3963926 formal=1692 warmup_excluded=262 T_total=38.228496s S_total=34.661957s H_total=3.566538s G_total=0.772329s H+G=4.338867s
+  all_formal       four_rank_mean_total_H_s=3.659140
+  graph_formal     four_rank_mean_total_H_s=2.395786
+  no_graph_formal  four_rank_mean_total_H_s=1.263355
+FINAL [bs8_in128_out128]: four_rank_mean_total_H_s = 3.659140 s G_total=0.820614s H+G=4.479754s (all_formal, no warmup, gap sync NOT subtracted)
+

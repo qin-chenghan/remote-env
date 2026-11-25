@@ -1,0 +1,7 @@
+1038	/home/qch/1125analysis/ixsys_base/bs8_in128_out128.json
+462	/home/qch/1125analysis/ixsys_base/config.txt
+701505536	/home/qch/1125analysis/ixsys_base/ixsys/bs8_in128_out128/bs8_in128_out128.ixsys.ptrace
+6435	/home/qch/1125analysis/ixsys_base/logs/bench_bs8_in128_out128.log
+350348	/home/qch/1125analysis/ixsys_base/logs/server.log
+88	/home/qch/1125analysis/ixsys_base/logs/summary_build.log
+536	/home/qch/1125analysis/ixsys_base/summary.csv

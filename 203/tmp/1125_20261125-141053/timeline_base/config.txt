@@ -1,0 +1,11 @@
+test_id=timelineBase_1125
+started=2026-11-25T12:46:14+08:00
+prefix=/opt/corex311
+multi_engine=1
+cpu_range=0-15,128-143
+hotspot_opt=unset
+model_path=/home/hc/modules/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+mock_dir=none
+prompts=100 concurrency=8 warmups=16
+host_measure=off profile=1 profile_dir=/home/qch/1125analysis/.work_timeline_base/vllmBench/timelineBase_1125/timeline

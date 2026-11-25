@@ -1,0 +1,13 @@
+test_id=vllmBase_ixsys_1125
+started=2026-11-25T12:40:25+08:00
+prefix=/opt/corex311
+multi_engine=1
+cpu_range=0-15,128-143
+hotspot_opt=unset
+model_path=/home/hc/modules/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+host_path=off mimalloc=off
+host_opt=off inputs=off arena=off bookkeeping=off positions=off metadata=off diagnostics=0
+compilation_config={"cudagraph_mode":"FULL_DECODE_ONLY","mode":0}
+sampler=ixsys trace=cuda defer=0 limit=0

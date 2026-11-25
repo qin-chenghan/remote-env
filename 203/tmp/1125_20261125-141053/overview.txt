@@ -1,0 +1,7 @@
+0	/home/qch/1125analysis/DRIVER_DONE_1125
+12K	/home/qch/1125analysis/driver.log
+670M	/home/qch/1125analysis/ixsys_base
+337M	/home/qch/1125analysis/timeline_base
+2.0M	/home/qch/1125analysis/vllm_base
+/dev/mapper/openeuler-home  804G  759G  4.5G 100% /home
+/home/qch/1125analysis/DRIVER_DONE_1125

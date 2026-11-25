@@ -1,0 +1,2 @@
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+timelineBase_1125,bs8_in128_out128,100,42.24098209501244,2.3673692002489544,303.02325763186616,606.0465152637323,326.65651995979715,351.50850951322354,379.5996416793787,23.064644012978764,22.934811338498147,24.454970843207704,23.064645898029276,22.876337985508144,24.963836793613154
