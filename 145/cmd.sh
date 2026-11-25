@@ -20,7 +20,8 @@ B="$TOOLKIT/vllmBench_lite_base_mock.sh"
 C="$MOCK/worker_patch.py"
 
 SSH=(ssh -o BatchMode=yes -o ConnectTimeout=8 "$REMOTE")
-D() { "${SSH[@]}" "docker exec $CT bash -lc '$1'" 2>&1 | sed '/^Authorized users only/d'; }
+# 命令走 stdin 传进去，避免 ssh → 远端 shell → bash -lc 三层引号互相吃掉
+D() { printf '%s\n' "$1" | "${SSH[@]}" "docker exec -i $CT bash -s" 2>&1 | sed '/^Authorized users only/d'; }
 
 # push <本地文件> <容器内目标路径>：base64 过 ssh 管道，容器里解码后原子替换
 push() {
@@ -32,8 +33,10 @@ push() {
   return "$rc"
 }
 
+# mock 的 VERSION_ID：同 autoload.version_id()，按文件名排序累加 name+content 的 sha1
 VID() {
-  D "python3 -c \"import hashlib,pathlib; h=hashlib.sha1(); [h.update(p.name.encode()) or h.update(p.read_bytes()) for p in sorted(pathlib.Path('$MOCK').glob('*.py'))]; print('$1', h.hexdigest()[:10])\""
+  printf 'import hashlib, pathlib\nh = hashlib.sha1()\nfor p in sorted(pathlib.Path("%s").glob("*.py")):\n    h.update(p.name.encode()); h.update(p.read_bytes())\nprint("%s", h.hexdigest()[:10])\n' "$MOCK" "$1" \
+    | "${SSH[@]}" "docker exec -i $CT python3 -" 2>&1 | sed '/^Authorized users only/d'
 }
 
 {
@@ -68,8 +71,9 @@ VID() {
     echo "== 4. 远端校验 =="
     D "md5sum $A $B $C
        bash -n $A && echo SYNTAX_OK_py312
-       bash -n $B && echo SYNTAX_OK_py311
-       python3 -c \"import py_compile; py_compile.compile('$C', doraise=True); print('PY_OK')\""
+       bash -n $B && echo SYNTAX_OK_py311"
+    printf 'import py_compile\npy_compile.compile("%s", doraise=True)\nprint("PY_OK")\n' "$C" \
+      | "${SSH[@]}" "docker exec -i $CT python3 -" 2>&1 | sed '/^Authorized users only/d'
     VID "mock_VERSION_ID(after)="
     D "echo '-- 关键行'; grep -n 'host_tag\\|PYTHONFAULTHANDLER' $A | head -6
        grep -n 'faulthandler' $C | head -4"
@@ -77,8 +81,8 @@ VID() {
     echo "== 5. 本地/远端 md5 比对 =="
     L=$(md5sum "$ROOT/litehost_toolkit/vllmBench_lite_base_mock_py312.sh" \
                 "$ROOT/litehost_toolkit/vllmBench_lite_base_mock.sh" \
-                "$ROOT/mock_vllm/mock_gpu/worker_patch.py" | awk '{print $1}')
-    R=$(D "md5sum $A $B $C" | awk '{print $1}')
+                "$ROOT/mock_vllm/mock_gpu/worker_patch.py" | awk 'NF{print $1}')
+    R=$(D "md5sum $A $B $C" | awk 'NF{print $1}')
     if [ "$L" = "$R" ]; then echo "MD5_MATCH"; else echo "MD5_MISMATCH"; echo "local: $L"; echo "remote: $R"; fi
   fi
 
