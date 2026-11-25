@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。对比成功/失败各轮的环境差异（尤其是 MOCK_TP_CPUS 与绑核）。
+# 本次：只读。把两次失败轮的 server.log 全文拉回来（各约 50 KB），
+#       看 09:53→10:38 那 45 分钟到底卡在哪一步。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,29 +21,18 @@ D() { printf '%s\n' "$1" | "${SSH[@]}" "docker exec -i $CT bash -s" 2>&1 | sed '
   echo
   set -x
 
-  echo "== 1. 各轮 config 对比（成功 vs 失败）=="
-  D 'V=/home/huawei_ts_program/litehost_perf_opt/vllmBench
-     for d in py312_warmup_20261125 test-warmup1 test-warmup2 py312_litehost_gap_20261125_093806 py312_litehost_gap_20261124_100823; do
-       echo "##### $d"
-       grep -hE "^(started|host_tag|mock_env|warmup_only|stall_guard|cpu_range)=" "$V/$d/config.txt" 2>/dev/null
-     done'
+  echo "== 093806 完整 server.log =="
+  D 'L=/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261125_093806/logs/server.log
+     wc -lc "$L"; tr "\r" "\n" < "$L" | grep -vE "Capturing CUDA graphs" | head -700'
 
-  echo "== 2. 失败轮的服务器日志时间线 =="
-  D 'V=/home/huawei_ts_program/litehost_perf_opt/vllmBench
-     for d in py312_litehost_gap_20261125_093806 py312_litehost_gap_20261124_100823; do
-       echo "##### $d"
-       L="$V/$d/logs/server.log"
-       [ -f "$L" ] && stat -c "%y %s %n" "$L"
-       grep -nE "runner ready|Capturing CUDA graphs|died unexpectedly|RuntimeError|pinned to cpu" "$L" 2>/dev/null | head -8
-       tr "\r" "\n" < "$L" 2>/dev/null | grep -oE "\| *[0-9]+/35" | tail -2
-     done'
+  echo "== 093806 harness 侧 =="
+  D 'P=/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261125_093806
+     ls -la "$P" "$P/control" 2>/dev/null | head -20
+     for f in "$P"/control/*; do echo "--- $f"; head -40 "$f"; done 2>/dev/null'
 
-  echo "== 3. 成功轮的关键时间点（预热总耗时）=="
-  D 'P=/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_warmup_20261125
-     L="$P/logs/server.log"
-     grep -nE "runner ready|Capturing CUDA graphs|route|Started server|Application startup|ready" "$L" 2>/dev/null | head -10
-     echo "-- 文件时间线"; ls -la --time-style=long-iso "$P" "$P/logs" 2>/dev/null
-     echo "-- 新 .so 时间"; find /home/huawei_ts_program/inductor_cache_py312/h-* -name "*.so" -printf "%TH:%TM:%TS %s %f\n" 2>/dev/null | sort'
+  echo "== 100823 完整 server.log =="
+  D 'L=/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_litehost_gap_20261124_100823/logs/server.log
+     wc -lc "$L"; tr "\r" "\n" < "$L" | grep -vE "Capturing CUDA graphs" | head -700'
 
   set +x
 } 2>&1 | tee "$OUT"
