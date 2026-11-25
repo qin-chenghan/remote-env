@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Agent: 每次覆盖本文件，命令写进下方的标记区间。
 # 标记区间内所有 stdout/stderr 都会写入 tmp/<timestamp>.log。
-# 本次：只读。核对最新一轮预热 run：配置、启动耗时、缓存目录、绑核审计。
+# 本次：只读。对比成功/失败各轮的环境差异（尤其是 MOCK_TP_CPUS 与绑核）。
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,36 +20,29 @@ D() { printf '%s\n' "$1" | "${SSH[@]}" "docker exec -i $CT bash -s" 2>&1 | sed '
   echo
   set -x
 
-  echo "== 1. 最近三轮 run =="
-  D "ls -1dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ | head -3"
+  echo "== 1. 各轮 config 对比（成功 vs 失败）=="
+  D 'V=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+     for d in py312_warmup_20261125 test-warmup1 test-warmup2 py312_litehost_gap_20261125_093806 py312_litehost_gap_20261124_100823; do
+       echo "##### $d"
+       grep -hE "^(started|host_tag|mock_env|warmup_only|stall_guard|cpu_range)=" "$V/$d/config.txt" 2>/dev/null
+     done'
 
-  echo "== 2. 最新 run 的 config =="
-  D 'P=$(ls -1dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ | head -1); echo "P=$P"
-     cat "$P/config.txt" 2>/dev/null | head -40'
+  echo "== 2. 失败轮的服务器日志时间线 =="
+  D 'V=/home/huawei_ts_program/litehost_perf_opt/vllmBench
+     for d in py312_litehost_gap_20261125_093806 py312_litehost_gap_20261124_100823; do
+       echo "##### $d"
+       L="$V/$d/logs/server.log"
+       [ -f "$L" ] && stat -c "%y %s %n" "$L"
+       grep -nE "runner ready|Capturing CUDA graphs|died unexpectedly|RuntimeError|pinned to cpu" "$L" 2>/dev/null | head -8
+       tr "\r" "\n" < "$L" 2>/dev/null | grep -oE "\| *[0-9]+/35" | tail -2
+     done'
 
-  echo "== 3. harness 日志的关键行 =="
-  D 'P=$(ls -1dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ | head -1)
-     grep -nE "host_tag=|inductor_cache=|预热完成|PCH 新增|绑核|warmup_only|FATAL|退出码" "$P"/run.log 2>/dev/null | head -20
-     ls "$P" 2>/dev/null'
-
-  echo "== 4. server.log 启动时间线与关键行 =="
-  D 'P=$(ls -1dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ | head -1)
+  echo "== 3. 成功轮的关键时间点（预热总耗时）=="
+  D 'P=/home/huawei_ts_program/litehost_perf_opt/vllmBench/py312_warmup_20261125
      L="$P/logs/server.log"
-     ls -l "$L" 2>/dev/null
-     grep -nE "mock_gpu\]|loading took|Capturing CUDA graphs|startup complete|pinned to cpu|Cpus_allowed|died unexpectedly|RuntimeError|Traceback|SIGSEGV|SIGILL" "$L" 2>/dev/null | head -30
-     echo "-- 首末时间"; head -3 "$L" 2>/dev/null; tail -5 "$L" 2>/dev/null'
-
-  echo "== 5. capture 进度（tqdm 最后几个快照）=="
-  D 'P=$(ls -1dt /home/huawei_ts_program/litehost_perf_opt/vllmBench/*/ | head -1)
-     tr "\r" "\n" < "$P/logs/server.log" 2>/dev/null | grep -oE "Capturing CUDA graphs[^|]*\| *[0-9]+/[0-9]+" | tail -5
-     tr "\r" "\n" < "$P/logs/server.log" 2>/dev/null | grep -oE "Adding requests: *[0-9]+%" | tail -3'
-
-  echo "== 6. 缓存现状 =="
-  D 'C=/home/huawei_ts_program/inductor_cache_py312
-     ls -1d $C $C/h-* 2>/dev/null
-     for d in $C/h-*; do echo "$d: so=$(find $d -name "*.so" 2>/dev/null | wc -l) py=$(find $d -name "*.py" 2>/dev/null | wc -l)"; done
-     echo "-- 最新 .so"; find $C -name "*.so" -newermt "2026-11-25 00:00" -printf "%TH:%TM %s %p\n" 2>/dev/null | sort | tail -6
-     echo "-- PCH"; ls -la --time-style=long-iso /tmp/torchinductor_root/precompiled_headers/*.gch 2>/dev/null'
+     grep -nE "runner ready|Capturing CUDA graphs|route|Started server|Application startup|ready" "$L" 2>/dev/null | head -10
+     echo "-- 文件时间线"; ls -la --time-style=long-iso "$P" "$P/logs" 2>/dev/null
+     echo "-- 新 .so 时间"; find /home/huawei_ts_program/inductor_cache_py312/h-* -name "*.so" -printf "%TH:%TM:%TS %s %f\n" 2>/dev/null | sort'
 
   set +x
 } 2>&1 | tee "$OUT"
