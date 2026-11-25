@@ -46,10 +46,12 @@ mkdir -p "$DIR/tmp"
     echo "== 1. 目录与完整性 =="
     ls -l "$RUN" | sed -n '1,45p'
     echo "-- 期望 9 个 case json --"
-    for c in 128_128 128_1024 128_2048 1024_128 1024_1024 1024_2048 2048_128 2048_1024 2048_2048; do
-      f="$RUN/bs8_in${c}.json"
-      [[ -f "$f" ]] && printf 'OK   %-24s %8s bytes  %s\n' "$(basename "$f")" "$(stat -c%s "$f")" "$(stat -c%y "$f" | cut -d. -f1)" \
-                     || printf 'MISS %-24s\n' "$(basename "$f")"
+    for i in 128 1024 2048; do
+      for o in 128 1024 2048; do
+        f="$RUN/bs8_in${i}_out${o}.json"
+        [[ -f "$f" ]] && printf 'OK   %-24s %8s bytes  %s\n' "$(basename "$f")" "$(stat -c%s "$f")" "$(stat -c%y "$f" | cut -d. -f1)" \
+                       || printf 'MISS %-24s\n' "$(basename "$f")"
+      done
     done
     echo "-- litehost 各 case 目录 --"
     for d in "$RUN"/litehost/bs8_in*_out*/; do
