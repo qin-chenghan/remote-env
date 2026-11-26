@@ -1,0 +1,226 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-26T07:40:15Z
+
+### 本轮只读：只列目录、读 summary.csv / report.txt / config.txt，
+###           不启动服务、不写、不删。
+
+== 0. 空间与顶层目录 ==
+/dev/mapper/openeuler-home  804G  759G  4.3G 100% /home
+total 44
+drwxr-xr-x.  3 root root 4096 Nov 25 17:31 9case
+drwxr-xr-x.  5 root root 4096 Nov 25 12:51 1125analysis
+-rw-r--r--.  1 root root  774 Nov 23 16:19 docker-state-before-20261123-161907.txt
+drwxr-xr-x.  4 root root 4096 Nov 18 15:16 transfer
+drwxr-xr-x.  6 root root 4096 Nov  9 17:03 tools
+drwxr-xr-x. 10 root root 4096 Nov  4 09:18 scripts
+drwxr-xr-x.  2 root root 4096 Oct 31 09:42 analysis
+drwxr-xr-x.  2 root root 4096 Sep 28 16:41 kunpeng-affinity-fix
+drwxr-xr-x.  2 root root 4096 Sep 28 10:29 env
+drwxr-xr-x.  3 root root 4096 Sep 24 14:47 outputs
+drwxr-xr-x.  3 root root 4096 Sep 11 17:03 184
+
+== 1. 定位 e2e-analysis-base1 相关路径 ==
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1
+/home/qch/tools/vllm_topdown/tests/distributed/test_ray_v2_executor_e2e.py
+/home/qch/tools/vllm_topdown/tests/v1/core/test_reset_prefix_cache_e2e.py
+/home/qch/tools/vllm_topdown/tests/v1/core/test_scheduler_e2e.py
+/home/qch/tools/vllm_topdown/tests/v1/sample/test_sampling_params_e2e.py
+/home/qch/tools/vllm_topdown/tests/v1/sample/test_logprobs_e2e.py
+/home/qch/tools/vllm_topdown/tests/v1/e2e
+/home/qch/tools/vllm_topdown/tests/compile/fusions_e2e
+/home/qch/tools/vllm_topdown/tests/compile/correctness_e2e
+/home/qch/tools/vllm_topdown/examples/rl/routed_experts_e2e.py
+/home/qch/tools/vllm_topdown/.buildkite/test_areas/e2e_integration.yaml
+
+== 2. 今天新产生的 summary.csv / report.txt / config.txt ==
+-- summary.csv --
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/summary.csv
+-- report*.txt --
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/host_summary/report.txt
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/litehost/bs8_in128_out128/host_report/report.txt
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/litehost/bs8_in2048_out1/host_report/report.txt
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/litehost/bs8_in1_out2048/host_report/report.txt
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/litehost/bs8_in1024_out1024/host_report/report.txt
+-- config.txt --
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/config.txt
+
+== 3. 内容：summary.csv（benchmark 指标） ==
+
+---- /home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/summary.csv ----
+test_id,case,successful_requests,benchmark_duration_s,request_throughput_req_s,output_token_throughput_tok_s,total_token_throughput_tok_s,mean_ttft_ms,median_ttft_ms,p99_ttft_ms,mean_tpot_ms,median_tpot_ms,p99_tpot_ms,mean_itl_ms,median_itl_ms,p99_itl_ms
+e2e-analysis-base1,bs8_in1024_out1024,100,328.34919429701404,0.30455381568423534,311.863107260657,623.726214521314,667.8405106891296,646.4219455083366,1634.6842809938244,24.138476654330955,24.220763234604142,24.59414571624975,24.13847687779005,23.26380749582313,23.860936107521407
+e2e-analysis-base1,bs8_in128_out128,100,39.87473214499187,2.5078538367701526,321.00529110657953,642.0105822131591,227.10336773918243,249.71582600846887,266.95648720429745,22.426390475671422,22.31525251179875,23.58550656827278,22.426391600873632,22.310218002530746,23.46390958729899
+e2e-analysis-base1,bs8_in1_out2048,100,607.5583001209889,0.1645932579311089,337.08699224291104,337.25158550084217,59.37441262853099,57.882245993823744,72.97251071227947,22.844534531871883,22.881281650705073,22.923724576308647,22.8445346105718,22.836588002974167,23.682183194032405
+e2e-analysis-base1,bs8_in2048_out1,100,39.291189027018845,2.545099867841473,2.545099867841473,5214.909629207178,3032.9125033217133,3140.581972504151,3146.7704273358686,0.0,0.0,0.0,0.0,0.0,0.0
+
+== 4. 内容：report*.txt（TSHG） ==
+
+---- /home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/host_summary/report.txt ----
+H = T - S + S * 0/100. Formal scopes only. Unit = SECONDS.
+G = sum(start_next - end_current) across adjacent formal scopes on EACH rank.
+H+G = H_total + G_total (gap wall time included; sync/idle within G NOT removed).
+Primary H remains unchanged; four-rank means are TOTAL seconds, NOT per iteration or instance latency.
+
+CASE: bs8_in1024_out1024  run_id=d65f2d31df444c35ac4e419fb1d11a54
+  rank0 pid=1962939 formal=13342 warmup_excluded=2058 T_total=320.618334s S_total=294.445181s H_total=26.173153s G_total=7.717349s H+G=33.890502s
+  rank1 pid=1962940 formal=13342 warmup_excluded=2058 T_total=322.432037s S_total=299.499623s H_total=22.932414s G_total=5.903667s H+G=28.836081s
+  rank2 pid=1962941 formal=13342 warmup_excluded=2058 T_total=322.436604s S_total=299.426586s H_total=23.010019s G_total=5.899052s H+G=28.909071s
+  rank3 pid=1962942 formal=13342 warmup_excluded=2058 T_total=322.428619s S_total=299.438367s H_total=22.990252s G_total=5.907018s H+G=28.897270s
+  all_formal       four_rank_mean_total_H_s=23.776459
+  graph_formal     four_rank_mean_total_H_s=19.086768
+  no_graph_formal  four_rank_mean_total_H_s=4.689691
+FINAL [bs8_in1024_out1024]: four_rank_mean_total_H_s = 23.776459 s G_total=6.356772s H+G=30.133231s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in128_out128  run_id=1878502cecc74b899b20900501cf8ca8
+  rank0 pid=1962939 formal=1692 warmup_excluded=262 T_total=38.954515s S_total=35.337357s H_total=3.617158s G_total=0.908759s H+G=4.525917s
+  rank1 pid=1962940 formal=1692 warmup_excluded=262 T_total=39.076437s S_total=35.403458s H_total=3.672978s G_total=0.786809s H+G=4.459788s
+  rank2 pid=1962941 formal=1692 warmup_excluded=262 T_total=39.097084s S_total=35.511153s H_total=3.585930s G_total=0.766211s H+G=4.352141s
+  rank3 pid=1962942 formal=1692 warmup_excluded=262 T_total=39.103450s S_total=35.559555s H_total=3.543895s G_total=0.759834s H+G=4.303728s
+  all_formal       four_rank_mean_total_H_s=3.604990
+  graph_formal     four_rank_mean_total_H_s=2.356859
+  no_graph_formal  four_rank_mean_total_H_s=1.248131
+FINAL [bs8_in128_out128]: four_rank_mean_total_H_s = 3.604990 s G_total=0.805403s H+G=4.410394s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in1_out2048  run_id=a6eca1cd89e148819e108794ccee2179
+  rank0 pid=1962939 formal=26652 warmup_excluded=4102 T_total=593.484312s S_total=555.214865s H_total=38.269447s G_total=14.062728s H+G=52.332174s
+  rank1 pid=1962940 formal=26652 warmup_excluded=4102 T_total=595.452233s S_total=557.491642s H_total=37.960591s G_total=12.094843s H+G=50.055434s
+  rank2 pid=1962941 formal=26652 warmup_excluded=4102 T_total=595.617778s S_total=557.719804s H_total=37.897974s G_total=11.929214s H+G=49.827188s
+  rank3 pid=1962942 formal=26652 warmup_excluded=4102 T_total=595.652950s S_total=558.164213s H_total=37.488737s G_total=11.894072s H+G=49.382809s
+  all_formal       four_rank_mean_total_H_s=37.904187
+  graph_formal     four_rank_mean_total_H_s=37.903843
+  no_graph_formal  four_rank_mean_total_H_s=0.000344
+FINAL [bs8_in1_out2048]: four_rank_mean_total_H_s = 37.904187 s G_total=12.495214s H+G=50.399401s (all_formal, no warmup, gap sync NOT subtracted)
+
+CASE: bs8_in2048_out1  run_id=83477ef48e5446ab869a706f27872b59
+  rank0 pid=1962939 formal=103 warmup_excluded=19 T_total=4.665307s S_total=0.000346s H_total=4.664960s G_total=34.605695s H+G=39.270655s
+  rank1 pid=1962940 formal=103 warmup_excluded=19 T_total=4.628697s S_total=0.000264s H_total=4.628434s G_total=34.642346s H+G=39.270780s
+  rank2 pid=1962941 formal=103 warmup_excluded=19 T_total=4.605333s S_total=0.000289s H_total=4.605043s G_total=34.665697s H+G=39.270740s
+  rank3 pid=1962942 formal=103 warmup_excluded=19 T_total=4.705353s S_total=0.000395s H_total=4.704958s G_total=34.565640s H+G=39.270598s
+  all_formal       four_rank_mean_total_H_s=4.650849
+  graph_formal     four_rank_mean_total_H_s=0.000000
+  no_graph_formal  four_rank_mean_total_H_s=4.650849
+FINAL [bs8_in2048_out1]: four_rank_mean_total_H_s = 4.650849 s G_total=34.619844s H+G=39.270693s (all_formal, no warmup, gap sync NOT subtracted)
+
+
+---- /home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/litehost/bs8_in128_out128/host_report/report.txt ----
+H = T - S + S * 0/100. Formal scopes only. Unit = SECONDS.
+G = sum(start_next - end_current) across adjacent formal scopes on EACH rank.
+H+G = H_total + G_total (gap wall time included; sync/idle within G NOT removed).
+Primary H remains unchanged; four-rank means are TOTAL seconds, NOT per iteration or instance latency.
+
+CASE: bs8_in128_out128  run_id=1878502cecc74b899b20900501cf8ca8
+  rank0 pid=1962939 formal=1692 warmup_excluded=262 T_total=38.954515s S_total=35.337357s H_total=3.617158s G_total=0.908759s H+G=4.525917s
+  rank1 pid=1962940 formal=1692 warmup_excluded=262 T_total=39.076437s S_total=35.403458s H_total=3.672978s G_total=0.786809s H+G=4.459788s
+  rank2 pid=1962941 formal=1692 warmup_excluded=262 T_total=39.097084s S_total=35.511153s H_total=3.585930s G_total=0.766211s H+G=4.352141s
+  rank3 pid=1962942 formal=1692 warmup_excluded=262 T_total=39.103450s S_total=35.559555s H_total=3.543895s G_total=0.759834s H+G=4.303728s
+  all_formal       four_rank_mean_total_H_s=3.604990
+  graph_formal     four_rank_mean_total_H_s=2.356859
+  no_graph_formal  four_rank_mean_total_H_s=1.248131
+FINAL [bs8_in128_out128]: four_rank_mean_total_H_s = 3.604990 s G_total=0.805403s H+G=4.410394s (all_formal, no warmup, gap sync NOT subtracted)
+
+
+---- /home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/litehost/bs8_in2048_out1/host_report/report.txt ----
+H = T - S + S * 0/100. Formal scopes only. Unit = SECONDS.
+G = sum(start_next - end_current) across adjacent formal scopes on EACH rank.
+H+G = H_total + G_total (gap wall time included; sync/idle within G NOT removed).
+Primary H remains unchanged; four-rank means are TOTAL seconds, NOT per iteration or instance latency.
+
+CASE: bs8_in2048_out1  run_id=83477ef48e5446ab869a706f27872b59
+  rank0 pid=1962939 formal=103 warmup_excluded=19 T_total=4.665307s S_total=0.000346s H_total=4.664960s G_total=34.605695s H+G=39.270655s
+  rank1 pid=1962940 formal=103 warmup_excluded=19 T_total=4.628697s S_total=0.000264s H_total=4.628434s G_total=34.642346s H+G=39.270780s
+  rank2 pid=1962941 formal=103 warmup_excluded=19 T_total=4.605333s S_total=0.000289s H_total=4.605043s G_total=34.665697s H+G=39.270740s
+  rank3 pid=1962942 formal=103 warmup_excluded=19 T_total=4.705353s S_total=0.000395s H_total=4.704958s G_total=34.565640s H+G=39.270598s
+  all_formal       four_rank_mean_total_H_s=4.650849
+  graph_formal     four_rank_mean_total_H_s=0.000000
+  no_graph_formal  four_rank_mean_total_H_s=4.650849
+FINAL [bs8_in2048_out1]: four_rank_mean_total_H_s = 4.650849 s G_total=34.619844s H+G=39.270693s (all_formal, no warmup, gap sync NOT subtracted)
+
+
+---- /home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/litehost/bs8_in1_out2048/host_report/report.txt ----
+H = T - S + S * 0/100. Formal scopes only. Unit = SECONDS.
+G = sum(start_next - end_current) across adjacent formal scopes on EACH rank.
+H+G = H_total + G_total (gap wall time included; sync/idle within G NOT removed).
+Primary H remains unchanged; four-rank means are TOTAL seconds, NOT per iteration or instance latency.
+
+CASE: bs8_in1_out2048  run_id=a6eca1cd89e148819e108794ccee2179
+  rank0 pid=1962939 formal=26652 warmup_excluded=4102 T_total=593.484312s S_total=555.214865s H_total=38.269447s G_total=14.062728s H+G=52.332174s
+  rank1 pid=1962940 formal=26652 warmup_excluded=4102 T_total=595.452233s S_total=557.491642s H_total=37.960591s G_total=12.094843s H+G=50.055434s
+  rank2 pid=1962941 formal=26652 warmup_excluded=4102 T_total=595.617778s S_total=557.719804s H_total=37.897974s G_total=11.929214s H+G=49.827188s
+  rank3 pid=1962942 formal=26652 warmup_excluded=4102 T_total=595.652950s S_total=558.164213s H_total=37.488737s G_total=11.894072s H+G=49.382809s
+  all_formal       four_rank_mean_total_H_s=37.904187
+  graph_formal     four_rank_mean_total_H_s=37.903843
+  no_graph_formal  four_rank_mean_total_H_s=0.000344
+FINAL [bs8_in1_out2048]: four_rank_mean_total_H_s = 37.904187 s G_total=12.495214s H+G=50.399401s (all_formal, no warmup, gap sync NOT subtracted)
+
+
+---- /home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/litehost/bs8_in1024_out1024/host_report/report.txt ----
+H = T - S + S * 0/100. Formal scopes only. Unit = SECONDS.
+G = sum(start_next - end_current) across adjacent formal scopes on EACH rank.
+H+G = H_total + G_total (gap wall time included; sync/idle within G NOT removed).
+Primary H remains unchanged; four-rank means are TOTAL seconds, NOT per iteration or instance latency.
+
+CASE: bs8_in1024_out1024  run_id=d65f2d31df444c35ac4e419fb1d11a54
+  rank0 pid=1962939 formal=13342 warmup_excluded=2058 T_total=320.618334s S_total=294.445181s H_total=26.173153s G_total=7.717349s H+G=33.890502s
+  rank1 pid=1962940 formal=13342 warmup_excluded=2058 T_total=322.432037s S_total=299.499623s H_total=22.932414s G_total=5.903667s H+G=28.836081s
+  rank2 pid=1962941 formal=13342 warmup_excluded=2058 T_total=322.436604s S_total=299.426586s H_total=23.010019s G_total=5.899052s H+G=28.909071s
+  rank3 pid=1962942 formal=13342 warmup_excluded=2058 T_total=322.428619s S_total=299.438367s H_total=22.990252s G_total=5.907018s H+G=28.897270s
+  all_formal       four_rank_mean_total_H_s=23.776459
+  graph_formal     four_rank_mean_total_H_s=19.086768
+  no_graph_formal  four_rank_mean_total_H_s=4.689691
+FINAL [bs8_in1024_out1024]: four_rank_mean_total_H_s = 23.776459 s G_total=6.356772s H+G=30.133231s (all_formal, no warmup, gap sync NOT subtracted)
+
+
+== 5. 内容：config.txt（运行配置） ==
+
+---- /home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/config.txt ----
+test_id=e2e-analysis-base1
+started=2026-11-26T15:08:44+08:00
+prefix=/opt/corex311
+multi_engine=1
+cpu_range=0-15,128-143
+hotspot_opt=unset
+model_path=/home/hc/modules/Qwen3-32B-W8A8
+gpus=0,1,2,3 tp=4
+prompts=100 concurrency=8 warmups=16
+host_path=off host_measure=lite mimalloc=off
+host_opt=off inputs=off arena=off bookkeeping=off positions=off metadata=off diagnostics=0
+compilation_config={"cudagraph_mode":"FULL_DECODE_ONLY","mode":0}
+
+== 6. 运行脚本（若在 /home/qch 下且是文本） ==
+
+== 7. 结果目录树（最多两层） ==
+-- /home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1 --
+total 52
+-rw-------. 1 root root   85 Nov 26 15:32 bench.process.json
+-rw-r--r--. 1 root root 1044 Nov 26 15:31 bs8_in1024_out1024.json
+-rw-r--r--. 1 root root 1044 Nov 26 15:23 bs8_in128_out128.json
+-rw-r--r--. 1 root root 1044 Nov 26 15:21 bs8_in1_out2048.json
+-rw-r--r--. 1 root root  923 Nov 26 15:33 bs8_in2048_out1.json
+-rw-r--r--. 1 root root  438 Nov 26 15:08 config.txt
+drwxr-xr-x. 2 root root 4096 Nov 26 15:09 control
+drwxr-xr-x. 2 root root 4096 Nov 26 15:33 host_summary
+drwxr-xr-x. 6 root root 4096 Nov 26 15:32 litehost
+drwxr-xr-x. 2 root root 4096 Nov 26 15:33 logs
+-rw-------. 1 root root   85 Nov 26 15:08 server.process.json
+-rw-------. 1 root root  859 Nov 26 15:08 session.json
+-rw-r--r--. 1 root root 1296 Nov 26 15:33 summary.csv
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/bs8_in2048_out1.json
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/bs8_in1_out2048.json
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/config.txt
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/bench.process.json
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/summary.csv
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/control/rank2.ready.json
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/control/rank0.ready.json
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/control/rank1.ready.json
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/control/rank3.ready.json
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/session.json
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/bs8_in128_out128.json
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/host_summary/summary.json
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/host_summary/four_rank_totals.csv
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/host_summary/per_rank.csv
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/host_summary/report.txt
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/bs8_in1024_out1024.json
+/home/qch/scripts/litehost_perf/vllmBench/e2e-analysis-base1/server.process.json
+
+### exit: 0
