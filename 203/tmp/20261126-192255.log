@@ -1,0 +1,82 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-26T11:22:55Z
+
+### 本轮只读：不启动服务、不写、不删；只查 e2e_traces 采集进度与 trace 完整性。
+
+== 0. 空间 / 进程 / 端口 ==
+/dev/mapper/openeuler-home  804G  771G     0 100% /home
+（没有 driver.sh 在跑）
+（没有 vLLM 服务）
+（没有 ixsys）
+
+== 1. 最新的 e2e_traces 目录 ==
+ROOT=/home/qch/1126analysis/20261126-171528_e2e_traces
+total 32
+drwxr-xr-x. 4 root root 4096 Nov 26 17:37 .
+drwxr-xr-x. 3 root root 4096 Nov 26 17:15 ..
+-rw-r--r--. 1 root root    7 Nov 26 17:15 cases_bs8_in1_out2048.txt
+-rw-r--r--. 1 root root 3014 Nov 26 17:37 driver.log
+-rw-r--r--. 1 root root    8 Nov 26 17:15 driver.pid
+-rwxr-xr-x. 1 root root 3716 Nov 26 17:15 driver.sh
+drwxr-xr-x. 2 root root 4096 Nov 26 17:15 ixsys
+drwxr-xr-x. 3 root root 4096 Nov 26 17:37 timeline
+
+-- driver.pid --
+1984000
+-- driver.log 大小/最后修改 --
+-rw-r--r--. 1 root root 3014 Nov 26 17:37 /home/qch/1126analysis/20261126-171528_e2e_traces/driver.log
+
+-- 完成/失败标记 --
+29:!!!!! STOP: /home 仅剩 0G，停止后续采集
+
+-- 每个 case 的 trace 校验行 --
+27:===== timeline bs8_in1_out2048 OK -> /home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048 =====
+
+-- driver.log 末尾 60 行 --
+ROOT=/home/qch/1126analysis/20261126-171528_e2e_traces
+CASES: 1 2048 128 128 1024 1024 2048 1
+-- /home free=5G --
+
+===== [2026-11-26 17:15:29] timeline bs8_in1_out2048 start (free 5G) =====
+[2026-11-26 17:15:29] PREFIX=/opt/corex311
+[2026-11-26 17:15:29] TEST_ID=e2e_tl_bs8_in1_out2048 | MODE=off | PROFILE=1 | WARMUP=16 | CPU_RANGE=0-15,128-143
+[2026-11-26 17:15:29] prefix cache=OFF | backend=vllm | 同一服务运行 1 个 case | RUN_DIR=/home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048
+[2026-11-26 17:15:29] WARNING: ixsmi 不可用，跳过显存预检
+[2026-11-26 17:15:29] 服务 PID=1984064；所有 case 复用；日志=/home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048/logs/server.log
+[2026-11-26 17:16:24] 服务就绪 (55s)
+[2026-11-26 17:16:24] profiler 已生效：{"profiler":"torch","torch_profiler_dir":"/home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048/timeline","delay_iterations":0,"max_iterations":0,"warmup_iterations":0,"active_iterations":1000,"ignore_frontend":true}
+[2026-11-26 17:16:24] ==== bs8_in1_out2048 | mode=off | profile=1 | warmup=16 | 同一服务 ====
+[2026-11-26 17:37:17] 完成 bs8_in1_out2048 → /home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048/bs8_in1_out2048.json
+[2026-11-26 17:37:17] 停止本次服务 PID=1984064（不使用全局 pkill）
+[2026-11-26 17:37:26] trace 已产出：4 个文件
+[2026-11-26 17:37:26] ========== 所有 case 最终结果（仅此处打印一次） ==========
+===== Benchmark：吞吐与延迟（全部 case）=====
+bs8_in1_out2048: output_tok/s=328.416 TTFT_mean=64.510ms TPOT_mean=23.446ms ITL_mean=23.446ms
+===== Timeline 产物 =====
+/home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048/timeline/rank3.1795685615182129899.pt.trace.json.gz
+/home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048/timeline/rank2.1795685613172413470.pt.trace.json.gz
+/home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048/timeline/rank1.1795685614106665283.pt.trace.json.gz
+/home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048/timeline/rank0.1795685660757410989.pt.trace.json.gz
+Timeline 目录(Perfetto JSON): /home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048/timeline
+[2026-11-26 17:37:26] 全部完成 | benchmark=/home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048/summary.csv | host=OFF/未采集
+===== timeline bs8_in1_out2048 OK -> /home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048 =====
+-- /home free=0G --
+!!!!! STOP: /home 仅剩 0G，停止后续采集
+
+== 2. 已产出的 trace / summary ==
+-- /home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/ --
+          85  /home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/bench.process.json
+        1043  /home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/bs8_in1_out2048.json
+          85  /home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/server.process.json
+           0  /home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/timeline/rank0.1795685660757410989.pt.trace.json.gz
+    58523648  /home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/timeline/rank1.1795685614106665283.pt.trace.json.gz
+    58122240  /home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/timeline/rank2.1795685613172413470.pt.trace.json.gz
+    56324096  /home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/timeline/rank3.1795685615182129899.pt.trace.json.gz
+e2e_tl_bs8_in1_out2048,bs8_in1_out2048,100,623.599091237993,0.16035943830751284,328.4161296537863,328.57648909209377,64.51000676024705,63.260676979552954
+
+== 3. 未搬进正式目录的 .work_*（失败/进行中） ==
+
+/dev/mapper/openeuler-home  804G  771G     0 100% /home
+
+### exit: 0
