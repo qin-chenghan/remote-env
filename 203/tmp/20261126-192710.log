@@ -1,0 +1,99 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-26T11:27:10Z
+
+### 本轮只读：只查磁盘占用与采集残留，不启动服务、不写、不删。
+
+== 0. 空间 / 进程 ==
+/dev/mapper/openeuler-home  804G  771G     0 100% /home
+（没有 driver.sh）
+（没有 vLLM）
+（没有 ixsys）
+
+== 1. /home 一级目录占用 ==
+3.7G	/home/qch
+81G	/home/hc
+
+== 2. /home/qch 下各目录占用（前 20） ==
+4.0K	/home/qch/docker-state-before-20261123-161907.txt
+16K	/home/qch/env
+20K	/home/qch/analysis
+1.4M	/home/qch/kunpeng-affinity-fix
+2.0M	/home/qch/184
+35M	/home/qch/outputs
+128M	/home/qch/9case
+130M	/home/qch/transfer
+166M	/home/qch/1126analysis
+406M	/home/qch/tools
+1009M	/home/qch/1125analysis
+1.9G	/home/qch/scripts
+
+== 3. 1126analysis 内各目录 ==
+166M	/home/qch/1126analysis/20261126-171528_e2e_traces
+
+== 4. 本轮 e2e_traces 目录明细 ==
+ROOT=/home/qch/1126analysis/20261126-171528_e2e_traces
+0	/home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/timeline/rank0.1795685660757410989.pt.trace.json.gz
+4.0K	/home/qch/1126analysis/20261126-171528_e2e_traces/cases_bs8_in1_out2048.txt
+4.0K	/home/qch/1126analysis/20261126-171528_e2e_traces/driver.log
+4.0K	/home/qch/1126analysis/20261126-171528_e2e_traces/driver.pid
+4.0K	/home/qch/1126analysis/20261126-171528_e2e_traces/driver.sh
+4.0K	/home/qch/1126analysis/20261126-171528_e2e_traces/ixsys
+4.0K	/home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/bench.process.json
+4.0K	/home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/bs8_in1_out2048.json
+4.0K	/home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/config.txt
+4.0K	/home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/logs/summary_build.log
+4.0K	/home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/server.process.json
+4.0K	/home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/summary.csv
+8.0K	/home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/logs/bench_bs8_in1_out2048.log
+72K	/home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/logs/server.log
+88K	/home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/logs
+54M	/home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/timeline/rank3.1795685615182129899.pt.trace.json.gz
+56M	/home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/timeline/rank1.1795685614106665283.pt.trace.json.gz
+56M	/home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/timeline/rank2.1795685613172413470.pt.trace.json.gz
+165M	/home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/timeline
+166M	/home/qch/1126analysis/20261126-171528_e2e_traces
+166M	/home/qch/1126analysis/20261126-171528_e2e_traces/timeline
+166M	/home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048
+
+== 5. 大于 500M 的单个文件（/home，前 20） ==
+  4877542136  2026-04-18 16:47  /home/hc/modules/Qwen3-32B-W8A8/model-00003-of-00007.safetensors
+  4877542136  2026-04-18 16:53  /home/hc/modules/Qwen3-32B-W8A8/model-00004-of-00007.safetensors
+  4877542136  2026-04-18 16:59  /home/hc/modules/Qwen3-32B-W8A8/model-00005-of-00007.safetensors
+  4877542136  2026-04-18 17:05  /home/hc/modules/Qwen3-32B-W8A8/model-00006-of-00007.safetensors
+  4877701896  2026-04-18 00:50  /home/hc/modules/DeepSeek-R1-Distill-Qwen-32B-W8A8/model-00003-of-00007.safetensors
+  4877701896  2026-04-18 00:56  /home/hc/modules/DeepSeek-R1-Distill-Qwen-32B-W8A8/model-00004-of-00007.safetensors
+  4877701896  2026-04-18 01:02  /home/hc/modules/DeepSeek-R1-Distill-Qwen-32B-W8A8/model-00005-of-00007.safetensors
+  4877701896  2026-04-18 01:08  /home/hc/modules/DeepSeek-R1-Distill-Qwen-32B-W8A8/model-00006-of-00007.safetensors
+  4908582968  2026-04-18 01:14  /home/hc/modules/DeepSeek-R1-Distill-Qwen-32B-W8A8/model-00007-of-00007.safetensors
+  4914421312  2026-04-18 00:43  /home/hc/modules/DeepSeek-R1-Distill-Qwen-32B-W8A8/model-00002-of-00007.safetensors
+  4970104688  2026-04-18 16:35  /home/hc/modules/Qwen3-32B-W8A8/model-00001-of-00007.safetensors
+  4971946272  2026-04-18 16:41  /home/hc/modules/Qwen3-32B-W8A8/model-00002-of-00007.safetensors
+  4997762496  2026-04-18 00:36  /home/hc/modules/DeepSeek-R1-Distill-Qwen-32B-W8A8/model-00001-of-00007.safetensors
+  6948961960  2026-05-22 15:13  /home/hc/modules/openvla-7b/model-00001-of-00003.safetensors
+  6971232040  2026-05-22 15:37  /home/hc/modules/openvla-7b/model-00002-of-00003.safetensors
+ 12442697728  2026-11-26 17:37  /home/docker/overlay2/13082d06f62d352b8669cb8ad213dda9b88ec290503799cc428cb56384948736/diff/tmp/tmp41dblvso.json.tmp
+ 14037163715  2026-04-09 19:52  /home/docker/overlay2/acb7d130c608aac11175f0a04bb339e45192124651d1c255a2e05f203a95195d/diff/tmp/tmp23ij1cum.json
+ 15363750424  2026-04-09 19:52  /home/docker/overlay2/acb7d130c608aac11175f0a04bb339e45192124651d1c255a2e05f203a95195d/diff/tmp/tmp984kg9v8.json
+ 15547249940  2026-04-09 19:52  /home/docker/overlay2/acb7d130c608aac11175f0a04bb339e45192124651d1c255a2e05f203a95195d/diff/tmp/tmphj9ecqi5.json
+ 16057384757  2026-04-09 19:52  /home/docker/overlay2/acb7d130c608aac11175f0a04bb339e45192124651d1c255a2e05f203a95195d/diff/tmp/tmp2s9zrda5.json
+
+== 6. 已删除但仍被进程占用的文件 ==
+（无 lsof）
+
+== 7. 容器内 /tmp 占用（如可见） ==
+overlay         804G  771G     0 100% /
+153M	/tmp/ixccl-5.0.0-x86_64.run
+245M	/tmp/ixdnn-5.0.0-x86_64.run
+277M	/tmp/triton-3.2.0+corex.5.0.0-cp312-cp312-linux_x86_64.whl
+338M	/tmp/ixinfer-5.0.0-x86_64.run
+344M	/tmp/ixattention-backend-5.0.0-x86_64.run
+419M	/tmp/torch-2.10.0+corex.5.0.0-cp312-cp312-linux_x86_64.whl
+581M	/tmp/899523
+609M	/tmp/390650
+1.6G	/tmp/corex-toolkit-linux64-5.0.0_x86_64_10.2.run
+12G	/tmp/tmp41dblvso.json.tmp
+
+/dev/mapper/openeuler-home  804G  771G     0 100% /home
+
+### exit: 0
