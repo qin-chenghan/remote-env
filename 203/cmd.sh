@@ -14,54 +14,73 @@ mkdir -p "$DIR/tmp"
   echo "### host:   $(hostname)"
   echo "### time:   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo
-  echo "### 本轮只读：只以 sqlite ro 打开 ixsys trace，不写、不删"
+  echo "### 本轮只读：只列目录、读 summary.csv / report.txt / config.txt，"
+  echo "###           不启动服务、不写、不删。"
   set +x
 
   # ---- 命令开始 ----
-  TRACE="/home/qch/1125analysis/ixsys_base/ixsys/bs8_in128_out128/bs8_in128_out128.ixsys.ptrace"
-
-  echo "== 0. trace 文件 =="
-  ls -l "$TRACE" 2>&1
-  [[ -f "$TRACE" ]] || { echo "!! trace 不存在，检查路径"; ls -l /home/qch/1125analysis/ixsys_base/ixsys/*/* 2>&1 | head; }
-  echo "-- 1125 三份目录 --"
-  ls -d /home/qch/1125analysis/*/ 2>/dev/null
-  echo "-- ixsys_base summary --"
-  cat /home/qch/1125analysis/ixsys_base/summary.csv 2>&1
-  echo "-- 空间 --"
+  echo
+  echo "== 0. 空间与顶层目录 =="
   df -h /home | tail -1
+  ls -lt /home/qch 2>/dev/null | head -30
 
   echo
-  echo "== 1. 选择解释器（需 sqlite3）=="
-  PY=""
-  for c in /opt/corex311/bin/python3 python3 /usr/bin/python3; do
-    if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import sqlite3' >/dev/null 2>&1; then PY="$c"; break; fi
-    echo "  跳过 $c"
+  echo "== 1. 定位 e2e-analysis-base1 相关路径 =="
+  find /home/qch -maxdepth 6 \( -iname '*e2e*' -o -iname '*base1*' \) \
+      -not -path '*/docker/*' -not -path '*/.git/*' 2>/dev/null | head -80
+
+  echo
+  echo "== 2. 今天新产生的 summary.csv / report.txt / config.txt =="
+  echo "-- summary.csv --"
+  find /home/qch -maxdepth 8 -name 'summary.csv' -newermt '2026-11-26 00:00' 2>/dev/null | head -40
+  echo "-- report*.txt --"
+  find /home/qch -maxdepth 8 -name 'report*.txt' -newermt '2026-11-26 00:00' 2>/dev/null | head -40
+  echo "-- config.txt --"
+  find /home/qch -maxdepth 8 -name 'config.txt' -newermt '2026-11-26 00:00' 2>/dev/null | head -40
+
+  echo
+  echo "== 3. 内容：summary.csv（benchmark 指标） =="
+  while IFS= read -r -d '' f; do
+      echo
+      echo "---- $f ----"
+      cat "$f"
+  done < <(find /home/qch -maxdepth 8 -name 'summary.csv' -newermt '2026-11-26 00:00' -print0 2>/dev/null | head -z -n 40)
+
+  echo
+  echo "== 4. 内容：report*.txt（TSHG） =="
+  while IFS= read -r -d '' f; do
+      echo
+      echo "---- $f ----"
+      cat "$f"
+  done < <(find /home/qch -maxdepth 8 -name 'report*.txt' -newermt '2026-11-26 00:00' -print0 2>/dev/null | head -z -n 40)
+
+  echo
+  echo "== 5. 内容：config.txt（运行配置） =="
+  while IFS= read -r -d '' f; do
+      echo
+      echo "---- $f ----"
+      cat "$f"
+  done < <(find /home/qch -maxdepth 8 -name 'config.txt' -newermt '2026-11-26 00:00' -print0 2>/dev/null | head -z -n 40)
+
+  echo
+  echo "== 6. 运行脚本（若在 /home/qch 下且是文本） =="
+  for f in $(find /home/qch -maxdepth 4 -type f \( -name '*e2e*' -o -name '*base1*' \) \
+                 -size -200k 2>/dev/null | head -6); do
+      echo
+      echo "---- $f ----"
+      head -100 "$f" 2>/dev/null
   done
-  if [[ -n "$PY" ]]; then
-    echo "使用宿主解释器: $PY"
-    "$PY" - <<'PYCHK'
-import sqlite3, sys
-p = "/home/qch/1125analysis/ixsys_base/ixsys/bs8_in128_out128/bs8_in128_out128.ixsys.ptrace"
-db = sqlite3.connect("file:%s?mode=ro" % p, uri=True)
-b = db.execute("select start_ts,end_ts from trace_bounds").fetchone()
-print("trace_bounds: dur=%.1fs" % ((b[1]-b[0])/1e9))
-for t in ("cuda_kernel_data","cuda_api_data","cuda_graph_data"):
-    print("  %-18s rows=%d" % (t, db.execute("select count(*) from %s" % t).fetchone()[0]))
-PYCHK
-    "$PY" "$DIR/scripts/ixsys_cmp.py" "$TRACE|55|203-base"
-  else
-    echo "宿主 python 无 sqlite3，尝试容器 corex5-py311"
-    docker exec corex5-py311 test -r "$DIR/scripts/ixsys_cmp.py" \
-      && docker exec corex5-py311 /opt/corex311/bin/python3 "$DIR/scripts/ixsys_cmp.py" "$TRACE|55|203-base" \
-      || echo "!! 容器内也拿不到脚本/trace"
-  fi
 
   echo
-  echo "== 2. ixsys 报告里的 GPU 汇总（若 server.log 留了）=="
-  grep -aA3 "GPU Summary\|gpu summary\|Kernel Time" /home/qch/1125analysis/ixsys_base/logs/server.log 2>/dev/null | head -40 || echo "无"
+  echo "== 7. 结果目录树（最多两层） =="
+  for d in $(find /home/qch -maxdepth 4 -type d \( -iname '*e2e*' -o -iname '*base1*' \) \
+                 -not -path '*/.git/*' 2>/dev/null | head -10); do
+      echo "-- $d --"
+      ls -l "$d" 2>/dev/null | head -30
+      find "$d" -maxdepth 2 -type f \( -name '*.csv' -o -name '*.txt' -o -name '*.json' \) 2>/dev/null | head -40
+  done
   # ---- 命令结束 ----
 
-  set +x
 } 2>&1 | tee "$OUT"
 
 STATUS=${PIPESTATUS[0]}
