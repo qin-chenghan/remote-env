@@ -14,62 +14,49 @@ mkdir -p "$DIR/tmp"
   echo "### host:   $(hostname)"
   echo "### time:   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo
-  echo "### 本轮只读：不启动服务、不写、不删；只查 e2e_traces 采集进度与 trace 完整性。"
+  echo "### 本轮只读：只查磁盘占用与采集残留，不启动服务、不写、不删。"
   set +x
 
   echo
-  echo "== 0. 空间 / 进程 / 端口 =="
+  echo "== 0. 空间 / 进程 =="
   df -h /home | tail -1
-  pgrep -af '[d]river.sh' || echo "（没有 driver.sh 在跑）"
-  pgrep -af '[v]llm.entrypoints.openai.api_server' || echo "（没有 vLLM 服务）"
+  pgrep -af '[d]river.sh' || echo "（没有 driver.sh）"
+  pgrep -af '[v]llm.entrypoints.openai.api_server' || echo "（没有 vLLM）"
   pgrep -af '[/]usr/local/corex/bin/ixsys' || echo "（没有 ixsys）"
-  ss -ltn 2>/dev/null | awk '$4 ~ /:8848$/' || true
 
   echo
-  echo "== 1. 最新的 e2e_traces 目录 =="
+  echo "== 1. /home 一级目录占用 =="
+  du -xsh /home/qch /home/hc /home/huawei_ts_program /home/ssh_t /home/model 2>/dev/null | sort -h
+
+  echo
+  echo "== 2. /home/qch 下各目录占用（前 20） =="
+  du -xsh /home/qch/* 2>/dev/null | sort -h | tail -20
+
+  echo
+  echo "== 3. 1126analysis 内各目录 =="
+  du -xsh /home/qch/1126analysis/* 2>/dev/null | sort -h
+
+  echo
+  echo "== 4. 本轮 e2e_traces 目录明细 =="
   ROOT=$(ls -dt /home/qch/1126analysis/*_e2e_traces 2>/dev/null | head -1)
-  if [[ -z "$ROOT" ]]; then
-      echo "!! 没有找到 /home/qch/1126analysis/*_e2e_traces"
-      echo "（若驱动还没启动，确认 git pull 后是否执行了上一版 203/cmd.sh）"
+  echo "ROOT=${ROOT:-（无）}"
+  [[ -n "$ROOT" ]] && du -ah "$ROOT" 2>/dev/null | sort -h | tail -25
+
+  echo
+  echo "== 5. 大于 500M 的单个文件（/home，前 20） =="
+  find /home -xdev -type f -size +500M -printf '%12s  %TY-%Tm-%Td %TH:%TM  %p\n' 2>/dev/null | sort -n | tail -20
+
+  echo
+  echo "== 6. 已删除但仍被进程占用的文件 =="
+  if command -v lsof >/dev/null 2>&1; then
+      lsof +L1 2>/dev/null | awk 'NR==1 || $7+0 > 100000000' | head -20
   else
-      echo "ROOT=$ROOT"
-      ls -la "$ROOT" | head -20
-      echo
-      echo "-- driver.pid --"
-      cat "$ROOT/driver.pid" 2>/dev/null || echo "（无 pid 文件）"
-      echo "-- driver.log 大小/最后修改 --"
-      ls -l "$ROOT/driver.log" 2>/dev/null
-      echo
-      echo "-- 完成/失败标记 --"
-      grep -nE 'DRIVER_DONE|!!!!!|STOP|FATAL' "$ROOT/driver.log" 2>/dev/null | tail -20 || echo "（还没有完成或失败标记）"
-      echo
-      echo "-- 每个 case 的 trace 校验行 --"
-      grep -nE 'trace 校验|OK ->|FAILED' "$ROOT/driver.log" 2>/dev/null | tail -30 || true
-      echo
-      echo "-- driver.log 末尾 60 行 --"
-      tail -60 "$ROOT/driver.log" 2>/dev/null
-
-      echo
-      echo "== 2. 已产出的 trace / summary =="
-      for kind in timeline ixsys; do
-          for d in "$ROOT/$kind"/*/; do
-              [[ -d "$d" ]] || continue
-              echo "-- $d --"
-              find "$d" -type f \( -name '*.ptrace' -o -name '*.ptrace-journal' -o -name '*.json.gz' -o -name '*.json' \) \
-                  -printf '%12s  %p\n' 2>/dev/null | sort -k2
-              [[ -f "$d/summary.csv" ]] && tail -n +2 "$d/summary.csv" | cut -d, -f1-9
-          done
-      done
-
-      echo
-      echo "== 3. 未搬进正式目录的 .work_*（失败/进行中） =="
-      find "$ROOT" -maxdepth 1 -name '.work_*' -type d -printf '%p\n' 2>/dev/null | while read -r w; do
-          echo "-- $w --"
-          du -sh "$w" 2>/dev/null
-          find "$w" -name '*.ptrace' -printf '%12s  %p\n' 2>/dev/null | head -5
-          find "$w" -name 'server.log' -printf '%12s  %p\n' 2>/dev/null | head -3
-      done
+      echo "（无 lsof）"
   fi
+
+  echo
+  echo "== 7. 容器内 /tmp 占用（如可见） =="
+  docker exec corex5-py311 bash -lc 'df -h /tmp | tail -1; du -xsh /tmp/* 2>/dev/null | sort -h | tail -10' 2>/dev/null || echo "（未检查）"
 
   echo
   df -h /home | tail -1
