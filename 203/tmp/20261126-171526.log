@@ -1,0 +1,177 @@
+### server: 203
+### host:   localhost.localdomain
+### time:   2026-11-26T09:15:26Z
+
+### 本轮写入：在 203 上对 e2e base1 的四个 case（1/2048、128/128、1024/1024、2048/1）
+###           采集 torch profiler timeline + ixsys trace，口径与 e2e-analysis-base1 一致
+###           （base、100 prompts、并发 8、16 warmups、PREFIX=/opt/corex311、端口 8848）。
+###           会启动/停止 vLLM 服务，写 /home/qch/1126analysis/ 下的新目录；
+###           不动驱动、不装包、不改内核参数、不删任何已有数据。
+###           预计 50–65 分钟。
+
+== 0. 前置检查 ==
+x86_64
+255
+/dev/mapper/openeuler-home  804G  759G  4.3G 100% /home
+free_home_gb=5
+multi_engine=1
+（只记录，不改；与 e2e-analysis-base1 的运行条件对照用）
+-- 已有服务 / 采集进程 --
+-- GPU 占用（共享机，先确认没人在跑活） --
+Timestamp    Thu Nov 26 17:15:28 2026
++--------------------------------------------------------------------------------+
+|  IX-ML: 5.0.0            Driver Version: 5.0.0          CUDA Version: 10.2     |
+|----------------------------------+----------------------+----------------------|
+| GPU  Name                        | Bus-Id               | Clock-SM  Clock-Mem  |
+| Fan  Temp  Perf    Pwr:Usage/Cap |      Memory-Usage    | GPU-Util  Compute M. |
+|==================================+======================+======================|
+| 0    Iluvatar BI-V150            | 00000000:10:00.0     | 1500MHz   1600MHz    |
+| N/A  42C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 1    Iluvatar BI-V150            | 00000000:13:00.0     | 1500MHz   1600MHz    |
+| N/A  41C   P0       92W / 350W   | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 2    Iluvatar BI-V150            | 00000000:19:00.0     | 1500MHz   1600MHz    |
+| N/A  39C   P0       N/A / N/A    | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+| 3    Iluvatar BI-V150            | 00000000:1C:00.0     | 1500MHz   1600MHz    |
+| N/A  39C   P0       93W / 350W   | 66MiB / 32768MiB     | 0%        Default    |
++----------------------------------+----------------------+----------------------+
+
++--------------------------------------------------------------------------------+
+| Processes:                                                          GPU Memory |
+|  GPU        PID      Process name                                   Usage(MiB) |
+|================================================================================|
+|  No running processes found                                                    |
++--------------------------------------------------------------------------------+
+-- 显存查询 --
+0, 66, 32768
+1, 66, 32768
+2, 66, 32768
+3, 66, 32768
+-- /dev/iluvatar0-3 占用 --
+（无进程占用）
+-- 端口 8848（不 kill 任何进程，占用就退出） --
+（空闲）
+-- 容器与脚本 --
+容器 corex5-py311 在
+ixsys:    /home/qch/scripts/litehost_perf/timeline_ixsys_base.sh
+timeline: /home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh
+toolkit:  /home/qch/scripts/litehost_perf
+-- 关键默认值 --
+/home/qch/scripts/litehost_perf/timeline_ixsys_base.sh:36:MODEL_PATH="${MODEL_PATH:-/home/hc/modules/Qwen3-32B-W8A8}"
+/home/qch/scripts/litehost_perf/timeline_ixsys_base.sh:38:PREFIX="${PREFIX:-/opt/corex311}"
+/home/qch/scripts/litehost_perf/timeline_ixsys_base.sh:40:GPU_LIST="${GPU_LIST:-0,1,2,3}"
+/home/qch/scripts/litehost_perf/timeline_ixsys_base.sh:41:GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+/home/qch/scripts/litehost_perf/timeline_ixsys_base.sh:42:PORT="${PORT:-8848}"
+/home/qch/scripts/litehost_perf/timeline_ixsys_base.sh:43:NUM_PROMPTS="${NUM_PROMPTS:-100}"
+/home/qch/scripts/litehost_perf/timeline_ixsys_base.sh:44:NUM_WARMUPS="${NUM_WARMUPS:-16}"
+/home/qch/scripts/litehost_perf/timeline_ixsys_base.sh:45:MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+/home/qch/scripts/litehost_perf/timeline_ixsys_base.sh:47:CPU_RANGE="${CPU_RANGE-0-15,128-143}"
+/home/qch/scripts/litehost_perf/timeline_ixsys_base.sh:53:IXSYS_TRACE="${IXSYS_TRACE:-cuda}"          # -t；cuda 已含 cuda_api + cuda_device
+/home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh:15:MODEL_PATH="${MODEL_PATH:-/home/hc/modules/Qwen3-32B-W8A8}"
+/home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh:29:PREFIX="${PREFIX:-/opt/corex311}"
+/home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh:31:GPU_LIST="${GPU_LIST:-0,1,2,3}"
+/home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh:32:GPUS_PER_INSTANCE="${GPUS_PER_INSTANCE:-4}"
+/home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh:33:PORT="${PORT:-$_timeline_port}"
+/home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh:34:NUM_PROMPTS="${NUM_PROMPTS:-100}"
+/home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh:35:NUM_WARMUPS="${NUM_WARMUPS:-16}"
+/home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh:36:MAX_CONCURRENCY="${MAX_CONCURRENCY:-8}"
+/home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh:38:CPU_RANGE="${CPU_RANGE-$_timeline_cpu_range}"
+/home/qch/scripts/litehost_perf/vllmBench_lite_base_timeline.sh:44:PROFILE="${PROFILE:-1}"                     # 1=开 torch profiler 出 trace
+
+== 1. 启动驱动（后台，setsid 防断连） ==
+ROOT=/home/qch/1126analysis/20261126-171528_e2e_traces
+CASES: 1 2048 | 128 128 | 1024 1024 | 2048 1
+driver pid=1984000  log=/home/qch/1126analysis/20261126-171528_e2e_traces/driver.log
+
+== 2. 等待驱动（最多 2 小时，每 30s 打一行） ==
+[17:15:59] alive; free=5G
+[17:16:29] alive; free=5G
+[17:16:59] alive; free=5G
+[17:17:29] alive; free=5G
+[17:17:59] alive; free=5G
+[17:18:29] alive; free=5G
+[17:18:59] alive; free=5G
+[17:19:29] alive; free=5G
+[17:19:59] alive; free=5G
+[17:20:29] alive; free=5G
+[17:20:59] alive; free=5G
+[17:21:29] alive; free=5G
+[17:21:59] alive; free=5G
+[17:22:29] alive; free=5G
+[17:22:59] alive; free=5G
+[17:23:29] alive; free=5G
+[17:23:59] alive; free=5G
+[17:24:29] alive; free=5G
+[17:24:59] alive; free=5G
+[17:25:29] alive; free=5G
+[17:25:59] alive; free=5G
+[17:26:29] alive; free=5G
+[17:26:59] alive; free=5G
+[17:27:29] alive; free=5G
+[17:27:59] alive; free=5G
+[17:28:29] alive; free=5G
+[17:28:59] alive; free=5G
+[17:29:29] alive; free=5G
+[17:29:59] alive; free=5G
+[17:30:29] alive; free=5G
+[17:30:59] alive; free=5G
+[17:31:29] alive; free=5G
+[17:31:59] alive; free=5G
+[17:32:29] alive; free=5G
+[17:32:59] alive; free=5G
+[17:33:29] alive; free=5G
+[17:33:59] alive; free=0G
+[17:34:29] alive; free=0G
+[17:34:59] alive; free=0G
+[17:35:29] alive; free=0G
+[17:35:59] alive; free=0G
+[17:36:29] alive; free=0G
+[17:36:59] alive; free=0G
+[17:37:29] alive; free=0G
+
+== 3. 结果 ==
+driver rc=30
+ROOT=/home/qch/1126analysis/20261126-171528_e2e_traces
+CASES: 1 2048 128 128 1024 1024 2048 1
+-- /home free=5G --
+
+===== [2026-11-26 17:15:29] timeline bs8_in1_out2048 start (free 5G) =====
+[2026-11-26 17:15:29] PREFIX=/opt/corex311
+[2026-11-26 17:15:29] TEST_ID=e2e_tl_bs8_in1_out2048 | MODE=off | PROFILE=1 | WARMUP=16 | CPU_RANGE=0-15,128-143
+[2026-11-26 17:15:29] prefix cache=OFF | backend=vllm | 同一服务运行 1 个 case | RUN_DIR=/home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048
+[2026-11-26 17:15:29] WARNING: ixsmi 不可用，跳过显存预检
+[2026-11-26 17:15:29] 服务 PID=1984064；所有 case 复用；日志=/home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048/logs/server.log
+[2026-11-26 17:16:24] 服务就绪 (55s)
+[2026-11-26 17:16:24] profiler 已生效：{"profiler":"torch","torch_profiler_dir":"/home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048/timeline","delay_iterations":0,"max_iterations":0,"warmup_iterations":0,"active_iterations":1000,"ignore_frontend":true}
+[2026-11-26 17:16:24] ==== bs8_in1_out2048 | mode=off | profile=1 | warmup=16 | 同一服务 ====
+[2026-11-26 17:37:17] 完成 bs8_in1_out2048 → /home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048/bs8_in1_out2048.json
+[2026-11-26 17:37:17] 停止本次服务 PID=1984064（不使用全局 pkill）
+[2026-11-26 17:37:26] trace 已产出：4 个文件
+[2026-11-26 17:37:26] ========== 所有 case 最终结果（仅此处打印一次） ==========
+===== Benchmark：吞吐与延迟（全部 case）=====
+bs8_in1_out2048: output_tok/s=328.416 TTFT_mean=64.510ms TPOT_mean=23.446ms ITL_mean=23.446ms
+===== Timeline 产物 =====
+/home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048/timeline/rank3.1795685615182129899.pt.trace.json.gz
+/home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048/timeline/rank2.1795685613172413470.pt.trace.json.gz
+/home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048/timeline/rank1.1795685614106665283.pt.trace.json.gz
+/home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048/timeline/rank0.1795685660757410989.pt.trace.json.gz
+Timeline 目录(Perfetto JSON): /home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048/timeline
+[2026-11-26 17:37:26] 全部完成 | benchmark=/home/qch/1126analysis/20261126-171528_e2e_traces/.work_tl_bs8_in1_out2048/vllmBench/e2e_tl_bs8_in1_out2048/summary.csv | host=OFF/未采集
+===== timeline bs8_in1_out2048 OK -> /home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048 =====
+-- /home free=0G --
+!!!!! STOP: /home 仅剩 0G，停止后续采集
+
+-- trace 体积 --
+        85  /home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/bench.process.json
+      1043  /home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/bs8_in1_out2048.json
+        85  /home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/server.process.json
+         0  /home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/timeline/rank0.1795685660757410989.pt.trace.json.gz
+  58523648  /home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/timeline/rank1.1795685614106665283.pt.trace.json.gz
+  58122240  /home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/timeline/rank2.1795685613172413470.pt.trace.json.gz
+  56324096  /home/qch/1126analysis/20261126-171528_e2e_traces/timeline/bs8_in1_out2048/timeline/rank3.1795685615182129899.pt.trace.json.gz
+/dev/mapper/openeuler-home  804G  771G     0 100% /home
+### !! driver 未完成，看 /home/qch/1126analysis/20261126-171528_e2e_traces/driver.log
+
+### exit: 0
