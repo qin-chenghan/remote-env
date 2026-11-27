@@ -11,7 +11,7 @@ mkdir -p "$DIR/tmp"
 
 IMAGE="${IMAGE:-local/vllm-metax:0.21.0-arm64-c500}"
 TRACE_HOST="${TRACE_HOST:-/home/qch/qwen06_profile}"
-TRACE_NAME="${TRACE_NAME:-offline_bs118_in1024_out1024.json}"
+TRACE_NAME="${TRACE_NAME:-offline_bs240_in1024_out1024.json}"
 
 {
   echo "### server: $SERVER"
