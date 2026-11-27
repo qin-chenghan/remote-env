@@ -1,0 +1,53 @@
+### server: 31
+### host:   localhost
+### time:   2026-11-27T15:53:59Z
+### script: timeline-31（in128/out128，prompts=100，并发=2000，torch.profiler）
+
+### 本轮写入：起 --rm 临时容器跑离线 LLM，trace 落 /home/qch/qwen06_profile；
+###           不装包、不起 server、不改系统配置、不留容器。
+### 口径：与 32 的 1125 timeline 对齐（100 prompts、并发 8、16 warmup），TP1。
+### 预计：engine 启动 ~4-6 分钟 + 生成 ~10-20 秒 + 解析 <1 分钟
+
+== 0. 前置检查（只读） ==
+Fri Nov 27 11:53:59 PM CST 2026
+-- 镜像 --
+local/vllm-metax:0.21.0-arm64-c500-v4-short	13.5GB
+local/vllm-metax:0.21.0-arm64-c500-v4-dg	13.5GB
+local/vllm-metax:0.21.0-arm64-c500	13.5GB
+-- 模型 --
+total 1.5G
+-rw-r--r--. 1 root root  726 Nov 27 19:13 config.json
+-rw-r--r--. 1 root root  239 Nov 27 19:13 generation_config.json
+-rw-r--r--. 1 root root  12K Nov 27 19:13 LICENSE
+-rw-r--r--. 1 root root 1.6M Nov 27 19:13 merges.txt
+-rw-r--r--. 1 root root 1.5G Nov 27 20:03 model.safetensors
+-- GPU 占用（共享卡预检） --
+| Process:                                                                        |
+|  GPU                    PID         Process Name                 GPU Memory     |
+|                                                                  Usage(MiB)     |
+|=================================================================================|
+|  no process found                                                               |
++---------------------------------------------------------------------------------+
+
+End of Log
+trace_dir=/home/qch/qwen06_profile
+/dev/mapper/vg_home-lv_home  3.5T  1.1T  2.4T  32% /home
+               total        used        free      shared  buff/cache   available
+Mem:             565           7         551           0           8         557
+Swap:              0           0           0
+
+== 1. 容器内：离线 LLM + torch.profiler（写入：临时容器 + trace） ==
+-- 容器内版本 --
+vllm 0.21.0
+torch 2.8.0+metax3.7.0.7
+device_count 1
+device MetaX C500 sm 104 mem_MB 65120
+INFO 11-27 15:54:29 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-27 15:54:29 [__init__.py:46] - metax -> vllm_metax:register
+INFO 11-27 15:54:29 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-27 15:54:29 [__init__.py:238] Platform plugin metax is activated
+INFO 11-27 15:54:29 [envs.py:121] Plugin sets VLLM_USE_FLASHINFER_SAMPLER to False. Reason: flashinfer sampler are not supported on maca
+INFO 11-27 15:54:29 [envs.py:121] Plugin sets VLLM_ENGINE_READY_TIMEOUT_S to 3600. Reason: set timeout to 3600s for model loading
+INFO 11-27 15:54:29 [envs.py:121] Plugin sets VLLM_FLOAT32_MATMUL_PRECISION to high. Reason: set float32 matmul precision to high for better performance on Maca platform
+/home/z00970444/vllm-arm-build/env-0.21.0/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: 'libjpeg.so.8: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(

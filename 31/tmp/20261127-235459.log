@@ -1,0 +1,210 @@
+### server: 31
+### host:   localhost
+### time:   2026-11-27T15:54:59Z
+### script: timeline-31（in128/out128，prompts=2000，并发=2000，torch.profiler）
+
+### 本轮写入：起 --rm 临时容器跑离线 LLM，trace 落 /home/qch/qwen06_profile；
+###           不装包、不起 server、不改系统配置、不留容器。
+### 口径：与 32 的 1125 timeline 对齐（100 prompts、并发 8、16 warmup），TP1。
+### 预计：engine 启动 ~4-6 分钟 + 生成 ~10-20 秒 + 解析 <1 分钟
+
+== 0. 前置检查（只读） ==
+Fri Nov 27 11:54:59 PM CST 2026
+-- 镜像 --
+local/vllm-metax:0.21.0-arm64-c500-v4-short	13.5GB
+local/vllm-metax:0.21.0-arm64-c500-v4-dg	13.5GB
+local/vllm-metax:0.21.0-arm64-c500	13.5GB
+-- 模型 --
+total 1.5G
+-rw-r--r--. 1 root root  726 Nov 27 19:13 config.json
+-rw-r--r--. 1 root root  239 Nov 27 19:13 generation_config.json
+-rw-r--r--. 1 root root  12K Nov 27 19:13 LICENSE
+-rw-r--r--. 1 root root 1.6M Nov 27 19:13 merges.txt
+-rw-r--r--. 1 root root 1.5G Nov 27 20:03 model.safetensors
+-- GPU 占用（共享卡预检） --
+| Process:                                                                        |
+|  GPU                    PID         Process Name                 GPU Memory     |
+|                                                                  Usage(MiB)     |
+|=================================================================================|
+|  no process found                                                               |
++---------------------------------------------------------------------------------+
+
+End of Log
+trace_dir=/home/qch/qwen06_profile
+/dev/mapper/vg_home-lv_home  3.5T  1.1T  2.4T  32% /home
+               total        used        free      shared  buff/cache   available
+Mem:             565          35         523           0           8         529
+Swap:              0           0           0
+
+== 1. 容器内：离线 LLM + torch.profiler（写入：临时容器 + trace） ==
+-- 容器内版本 --
+vllm 0.21.0
+torch 2.8.0+metax3.7.0.7
+device_count 1
+device MetaX C500 sm 104 mem_MB 65120
+INFO 11-27 15:55:29 [__init__.py:44] Available plugins for group vllm.platform_plugins:
+INFO 11-27 15:55:29 [__init__.py:46] - metax -> vllm_metax:register
+INFO 11-27 15:55:29 [__init__.py:49] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 11-27 15:55:29 [__init__.py:238] Platform plugin metax is activated
+INFO 11-27 15:55:29 [envs.py:121] Plugin sets VLLM_USE_FLASHINFER_SAMPLER to False. Reason: flashinfer sampler are not supported on maca
+INFO 11-27 15:55:29 [envs.py:121] Plugin sets VLLM_ENGINE_READY_TIMEOUT_S to 3600. Reason: set timeout to 3600s for model loading
+INFO 11-27 15:55:29 [envs.py:121] Plugin sets VLLM_FLOAT32_MATMUL_PRECISION to high. Reason: set float32 matmul precision to high for better performance on Maca platform
+/home/z00970444/vllm-arm-build/env-0.21.0/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: 'libjpeg.so.8: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+No cu-bridge gnu is found!
+/home/z00970444/vllm-arm-build/env-0.21.0/lib/python3.10/site-packages/tvm_ffi/_optional_torch_c_dlpack.py:192: UserWarning: Failed to JIT torch c dlpack extension, EnvTensorAllocator will not be enabled.
+We recommend installing via `pip install torch-c-dlpack-ext`
+  warnings.warn(
+LLM kwargs: ['async_scheduling', 'compilation_config', 'dtype', 'enable_chunked_prefill', 'enable_prefix_caching', 'gpu_memory_utilization', 'max_model_len', 'max_num_seqs', 'model', 'tensor_parallel_size', 'trust_remote_code']
+WARNING 11-27 15:56:33 [__init__.py:87] The quantization method 'awq' already exists and will be overwritten by the quantization config <class 'vllm_metax.quant_config.awq.MacaAWQConfig'>.
+WARNING 11-27 15:56:33 [__init__.py:87] The quantization method 'awq_marlin' already exists and will be overwritten by the quantization config <class 'vllm_metax.quant_config.awq_marlin.MacaAWQMarlinConfig'>.
+WARNING 11-27 15:56:33 [__init__.py:87] The quantization method 'compressed-tensors' already exists and will be overwritten by the quantization config <class 'vllm_metax.quant_config.compressed_tensors.MacaCompressedTensorsConfig'>.
+WARNING 11-27 15:56:33 [__init__.py:87] The quantization method 'gptq' already exists and will be overwritten by the quantization config <class 'vllm_metax.quant_config.gptq.MacaGPTQConfig'>.
+WARNING 11-27 15:56:33 [__init__.py:87] The quantization method 'gptq_marlin' already exists and will be overwritten by the quantization config <class 'vllm_metax.quant_config.gptq_marlin.MacaGPTQMarlinConfig'>.
+WARNING 11-27 15:56:33 [__init__.py:87] The quantization method 'moe_wna16' already exists and will be overwritten by the quantization config <class 'vllm_metax.quant_config.moe_wna16.MacaMoeWNA16Config'>.
+WARNING 11-27 15:56:33 [registry.py:960] Model architecture DeepSeekMTPModel is already registered, and will be overwritten by the new model class vllm_metax.models.deepseek_mtp:DeepSeekMTP.
+WARNING 11-27 15:56:33 [registry.py:960] Model architecture DeepseekV2ForCausalLM is already registered, and will be overwritten by the new model class vllm_metax.models.deepseek_v2:DeepseekV2ForCausalLM.
+WARNING 11-27 15:56:33 [registry.py:960] Model architecture DeepseekV3ForCausalLM is already registered, and will be overwritten by the new model class vllm_metax.models.deepseek_v2:DeepseekV3ForCausalLM.
+WARNING 11-27 15:56:33 [registry.py:960] Model architecture DeepseekV32ForCausalLM is already registered, and will be overwritten by the new model class vllm_metax.models.deepseek_v2:DeepseekV3ForCausalLM.
+WARNING 11-27 15:56:33 [registry.py:960] Model architecture GlmMoeDsaForCausalLM is already registered, and will be overwritten by the new model class vllm_metax.models.deepseek_v2:GlmMoeDsaForCausalLM.
+WARNING 11-27 15:56:33 [registry.py:960] Model architecture DeepseekV4ForCausalLM is already registered, and will be overwritten by the new model class vllm_metax.models.deepseek_v4:DeepseekV4ForCausalLM.
+WARNING 11-27 15:56:33 [registry.py:960] Model architecture DeepSeekV4MTPModel is already registered, and will be overwritten by the new model class vllm_metax.models.deepseek_v4_mtp:DeepSeekV4MTP.
+INFO 11-27 15:56:33 [utils.py:240] non-default args: {'trust_remote_code': True, 'max_model_len': 4096, 'enable_prefix_caching': False, 'gpu_memory_utilization': 0.9, 'max_num_seqs': 2000, 'disable_log_stats': True, 'enable_chunked_prefill': True, 'compilation_config': {'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': None, 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}, 'async_scheduling': True, 'model': '/model'}
+WARNING 11-27 15:56:33 [arg_utils.py:1503] The global random seed is set to 0. Since VLLM_ENABLE_V1_MULTIPROCESSING is set to False, this may affect the random state of the Python process that launched vLLM.
+INFO 11-27 15:57:48 [model.py:568] Resolved architecture: Qwen3ForCausalLM
+INFO 11-27 15:57:48 [model.py:1697] Using max model len 4096
+INFO 11-27 15:57:48 [scheduler.py:239] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 11-27 15:57:48 [vllm.py:886] Asynchronous scheduling is enabled.
+WARNING 11-27 15:57:48 [vllm.py:960] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+INFO 11-27 15:57:48 [kernel.py:212] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+INFO 11-27 15:57:48 [envs.py:121] Plugin sets VLLM_TUNED_CONFIG_FOLDER to /home/z00970444/vllm-arm-build/env-0.21.0/lib/python3.10/site-packages/vllm_metax/model_executor/layers/fused_moe/configs/H=1024. Reason: set FusedMoE tuned config dir by hidden_size=1024
+INFO 11-27 15:57:48 [compilation.py:303] Enabled custom fusions: norm_quant, act_quant
+INFO 11-27 15:57:51 [core.py:109] Initializing a V1 LLM engine (v0.21.0) with config: model='/model', speculative_config=None, tokenizer='/model', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=4096, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=True, quantization=None, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False), seed=0, served_model_name=/model, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [8192], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'fuse_act_padding': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': True, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native']), enable_flashinfer_autotune=False, moe_backend='auto')
+INFO 11-27 15:57:51 [parallel_state.py:1410] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://141.61.11.31:56573 backend=nccl
+INFO 11-27 15:57:51 [parallel_state.py:1723] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+INFO 11-27 15:57:51 [gpu_model_runner.py:4857] Starting to load model /model...
+[rank0]:W1127 15:57:52.018000 16 torch/utils/cpp_extension.py:2527] TORCH_CUDA_ARCH_LIST is not set, all archs for visible cards are included for compilation. 
+[rank0]:W1127 15:57:52.018000 16 torch/utils/cpp_extension.py:2527] If this is not desired, please set os.environ['TORCH_CUDA_ARCH_LIST'] to specific architectures.
+WARNING 11-27 15:57:52 [triton_decode_attention.py:47] The following error message 'operation scheduled before its operands' can be ignored.
+INFO 11-27 15:57:52 [platform.py:421] Some attention backends are not valid for maca with AttentionSelectorConfig(head_size=128, dtype=torch.bfloat16, kv_cache_dtype=auto, block_size=None, use_mla=False, has_sink=False, use_sparse=False, use_mm_prefix=False, use_per_head_quant_scales=False, attn_type=decoder, use_non_causal=False, use_batch_invariant=False). Reasons: {TURBOQUANT: [kv_cache_dtype not supported]}.
+INFO 11-27 15:57:52 [platform.py:433] Valid backends: ['FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION']
+INFO 11-27 15:57:52 [platform.py:464] Using FLASH_ATTN attention backend out of potential backends: ('FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION')
+INFO 11-27 15:57:52 [fa_utils.py:24] Using Maca version of flash attention, which only supports version 2.
+INFO 11-27 15:57:52 [weight_utils.py:938] Filesystem type for checkpoints: EXT4. Checkpoint size: 1.40 GiB. Available RAM: 537.34 GiB.
+INFO 11-27 15:57:52 [weight_utils.py:961] Auto-prefetch is disabled because the filesystem (EXT4) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+Loading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]
+Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:00<00:00,  2.00it/s]
+Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:00<00:00,  2.00it/s]
+
+INFO 11-27 15:57:52 [default_loader.py:397] Loading weights took 0.57 seconds
+INFO 11-27 15:57:53 [gpu_model_runner.py:4959] Model loading took 1.12 GiB memory and 0.817379 seconds
+INFO 11-27 15:57:55 [gpu_worker.py:462] Available KV cache memory: 44.96 GiB
+INFO 11-27 15:57:55 [kv_cache_utils.py:1710] GPU KV cache size: 420,944 tokens
+INFO 11-27 15:57:55 [kv_cache_utils.py:1711] Maximum concurrency for 4,096 tokens per request: 102.77x
+INFO 11-27 15:57:55 [kernel_warmup.py:44] Skipping FlashInfer autotune because it is disabled.
+Capturing CUDA graphs (decode, FULL):   0%|          | 0/51 [00:00<?, ?it/s]Capturing CUDA graphs (decode, FULL):   4%|▍         | 2/51 [00:00<00:03, 15.22it/s]Capturing CUDA graphs (decode, FULL):   8%|▊         | 4/51 [00:00<00:02, 16.34it/s]Capturing CUDA graphs (decode, FULL):  12%|█▏        | 6/51 [00:00<00:02, 16.37it/s]Capturing CUDA graphs (decode, FULL):  16%|█▌        | 8/51 [00:00<00:02, 16.60it/s]Capturing CUDA graphs (decode, FULL):  20%|█▉        | 10/51 [00:00<00:02, 16.76it/s]Capturing CUDA graphs (decode, FULL):  24%|██▎       | 12/51 [00:00<00:02, 16.80it/s]Capturing CUDA graphs (decode, FULL):  27%|██▋       | 14/51 [00:00<00:02, 16.71it/s]Capturing CUDA graphs (decode, FULL):  31%|███▏      | 16/51 [00:00<00:02, 16.75it/s]Capturing CUDA graphs (decode, FULL):  35%|███▌      | 18/51 [00:04<00:21,  1.53it/s]Capturing CUDA graphs (decode, FULL):  39%|███▉      | 20/51 [00:05<00:14,  2.12it/s]Capturing CUDA graphs (decode, FULL):  43%|████▎     | 22/51 [00:05<00:10,  2.89it/s]Capturing CUDA graphs (decode, FULL):  47%|████▋     | 24/51 [00:05<00:07,  3.85it/s]Capturing CUDA graphs (decode, FULL):  51%|█████     | 26/51 [00:05<00:04,  5.02it/s]Capturing CUDA graphs (decode, FULL):  55%|█████▍    | 28/51 [00:05<00:03,  6.35it/s]Capturing CUDA graphs (decode, FULL):  59%|█████▉    | 30/51 [00:05<00:02,  7.78it/s]Capturing CUDA graphs (decode, FULL):  63%|██████▎   | 32/51 [00:05<00:02,  9.24it/s]Capturing CUDA graphs (decode, FULL):  67%|██████▋   | 34/51 [00:05<00:01, 10.65it/s]Capturing CUDA graphs (decode, FULL):  71%|███████   | 36/51 [00:05<00:01, 11.90it/s]Capturing CUDA graphs (decode, FULL):  75%|███████▍  | 38/51 [00:06<00:00, 13.02it/s]Capturing CUDA graphs (decode, FULL):  78%|███████▊  | 40/51 [00:06<00:00, 13.73it/s]Capturing CUDA graphs (decode, FULL):  82%|████████▏ | 42/51 [00:06<00:00, 14.35it/s]Capturing CUDA graphs (decode, FULL):  86%|████████▋ | 44/51 [00:06<00:00, 14.73it/s]Capturing CUDA graphs (decode, FULL):  90%|█████████ | 46/51 [00:06<00:00, 15.11it/s]Capturing CUDA graphs (decode, FULL):  94%|█████████▍| 48/51 [00:06<00:00, 15.16it/s]Capturing CUDA graphs (decode, FULL):  98%|█████████▊| 50/51 [00:06<00:00, 15.17it/s]Capturing CUDA graphs (decode, FULL): 100%|██████████| 51/51 [00:06<00:00,  7.29it/s]
+INFO 11-27 15:58:02 [gpu_model_runner.py:6243] Graph capturing finished in 7 secs, took 0.14 GiB
+INFO 11-27 15:58:02 [jit_monitor.py:32] Kernel JIT monitor activated is not supported on triton==3.0.0+maca. Currentlydisabled
+INFO 11-27 15:58:02 [core.py:306] init engine (profile, create kv cache, warmup model) took 9.57 s
+engine ready 90.1 s
+Rendering prompts:   0%|          | 0/16 [00:00<?, ?it/s]Rendering prompts: 100%|██████████| 16/16 [00:00<00:00, 1805.41it/s]
+Processed prompts:   0%|          | 0/16 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]Processed prompts:   6%|▋         | 1/16 [00:01<00:17,  1.16s/it, est. speed input: 110.54 toks/s, output: 13.82 toks/s]Processed prompts: 100%|██████████| 16/16 [00:01<00:00,  1.16s/it, est. speed input: 1768.07 toks/s, output: 221.01 toks/s]Processed prompts: 100%|██████████| 16/16 [00:01<00:00, 13.81it/s, est. speed input: 1768.07 toks/s, output: 221.01 toks/s]
+warmup(16) 1.2 s
+Rendering prompts:   0%|          | 0/2000 [00:00<?, ?it/s]Rendering prompts:  43%|████▎     | 851/2000 [00:00<00:00, 8508.34it/s]Rendering prompts:  91%|█████████ | 1821/2000 [00:00<00:00, 9204.90it/s]Rendering prompts: 100%|██████████| 2000/2000 [00:00<00:00, 9178.35it/s]
+Processed prompts:   0%|          | 0/2000 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]Processed prompts:   0%|          | 1/2000 [00:12<6:40:04, 12.01s/it, est. speed input: 10.66 toks/s, output: 10.66 toks/s]Processed prompts:   6%|▋         | 128/2000 [00:12<02:05, 14.88it/s, est. speed input: 1344.47 toks/s, output: 1344.47 toks/s]Processed prompts:  10%|█         | 200/2000 [00:12<01:08, 26.33it/s, est. speed input: 2080.19 toks/s, output: 2080.19 toks/s]Processed prompts:  13%|█▎        | 265/2000 [00:12<00:43, 40.35it/s, est. speed input: 2729.51 toks/s, output: 2729.51 toks/s]Processed prompts:  16%|█▋        | 325/2000 [00:12<00:29, 57.57it/s, est. speed input: 3315.84 toks/s, output: 3315.84 toks/s]Processed prompts:  19%|█▉        | 382/2000 [00:12<00:20, 78.80it/s, est. speed input: 3860.85 toks/s, output: 3860.84 toks/s]Processed prompts:  22%|██▏       | 438/2000 [00:12<00:14, 105.11it/s, est. speed input: 4385.75 toks/s, output: 4385.75 toks/s]Processed prompts:  25%|██▍       | 499/2000 [00:12<00:10, 140.96it/s, est. speed input: 4951.18 toks/s, output: 4951.18 toks/s]Processed prompts:  28%|██▊       | 559/2000 [00:13<00:07, 181.77it/s, est. speed input: 5496.81 toks/s, output: 5496.81 toks/s]Processed prompts:  31%|███       | 618/2000 [00:13<00:06, 225.95it/s, est. speed input: 6023.74 toks/s, output: 6023.74 toks/s]Processed prompts:  37%|███▋      | 736/2000 [00:13<00:03, 337.22it/s, est. speed input: 7092.48 toks/s, output: 7092.47 toks/s]Processed prompts:  43%|████▎     | 852/2000 [00:13<00:02, 439.65it/s, est. speed input: 8124.17 toks/s, output: 8124.16 toks/s]Processed prompts:  48%|████▊     | 967/2000 [00:13<00:01, 532.96it/s, est. speed input: 9129.75 toks/s, output: 9129.73 toks/s]Processed prompts:  54%|█████▍    | 1079/2000 [00:13<00:01, 613.25it/s, est. speed input: 10092.29 toks/s, output: 10092.27 toks/s]Processed prompts:  60%|█████▉    | 1190/2000 [00:13<00:01, 687.51it/s, est. speed input: 11033.79 toks/s, output: 11033.78 toks/s]Processed prompts:  65%|██████▍   | 1299/2000 [00:13<00:00, 753.52it/s, est. speed input: 11946.03 toks/s, output: 11946.01 toks/s]Processed prompts:  70%|███████   | 1406/2000 [00:14<00:00, 812.15it/s, est. speed input: 12830.32 toks/s, output: 12830.31 toks/s]Processed prompts:  84%|████████▍ | 1690/2000 [00:14<00:00, 1278.01it/s, est. speed input: 15300.56 toks/s, output: 15300.55 toks/s]Processed prompts:  92%|█████████▏| 1830/2000 [00:14<00:00, 815.53it/s, est. speed input: 16182.70 toks/s, output: 16182.69 toks/s] Processed prompts:  97%|█████████▋| 1941/2000 [00:14<00:00, 787.83it/s, est. speed input: 16980.86 toks/s, output: 16980.86 toks/s]Processed prompts: 100%|██████████| 2000/2000 [00:14<00:00, 787.83it/s, est. speed input: 17431.82 toks/s, output: 17431.81 toks/s]Processed prompts: 100%|██████████| 2000/2000 [00:14<00:00, 136.18it/s, est. speed input: 17431.82 toks/s, output: 17431.81 toks/s]
+wall=17.62 s  requests=2000  gen_tokens=256000  (14529.6 tok/s)
+self_cpu=4.489 s  self_cuda=0.000 s
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                                                   Name    Self CPU %      Self CPU   CPU total %     CPU total  CPU time avg     Self CUDA   Self CUDA %    CUDA total  CUDA time avg    # of Calls  
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                                     mcEventSynchronize        32.86%        1.475s        32.86%        1.475s       2.352ms      11.260ms         0.10%      11.260ms      17.959us           627  
+                                               aten::mm        13.52%     606.979ms        17.63%     791.233ms      45.617us        3.416s        30.21%        3.416s     196.968us         17345  
+                    vllm::unified_attention_with_output        11.33%     508.364ms        21.02%     943.719ms     220.289us        3.665s        32.40%        4.237s     988.919us          4284  
+                                         mcLaunchKernel         8.79%     394.505ms         8.79%     394.505ms       8.762us       0.000us         0.00%       0.000us       0.000us         45026  
+                                            aten::empty         4.03%     180.823ms         4.03%     180.956ms       6.003us       0.000us         0.00%       0.000us       0.000us         30142  
+                                   mcModuleLaunchKernel         3.24%     145.515ms         3.24%     145.515ms       8.290us       3.053ms         0.03%       3.053ms       0.174us         17554  
+                          vllm::unified_kv_cache_update         2.98%     133.832ms         5.76%     258.395ms      60.316us       0.000us         0.00%     211.040ms      49.262us          4284  
+                                            aten::copy_         2.74%     122.858ms         4.84%     217.275ms      16.250us     772.288ms         6.83%     772.288ms      57.758us         13371  
+                                    aten::empty_strided         1.65%      73.921ms         1.65%      74.150ms       7.433us       0.000us         0.00%       0.000us       0.000us          9976  
+                                    FlashAttnVarlenFunc         1.49%      66.751ms         2.31%     103.517ms      80.370us     175.046ms         1.55%     175.046ms     135.905us          1288  
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+Self CPU time total: 4.489s
+Self CUDA time total: 11.310s
+
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                                                   Name    Self CPU %      Self CPU   CPU total %     CPU total  CPU time avg     Self CUDA   Self CUDA %    CUDA total  CUDA time avg    # of Calls  
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+void flash_fwd_splitkv_kernel<Flash_fwd_kernel_trait...         0.00%       0.000us         0.00%       0.000us       0.000us        3.875s        34.27%        3.875s     706.154us          5488  
+                    vllm::unified_attention_with_output        11.33%     508.364ms        21.02%     943.719ms     220.289us        3.665s        32.40%        4.237s     988.919us          4284  
+                                               aten::mm        13.52%     606.979ms        17.63%     791.233ms      45.617us        3.416s        30.21%        3.416s     196.968us         17345  
+mcblas__Mck_bf16gemm_tn_256x256x64_2m1n8k_512t_4stag...         0.00%       0.000us         0.00%       0.000us       0.000us        1.297s        11.46%        1.297s     300.416us          4316  
+void vllm::rms_norm_kernel<c10::BFloat16, 8, 3>(c10:...         0.00%       0.000us         0.00%       0.000us       0.000us        1.295s        11.45%        1.295s     110.675us         11704  
+                                           _C::rms_norm         0.81%      36.442ms         2.26%     101.501ms      11.639us        1.266s        11.20%        1.266s     145.203us          8721  
+mcblas__Mck_bf16gemm_tn_256x192x64_2m1n8k_512t_4stag...         0.00%       0.000us         0.00%       0.000us       0.000us     968.698ms         8.56%     968.698ms     336.704us          2877  
+mcblas__Mck_bf16gemm_tn_128x128x128_4m1n8k_256t_4sta...         0.00%       0.000us         0.00%       0.000us       0.000us     871.212ms         7.70%     871.212ms     120.500us          7230  
+                                            aten::copy_         2.74%     122.858ms         4.84%     217.275ms      16.250us     772.288ms         6.83%     772.288ms      57.758us         13371  
+std::enable_if<(((8)>(0)))&&_typeConvert<c10::BFloat...         0.00%       0.000us         0.00%       0.000us       0.000us     490.242ms         4.33%     490.242ms      41.887us         11704  
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+Self CPU time total: 4.489s
+Self CUDA time total: 11.310s
+
+trace=/profile/offline_bs2000_in128_out128.json 204.3 MB
+[rank0]:[W1127 15:59:05.064146420 ProcessGroupNCCL.cpp:1544] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+trace_phase_rc=0
+
+-- 原地解析 GPU/CPU 占比 --
+file=/profile/offline_bs2000_in128_out128.json size=204.3 MB
+events=880182
+-- categories (top 12) --
+  cpu_op                 n=433453    dur=5.911 s   e.g. aten::slice
+  cuda_runtime           n=128766    dur=2.123 s   e.g. mcEventSynchronize
+  kernel                 n=85092     dur=10.780 s   e.g. void at::native::vectorized_elementwise_kernel<4, at::native
+  gpu_memcpy             n=9460      dur=0.529 s   e.g. Memcpy HtoD (Pinned -> Device)
+  gpu_memset             n=15        dur=0.000 s   e.g. Memset (Device)
+  Trace                  n=1         dur=14.905 s   e.g. PyTorch Profiler (0)
+span=14.905 s
+-- host threads: 1, main tid=16 (562219 events) --
+  CPU busy(main)=4.489 s (30.1%)  idle=10.417 s (69.9%)
+  CPU busy(all threads)=4.489 s (30.1%)
+-- GPU busy = kernels only --
+  GPU busy=10.780 s (72.3%)  idle=4.125 s (27.7%)
+  GPU busy & CPU busy  3.963 s (26.6%)
+  GPU busy & CPU idle  6.817 s (45.7%)
+  GPU idle & CPU busy  0.526 s (3.5%)
+  GPU idle & CPU idle  3.600 s (24.1%)
+  sync during GPU idle=0.148 s
+-- GPU busy = kernels + memcpy/memset --
+  GPU busy=11.308 s (75.9%)  idle=3.597 s (24.1%)
+  GPU busy & CPU busy  4.156 s (27.9%)
+  GPU busy & CPU idle  7.152 s (48.0%)
+  GPU idle & CPU busy  0.332 s (2.2%)
+  GPU idle & CPU idle  3.265 s (21.9%)
+  sync during GPU idle=0.083 s
+-- GPU kernels: 85092, total dur 10.780 s --
+  void flash_fwd_splitkv_kernel<Flash_fwd_kernel_traits<128, 3.875 s ( 35.9%)
+  mcblas__Mck_bf16gemm_tn_256x256x64_2m1n8k_512t_4stage_bf16 1.297 s ( 12.0%)
+  void vllm::rms_norm_kernel<c10::BFloat16, 8, 3>(c10::BFloa 1.295 s ( 12.0%)
+  mcblas__Mck_bf16gemm_tn_256x192x64_2m1n8k_512t_4stage_bf16 0.969 s (  9.0%)
+  mcblas__Mck_bf16gemm_tn_128x128x128_4m1n8k_256t_4stage_bf1 0.871 s (  8.1%)
+  std::enable_if<(((8)>(0)))&&_typeConvert<c10::BFloat16>::e 0.490 s (  4.5%)
+  void vllm::act_and_mul_kernel<c10::BFloat16, __maca_bfloat 0.354 s (  3.3%)
+  void vllm::rotary_embedding_kernel<c10::BFloat16, true>(lo 0.313 s (  2.9%)
+  void at::native::unrolled_elementwise_kernel_copy_cast<at: 0.248 s (  2.3%)
+  void vllm::reshape_and_cache_flash_kernel<__maca_bfloat16, 0.220 s (  2.0%)
+-- synchronize calls --
+  mcEventSynchronize                     n=627     total=1.475 s avg=2.352 ms
+  mcDeviceSynchronize                    n=1       total=0.000 s avg=0.003 ms
+parse_rc=0
+docker_rc=0
+
+== 2. 结束后 GPU 状态（只读） ==
+| Process:                                                                        |
+|  GPU                    PID         Process Name                 GPU Memory     |
+|                                                                  Usage(MiB)     |
+|=================================================================================|
+|  no process found                                                               |
++---------------------------------------------------------------------------------+
+
+End of Log
+
+### 完成：in128/out128 timeline（/home/qch/qwen06_profile/offline_bs2000_in128_out128.json）
