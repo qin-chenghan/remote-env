@@ -1,0 +1,151 @@
+### server: 31
+### host:   localhost
+### time:   2026-11-27T11:47:38Z
+### script: curl-resume-v2（不再有 Fetching 10 files 进度条，看 size= 行）
+
+### 本轮写入：绕开 hf 的 ETag 重下逻辑，用 curl 断点续传 model.safetensors。
+###           已确认 .cache 里有两个不同 etag 的半成品（268MB / 409MB），
+###           每次重试都从 0 重来，所以到不了 1.5GB。
+###           只读探测 + 只写 /home/qch/models/Qwen3-0.6B；不装包、不改系统。
+
+== 0. 现状（只读） ==
+/dev/mapper/vg_home-lv_home     3520G 1089G     2396G  32% /home
+total 15568
+drwxr-xr-x. 3 root root     4096 Nov 27 19:13 .
+drwxr-xr-x. 3 root root     4096 Nov 27 19:13 ..
+drwxr-xr-x. 3 root root     4096 Nov 27 19:13 .cache
+-rw-r--r--. 1 root root      726 Nov 27 19:13 config.json
+-rw-r--r--. 1 root root      239 Nov 27 19:13 generation_config.json
+-rw-r--r--. 1 root root     1570 Nov 27 19:13 .gitattributes
+-rw-r--r--. 1 root root    11343 Nov 27 19:13 LICENSE
+-rw-r--r--. 1 root root  1671853 Nov 27 19:13 merges.txt
+-rw-r--r--. 1 root root    13965 Nov 27 19:13 README.md
+-rw-r--r--. 1 root root     9732 Nov 27 19:13 tokenizer_config.json
+-rw-r--r--. 1 root root 11422654 Nov 27 19:13 tokenizer.json
+-rw-r--r--. 1 root root  2776833 Nov 27 19:13 vocab.json
+1.1G	/home/qch/models/Qwen3-0.6B
+-- 半成品 --
+268121893 /home/qch/models/Qwen3-0.6B/.cache/huggingface/download/xGOKKLRSlIhH692hSVvI1-gpoa8=.f47f71177f32bcd101b7573ec9171e6a57f4f4d31148d38e382306f42996874b.eb33ae55.incomplete
+440401920 /home/qch/models/Qwen3-0.6B/.cache/huggingface/download/xGOKKLRSlIhH692hSVvI1-gpoa8=.f47f71177f32bcd101b7573ec9171e6a57f4f4d31148d38e382306f42996874b.673f3b18.incomplete
+440401920 /home/qch/models/Qwen3-0.6B/.cache/huggingface/download/xGOKKLRSlIhH692hSVvI1-gpoa8=.f47f71177f32bcd101b7573ec9171e6a57f4f4d31148d38e382306f42996874b.fe1445b2.incomplete
+
+== 1. 载入代理 ==
+http.proxy=http://141.1.61.31:3129
+https.proxy=http://141.1.61.31:3129
+http_proxy=http://141.1.61.31:3129
+https_proxy=http://141.1.61.31:3129
+no_proxy=localhost,127.0.0.*,10.*,192.168.*,*.local,*.huawei.com,*.athuawei.com,141.61.16.5,141.61.0.0/16
+NO_PROXY=localhost,127.0.0.*,10.*,192.168.*,*.local,*.huawei.com,*.athuawei.com,141.61.16.5,141.61.0.0/16
+
+== 2. 期望大小与 sha256（经代理取元数据） ==
+.gitattributes	1570	
+LICENSE	11343	
+README.md	13965	
+config.json	726	
+generation_config.json	239	
+merges.txt	1671853	
+model.safetensors	1503300328	
+tokenizer.json	11422654	
+tokenizer_config.json	9732	
+vocab.json	2776833	
+expected_size=1503300328 expected_sha=unknown
+
+== 3. 头探测与 Range 支持 ==
+HTTP/1.1 200 Connection established
+HTTP/1.1 302 Found
+Content-Length: 1046
+Location: https://cas-bridge.xethub.hf.co/xet-bridge-us/680da718233834890aa01f51/6f87d3bff66602a9611e541180dec950a6b6a9068ca274ee43ac8f83550f0223?Expires=1795783632&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9jYXMtYnJpZGdlLnhldGh1Yi5oZi5jby94ZXQtYnJpZGdlLXVzLzY4MGRhNzE4MjMzODM0ODkwYWEwMWY1MS82Zjg3ZDNiZmY2NjYwMmE5NjExZTU0MTE4MGRlYzk1MGE2YjZhOTA2OGNhMjc0ZWU0M2FjOGY4MzU1MGYwMjIzKiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc5NTc4MzYzMn19fV19&Signature=MEYCIQC6orjcsgpA6lQmWF7BIRrUKap6vqBsnpRzIqbayFFqaQIhAPFoqa%7Eo-Br37g34OC1EyOg8gLsR0ztC6YdpMvYSmTlX&Key-Pair-Id=K3EPXBYC3CKDRZ&X-Xet-Cas-Uid=62171e3b6a99db28e0b3159d&xip=Mz6tKFu0b34&response-content-disposition=inline%3B+filename*%3DUTF-8%27%27model.safetensors%3B+filename%3D%22model.safetensors%22%3B&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=cas%2F20261127%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261127T114712Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=93d8bf1a3e6465a434090497a41afefeeb26942ec87a1ed6c917ab0aca611eed
+range_status=302 head_bytes=1048
+
+== 4. 用已有半成品做种子（前缀校验一致才用） ==
+seed=/home/qch/models/Qwen3-0.6B/.cache/huggingface/download/xGOKKLRSlIhH692hSVvI1-gpoa8=.f47f71177f32bcd101b7573ec9171e6a57f4f4d31148d38e382306f42996874b.673f3b18.incomplete
+seed_head=37ab922ed7c198d5207332762016536fc774f8a30172fdffbf3ecd72454c7b24
+remote_head=4e8bd162884916b8a7630d4018d40f0004b0f4195c144a5e859d26fa6c40791d
+无可用种子，从 0 开始
+
+== 5. curl 断点续传（30s 打印一次进度） ==
+start_size=0
+progress 11:48:00 size=19296256
+progress 11:48:15 size=43380736
+progress 11:48:30 size=68415488
+progress 11:48:45 size=92835840
+progress 11:49:00 size=117424128
+progress 11:49:15 size=142290944
+progress 11:49:30 size=166707200
+progress 11:49:45 size=191684608
+progress 11:50:00 size=216690688
+progress 11:50:15 size=241967104
+progress 11:50:30 size=267337728
+progress 11:50:45 size=292864000
+progress 11:51:00 size=318083072
+progress 11:51:15 size=343269376
+progress 11:51:30 size=368635904
+progress 11:51:45 size=394211328
+progress 11:52:00 size=419758080
+progress 11:52:15 size=445091840
+progress 11:52:30 size=470433792
+progress 11:52:45 size=495718400
+progress 11:53:00 size=520986624
+progress 11:53:15 size=536662016
+progress 11:53:30 size=562053120
+progress 11:53:45 size=587223040
+progress 11:54:00 size=612196352
+progress 11:54:15 size=637038592
+progress 11:54:30 size=661680128
+progress 11:54:45 size=686088192
+progress 11:55:00 size=710402048
+progress 11:55:15 size=734556160
+progress 11:55:30 size=759521280
+progress 11:55:45 size=784695296
+progress 11:56:00 size=809967616
+progress 11:56:15 size=835227648
+progress 11:56:30 size=860430336
+progress 11:56:45 size=885989376
+progress 11:57:00 size=911024128
+progress 11:57:15 size=936243200
+progress 11:57:30 size=961589248
+progress 11:57:45 size=986861568
+progress 11:58:00 size=1012330496
+progress 11:58:15 size=1037680640
+progress 11:58:30 size=1063239680
+progress 11:58:45 size=1088794624
+progress 11:59:00 size=1114079232
+progress 11:59:15 size=1139412992
+progress 11:59:30 size=1164865536
+progress 11:59:45 size=1190150144
+progress 12:00:00 size=1215262720
+progress 12:00:15 size=1239863296
+progress 12:00:30 size=1264427008
+progress 12:00:45 size=1288671232
+progress 12:01:00 size=1313226752
+progress 12:01:15 size=1337360384
+progress 12:01:30 size=1362128896
+progress 12:01:45 size=1387331584
+progress 12:02:00 size=1411768320
+progress 12:02:15 size=1433919488
+progress 12:02:30 size=1456066560
+progress 12:02:45 size=1478184960
+progress 12:03:00 size=1500368896
+progress 12:03:15 size=1503300328
+curl_rc=0 final_size=1503300328
+
+== 6. 完整性检查 ==
+size=1503300328 expected=1503300328
+ok   config.json
+ok   tokenizer.json
+ok   tokenizer_config.json
+ok   generation_config.json
+-- 文件列表 --
+total 1.5G
+-rw-r--r--. 1 root root  726 Nov 27 19:13 config.json
+-rw-r--r--. 1 root root  239 Nov 27 19:13 generation_config.json
+-rw-r--r--. 1 root root  12K Nov 27 19:13 LICENSE
+-rw-r--r--. 1 root root 1.6M Nov 27 19:13 merges.txt
+-rw-r--r--. 1 root root 1.5G Nov 27 20:03 model.safetensors
+-rw-r--r--. 1 root root  14K Nov 27 19:13 README.md
+-rw-r--r--. 1 root root 9.6K Nov 27 19:13 tokenizer_config.json
+-rw-r--r--. 1 root root  11M Nov 27 19:13 tokenizer.json
+-rw-r--r--. 1 root root 2.7M Nov 27 19:13 vocab.json
+2.6G	/home/qch/models/Qwen3-0.6B
+
+### 完成：MODEL_DIR=/home/qch/models/Qwen3-0.6B
