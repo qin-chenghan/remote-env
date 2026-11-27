@@ -1,0 +1,64 @@
+### server: 31
+### host:   localhost
+### time:   2026-11-27T11:38:17Z
+
+### 本轮写入：诊断并续传 Qwen/Qwen3-0.6B 到 /home/qch/models/Qwen3-0.6B。
+###           上一轮在 9/10 文件处停滞（疑似大文件 Xet 通道在代理后卡死）。
+###           本轮禁用 Xet、每轮下载加超时、逐轮打印未完成文件大小。
+###           只读打印现状；下载只写 /home/qch/models/Qwen3-0.6B；不装包、不改系统。
+
+== 0. 前置检查（只读） ==
+localhost
+aarch64
+/dev/mapper/vg_home-lv_home     3520G 1088G     2397G  32% /home
+-- 目标目录现状 --
+total 15568
+drwxr-xr-x. 3 root root     4096 Nov 27 19:13 .
+drwxr-xr-x. 3 root root     4096 Nov 27 19:13 ..
+drwxr-xr-x. 3 root root     4096 Nov 27 19:13 .cache
+-rw-r--r--. 1 root root      726 Nov 27 19:13 config.json
+-rw-r--r--. 1 root root      239 Nov 27 19:13 generation_config.json
+-rw-r--r--. 1 root root     1570 Nov 27 19:13 .gitattributes
+-rw-r--r--. 1 root root    11343 Nov 27 19:13 LICENSE
+-rw-r--r--. 1 root root  1671853 Nov 27 19:13 merges.txt
+-rw-r--r--. 1 root root    13965 Nov 27 19:13 README.md
+-rw-r--r--. 1 root root     9732 Nov 27 19:13 tokenizer_config.json
+-rw-r--r--. 1 root root 11422654 Nov 27 19:13 tokenizer.json
+-rw-r--r--. 1 root root  2776833 Nov 27 19:13 vocab.json
+271M	/home/qch/models/Qwen3-0.6B
+-- 未完成缓存（按大小排序） --
+101 /home/qch/models/Qwen3-0.6B/.cache/huggingface/download/config.json.metadata
+101 /home/qch/models/Qwen3-0.6B/.cache/huggingface/download/generation_config.json.metadata
+101 /home/qch/models/Qwen3-0.6B/.cache/huggingface/download/.gitattributes.metadata
+101 /home/qch/models/Qwen3-0.6B/.cache/huggingface/download/README.md.metadata
+101 /home/qch/models/Qwen3-0.6B/.cache/huggingface/download/tokenizer_config.json.metadata
+101 /home/qch/models/Qwen3-0.6B/.cache/huggingface/download/vocab.json.metadata
+124 /home/qch/models/Qwen3-0.6B/.cache/huggingface/download/tokenizer.json.metadata
+191 /home/qch/models/Qwen3-0.6B/.cache/huggingface/CACHEDIR.TAG
+1448 /home/qch/models/Qwen3-0.6B/.cache/huggingface/trees/c1899de289a04d12100db370d81485cdf75e47ca.json
+268121893 /home/qch/models/Qwen3-0.6B/.cache/huggingface/download/xGOKKLRSlIhH692hSVvI1-gpoa8=.f47f71177f32bcd101b7573ec9171e6a57f4f4d31148d38e382306f42996874b.eb33ae55.incomplete
+
+== 1. 载入代理 ==
+http.proxy=http://141.1.61.31:3129
+https.proxy=http://141.1.61.31:3129
+-- 代理变量（已脱敏） --
+http_proxy=http://141.1.61.31:3129
+https_proxy=http://141.1.61.31:3129
+no_proxy=localhost,127.0.0.*,10.*,192.168.*,*.local,*.huawei.com,*.athuawei.com,141.61.16.5,141.61.0.0/16
+NO_PROXY=localhost,127.0.0.*,10.*,192.168.*,*.local,*.huawei.com,*.athuawei.com,141.61.16.5,141.61.0.0/16
+
+== 2. 仓库文件清单与期望大小（经代理） ==
+        1570  .gitattributes
+       11343  LICENSE
+       13965  README.md
+         726  config.json
+         239  generation_config.json
+     1671853  merges.txt
+  1503300328  model.safetensors
+    11422654  tokenizer.json
+        9732  tokenizer_config.json
+     2776833  vocab.json
+
+== 3. 续传（HF_HUB_DISABLE_XET=1，每轮 300s，最多 4 轮） ==
+-- attempt 1 11:38:19 --
+Fetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]
