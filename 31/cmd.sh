@@ -22,6 +22,7 @@ MAX_LEN="${MAX_LEN:-4096}"
 PORT_IN="${PORT_IN:-8000}"
 PROFILE_TRACE="${PROFILE_TRACE:-1}"
 TRACE_HOST="${TRACE_HOST:-/home/qch/qwen06_profile}"
+SKIP_BENCH="${SKIP_BENCH:-0}"
 
 {
   echo "### server: $SERVER"
@@ -34,7 +35,7 @@ TRACE_HOST="${TRACE_HOST:-/home/qch/qwen06_profile}"
   echo "###           不装包、不改系统配置、不留容器。"
   echo "### 配置：prompts=$PROMPTS warmups=$WARMUPS max_concurrency=$CONCURRENCY max_num_seqs=$MAX_NUM_SEQS"
   echo "### 说明：31 自身拉满口径（默认 240，2048-token 请求容量上限约 242）；118 仅用于和 32 对比"
-  echo "### 预计：server 启动 ~4-6 分钟 + bench ~1-2 分钟 + 离线引擎再启动 ~4-6 分钟 + 生成 ~1-2 分钟"
+  echo "### 预计：server 启动 ~4-5 分钟 + bench ~1 分钟 + 离线引擎 ~20 秒 + 生成/导出 ~2-3 分钟（SKIP_BENCH=1 跳过前半）"
   set +x
 
   echo
@@ -68,7 +69,7 @@ TRACE_HOST="${TRACE_HOST:-/home/qch/qwen06_profile}"
       -e CONCURRENCY="$CONCURRENCY" -e MAX_NUM_SEQS="$MAX_NUM_SEQS" \
       -e IN_LEN="$IN_LEN" -e OUT_LEN="$OUT_LEN" \
       -e MAX_LEN="$MAX_LEN" -e PORT_IN="$PORT_IN" \
-      -e PROFILE_TRACE="$PROFILE_TRACE" \
+      -e PROFILE_TRACE="$PROFILE_TRACE" -e SKIP_BENCH="$SKIP_BENCH" \
       -v "$MODEL_DIR":/model:ro \
       -v "$TRACE_HOST":/profile \
       "$IMAGE" bash -s <<'INNER'
@@ -84,6 +85,9 @@ p = torch.cuda.get_device_properties(0)
 print("device", p.name, "sm", p.multi_processor_count, "mem_MB", round(p.total_memory/1024/1024))
 PY
 
+if [[ "${SKIP_BENCH:-0}" == "1" ]]; then
+    echo "-- SKIP_BENCH=1：跳过 server + bench，直接采离线 trace --"
+else
 echo "-- server/bench CLI 探测 --"
 python3 -m vllm.entrypoints.openai.api_server --help > /tmp/server_help.txt 2>&1 || true
 EXTRA=()
@@ -165,6 +169,7 @@ echo "-- 结束，杀 server --"
 cleanup
 trap - EXIT
 echo "done"
+fi
 
 if [[ "$PROFILE_TRACE" == "1" ]]; then
     echo
