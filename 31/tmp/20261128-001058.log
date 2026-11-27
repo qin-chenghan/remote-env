@@ -1,0 +1,54 @@
+### server: 31
+### host:   localhost
+### time:   2026-11-27T16:10:58Z
+### script: find-max-bs-31-128（in128/out128，server max_num_seqs=2000）
+
+### 本轮写入：起 --rm 临时容器跑 server + 多轮 bench；GPU 7；
+###           不装包、不改系统配置、不留容器。
+### 阶梯：未指定则按 KV/(输入+输出) 自动生成（含上限点与 2000）
+### 预计：server 启动 ~5-8 分钟 + 每轮 ~20-40 秒
+
+== 0. 前置检查（只读） ==
+Sat Nov 28 12:10:58 AM CST 2026
+local/vllm-metax:0.21.0-arm64-c500-v4-short	13.5GB
+local/vllm-metax:0.21.0-arm64-c500-v4-dg	13.5GB
+local/vllm-metax:0.21.0-arm64-c500	13.5GB
+total 1.5G
+-rw-r--r--. 1 root root  726 Nov 27 19:13 config.json
+-rw-r--r--. 1 root root  239 Nov 27 19:13 generation_config.json
+-rw-r--r--. 1 root root  12K Nov 27 19:13 LICENSE
+-rw-r--r--. 1 root root 1.6M Nov 27 19:13 merges.txt
+-rw-r--r--. 1 root root 1.5G Nov 27 20:03 model.safetensors
+| Process:                                                                        |
+|  GPU                    PID         Process Name                 GPU Memory     |
+|                                                                  Usage(MiB)     |
+|=================================================================================|
+|  no process found                                                               |
++---------------------------------------------------------------------------------+
+
+End of Log
+
+== 1. 容器内：server + 并发阶梯 bench（写入：临时容器） ==
+server_extra=--async-scheduling --compilation-config {} --enable-chunked-prefill --no-enable-prefix-caching --max-num-seqs 2000
+server_max_seqs=2000
+server healthy after 250.3s
+gpu_kv_cache_tokens=421056
+expected_max_concurrency(256 tokens/req)=1644
+conc_list=1397 1561 1644 1664 1808 2000
+
+==== C=1397 prompts=1397 max_concurrency=1397 ====
+bench_rc=0
+Successful requests:                     1397      
+Failed requests:                         0         
+Benchmark duration (s):                  14.38     
+Request throughput (req/s):              97.16     
+Output token throughput (tok/s):         12436.42  
+Total token throughput (tok/s):          24872.84  
+Median TTFT (ms):                        4442.59   
+Median TPOT (ms):                        36.21     
+Median ITL (ms):                         34.68     
+{"date": "20261127-161907", "endpoint_type": "vllm", "backend": "vllm", "label": null, "model_id": "/model", "tokenizer_id": "/model", "num_prompts": 1397, "request_rate": "inf", "burstiness": 1.0, "max_concurrency": 1397, "duration": 14.378414869999688, "completed": 1397, "failed": 0, "total_input_tokens": 178816, "total_output_tokens": 178816, "request_throughput": 97.15952784995905, "request_goodput": null, "output_throughput": 12436.419564794758, "total_token_throughput": 24872.839129589516, "max_output_tokens_per_s": 16146.0, "max_concurrent_requests": 1397, "rtfx": 0.0, "mean_ttft_ms": 5918.740550365059, "median_ttft_ms": 4442.59109000086, "std_ttft_ms": 3628.363877050809, "p99_ttft_ms": 10692.853919599947, "mean_tpot_ms": 35.48617893647222, "median_tpot_ms": 36.20931637794463, "std_tpot_ms": 10.900580305654161, "p99_tpot_ms": 46.201419329141125, "mean_itl_ms": 37.61184840762988, "median_itl_ms": 34.67756499958341, "std_itl_ms": 16.22008060352257, "p99_itl_ms": 91.96593750044485}---- C=1397 服务端状态（本轮切片） ----
+samples=2  max_running=765  max_waiting=0  max_kv=41.6%
+preempt_count=0
+
+==== C=1561 prompts=1561 max_concurrency=1561 ====
