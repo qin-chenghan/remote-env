@@ -1,0 +1,56 @@
+### server: 31
+### host:   localhost
+### time:   2026-11-27T13:33:47Z
+### script: vllm-bench-31-v3（1024/1024 @ bs118：bench + 离线 torch.profiler）
+
+### 本轮写入：起 --rm 临时容器跑 vLLM server + bench，再用离线 LLM 采 trace；GPU 7；
+###           挂载 /home/qch/models/Qwen3-0.6B（只读）和 /home/qch/qwen06_profile（trace 落盘）；
+###           不装包、不改系统配置、不留容器。
+### 配置：prompts=118 warmups=16 max_concurrency=118 max_num_seqs=118
+### 说明：两边同为 118 并发的统一口径；118×2048=241,664 tokens，占 31 KV 池 519,904 的 46.5%
+### 预计：server 启动 ~4-6 分钟 + bench ~1-2 分钟 + 离线引擎再启动 ~4-6 分钟 + 生成 ~1-2 分钟
+
+== 0. 前置检查（只读） ==
+Fri Nov 27 09:33:47 PM CST 2026
+-- 镜像 --
+local/vllm-metax:0.21.0-arm64-c500-v4-short	13.5GB
+local/vllm-metax:0.21.0-arm64-c500-v4-dg	13.5GB
+local/vllm-metax:0.21.0-arm64-c500	13.5GB
+-- 模型 --
+total 1.5G
+-rw-r--r--. 1 root root  726 Nov 27 19:13 config.json
+-rw-r--r--. 1 root root  239 Nov 27 19:13 generation_config.json
+-rw-r--r--. 1 root root  12K Nov 27 19:13 LICENSE
+-rw-r--r--. 1 root root 1.6M Nov 27 19:13 merges.txt
+-rw-r--r--. 1 root root 1.5G Nov 27 20:03 model.safetensors
+-rw-r--r--. 1 root root  14K Nov 27 19:13 README.md
+-rw-r--r--. 1 root root 9.6K Nov 27 19:13 tokenizer_config.json
+-rw-r--r--. 1 root root  11M Nov 27 19:13 tokenizer.json
+-rw-r--r--. 1 root root 2.7M Nov 27 19:13 vocab.json
+model_size=1503300328
+-- GPU 占用（共享卡预检） --
+| Process:                                                                        |
+|  GPU                    PID         Process Name                 GPU Memory     |
+|                                                                  Usage(MiB)     |
+|=================================================================================|
+|  no process found                                                               |
++---------------------------------------------------------------------------------+
+
+End of Log
+trace_dir=/home/qch/qwen06_profile
+
+== 1. 容器内：vLLM server + bs118 bench（写入：临时容器） ==
+-- 容器内版本 --
+vllm 0.21.0
+torch 2.8.0+metax3.7.0.7
+device_count 1
+device MetaX C500 sm 104 mem_MB 65120
+-- server/bench CLI 探测 --
+server_extra=--async-scheduling --compilation-config {} --enable-chunked-prefill --no-enable-prefix-caching --max-num-seqs 118
+bench_cmd=python3 -m vllm.entrypoints.cli.main bench serve
+-- 启动 server：--host 127.0.0.1 --port 8000 --model /model --trust-remote-code --dtype auto --max-model-len 4096 --tensor-parallel-size 1 --gpu-memory-utilization 0.9 --async-scheduling --compilation-config {} --enable-chunked-prefill --no-enable-prefix-caching --max-num-seqs 118 --
+server healthy after 250.3s
+-- KV 容量（server.log） --
+(EngineCore pid=115) INFO 11-27 13:40:49 [kv_cache_utils.py:1710] GPU KV cache size: 513,760 tokens
+
+==== in1024/out1024 prompts=118 warmups=16 max_concurrency=118 max_num_seqs=118 ====
