@@ -1,0 +1,138 @@
+### server: 31
+### host:   localhost
+### time:   2026-11-27T11:10:39Z
+
+### 本轮写入：在 31 上创建 /home/qch/models，下载 Qwen/Qwen3-0.6B 到 /home/qch/models/Qwen3-0.6B。
+###           使用 /home/qch/env/set_proxy.sh 的代理；不改系统、不装包、不启动服务。
+###           预计 1.2GB 左右，视代理速度约 1–5 分钟。
+
+== 0. 前置检查（只读） ==
+localhost
+aarch64
+/dev/mapper/vg_home-lv_home     3520G 1088G     2397G  32% /home
+home_avail_gb=2397
+proxy_script=/home/qch/env/set_proxy.sh（存在；内容不打印，避免泄露凭据）
+
+== 1. 载入代理 ==
+http.proxy=http://141.1.61.31:3129
+https.proxy=http://141.1.61.31:3129
+-- 代理变量（已脱敏） --
+http_proxy=http://141.1.61.31:3129
+https_proxy=http://141.1.61.31:3129
+no_proxy=localhost,127.0.0.*,10.*,192.168.*,*.local,*.huawei.com,*.athuawei.com,141.61.16.5,141.61.0.0/16
+NO_PROXY=localhost,127.0.0.*,10.*,192.168.*,*.local,*.huawei.com,*.athuawei.com,141.61.16.5,141.61.0.0/16
+HF_ENDPOINT=unset
+
+== 2. 目标目录 ==
+DEST=/home/qch/models/Qwen3-0.6B
+目标不存在，开始下载。
+-- 可用下载工具 --
+hf               /usr/local/bin/hf
+huggingface-cli  no
+modelscope       no
+git-lfs          no
+python3          /usr/bin/python3
+
+== 3. 下载 Qwen/Qwen3-0.6B ==
+-- 使用 hf download --
+[90mHint: A new version of huggingface_hub (2.5.0) is available! You are using version 2.4.0.
+To update, run: hf update[0m
+[90mHint: The `hf-cli` skill is not installed. Run `hf skills add -g` to teach your AI agents how to use the `hf` CLI.[0m
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/httpx2/_transports/default.py", line 98, in map_httpcore_exceptions
+    yield
+  File "/usr/local/lib/python3.11/site-packages/httpx2/_transports/default.py", line 245, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore2/_sync/connection_pool.py", line 242, in handle_request
+    raise exc from None
+  File "/usr/local/lib/python3.11/site-packages/httpcore2/_sync/connection_pool.py", line 224, in handle_request
+    response = connection.handle_request(pool_request.request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpcore2/_sync/http_proxy.py", line 290, in handle_request
+    raise ProxyError(msg)
+httpcore2.ProxyError: 504 Gateway Time-out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/local/bin/hf", line 8, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/huggingface_hub/cli/hf.py", line 167, in main
+    app(windows_expand_args=False)
+  File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1653, in __call__
+    return self.main(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1560, in main
+    rv = self.invoke(ctx)
+         ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/huggingface_hub/cli/_cli_utils.py", line 132, in invoke
+    return super().invoke(ctx)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/click/core.py", line 2054, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1414, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/click/core.py", line 911, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/huggingface_hub/cli/_framework.py", line 365, in handler
+    return func(**call_kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/huggingface_hub/cli/download.py", line 228, in download
+    _print_result(run_download())
+                  ^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/huggingface_hub/cli/download.py", line 187, in run_download
+    return snapshot_download(
+           ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/huggingface_hub/utils/_validators.py", line 89, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/huggingface_hub/utils/_http.py", line 276, in _inner
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/huggingface_hub/_snapshot_download.py", line 279, in snapshot_download
+    repo_info = api.repo_info(repo_id=repo_id, repo_type=repo_type, revision=revision)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/huggingface_hub/utils/_validators.py", line 89, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/huggingface_hub/hf_api.py", line 3535, in repo_info
+    return method(
+           ^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/huggingface_hub/utils/_validators.py", line 89, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/huggingface_hub/hf_api.py", line 3214, in model_info
+    r = get_session().get(path, headers=headers, timeout=timeout, params=params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx2/_client.py", line 1112, in get
+    return self.request(
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx2/_client.py", line 796, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx2/_client.py", line 979, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx2/_client.py", line 1007, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx2/_client.py", line 1042, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx2/_client.py", line 1075, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/httpx2/_transports/default.py", line 244, in handle_request
+    with map_httpcore_exceptions():
+  File "/usr/lib64/python3.11/contextlib.py", line 155, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/httpx2/_transports/default.py", line 115, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx2.ProxyError: 504 Gateway Time-out
+download_rc=1
+!! 下载失败，保留已下载文件，便于重跑续传
