@@ -1,0 +1,76 @@
+### server: 31
+### host:   localhost
+### time:   2026-11-27T13:25:30Z
+### script: vllm-timeline-31-v3（只读：重新解析已导出的 870MB Perfetto JSON）
+
+### v2 的逐行解析没读到事件（torch 2.8 的导出不是逐行 JSON），
+### 这里用标准 json.load 重算 span / GPU busy / per-stream 空闲 gap；
+### 不跑模型、不动 trace 文件。预计 3-6 分钟（解析耗时）。
+
+== 0. 前置检查（只读） ==
+total 908M
+-rw-r--r--. 1 root root 870M Nov 27 21:13 offline_bs8_in1024_out1024.json
+-rw-r--r--. 1 root root  38M Nov 27 21:13 offline_bs8_in1024_out1024.json.gz
+-rw-r--r--. 1 root root  104 Nov 27 21:02 timeline-31-20261127-204839.tar.gz
+/dev/mapper/vg_home-lv_home  3.5T  1.1T  2.4T  32% /home
+               total        used        free      shared  buff/cache   available
+Mem:             565           9         347           0         211         555
+Swap:              0           0           0
+
+== 1. 解析 trace（只读） ==
+runner=python3
+file=/home/qch/qwen06_profile/offline_bs8_in1024_out1024.json size=870.0 MB
+top_keys= ['schemaVersion', 'deviceProperties', 'cupti_version', 'cuda_runtime_version', 'cuda_driver_version', 'distributedInfo', 'trace_id', 'displayTimeUnit', 'baseTimeNanoseconds', 'traceName']
+parsed 2683807 events in 10.5 s
+X events=1531446 span=14.156 s
+
+-- categories --
+  kernel                 events=964446   dur=11.488 s
+  cpu_op                 events=379146   dur=2.867 s
+  cuda_runtime           events=114121   dur=9.287 s
+  gpu_memcpy             events=73732    dur=0.930 s
+  Trace                  events=1        dur=14.156 s
+
+-- sync / launch --
+  mcEventSynchronize                       n=6144    total=8.693 s avg=1.415 ms
+  mcDeviceSynchronize                      n=1       total=0.000 s avg=0.005 ms
+  mcLaunchKernel                           n=37380  
+  mcModuleLaunchKernel                     n=4320   
+
+-- GPU kernels --
+kernels=964446  sum_dur=11.488 s  union_busy=11.488 s  busy=81.2% of span  bubble=2.668 s
+streams=1
+  stream 0        kernels=964446 busy=11.488 s idle=2.661 s max_gap=21.13 ms gaps>=0.5ms=55
+      gap 21.13 ms at t+13.907 s
+      gap 21.01 ms at t+13.494 s
+      gap 13.36 ms at t+13.928 s
+
+-- top kernel names by total dur --
+  void flash_fwd_splitkv_kernel<Flash_fwd_kernel_traits<128, 16, 1 3.332 s n=57288
+  mcblas__Mck_bf16gemm_tn_64x32x256_2m1n8k_256t_bf16_bf16_fp32_sb_ 1.528 s n=114576
+  void at::native::unrolled_elementwise_kernel_copy_cast<at::nativ 1.319 s n=59392
+  mcblas__Mck_bf16gemm_tn_64x32x256_2m1n8k_256t_bf16_bf16_fp32_sb_ 1.163 s n=114576
+  void vllm::rms_norm_kernel<c10::BFloat16, 8, 3>(c10::BFloat16*,  0.616 s n=114688
+  void flash_fwd_splitkv_combine_kernel<Flash_fwd_kernel_traits<12 0.550 s n=57288
+  std::enable_if<(((8)>(0)))&&_typeConvert<c10::BFloat16>::exists, 0.544 s n=114688
+  mcblas__Mck_bf16gemm_tn_64x64x64_2m1n4k_256t_bf16_bf16_fp32_sb_0 0.462 s n=2048
+  void mcblas::DevDstElementwiseAdd<__maca_bfloat16, float, float, 0.372 s n=114576
+  void vllm::rotary_embedding_kernel<c10::BFloat16, true>(long con 0.330 s n=57344
+  void vllm::act_and_mul_kernel<c10::BFloat16, __maca_bfloat162, & 0.272 s n=57344
+  void vllm::reshape_and_cache_flash_kernel<__maca_bfloat16, __mac 0.241 s n=57344
+  void at::native::unrolled_elementwise_kernel<at::native::direct_ 0.084 s n=6140
+  std::enable_if<((std::is_same<thrust::pair<float, long>, thrust: 0.072 s n=2048
+  void at::native::vectorized_elementwise_kernel<4, at::native::di 0.062 s n=4094
+
+-- trace threads (first 15 by pid/tid) --
+  pid=0 tid=0 name=stream 0 
+  pid=0 tid=2 name=stream 2 
+  pid=16 tid=16 name=thread 16 (python3)
+
+== 2. 结束后（只读） ==
+total 908M
+-rw-r--r--. 1 root root 870M Nov 27 21:13 offline_bs8_in1024_out1024.json
+-rw-r--r--. 1 root root  38M Nov 27 21:13 offline_bs8_in1024_out1024.json.gz
+-rw-r--r--. 1 root root  104 Nov 27 21:02 timeline-31-20261127-204839.tar.gz
+
+### 完成：trace 解析
