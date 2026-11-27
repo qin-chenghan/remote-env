@@ -33,7 +33,7 @@ TRACE_HOST="${TRACE_HOST:-/home/qch/qwen06_profile}"
   echo "###           挂载 $MODEL_DIR（只读）和 $TRACE_HOST（trace 落盘）；"
   echo "###           不装包、不改系统配置、不留容器。"
   echo "### 配置：prompts=$PROMPTS warmups=$WARMUPS max_concurrency=$CONCURRENCY max_num_seqs=$MAX_NUM_SEQS"
-  echo "### 说明：两边同为 118 并发的统一口径；118×2048=241,664 tokens，占 31 KV 池 519,904 的 46.5%"
+  echo "### 说明：两边同为 118 并发的统一口径；118×2048=241,664 tokens，约占 31 KV 池的 47%"
   echo "### 预计：server 启动 ~4-6 分钟 + bench ~1-2 分钟 + 离线引擎再启动 ~4-6 分钟 + 生成 ~1-2 分钟"
   set +x
 
