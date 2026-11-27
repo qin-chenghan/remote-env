@@ -10,180 +10,163 @@ OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
 IMAGE="${IMAGE:-local/vllm-metax:0.21.0-arm64-c500}"
-PROFILE_HOST="${PROFILE_HOST:-/home/qch/qwen06_profile}"
-TRACE="${TRACE:-$PROFILE_HOST/offline_bs8_in1024_out1024.json}"
+GPUSEL="${GPUSEL:-7}"
+MODEL_DIR="${MODEL_DIR:-/home/qch/models/Qwen3-0.6B}"
+PROMPTS="${PROMPTS:-1000}"
+WARMUPS="${WARMUPS:-16}"
+CONCURRENCY="${CONCURRENCY:-1000}"
+MAX_NUM_SEQS="${MAX_NUM_SEQS:-1024}"
+IN_LEN="${IN_LEN:-1024}"
+OUT_LEN="${OUT_LEN:-1024}"
+MAX_LEN="${MAX_LEN:-4096}"
+PORT_IN="${PORT_IN:-8000}"
 
 {
   echo "### server: $SERVER"
   echo "### host:   $(hostname)"
   echo "### time:   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  echo "### script: vllm-timeline-31-v3（只读：重新解析已导出的 870MB Perfetto JSON）"
+  echo "### script: vllm-bench-31-v2（1024/1024 拉满 KV 上限，1000 prompts）"
   echo
-  echo "### v2 的逐行解析没读到事件（torch 2.8 的导出不是逐行 JSON），"
-  echo "### 这里用标准 json.load 重算 span / GPU busy / per-stream 空闲 gap；"
-  echo "### 不跑模型、不动 trace 文件。预计 3-6 分钟（解析耗时）。"
+  echo "### 本轮写入：启动 --rm 临时容器跑 vLLM 服务 + bench；GPU $GPUSEL；"
+  echo "###           挂载 $MODEL_DIR（只读）；结果 JSON 留在容器 /tmp 并打印到日志；"
+  echo "###           不装包、不改配置、不留容器。"
+  echo "### 配置：prompts=$PROMPTS warmups=$WARMUPS max_concurrency=$CONCURRENCY max_num_seqs=$MAX_NUM_SEQS"
+  echo "### 预计：启动 ~4-6 分钟（含图编译）+ bench ~2-5 分钟（KV 上限约 253）"
   set +x
 
   echo
   echo "== 0. 前置检查（只读） =="
-  ls -lh "$PROFILE_HOST" | head -10
-  [[ -f "$TRACE" ]] || { echo "!! 找不到 $TRACE"; exit 2; }
-  df -h /home | tail -1
-  free -g | head -3
+  date
+  echo "-- 镜像 --"
+  docker images --format '{{.Repository}}:{{.Tag}}\t{{.Size}}' 2>/dev/null | grep -F "$IMAGE" || {
+      echo "!! 找不到镜像 $IMAGE"; exit 2; }
+  echo "-- 模型 --"
+  if [[ -f "$MODEL_DIR/config.json" && -f "$MODEL_DIR/model.safetensors" ]]; then
+      ls -lh "$MODEL_DIR" | head -15
+      echo "model_size=$(stat -c %s "$MODEL_DIR/model.safetensors")"
+  else
+      echo "!! 模型不完整：$MODEL_DIR"; exit 2
+  fi
+  echo "-- GPU 占用（共享卡预检） --"
+  mx-smi 2>&1 | sed -n '/Process:/,/End of Log/p' | head -20 || true
+  if mx-smi 2>&1 | sed -n '/Process:/,/End of Log/p' | grep -qiE 'python|vllm|ray|pt_main'; then
+      echo "!! GPU 上有进程，按共享卡策略退出（等空闲再跑）"; exit 3
+  fi
 
   echo
-  echo "== 1. 解析 trace（只读） =="
-  if command -v python3 >/dev/null 2>&1; then
-      RUN=(python3)
-      TARNORM="$TRACE"
-  else
-      RUN=(docker run --rm -i -v "$PROFILE_HOST":/profile "$IMAGE" python3)
-      TARNORM="/profile/$(basename "$TRACE")"
-  fi
-  echo "runner=${RUN[*]}"
-
-  "${RUN[@]}" - "$TARNORM" <<'PY'
-import collections, json, sys, time, os
-
-path = sys.argv[1]
-print("file=%s size=%.1f MB" % (path, os.path.getsize(path) / 1048576))
-t0 = time.time()
-with open(path, "r") as f:
-    d = json.load(f)
-if isinstance(d, dict):
-    events = d.get("traceEvents", [])
-    print("top_keys=", [k for k in d.keys() if k != "traceEvents"])
-else:
-    events = d
-print("parsed %d events in %.1f s" % (len(events), time.time() - t0))
-
-thread_name = {}
-proc_name = {}
-cats = collections.Counter()
-cat_dur = collections.Counter()
-kern = []
-kern_name_dur = collections.Counter()
-kern_name_cnt = collections.Counter()
-sync = collections.Counter()
-sync_dur = collections.Counter()
-launch = collections.Counter()
-span_lo = span_hi = None
-x_count = 0
-
-for ev in events:
-    ph = ev.get("ph")
-    if ph == "M":
-        nm = ev.get("name")
-        if nm == "thread_name":
-            thread_name[(ev.get("pid"), ev.get("tid"))] = (ev.get("args") or {}).get("name")
-        elif nm == "process_name":
-            proc_name[ev.get("pid")] = (ev.get("args") or {}).get("name")
-        continue
-    if ph != "X":
-        continue
-    ts = ev.get("ts")
-    dur = ev.get("dur")
-    if ts is None or dur is None:
-        continue
-    x_count += 1
-    lo, hi = ts, ts + dur
-    span_lo = lo if span_lo is None or lo < span_lo else span_lo
-    span_hi = hi if span_hi is None or hi > span_hi else span_hi
-    cat = ev.get("cat", "")
-    cats[cat] += 1
-    cat_dur[cat] += dur
-    name = ev.get("name", "?")
-    if cat.lower() == "kernel":
-        kern.append((ts, dur, (ev.get("args") or {}).get("stream", ev.get("tid"))))
-        kern_name_dur[name] += dur
-        kern_name_cnt[name] += 1
-    if "synchronize" in name.lower():
-        sync[name] += 1
-        sync_dur[name] += dur
-    if "launchkernel" in name.lower():
-        launch[name] += 1
-
-span = (span_hi - span_lo) if span_lo is not None else 0
-print("X events=%d span=%.3f s" % (x_count, span / 1e6 if span else 0))
-print()
-print("-- categories --")
-for cat, cnt in cats.most_common(10):
-    print("  %-22s events=%-8d dur=%.3f s" % (cat or "(none)", cnt, cat_dur[cat] / 1e6))
-
-print()
-print("-- sync / launch --")
-for nm, cnt in sync.most_common(8):
-    print("  %-40s n=%-7d total=%.3f s avg=%.3f ms" % (nm[:40], cnt, sync_dur[nm] / 1e6,
-          sync_dur[nm] / cnt / 1000 if cnt else 0))
-for nm, cnt in launch.most_common(5):
-    print("  %-40s n=%-7d" % (nm[:40], cnt))
-
-def merge_busy(iv):
-    iv.sort()
-    total = 0.0
-    lo = hi = None
-    for a, b in iv:
-        if lo is None:
-            lo, hi = a, b
-        elif a <= hi:
-            hi = max(hi, b)
-        else:
-            total += hi - lo
-            lo, hi = a, b
-    if lo is not None:
-        total += hi - lo
-    return total
-
-print()
-print("-- GPU kernels --")
-if kern:
-    busy = merge_busy([(ts, ts + dur) for ts, dur, _ in kern])
-    print("kernels=%d  sum_dur=%.3f s  union_busy=%.3f s  busy=%.1f%% of span  bubble=%.3f s"
-          % (len(kern), sum(d for _, d, _ in kern) / 1e6, busy / 1e6,
-             100 * busy / span if span else 0, (span - busy) / 1e6))
-    per_stream = collections.defaultdict(list)
-    for ts, dur, st in kern:
-        per_stream[st].append((ts, ts + dur))
-    print("streams=%d" % len(per_stream))
-    for st, iv in sorted(per_stream.items(), key=lambda kv: -merge_busy(kv[1]))[:8]:
-        b = merge_busy(iv)
-        iv.sort()
-        gaps = []
-        for (a_lo, a_hi), (b_lo, _) in zip(iv, iv[1:]):
-            g = b_lo - a_hi
-            if g > 0:
-                gaps.append((a_hi, g))
-        gt = sum(g for _, g in gaps)
-        gm = max((g for _, g in gaps), default=0)
-        big = [(t, g) for t, g in gaps if g >= 500]
-        big.sort(key=lambda x: -x[1])
-        print("  stream %-8s kernels=%-6d busy=%.3f s idle=%.3f s max_gap=%.2f ms gaps>=0.5ms=%d"
-              % (str(st), len(iv), b / 1e6, gt / 1e6, gm / 1000, len(big)))
-        for t, g in big[:3]:
-            print("      gap %.2f ms at t+%.3f s" % (g / 1000, (t - span_lo) / 1e6))
-    print()
-    print("-- top kernel names by total dur --")
-    for nm, d in kern_name_dur.most_common(15):
-        print("  %-64s %.3f s n=%d" % (nm[:64], d / 1e6, kern_name_cnt[nm]))
-else:
-    print("没有 kernel 事件")
-
-names = collections.Counter()
-for (pid, tid), nm in thread_name.items():
-    if nm:
-        names[nm] += 1
-print()
-print("-- trace threads (first 15 by pid/tid) --")
-for (pid, tid), nm in list(thread_name.items())[:15]:
-    print("  pid=%s tid=%s name=%s" % (pid, tid, nm))
+  echo "== 1. 容器内：vLLM server + 拉满 bench（写入：临时容器） =="
+  docker run --rm -i --network=host --ipc=host --shm-size=16g \
+      --device=/dev/mxcd \
+      $(for d in /dev/dri/card* /dev/dri/renderD*; do [[ -e "$d" ]] && printf -- '--device=%s ' "$d"; done) \
+      -e MACA_VISIBLE_DEVICES="$GPUSEL" -e CUDA_VISIBLE_DEVICES="$GPUSEL" \
+      -e PROMPTS="$PROMPTS" -e WARMUPS="$WARMUPS" \
+      -e CONCURRENCY="$CONCURRENCY" -e MAX_NUM_SEQS="$MAX_NUM_SEQS" \
+      -e IN_LEN="$IN_LEN" -e OUT_LEN="$OUT_LEN" \
+      -e MAX_LEN="$MAX_LEN" -e PORT_IN="$PORT_IN" \
+      -v "$MODEL_DIR":/model:ro \
+      "$IMAGE" bash -s <<'INNER'
+set -uo pipefail
+echo "-- 容器内版本 --"
+python3 - <<'PY'
+import torch
+import vllm
+print("vllm", getattr(vllm, "__version__", "unknown"))
+print("torch", torch.__version__)
+print("device_count", torch.cuda.device_count())
+p = torch.cuda.get_device_properties(0)
+print("device", p.name, "sm", p.multi_processor_count, "mem_MB", round(p.total_memory/1024/1024))
 PY
 
-  echo
-  echo "== 2. 结束后（只读） =="
-  ls -lh "$PROFILE_HOST" | head -6
+echo "-- server/bench CLI 探测 --"
+python3 -m vllm.entrypoints.openai.api_server --help > /tmp/server_help.txt 2>&1 || true
+EXTRA=()
+grep -q -- '--async-scheduling' /tmp/server_help.txt && EXTRA+=(--async-scheduling)
+grep -q -- '--compilation-config' /tmp/server_help.txt && EXTRA+=(--compilation-config '{}')
+grep -q -- '--enable-chunked-prefill' /tmp/server_help.txt && EXTRA+=(--enable-chunked-prefill)
+grep -q -- '--no-enable-prefix-caching' /tmp/server_help.txt && EXTRA+=(--no-enable-prefix-caching)
+grep -q -- '--max-num-seqs' /tmp/server_help.txt && EXTRA+=(--max-num-seqs "$MAX_NUM_SEQS")
+echo "server_extra=${EXTRA[*]:-none}"
+
+if python3 -m vllm.entrypoints.cli.main bench serve --help > /tmp/bench_help.txt 2>&1; then
+    BENCH=(python3 -m vllm.entrypoints.cli.main bench serve)
+elif command -v vllm >/dev/null 2>&1 && vllm bench serve --help > /tmp/bench_help.txt 2>&1; then
+    BENCH=(vllm bench serve)
+else
+    echo "!! 找不到 vllm bench serve"; tail -20 /tmp/bench_help.txt || true; exit 4
+fi
+echo "bench_cmd=${BENCH[*]}"
+
+SRV_ARGS=(
+    --host 127.0.0.1 --port "$PORT_IN" --model /model
+    --trust-remote-code --dtype auto
+    --max-model-len "$MAX_LEN" --tensor-parallel-size 1
+    --gpu-memory-utilization 0.9
+    "${EXTRA[@]}"
+)
+echo "-- 启动 server：${SRV_ARGS[*]} --"
+python3 -m vllm.entrypoints.openai.api_server "${SRV_ARGS[@]}" > /tmp/server.log 2>&1 &
+SPID=$!
+cleanup() { kill "$SPID" 2>/dev/null || true; wait "$SPID" 2>/dev/null || true; }
+trap cleanup EXIT
+
+python3 - "$PORT_IN" <<'PY'
+import sys, time, urllib.request
+port = int(sys.argv[1])
+t0 = time.time()
+deadline = t0 + 1200
+while time.time() < deadline:
+    try:
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=5) as r:
+            if r.status == 200:
+                print("server healthy after %.1fs" % (time.time() - t0))
+                sys.exit(0)
+    except Exception:
+        time.sleep(5)
+print("server health timeout")
+sys.exit(1)
+PY
+[[ $? -ne 0 ]] && { echo "!! server 未就绪"; tail -80 /tmp/server.log; exit 5; }
+
+echo "-- KV 容量（server.log） --"
+grep -m3 -E 'GPU KV cache size|kv cache size|KV cache size' /tmp/server.log || true
+
+echo
+echo "==== in${IN_LEN}/out${OUT_LEN} prompts=${PROMPTS} warmups=${WARMUPS} max_concurrency=${CONCURRENCY} max_num_seqs=${MAX_NUM_SEQS} ===="
+timeout 2400 "${BENCH[@]}" \
+    --backend vllm \
+    --num_prompts "$PROMPTS" --num-warmups "$WARMUPS" --max-concurrency "$CONCURRENCY" \
+    --dataset_name random --random_input_len "$IN_LEN" --random_output_len "$OUT_LEN" \
+    --host 127.0.0.1 --port "$PORT_IN" --model /model --trust-remote-code \
+    --ignore_eos --top_p 1 --top_k -1 --temperature 0 --seed 42 \
+    --save-result --result-dir /tmp --result_filename "max_bs${MAX_NUM_SEQS}_in${IN_LEN}_out${OUT_LEN}.json" \
+    > /tmp/bench_max.log 2>&1
+echo "bench_rc=$?"
+tail -60 /tmp/bench_max.log || true
+echo "-- result json --"
+cat "/tmp/max_bs${MAX_NUM_SEQS}_in${IN_LEN}_out${OUT_LEN}.json" 2>/dev/null || echo "(无结果文件)"
+
+echo
+echo "-- server 峰值 Running/Waiting/KV --"
+grep -oE 'Running: [0-9]+ reqs, Waiting: [0-9]+ reqs, GPU KV cache usage: [0-9.]+%' /tmp/server.log \
+  | awk '{r=$2; w=$5; k=$10; sub("%","",k); if (r>mr) mr=r; if (w>mw) mw=w; if (k>mk) mk=k; n++} END {printf "samples=%d  max_running=%d  max_waiting=%d  max_kv=%s%%\n", n, mr, mw, mk}'
+echo "-- 峰值样本（Running 最大的一行） --"
+grep -oE 'Running: [0-9]+ reqs, Waiting: [0-9]+ reqs, GPU KV cache usage: [0-9.]+%' /tmp/server.log \
+  | sort -t' ' -k2 -n | tail -3
+echo "-- server.log 尾部 --"
+tail -10 /tmp/server.log || true
+echo "-- 结束，杀 server --"
+cleanup
+trap - EXIT
+echo "done"
+INNER
+  echo "docker_rc=$?"
 
   echo
-  echo "### 完成：trace 解析"
+  echo "== 2. 结束后 GPU 状态（只读） =="
+  mx-smi 2>&1 | sed -n '/Process:/,/End of Log/p' | head -20 || true
+
+  echo
+  echo "### 完成：in${IN_LEN}/out${OUT_LEN} 拉满（no litehost）"
   # ---- 命令结束 ----
 } 2>&1 | tee "$OUT"
 
