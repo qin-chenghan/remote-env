@@ -11,162 +11,151 @@ mkdir -p "$DIR/tmp"
 
 IMAGE="${IMAGE:-local/vllm-metax:0.21.0-arm64-c500}"
 GPUSEL="${GPUSEL:-7}"
+MODEL_DIR="${MODEL_DIR:-/home/qch/models/Qwen3-0.6B}"
+PROMPTS="${PROMPTS:-100}"
+WARMUPS="${WARMUPS:-16}"
+CONCURRENCY_LIST="${CONCURRENCY_LIST:-8 100}"
+IN_LEN="${IN_LEN:-1024}"
+OUT_LEN="${OUT_LEN:-1024}"
+MAX_LEN="${MAX_LEN:-4096}"
+PORT_IN="${PORT_IN:-8000}"
 
 {
   echo "### server: $SERVER"
   echo "### host:   $(hostname)"
   echo "### time:   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  echo "### script: hw-report-v1（静态只读 + 单卡短微基准，不涉及模型权重）"
+  echo "### script: vllm-bench-31-v1（容器内起 vLLM，vllm bench serve 直接出 TTFT/TPOT/ITL/吞吐）"
   echo
-  echo "### 本轮写入：启动一个 --rm 临时容器（镜像 $IMAGE），用 GPU $GPUSEL"
-  echo "###           跑 torch 带宽/GEMM 微基准，约 1-2 分钟；不装包、不改配置、不留容器。"
-  echo "###           其余全部只读。"
+  echo "### 本轮写入：启动 --rm 临时容器跑 vLLM 服务 + bench；GPU $GPUSEL；"
+  echo "###           挂载 $MODEL_DIR（只读）；结果 JSON 留在容器 /tmp 并打印到日志；"
+  echo "###           不装包、不改配置、不留容器。预计 5-15 分钟（首次启动可能编译）。"
   set +x
 
   echo
-  echo "== 0. 主机（只读） =="
+  echo "== 0. 前置检查（只读） =="
   date
-  uname -srm
-  grep -E '^(NAME|VERSION|PRETTY_NAME)=' /etc/os-release
-  echo "nproc=$(nproc)"
-  lscpu | grep -E '^(Model name|Socket\(s\)|Core\(s\) per socket|NUMA node\(s\)|NUMA node[0-9] CPU\(s\)):' || true
-  echo "-- 内存 --"
-  free -g | head -3
-  echo "-- 磁盘 --"
-  df -BG / /home 2>/dev/null | tail -2
-
-  echo
-  echo "== 1. mx-smi 规格（只读） =="
-  mx-smi 2>&1 | head -8 || true
-  echo "-- -L --"
-  mx-smi -L 2>&1 | head -12 || true
-  for flag in --show-version --show-sysinfo --show-hwinfo --show-memory \
-              --show-clock --show-dpm --show-hbm-bandwidth --show-pcie \
-              --show-pcie-bandwidth --show-board-power --show-vpu; do
-      echo "-- mx-smi -i $GPUSEL $flag --"
-      mx-smi -i "$GPUSEL" "$flag" 2>&1 | head -40 || true
-  done
-
-  echo
-  echo "== 2. GPU 占用（只读；有进程则跳过微基准） =="
-  busy=0
-  mx-smi 2>&1 | sed -n '/Process:/,/End of Log/p' | head -30 || true
+  echo "-- 镜像 --"
+  docker images --format '{{.Repository}}:{{.Tag}}\t{{.Size}}' 2>/dev/null | grep -F "$IMAGE" || {
+      echo "!! 找不到镜像 $IMAGE"; exit 2; }
+  echo "-- 模型 --"
+  if [[ -f "$MODEL_DIR/config.json" && -f "$MODEL_DIR/model.safetensors" ]]; then
+      ls -lh "$MODEL_DIR" | head -15
+      echo "model_size=$(stat -c %s "$MODEL_DIR/model.safetensors")"
+  else
+      echo "!! 模型不完整：$MODEL_DIR"; exit 2
+  fi
+  echo "-- GPU 占用 --"
+  mx-smi 2>&1 | sed -n '/Process:/,/End of Log/p' | head -20 || true
   if mx-smi 2>&1 | sed -n '/Process:/,/End of Log/p' | grep -qiE 'python|vllm|ray|pt_main'; then
-      busy=1
-      echo "!! 检测到 GPU 上有进程，本轮不做微基准，只出静态信息"
-  else
-      echo "GPU 空闲，继续微基准"
+      echo "!! GPU 上有进程，按共享卡策略退出"; exit 3
   fi
 
   echo
-  echo "== 3. 容器内 torch 微基准（写入：临时容器，即用即删） =="
-  echo "-- 现有容器/镜像 --"
-  docker ps -a --format '{{.Names}}\t{{.Status}}\t{{.Image}}' 2>/dev/null | head -15 || true
-  docker images --format '{{.Repository}}:{{.Tag}}\t{{.Size}}' 2>/dev/null | grep -iE 'metax|maca' | head -10 || true
-  echo "-- 既有容器的设备/特权配置（只读参考） --"
-  ref=$(docker ps -a --format '{{.Names}}' 2>/dev/null | head -1)
-  if [[ -n "${ref:-}" ]]; then
-      docker inspect "$ref" --format 'name={{.Name}} privileged={{.HostConfig.Privileged}} ipc={{.HostConfig.IpcMode}} net={{.HostConfig.NetworkMode}} shm={{.HostConfig.ShmSize}}' 2>/dev/null || true
-      docker inspect "$ref" --format '{{range .HostConfig.Devices}}device={{.PathOnHost}} {{end}}' 2>/dev/null || true
-      docker inspect "$ref" --format 'binds={{range .HostConfig.Binds}}{{.}} {{end}}' 2>/dev/null || true
-  fi
-
-  if [[ "$busy" == "1" ]]; then
-      echo "跳过微基准"
-  else
-      PRIV=()
-      if docker inspect "$ref" --format '{{.HostConfig.Privileged}}' 2>/dev/null | grep -q true; then
-          PRIV=(--privileged)
-      fi
-      DEV_ARGS=(--device=/dev/mxcd)
-      for d in /dev/dri/card* /dev/dri/renderD*; do
-          [[ -e "$d" ]] && DEV_ARGS+=(--device="$d")
-      done
-
-      echo "-- docker run（$IMAGE, MACA_VISIBLE_DEVICES=$GPUSEL） --"
-      timeout 600 docker run --rm -i --network=host --ipc=host --shm-size=8g \
-          "${PRIV[@]}" "${DEV_ARGS[@]}" \
-          -e MACA_VISIBLE_DEVICES="$GPUSEL" -e CUDA_VISIBLE_DEVICES="$GPUSEL" \
-          "$IMAGE" python3 - <<'PY'
-import json, time, torch
-
-def props():
-    p = torch.cuda.get_device_properties(0)
-    d = {}
-    for k in ("name", "total_memory", "multi_processor_count", "major", "minor"):
-        d[k] = getattr(p, k, None)
-    for k in ("L2_cache_size", "memory_clock_rate", "memory_bus_width"):
-        if hasattr(p, k):
-            d[k] = getattr(p, k)
-    return d, str(p)
-
+  echo "== 1. 容器内：vLLM server + bench（写入：临时容器） =="
+  docker run --rm -i --network=host --ipc=host --shm-size=16g \
+      --device=/dev/mxcd \
+      $(for d in /dev/dri/card* /dev/dri/renderD*; do [[ -e "$d" ]] && printf -- '--device=%s ' "$d"; done) \
+      -e MACA_VISIBLE_DEVICES="$GPUSEL" -e CUDA_VISIBLE_DEVICES="$GPUSEL" \
+      -e PROMPTS="$PROMPTS" -e WARMUPS="$WARMUPS" \
+      -e CONCURRENCY_LIST="$CONCURRENCY_LIST" \
+      -e IN_LEN="$IN_LEN" -e OUT_LEN="$OUT_LEN" \
+      -e MAX_LEN="$MAX_LEN" -e PORT_IN="$PORT_IN" \
+      -v "$MODEL_DIR":/model:ro \
+      "$IMAGE" bash -s <<'INNER'
+set -uo pipefail
+echo "-- 容器内版本 --"
+python3 - <<'PY'
+import torch
+import vllm
+print("vllm", getattr(vllm, "__version__", "unknown"))
 print("torch", torch.__version__)
-print("torch.cuda.version", getattr(torch.version, "cuda", None))
 print("device_count", torch.cuda.device_count())
-d, raw = props()
-print("device_props", json.dumps(d))
-print("device_props_raw", raw)
-torch.cuda.init()
-print("mem_get_info", torch.cuda.mem_get_info())
-
-def bench(fn, warmup=3, iters=10):
-    for _ in range(warmup):
-        fn()
-    torch.cuda.synchronize()
-    s = torch.cuda.Event(enable_timing=True)
-    e = torch.cuda.Event(enable_timing=True)
-    s.record()
-    for _ in range(iters):
-        fn()
-    e.record()
-    torch.cuda.synchronize()
-    return s.elapsed_time(e) / 1000.0 / iters
-
-N = 1 << 29  # 每张量 1 GiB（bf16）
-x = torch.randn(N, device="cuda", dtype=torch.bfloat16)
-y = torch.randn(N, device="cuda", dtype=torch.bfloat16)
-z = torch.empty_like(x)
-nb = N * 2  # 单张量字节数
-
-t = bench(lambda: y.copy_(x), iters=10)
-print("BW copy   %.1f GB/s (%.4f ms)" % (2 * nb / t / 1e9, t * 1e3))
-t = bench(lambda: torch.add(x, y, out=z), iters=10)
-print("BW triad  %.1f GB/s (%.4f ms)" % (3 * nb / t / 1e9, t * 1e3))
-t = bench(lambda: x.sum(), iters=10)
-print("BW reduce %.1f GB/s (%.4f ms)" % (nb / t / 1e9, t * 1e3))
-del x, y, z
-torch.cuda.empty_cache()
-
-def gemm(dtype, n, warmup, iters, tag):
-    try:
-        a = torch.randn(n, n, device="cuda", dtype=dtype)
-        b = torch.randn(n, n, device="cuda", dtype=dtype)
-        f = lambda: torch.mm(a, b)
-        t = bench(f, warmup=warmup, iters=iters)
-        print("GEMM %-5s %5d^3  %.1f TFLOPS (%.3f ms)" % (tag, n, 2 * n ** 3 / t / 1e12, t * 1e3))
-    except Exception as ex:
-        print("GEMM %-5s %5d^3  FAILED %s" % (tag, n, ex))
-    finally:
-        try:
-            del a, b
-        except Exception:
-            pass
-        torch.cuda.empty_cache()
-
-for n, w, i in ((4096, 3, 10), (8192, 2, 5), (16384, 2, 3)):
-    gemm(torch.bfloat16, n, w, i, "bf16")
-    gemm(torch.float16, n, w, i, "fp16")
-gemm(torch.float32, 8192, 2, 5, "fp32")
-print("done")
+p = torch.cuda.get_device_properties(0)
+print("device", p.name, "sm", p.multi_processor_count, "mem_MB", round(p.total_memory/1024/1024))
 PY
-      echo "docker_rc=$?"
 
-      echo "-- 运行后 mx-smi 状态（只读） --"
-      mx-smi 2>&1 | sed -n '/Process:/,/End of Log/p' | head -20 || true
-  fi
+echo "-- server/bench CLI 探测 --"
+SERVER=(python3 -m vllm.entrypoints.openai.api_server)
+python3 -m vllm.entrypoints.openai.api_server --help > /tmp/server_help.txt 2>&1 || true
+EXTRA=()
+grep -q -- '--async-scheduling' /tmp/server_help.txt && EXTRA+=(--async-scheduling)
+grep -q -- '--compilation-config' /tmp/server_help.txt && EXTRA+=(--compilation-config '{}')
+grep -q -- '--enable-chunked-prefill' /tmp/server_help.txt && EXTRA+=(--enable-chunked-prefill)
+grep -q -- '--no-enable-prefix-caching' /tmp/server_help.txt && EXTRA+=(--no-enable-prefix-caching)
+echo "server_extra=${EXTRA[*]:-none}"
+
+if python3 -m vllm.entrypoints.cli.main bench serve --help > /tmp/bench_help.txt 2>&1; then
+    BENCH=(python3 -m vllm.entrypoints.cli.main bench serve)
+elif command -v vllm >/dev/null 2>&1 && vllm bench serve --help > /tmp/bench_help.txt 2>&1; then
+    BENCH=(vllm bench serve)
+else
+    echo "!! 找不到 vllm bench serve"; tail -20 /tmp/bench_help.txt || true; exit 4
+fi
+echo "bench_cmd=${BENCH[*]}"
+
+SRV_ARGS=(
+    --host 127.0.0.1 --port "$PORT_IN" --model /model
+    --trust-remote-code --dtype auto
+    --max-model-len "$MAX_LEN" --tensor-parallel-size 1
+    --gpu-memory-utilization 0.9
+    "${EXTRA[@]}"
+)
+echo "-- 启动 server：${SRV_ARGS[*]} --"
+python3 -m vllm.entrypoints.openai.api_server "${SRV_ARGS[@]}" > /tmp/server.log 2>&1 &
+SPID=$!
+cleanup() { kill "$SPID" 2>/dev/null || true; wait "$SPID" 2>/dev/null || true; }
+trap cleanup EXIT
+
+python3 - "$PORT_IN" <<'PY'
+import json, sys, time, urllib.request
+port = int(sys.argv[1])
+deadline = time.time() + 600
+while time.time() < deadline:
+    try:
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=5) as r:
+            if r.status == 200:
+                print("server healthy after %.1fs" % (600 - (deadline - time.time())))
+                sys.exit(0)
+    except Exception:
+        time.sleep(5)
+print("server health timeout")
+sys.exit(1)
+PY
+[[ $? -ne 0 ]] && { echo "!! server 未就绪"; tail -60 /tmp/server.log; exit 5; }
+
+for BS in $CONCURRENCY_LIST; do
+    echo
+    echo "==== in${IN_LEN}/out${OUT_LEN} prompts=${PROMPTS} warmups=${WARMUPS} bs=${BS} ===="
+    timeout 900 "${BENCH[@]}" \
+        --backend vllm \
+        --num_prompts "$PROMPTS" --num-warmups "$WARMUPS" --max-concurrency "$BS" \
+        --dataset_name random --random_input_len "$IN_LEN" --random_output_len "$OUT_LEN" \
+        --host 127.0.0.1 --port "$PORT_IN" --model /model --trust-remote-code \
+        --ignore_eos --top_p 1 --top_k -1 --temperature 0 --seed 42 \
+        --save-result --result-dir /tmp --result_filename "bs${BS}_in${IN_LEN}_out${OUT_LEN}.json" \
+        > /tmp/bench_bs${BS}.log 2>&1
+    echo "bench_rc=$?"
+    tail -40 /tmp/bench_bs${BS}.log || true
+    echo "-- result json --"
+    cat "/tmp/bs${BS}_in${IN_LEN}_out${OUT_LEN}.json" 2>/dev/null || echo "(无结果文件)"
+    echo
+done
+
+echo "-- server.log 尾部 --"
+tail -30 /tmp/server.log || true
+echo "-- 结束，杀 server --"
+cleanup
+trap - EXIT
+echo "done"
+INNER
+  echo "docker_rc=$?"
 
   echo
-  echo "### 完成：静态规格 + 单卡实测（若 GPU 空闲）"
+  echo "== 2. 结束后 GPU 状态（只读） =="
+  mx-smi 2>&1 | sed -n '/Process:/,/End of Log/p' | head -20 || true
+
+  echo
+  echo "### 完成：in${IN_LEN}/out${OUT_LEN}，bs=${CONCURRENCY_LIST}"
   # ---- 命令结束 ----
 } 2>&1 | tee "$OUT"
 
