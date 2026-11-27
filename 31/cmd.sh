@@ -9,105 +9,108 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
+MODEL_ID="${MODEL_ID:-Qwen/Qwen3-0.6B}"
+DEST="${DEST:-/home/qch/models/Qwen3-0.6B}"
+PROXY_SH="${PROXY_SH:-/home/qch/env/set_proxy.sh}"
+
 {
   echo "### server: $SERVER"
   echo "### host:   $(hostname)"
   echo "### time:   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo
-  echo "### 本轮只读：了解 31 的沐曦（MetaX）环境。"
-  echo "###           采集系统 / PCI / mx-smi / 驱动 / MACA / 容器 / 模型；"
-  echo "###           不装包、不改配置、不启动服务。"
+  echo "### 本轮写入：在 31 上创建 /home/qch/models，下载 ${MODEL_ID} 到 ${DEST}。"
+  echo "###           使用 ${PROXY_SH} 的代理；不改系统、不装包、不启动服务。"
+  echo "###           预计 1.2GB 左右，视代理速度约 1–5 分钟。"
   set +x
 
   echo
-  echo "== 0. 系统 =="
-  date
-  uname -a
-  head -6 /etc/os-release 2>/dev/null || true
-  echo "arch=$(uname -m) nproc=$(nproc)"
-  lscpu 2>/dev/null | grep -E '^(Model name|Socket|Core|NUMA node|CPU\(s\))' | head -10 || true
-  free -h 2>/dev/null | head -3 || true
-  df -h / /home /data 2>/dev/null | tail -n +1 | head -10 || true
+  echo "== 0. 前置检查（只读） =="
+  hostname
+  uname -m
+  df -BG /home | tail -1
+  avail_gb=$(df -BG --output=avail /home | tail -1 | tr -dc '0-9')
+  echo "home_avail_gb=${avail_gb:-unknown}"
+  if [[ -n "${avail_gb:-}" ]] && (( avail_gb < 5 )); then
+      echo "!! /home 可用不足 5G，停止"; exit 2
+  fi
 
-  echo
-  echo "== 1. 加速卡（PCI / 设备节点） =="
-  echo "-- lspci（沐曦 vendor 1f24；加速卡 class 1200/0380） --"
-  lspci -nn 2>/dev/null | grep -iE '1f24|metax|muxi|processing accelerators|3d controller|display' \
-      || echo "lspci 未见加速卡"
-  echo "-- 设备节点 --"
-  ls -l /dev/mx* /dev/metax* /dev/dri 2>/dev/null || true
-  ls /proc/driver 2>/dev/null || true
-
-  echo
-  echo "== 2. mx-smi =="
-  if command -v mx-smi >/dev/null 2>&1; then
-      echo "path=$(command -v mx-smi)"
-      timeout 20 mx-smi --version 2>&1 || true
-      echo "-- mx-smi -L --"
-      timeout 20 mx-smi -L 2>&1 || true
-      echo "-- mx-smi --"
-      timeout 30 mx-smi 2>&1 | head -80 || true
-      echo "-- mx-smi -q（截前 120 行） --"
-      timeout 30 mx-smi -q 2>&1 | head -120 || true
+  if [[ -f "$PROXY_SH" ]]; then
+      echo "proxy_script=$PROXY_SH（存在；内容不打印，避免泄露凭据）"
   else
-      echo "!! PATH 中没有 mx-smi"
-      ls -l /opt/maca*/bin/mx-smi /usr/local/maca*/bin/mx-smi /usr/bin/mx-smi 2>/dev/null || true
+      echo "!! 找不到 $PROXY_SH"; exit 2
   fi
 
   echo
-  echo "== 3. 驱动 / 内核模块 =="
-  echo "kernel=$(uname -r)"
-  lsmod 2>/dev/null | grep -iE 'metax|maca|^mx' || echo "lsmod 未见 metax/mx 模块"
-  dkms status 2>/dev/null | head -10 || true
-  ls -d /lib/modules/"$(uname -r)"/kernel/drivers/*/*mx* 2>/dev/null || true
+  echo "== 1. 载入代理 =="
+  # shellcheck disable=SC1090
+  set +u
+  source "$PROXY_SH" || { echo "!! source $PROXY_SH 失败"; exit 2; }
+  set -u
+  echo "-- 代理变量（已脱敏） --"
+  env | grep -iE '^(http|https|all|no)_proxy=' \
+      | sed -E 's#(://)[^@/]*@#\1***@#' | sort || true
+  echo "HF_ENDPOINT=${HF_ENDPOINT:-unset}"
 
   echo
-  echo "== 4. MACA 软件栈 =="
-  ls -d /opt/maca* /opt/mxdriver* /usr/local/maca* 2>/dev/null || true
-  env | grep -iE '^(MACA|MX|METAX)[A-Z0-9_]*=' | sort || true
-  for py in python3 /opt/maca*/bin/python3; do
-      [ -x "$py" ] || continue
-      echo "-- $py: $("$py" --version 2>&1)"
-      "$py" - <<'PY' 2>/dev/null || true
-import importlib
-for m in ("torch", "vllm", "transformers"):
-    try:
-        mod = importlib.import_module(m)
-        print(f"  {m}={getattr(mod, '__version__', '?')}")
-    except Exception as e:
-        print(f"  {m}=未安装 ({type(e).__name__})")
+  echo "== 2. 目标目录 =="
+  mkdir -p "$(dirname "$DEST")"
+  echo "DEST=$DEST"
+  if [[ -f "$DEST/config.json" ]]; then
+      echo "已存在 config.json，跳过下载；仅做完整性检查。"
+  else
+      echo "目标不存在，开始下载。"
+      echo "-- 可用下载工具 --"
+      for t in hf huggingface-cli modelscope git-lfs python3; do
+          printf '%-16s %s\n' "$t" "$(command -v "$t" 2>/dev/null || echo no)"
+      done
+
+      echo
+      echo "== 3. 下载 ${MODEL_ID} =="
+      rc=1
+      export HF_HUB_ENABLE_HF_TRANSFER=0
+      if command -v hf >/dev/null 2>&1; then
+          echo "-- 使用 hf download --"
+          hf download "$MODEL_ID" --local-dir "$DEST" && rc=0 || rc=$?
+      elif command -v huggingface-cli >/dev/null 2>&1; then
+          echo "-- 使用 huggingface-cli download --"
+          huggingface-cli download "$MODEL_ID" --local-dir "$DEST" && rc=0 || rc=$?
+      elif python3 -c 'import huggingface_hub' >/dev/null 2>&1; then
+          echo "-- 使用 huggingface_hub.snapshot_download --"
+          python3 - "$MODEL_ID" "$DEST" <<'PY' && rc=0 || rc=$?
+import sys
+from huggingface_hub import snapshot_download
+snapshot_download(repo_id=sys.argv[1], local_dir=sys.argv[2])
 PY
-  done
-
-  echo
-  echo "== 5. 容器 / 镜像 =="
-  if command -v docker >/dev/null 2>&1; then
-      echo "docker=$(docker version --format '{{.Server.Version}}' 2>/dev/null || echo '?')"
-      echo "-- docker ps -a --"
-      docker ps -a --format '{{.Names}}\t{{.Status}}\t{{.Image}}' 2>/dev/null | head -30 || true
-      echo "-- 相关镜像（metax/maca/vllm/torch/qwen） --"
-      docker images --format '{{.Repository}}:{{.Tag}}\t{{.Size}}\t{{.ID}}' 2>/dev/null \
-          | grep -iE 'metax|maca|vllm|torch|qwen|pytorch' | head -30 || true
-      echo "-- runtimes --"
-      docker info --format '{{.Runtimes}}' 2>/dev/null || true
-  else
-      echo "无 docker"
+      elif command -v modelscope >/dev/null 2>&1; then
+          echo "-- 使用 modelscope download --"
+          modelscope download --model "$MODEL_ID" --local_dir "$DEST" && rc=0 || rc=$?
+      else
+          echo "!! 没有可用的下载工具（hf / huggingface-cli / huggingface_hub / modelscope）"
+          rc=3
+      fi
+      echo "download_rc=$rc"
+      if (( rc != 0 )); then
+          echo "!! 下载失败，保留已下载文件，便于重跑续传"; exit "$rc"
+      fi
   fi
 
   echo
-  echo "== 6. 模型 / 工作目录 =="
-  ls -d /home/* /data/* 2>/dev/null | head -30 || true
-  find /home /data -maxdepth 3 -type d \
-      \( -iname 'qwen*' -o -iname 'bert*' -o -iname '*mmoe*' \) 2>/dev/null | head -30 || true
-  ls -l /home/model 2>/dev/null | head -20 || true
+  echo "== 4. 完整性检查 =="
+  for f in config.json tokenizer.json tokenizer_config.json; do
+      [[ -f "$DEST/$f" ]] && echo "ok   $f" || echo "MISS $f"
+  done
+  if compgen -G "$DEST/*.safetensors" >/dev/null || compgen -G "$DEST/*.bin" >/dev/null; then
+      echo "ok   权重文件"
+  else
+      echo "MISS 权重文件（*.safetensors / *.bin）"
+  fi
+  echo "-- 文件列表 --"
+  ls -lh "$DEST" | head -30
+  echo "-- 目录大小 --"
+  du -sh "$DEST" 2>/dev/null || true
 
   echo
-  echo "== 7. 运行时状态 =="
-  pgrep -af 'vllm.entrypoints.openai.api_server' | grep -v pgrep || echo "无 vllm 服务"
-  ss -ltn 2>/dev/null | head -20 || true
-
-  echo
-  echo "### 采集结束（本轮只读）"
+  echo "### 完成：MODEL_DIR=$DEST"
   # ---- 命令结束 ----
 } 2>&1 | tee "$OUT"
 
