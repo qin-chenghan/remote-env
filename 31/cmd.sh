@@ -12,26 +12,29 @@ mkdir -p "$DIR/tmp"
 IMAGE="${IMAGE:-local/vllm-metax:0.21.0-arm64-c500}"
 GPUSEL="${GPUSEL:-7}"
 MODEL_DIR="${MODEL_DIR:-/home/qch/models/Qwen3-0.6B}"
-PROMPTS="${PROMPTS:-1000}"
+PROMPTS="${PROMPTS:-118}"
 WARMUPS="${WARMUPS:-16}"
-CONCURRENCY="${CONCURRENCY:-1000}"
-MAX_NUM_SEQS="${MAX_NUM_SEQS:-1024}"
+CONCURRENCY="${CONCURRENCY:-118}"
+MAX_NUM_SEQS="${MAX_NUM_SEQS:-118}"
 IN_LEN="${IN_LEN:-1024}"
 OUT_LEN="${OUT_LEN:-1024}"
 MAX_LEN="${MAX_LEN:-4096}"
 PORT_IN="${PORT_IN:-8000}"
+PROFILE_TRACE="${PROFILE_TRACE:-1}"
+TRACE_HOST="${TRACE_HOST:-/home/qch/qwen06_profile}"
 
 {
   echo "### server: $SERVER"
   echo "### host:   $(hostname)"
   echo "### time:   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  echo "### script: vllm-bench-31-v2（1024/1024 拉满 KV 上限，1000 prompts）"
+  echo "### script: vllm-bench-31-v3（1024/1024 @ bs118：bench + 离线 torch.profiler）"
   echo
-  echo "### 本轮写入：启动 --rm 临时容器跑 vLLM 服务 + bench；GPU $GPUSEL；"
-  echo "###           挂载 $MODEL_DIR（只读）；结果 JSON 留在容器 /tmp 并打印到日志；"
-  echo "###           不装包、不改配置、不留容器。"
+  echo "### 本轮写入：起 --rm 临时容器跑 vLLM server + bench，再用离线 LLM 采 trace；GPU $GPUSEL；"
+  echo "###           挂载 $MODEL_DIR（只读）和 $TRACE_HOST（trace 落盘）；"
+  echo "###           不装包、不改系统配置、不留容器。"
   echo "### 配置：prompts=$PROMPTS warmups=$WARMUPS max_concurrency=$CONCURRENCY max_num_seqs=$MAX_NUM_SEQS"
-  echo "### 预计：启动 ~4-6 分钟（含图编译）+ bench ~2-5 分钟（KV 上限约 253）"
+  echo "### 说明：两边同为 118 并发的统一口径；118×2048=241,664 tokens，占 31 KV 池 519,904 的 46.5%"
+  echo "### 预计：server 启动 ~4-6 分钟 + bench ~1-2 分钟 + 离线引擎再启动 ~4-6 分钟 + 生成 ~1-2 分钟"
   set +x
 
   echo
@@ -52,9 +55,11 @@ PORT_IN="${PORT_IN:-8000}"
   if mx-smi 2>&1 | sed -n '/Process:/,/End of Log/p' | grep -qiE 'python|vllm|ray|pt_main'; then
       echo "!! GPU 上有进程，按共享卡策略退出（等空闲再跑）"; exit 3
   fi
+  mkdir -p "$TRACE_HOST"
+  echo "trace_dir=$TRACE_HOST"
 
   echo
-  echo "== 1. 容器内：vLLM server + 拉满 bench（写入：临时容器） =="
+  echo "== 1. 容器内：vLLM server + bs$CONCURRENCY bench（写入：临时容器） =="
   docker run --rm -i --network=host --ipc=host --shm-size=16g \
       --device=/dev/mxcd \
       $(for d in /dev/dri/card* /dev/dri/renderD*; do [[ -e "$d" ]] && printf -- '--device=%s ' "$d"; done) \
@@ -63,7 +68,9 @@ PORT_IN="${PORT_IN:-8000}"
       -e CONCURRENCY="$CONCURRENCY" -e MAX_NUM_SEQS="$MAX_NUM_SEQS" \
       -e IN_LEN="$IN_LEN" -e OUT_LEN="$OUT_LEN" \
       -e MAX_LEN="$MAX_LEN" -e PORT_IN="$PORT_IN" \
+      -e PROFILE_TRACE="$PROFILE_TRACE" \
       -v "$MODEL_DIR":/model:ro \
+      -v "$TRACE_HOST":/profile \
       "$IMAGE" bash -s <<'INNER'
 set -uo pipefail
 echo "-- 容器内版本 --"
@@ -138,17 +145,17 @@ timeout 2400 "${BENCH[@]}" \
     --dataset_name random --random_input_len "$IN_LEN" --random_output_len "$OUT_LEN" \
     --host 127.0.0.1 --port "$PORT_IN" --model /model --trust-remote-code \
     --ignore_eos --top_p 1 --top_k -1 --temperature 0 --seed 42 \
-    --save-result --result-dir /tmp --result_filename "max_bs${MAX_NUM_SEQS}_in${IN_LEN}_out${OUT_LEN}.json" \
-    > /tmp/bench_max.log 2>&1
+    --save-result --result-dir /tmp --result_filename "bs${CONCURRENCY}_in${IN_LEN}_out${OUT_LEN}.json" \
+    > /tmp/bench_bs${CONCURRENCY}.log 2>&1
 echo "bench_rc=$?"
-tail -60 /tmp/bench_max.log || true
+tail -60 /tmp/bench_bs${CONCURRENCY}.log || true
 echo "-- result json --"
-cat "/tmp/max_bs${MAX_NUM_SEQS}_in${IN_LEN}_out${OUT_LEN}.json" 2>/dev/null || echo "(无结果文件)"
+cat "/tmp/bs${CONCURRENCY}_in${IN_LEN}_out${OUT_LEN}.json" 2>/dev/null || echo "(无结果文件)"
 
 echo
 echo "-- server 峰值 Running/Waiting/KV --"
 grep -oE 'Running: [0-9]+ reqs, Waiting: [0-9]+ reqs, GPU KV cache usage: [0-9.]+%' /tmp/server.log \
-  | awk '{r=$2; w=$5; k=$10; sub("%","",k); if (r>mr) mr=r; if (w>mw) mw=w; if (k>mk) mk=k; n++} END {printf "samples=%d  max_running=%d  max_waiting=%d  max_kv=%s%%\n", n, mr, mw, mk}'
+  | awk '{r=$2; w=$5; k=$11; sub("%","",k); if (r>mr) mr=r; if (w>mw) mw=w; if (k>mk) mk=k; n++} END {printf "samples=%d  max_running=%d  max_waiting=%d  max_kv=%s%%\n", n, mr, mw, mk}'
 echo "-- 峰值样本（Running 最大的一行） --"
 grep -oE 'Running: [0-9]+ reqs, Waiting: [0-9]+ reqs, GPU KV cache usage: [0-9.]+%' /tmp/server.log \
   | sort -t' ' -k2 -n | tail -3
@@ -158,15 +165,66 @@ echo "-- 结束，杀 server --"
 cleanup
 trap - EXIT
 echo "done"
+
+if [[ "$PROFILE_TRACE" == "1" ]]; then
+    echo
+    echo "== 2. 离线 torch.profiler（bs$MAX_NUM_SEQS, in$IN_LEN/out$OUT_LEN，engine 同进程） =="
+    VLLM_ENABLE_V1_MULTIPROCESSING=0 python3 - "$PROMPTS" "$IN_LEN" "$OUT_LEN" "$MAX_NUM_SEQS" <<'PY'
+import dataclasses, os, random, sys, time, torch
+from vllm import LLM, SamplingParams
+from vllm.engine.arg_utils import EngineArgs
+
+n, in_len, out_len, max_seqs = map(int, sys.argv[1:5])
+fields = {f.name for f in dataclasses.fields(EngineArgs)}
+wanted = {
+    "model": "/model", "trust_remote_code": True, "dtype": "auto",
+    "max_model_len": 4096, "tensor_parallel_size": 1,
+    "gpu_memory_utilization": 0.9, "max_num_seqs": max_seqs,
+    "enable_prefix_caching": False, "enable_chunked_prefill": True,
+    "async_scheduling": True,
+    "compilation_config": {"cudagraph_mode": "FULL_DECODE_ONLY", "mode": 0},
+}
+kwargs = {k: v for k, v in wanted.items() if k in fields}
+print("LLM kwargs:", sorted(kwargs), flush=True)
+llm = LLM(**kwargs)
+rnd = random.Random(42)
+prompts = [{"prompt_token_ids": [rnd.randrange(0, 1000) for _ in range(in_len)]} for _ in range(n)]
+warm_sp = SamplingParams(temperature=0, top_p=1, top_k=-1, max_tokens=16, ignore_eos=True)
+sp = SamplingParams(temperature=0, top_p=1, top_k=-1, max_tokens=out_len, ignore_eos=True)
+t0 = time.time()
+llm.generate(prompts[:16], warm_sp)
+print("warmup %.1f s" % (time.time() - t0), flush=True)
+
+prof = torch.profiler.profile(
+    activities=[torch.profiler.ProfilerActivity.CPU, torch.profiler.ProfilerActivity.CUDA],
+    record_shapes=False, profile_memory=False, with_stack=False)
+t0 = time.time()
+prof.__enter__()
+llm.generate(prompts, sp)
+prof.__exit__(None, None, None)
+wall = time.time() - t0
+avg = prof.key_averages()
+tot = avg.total_average()
+print("wall=%.2f s  self_cpu=%.3f s  self_cuda=%.3f s" % (
+    wall, getattr(tot, "self_cpu_time_total", 0.0) / 1e6,
+    getattr(tot, "self_cuda_time_total", 0.0) / 1e6))
+print(avg.table(sort_by="self_cpu_time_total", row_limit=12))
+print(avg.table(sort_by="self_cuda_time_total", row_limit=12))
+path = "/profile/offline_bs%d_in%d_out%d.json" % (max_seqs, in_len, out_len)
+prof.export_chrome_trace(path)
+print("trace=%s %.1f MB" % (path, os.path.getsize(path) / 1048576))
+PY
+    echo "trace_phase_rc=$?"
+fi
 INNER
   echo "docker_rc=$?"
 
   echo
-  echo "== 2. 结束后 GPU 状态（只读） =="
+  echo "== 3. 结束后 GPU 状态（只读） =="
   mx-smi 2>&1 | sed -n '/Process:/,/End of Log/p' | head -20 || true
 
   echo
-  echo "### 完成：in${IN_LEN}/out${OUT_LEN} 拉满（no litehost）"
+  echo "### 完成：in${IN_LEN}/out${OUT_LEN} @ bs${CONCURRENCY}（bench + trace）"
   # ---- 命令结束 ----
 } 2>&1 | tee "$OUT"
 
