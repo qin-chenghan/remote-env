@@ -9,127 +9,164 @@ TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$DIR/tmp/$TS.log"
 mkdir -p "$DIR/tmp"
 
-MODEL_ID="${MODEL_ID:-Qwen/Qwen3-0.6B}"
-DEST="${DEST:-/home/qch/models/Qwen3-0.6B}"
-PROXY_SH="${PROXY_SH:-/home/qch/env/set_proxy.sh}"
-BIG="model.safetensors"
-URL="https://hf-mirror.com/${MODEL_ID}/resolve/main/${BIG}"
+IMAGE="${IMAGE:-local/vllm-metax:0.21.0-arm64-c500}"
+GPUSEL="${GPUSEL:-7}"
 
 {
   echo "### server: $SERVER"
   echo "### host:   $(hostname)"
   echo "### time:   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  echo "### script: curl-resume-v2（不再有 Fetching 10 files 进度条，看 size= 行）"
+  echo "### script: hw-report-v1（静态只读 + 单卡短微基准，不涉及模型权重）"
   echo
-  echo "### 本轮写入：绕开 hf 的 ETag 重下逻辑，用 curl 断点续传 ${BIG}。"
-  echo "###           已确认 .cache 里有两个不同 etag 的半成品（268MB / 409MB），"
-  echo "###           每次重试都从 0 重来，所以到不了 1.5GB。"
-  echo "###           只读探测 + 只写 ${DEST}；不装包、不改系统。"
+  echo "### 本轮写入：启动一个 --rm 临时容器（镜像 $IMAGE），用 GPU $GPUSEL"
+  echo "###           跑 torch 带宽/GEMM 微基准，约 1-2 分钟；不装包、不改配置、不留容器。"
+  echo "###           其余全部只读。"
   set +x
 
   echo
-  echo "== 0. 现状（只读） =="
-  df -BG /home | tail -1
-  ls -la "$DEST" 2>/dev/null | head -20 || echo "(不存在)"
-  du -sh "$DEST" 2>/dev/null || true
-  echo "-- 半成品 --"
-  find "$DEST/.cache" -type f -name "*.incomplete" -printf '%s %p\n' 2>/dev/null | sort -n || true
-
-  if [[ ! -f "$PROXY_SH" ]]; then
-      echo "!! 找不到 $PROXY_SH"; exit 2
-  fi
-
-  echo
-  echo "== 1. 载入代理 =="
-  set +u
-  source "$PROXY_SH" || { echo "!! source $PROXY_SH 失败"; exit 2; }
-  set -u
-  env | grep -iE '^(http|https|all|no)_proxy=' \
-      | sed -E 's#(://)[^@/]*@#\1***@#' | sort || true
+  echo "== 0. 主机（只读） =="
+  date
+  uname -srm
+  grep -E '^(NAME|VERSION|PRETTY_NAME)=' /etc/os-release
+  echo "nproc=$(nproc)"
+  lscpu | grep -E '^(Model name|Socket\(s\)|Core\(s\) per socket|NUMA node\(s\)|NUMA node[0-9] CPU\(s\)):' || true
+  echo "-- 内存 --"
+  free -g | head -3
+  echo "-- 磁盘 --"
+  df -BG / /home 2>/dev/null | tail -2
 
   echo
-  echo "== 2. 期望大小与 sha256（经代理取元数据） =="
-  if curl -sS --max-time 30 "https://hf-mirror.com/api/models/${MODEL_ID}?blobs=true" -o /tmp/qwen_meta.json; then
-      python3 - /tmp/qwen_meta.json <<'PY' | tee /tmp/qwen_big.txt || true
-import json,sys
-d=json.load(open(sys.argv[1]))
-for s in d.get("siblings",[]):
-    lfs=s.get("lfs") or {}
-    print(f"{s.get('rfilename')}\t{s.get('size',lfs.get('size',-1))}\t{lfs.get('oid','')}")
-PY
-      rm -f /tmp/qwen_meta.json
-      read -r _ EXPECTED_SIZE EXPECTED_SHA < <(grep -P "^${BIG}\t" /tmp/qwen_big.txt || true)
+  echo "== 1. mx-smi 规格（只读） =="
+  mx-smi 2>&1 | head -8 || true
+  echo "-- -L --"
+  mx-smi -L 2>&1 | head -12 || true
+  for flag in --show-version --show-sysinfo --show-hwinfo --show-memory \
+              --show-clock --show-dpm --show-hbm-bandwidth --show-pcie \
+              --show-pcie-bandwidth --show-board-power --show-vpu; do
+      echo "-- mx-smi -i $GPUSEL $flag --"
+      mx-smi -i "$GPUSEL" "$flag" 2>&1 | head -40 || true
+  done
+
+  echo
+  echo "== 2. GPU 占用（只读；有进程则跳过微基准） =="
+  busy=0
+  mx-smi 2>&1 | sed -n '/Process:/,/End of Log/p' | head -30 || true
+  if mx-smi 2>&1 | sed -n '/Process:/,/End of Log/p' | grep -qiE 'python|vllm|ray|pt_main'; then
+      busy=1
+      echo "!! 检测到 GPU 上有进程，本轮不做微基准，只出静态信息"
   else
-      echo "!! 元数据拉取失败，继续尝试下载"
+      echo "GPU 空闲，继续微基准"
   fi
-  echo "expected_size=${EXPECTED_SIZE:-unknown} expected_sha=${EXPECTED_SHA:-unknown}"
 
   echo
-  echo "== 3. 头探测与 Range 支持 =="
-  curl -sSI --max-time 30 "$URL" | tr -d '\r' | grep -iE '^(HTTP/|content-length:|accept-ranges:|etag:|location:)' | head -12 || true
-  code=$(curl -sS -o /tmp/qwen_head1m.bin -w '%{http_code}' -r 0-1048575 --max-time 90 "$URL") || code=ERR
-  echo "range_status=$code head_bytes=$(stat -c %s /tmp/qwen_head1m.bin 2>/dev/null || echo 0)"
+  echo "== 3. 容器内 torch 微基准（写入：临时容器，即用即删） =="
+  echo "-- 现有容器/镜像 --"
+  docker ps -a --format '{{.Names}}\t{{.Status}}\t{{.Image}}' 2>/dev/null | head -15 || true
+  docker images --format '{{.Repository}}:{{.Tag}}\t{{.Size}}' 2>/dev/null | grep -iE 'metax|maca' | head -10 || true
+  echo "-- 既有容器的设备/特权配置（只读参考） --"
+  ref=$(docker ps -a --format '{{.Names}}' 2>/dev/null | head -1)
+  if [[ -n "${ref:-}" ]]; then
+      docker inspect "$ref" --format 'name={{.Name}} privileged={{.HostConfig.Privileged}} ipc={{.HostConfig.IpcMode}} net={{.HostConfig.NetworkMode}} shm={{.HostConfig.ShmSize}}' 2>/dev/null || true
+      docker inspect "$ref" --format '{{range .HostConfig.Devices}}device={{.PathOnHost}} {{end}}' 2>/dev/null || true
+      docker inspect "$ref" --format 'binds={{range .HostConfig.Binds}}{{.}} {{end}}' 2>/dev/null || true
+  fi
 
-  echo
-  echo "== 4. 用已有半成品做种子（前缀校验一致才用） =="
-  seed=$(find "$DEST/.cache" -type f -name "*.incomplete" -printf '%s %p\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
-  if [[ -n "${seed:-}" && -f /tmp/qwen_head1m.bin ]]; then
-      seed_head=$(head -c 1048576 "$seed" | sha256sum | cut -d' ' -f1)
-      remote_head=$(sha256sum /tmp/qwen_head1m.bin | cut -d' ' -f1)
-      echo "seed=$seed"
-      echo "seed_head=$seed_head"
-      echo "remote_head=$remote_head"
-      if [[ "$seed_head" == "$remote_head" && ! -s "$DEST/$BIG" ]]; then
-          cp --sparse=always "$seed" "$DEST/$BIG"
-          echo "已用半成品播种：$(stat -c %s "$DEST/$BIG") bytes"
+  if [[ "$busy" == "1" ]]; then
+      echo "跳过微基准"
+  else
+      PRIV=()
+      if docker inspect "$ref" --format '{{.HostConfig.Privileged}}' 2>/dev/null | grep -q true; then
+          PRIV=(--privileged)
       fi
-  fi
-  if [[ ! -s "$DEST/$BIG" ]]; then
-      echo "无可用种子，从 0 开始"
+      DEV_ARGS=(--device=/dev/mxcd)
+      for d in /dev/dri/card* /dev/dri/renderD*; do
+          [[ -e "$d" ]] && DEV_ARGS+=(--device="$d")
+      done
+
+      echo "-- docker run（$IMAGE, MACA_VISIBLE_DEVICES=$GPUSEL） --"
+      timeout 600 docker run --rm -i --network=host --ipc=host --shm-size=8g \
+          "${PRIV[@]}" "${DEV_ARGS[@]}" \
+          -e MACA_VISIBLE_DEVICES="$GPUSEL" -e CUDA_VISIBLE_DEVICES="$GPUSEL" \
+          "$IMAGE" python3 - <<'PY'
+import json, time, torch
+
+def props():
+    p = torch.cuda.get_device_properties(0)
+    d = {}
+    for k in ("name", "total_memory", "multi_processor_count", "major", "minor"):
+        d[k] = getattr(p, k, None)
+    for k in ("L2_cache_size", "memory_clock_rate", "memory_bus_width"):
+        if hasattr(p, k):
+            d[k] = getattr(p, k)
+    return d, str(p)
+
+print("torch", torch.__version__)
+print("torch.cuda.version", getattr(torch.version, "cuda", None))
+print("device_count", torch.cuda.device_count())
+d, raw = props()
+print("device_props", json.dumps(d))
+print("device_props_raw", raw)
+torch.cuda.init()
+print("mem_get_info", torch.cuda.mem_get_info())
+
+def bench(fn, warmup=3, iters=10):
+    for _ in range(warmup):
+        fn()
+    torch.cuda.synchronize()
+    s = torch.cuda.Event(enable_timing=True)
+    e = torch.cuda.Event(enable_timing=True)
+    s.record()
+    for _ in range(iters):
+        fn()
+    e.record()
+    torch.cuda.synchronize()
+    return s.elapsed_time(e) / 1000.0 / iters
+
+N = 1 << 29  # 每张量 1 GiB（bf16）
+x = torch.randn(N, device="cuda", dtype=torch.bfloat16)
+y = torch.randn(N, device="cuda", dtype=torch.bfloat16)
+z = torch.empty_like(x)
+nb = N * 2  # 单张量字节数
+
+t = bench(lambda: y.copy_(x), iters=10)
+print("BW copy   %.1f GB/s (%.4f ms)" % (2 * nb / t / 1e9, t * 1e3))
+t = bench(lambda: torch.add(x, y, out=z), iters=10)
+print("BW triad  %.1f GB/s (%.4f ms)" % (3 * nb / t / 1e9, t * 1e3))
+t = bench(lambda: x.sum(), iters=10)
+print("BW reduce %.1f GB/s (%.4f ms)" % (nb / t / 1e9, t * 1e3))
+del x, y, z
+torch.cuda.empty_cache()
+
+def gemm(dtype, n, warmup, iters, tag):
+    try:
+        a = torch.randn(n, n, device="cuda", dtype=dtype)
+        b = torch.randn(n, n, device="cuda", dtype=dtype)
+        f = lambda: torch.mm(a, b)
+        t = bench(f, warmup=warmup, iters=iters)
+        print("GEMM %-5s %5d^3  %.1f TFLOPS (%.3f ms)" % (tag, n, 2 * n ** 3 / t / 1e12, t * 1e3))
+    except Exception as ex:
+        print("GEMM %-5s %5d^3  FAILED %s" % (tag, n, ex))
+    finally:
+        try:
+            del a, b
+        except Exception:
+            pass
+        torch.cuda.empty_cache()
+
+for n, w, i in ((4096, 3, 10), (8192, 2, 5), (16384, 2, 3)):
+    gemm(torch.bfloat16, n, w, i, "bf16")
+    gemm(torch.float16, n, w, i, "fp16")
+gemm(torch.float32, 8192, 2, 5, "fp32")
+print("done")
+PY
+      echo "docker_rc=$?"
+
+      echo "-- 运行后 mx-smi 状态（只读） --"
+      mx-smi 2>&1 | sed -n '/Process:/,/End of Log/p' | head -20 || true
   fi
 
   echo
-  echo "== 5. curl 断点续传（30s 打印一次进度） =="
-  start_size=$(stat -c %s "$DEST/$BIG" 2>/dev/null || echo 0)
-  echo "start_size=$start_size"
-  curl -sS -L -C - --retry 10 --retry-all-errors --retry-delay 5 \
-      --speed-limit 10240 --speed-time 90 --max-time 1800 \
-      -o "$DEST/$BIG" "$URL" &
-  cpid=$!
-  while kill -0 "$cpid" 2>/dev/null; do
-      sleep 15
-      echo "progress $(date -u +%H:%M:%S) size=$(stat -c %s "$DEST/$BIG" 2>/dev/null || echo 0)"
-  done
-  wait "$cpid"; rc=$?
-  echo "curl_rc=$rc final_size=$(stat -c %s "$DEST/$BIG" 2>/dev/null || echo 0)"
-  rm -f /tmp/qwen_head1m.bin /tmp/qwen_big.txt
-
-  echo
-  echo "== 6. 完整性检查 =="
-  actual_size=$(stat -c %s "$DEST/$BIG" 2>/dev/null || echo 0)
-  echo "size=$actual_size expected=${EXPECTED_SIZE:-unknown}"
-  if [[ -n "${EXPECTED_SIZE:-}" && "$actual_size" != "$EXPECTED_SIZE" ]]; then
-      echo "!! 大小不匹配，文件不完整；可重跑本脚本继续续传"
-      exit 4
-  fi
-  if [[ -n "${EXPECTED_SHA:-}" ]]; then
-      echo "-- 计算 sha256（约 1.5GB，稍等） --"
-      actual_sha=$(sha256sum "$DEST/$BIG" | cut -d' ' -f1)
-      echo "sha256=$actual_sha expected=$EXPECTED_SHA"
-      if [[ "$actual_sha" != "$EXPECTED_SHA" ]]; then
-          echo "!! sha256 不匹配，需删除后重下"
-          exit 5
-      fi
-  fi
-  for f in config.json tokenizer.json tokenizer_config.json generation_config.json; do
-      [[ -f "$DEST/$f" ]] && echo "ok   $f" || echo "MISS $f"
-  done
-  echo "-- 文件列表 --"
-  ls -lh "$DEST" | head -30
-  du -sh "$DEST" 2>/dev/null || true
-
-  echo
-  echo "### 完成：MODEL_DIR=$DEST"
+  echo "### 完成：静态规格 + 单卡实测（若 GPU 空闲）"
   # ---- 命令结束 ----
 } 2>&1 | tee "$OUT"
 
