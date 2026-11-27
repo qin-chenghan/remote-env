@@ -1,0 +1,184 @@
+### server: 31
+### host:   localhost
+### time:   2026-11-27T12:12:23Z
+### script: vllm-bench-31-v1（容器内起 vLLM，vllm bench serve 直接出 TTFT/TPOT/ITL/吞吐）
+
+### 本轮写入：启动 --rm 临时容器跑 vLLM 服务 + bench；GPU 7；
+###           挂载 /home/qch/models/Qwen3-0.6B（只读）；结果 JSON 留在容器 /tmp 并打印到日志；
+###           不装包、不改配置、不留容器。预计 5-15 分钟（首次启动可能编译）。
+
+== 0. 前置检查（只读） ==
+Fri Nov 27 08:12:23 PM CST 2026
+-- 镜像 --
+local/vllm-metax:0.21.0-arm64-c500-v4-short	13.5GB
+local/vllm-metax:0.21.0-arm64-c500-v4-dg	13.5GB
+local/vllm-metax:0.21.0-arm64-c500	13.5GB
+-- 模型 --
+total 1.5G
+-rw-r--r--. 1 root root  726 Nov 27 19:13 config.json
+-rw-r--r--. 1 root root  239 Nov 27 19:13 generation_config.json
+-rw-r--r--. 1 root root  12K Nov 27 19:13 LICENSE
+-rw-r--r--. 1 root root 1.6M Nov 27 19:13 merges.txt
+-rw-r--r--. 1 root root 1.5G Nov 27 20:03 model.safetensors
+-rw-r--r--. 1 root root  14K Nov 27 19:13 README.md
+-rw-r--r--. 1 root root 9.6K Nov 27 19:13 tokenizer_config.json
+-rw-r--r--. 1 root root  11M Nov 27 19:13 tokenizer.json
+-rw-r--r--. 1 root root 2.7M Nov 27 19:13 vocab.json
+model_size=1503300328
+-- GPU 占用 --
+| Process:                                                                        |
+|  GPU                    PID         Process Name                 GPU Memory     |
+|                                                                  Usage(MiB)     |
+|=================================================================================|
+|  no process found                                                               |
++---------------------------------------------------------------------------------+
+
+End of Log
+
+== 1. 容器内：vLLM server + bench（写入：临时容器） ==
+-- 容器内版本 --
+vllm 0.21.0
+torch 2.8.0+metax3.7.0.7
+device_count 1
+device MetaX C500 sm 104 mem_MB 65120
+-- server/bench CLI 探测 --
+server_extra=--async-scheduling --compilation-config {} --enable-chunked-prefill --no-enable-prefix-caching
+bench_cmd=python3 -m vllm.entrypoints.cli.main bench serve
+-- 启动 server：--host 127.0.0.1 --port 8000 --model /model --trust-remote-code --dtype auto --max-model-len 4096 --tensor-parallel-size 1 --gpu-memory-utilization 0.9 --async-scheduling --compilation-config {} --enable-chunked-prefill --no-enable-prefix-caching --
+server healthy after 255.3s
+
+==== in1024/out1024 prompts=100 warmups=16 bs=8 ====
+bench_rc=0
+WARNING 11-27 12:20:43 [registry.py:960] Model architecture DeepseekV4ForCausalLM is already registered, and will be overwritten by the new model class vllm_metax.models.deepseek_v4:DeepseekV4ForCausalLM.
+WARNING 11-27 12:20:43 [registry.py:960] Model architecture DeepSeekV4MTPModel is already registered, and will be overwritten by the new model class vllm_metax.models.deepseek_v4_mtp:DeepSeekV4MTP.
+Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfffab3336cb0>, trust_remote_code=True, seed=42, num_prompts=100, dataset_name='random', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=1024, random_output_len=1024, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, prefix_repetition_prefix_len=256, prefix_repetition_suffix_len=256, prefix_repetition_num_prefixes=10, prefix_repetition_output_len=128, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='vllm', base_url=None, host='127.0.0.1', port=8000, endpoint='/v1/completions', header=None, max_concurrency=8, model='/model', input_len=None, output_len=None, tokenizer=None, tokenizer_mode='auto', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=16, profile=False, save_result=True, save_detailed=False, append_result=False, metadata=None, result_dir='/tmp', result_filename='bs8_in1024_out1024.json', ignore_eos=True, percentile_metrics=None, metric_percentiles='99', goodput=None, request_id_prefix='bench-8853fe81-', top_p=1.0, top_k=-1, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+INFO 11-27 12:20:44 [utils.py:90] Sampling input_len from [1024, 1024] and output_len from [1024, 1024]
+Starting initial single prompt test run...
+Skipping endpoint ready check.
+Warming up with 16 requests...
+  0%|          | 0/16 [00:00<?, ?it/s]  6%|▋         | 1/16 [00:06<01:30,  6.03s/it] 56%|█████▋    | 9/16 [00:11<00:07,  1.07s/it]100%|██████████| 16/16 [00:11<00:00,  1.44it/s]
+Warmup run completed.
+Starting main benchmark run...
+Traffic request rate: inf
+Burstiness factor: 1.0 (Poisson process)
+Maximum request concurrency: 8
+  0%|          | 0/100 [00:00<?, ?it/s]  1%|          | 1/100 [00:05<08:24,  5.09s/it]  9%|▉         | 9/100 [00:10<01:30,  1.01it/s] 17%|█▋        | 17/100 [00:15<01:05,  1.27it/s] 25%|██▌       | 25/100 [00:20<00:53,  1.39it/s] 33%|███▎      | 33/100 [00:25<00:45,  1.46it/s] 41%|████      | 41/100 [00:30<00:39,  1.50it/s] 49%|████▉     | 49/100 [00:35<00:33,  1.53it/s] 57%|█████▋    | 57/100 [00:40<00:27,  1.54it/s] 65%|██████▌   | 65/100 [00:45<00:22,  1.55it/s] 73%|███████▎  | 73/100 [00:50<00:17,  1.56it/s] 81%|████████  | 81/100 [00:55<00:12,  1.57it/s] 89%|████████▉ | 89/100 [01:00<00:07,  1.57it/s] 97%|█████████▋| 97/100 [01:05<00:01,  1.62it/s]100%|██████████| 100/100 [01:05<00:00,  1.53it/s]
+tip: install termplotlib and gnuplot to plot the metrics
+============ Serving Benchmark Result ============
+Successful requests:                     100       
+Failed requests:                         0         
+Maximum request concurrency:             8         
+Benchmark duration (s):                  65.40     
+Total input tokens:                      102400    
+Total generated tokens:                  102400    
+Request throughput (req/s):              1.53      
+Output token throughput (tok/s):         1565.81   
+Peak output token throughput (tok/s):    1736.00   
+Peak concurrent requests:                16.00     
+Total token throughput (tok/s):          3131.62   
+---------------Time to First Token----------------
+Mean TTFT (ms):                          95.80     
+Median TTFT (ms):                        92.10     
+P99 TTFT (ms):                           170.22    
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          4.84      
+Median TPOT (ms):                        4.86      
+P99 TPOT (ms):                           4.90      
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           4.84      
+Median ITL (ms):                         4.80      
+P99 ITL (ms):                            5.16      
+==================================================
+-- result json --
+{"date": "20261127-122202", "endpoint_type": "vllm", "backend": "vllm", "label": null, "model_id": "/model", "tokenizer_id": "/model", "num_prompts": 100, "request_rate": "inf", "burstiness": 1.0, "max_concurrency": 8, "duration": 65.39736966998316, "completed": 100, "failed": 0, "total_input_tokens": 102400, "total_output_tokens": 102400, "request_throughput": 1.5291134873563448, "request_goodput": null, "output_throughput": 1565.812211052897, "total_token_throughput": 3131.624422105794, "max_output_tokens_per_s": 1736.0, "max_concurrent_requests": 16, "rtfx": 0.0, "mean_ttft_ms": 95.79626429826021, "median_ttft_ms": 92.10119000636041, "std_ttft_ms": 25.019880468342443, "p99_ttft_ms": 170.21892240678426, "mean_tpot_ms": 4.842902231279385, "median_tpot_ms": 4.8592221456430105, "std_tpot_ms": 0.09725965419464426, "p99_tpot_ms": 4.904191845935567, "mean_itl_ms": 4.842902343890439, "median_itl_ms": 4.799605027073994, "std_itl_ms": 0.8421590562020859, "p99_itl_ms": 5.155661178869194}
+
+==== in1024/out1024 prompts=100 warmups=16 bs=100 ====
+bench_rc=0
+WARNING 11-27 12:23:16 [registry.py:960] Model architecture DeepseekV4ForCausalLM is already registered, and will be overwritten by the new model class vllm_metax.models.deepseek_v4:DeepseekV4ForCausalLM.
+WARNING 11-27 12:23:16 [registry.py:960] Model architecture DeepSeekV4MTPModel is already registered, and will be overwritten by the new model class vllm_metax.models.deepseek_v4_mtp:DeepSeekV4MTP.
+Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfffabe25acb0>, trust_remote_code=True, seed=42, num_prompts=100, dataset_name='random', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=1024, random_output_len=1024, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, prefix_repetition_prefix_len=256, prefix_repetition_suffix_len=256, prefix_repetition_num_prefixes=10, prefix_repetition_output_len=128, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='vllm', base_url=None, host='127.0.0.1', port=8000, endpoint='/v1/completions', header=None, max_concurrency=100, model='/model', input_len=None, output_len=None, tokenizer=None, tokenizer_mode='auto', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=16, profile=False, save_result=True, save_detailed=False, append_result=False, metadata=None, result_dir='/tmp', result_filename='bs100_in1024_out1024.json', ignore_eos=True, percentile_metrics=None, metric_percentiles='99', goodput=None, request_id_prefix='bench-581da525-', top_p=1.0, top_k=-1, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+INFO 11-27 12:23:17 [utils.py:90] Sampling input_len from [1024, 1024] and output_len from [1024, 1024]
+Starting initial single prompt test run...
+Skipping endpoint ready check.
+Warming up with 16 requests...
+  0%|          | 0/16 [00:00<?, ?it/s]  6%|▋         | 1/16 [00:06<01:33,  6.23s/it]100%|██████████| 16/16 [00:06<00:00,  2.55it/s]
+Warmup run completed.
+Starting main benchmark run...
+Traffic request rate: inf
+Burstiness factor: 1.0 (Poisson process)
+Maximum request concurrency: 100
+  0%|          | 0/100 [00:00<?, ?it/s]  1%|          | 1/100 [00:18<30:28, 18.47s/it]  9%|▉         | 9/100 [00:18<02:16,  1.50s/it] 21%|██        | 21/100 [00:18<00:40,  1.96it/s] 33%|███▎      | 33/100 [00:18<00:17,  3.76it/s] 47%|████▋     | 47/100 [00:18<00:07,  6.65it/s] 65%|██████▌   | 65/100 [00:18<00:02, 11.74it/s] 90%|█████████ | 90/100 [00:19<00:00, 21.33it/s]100%|██████████| 100/100 [00:19<00:00,  5.23it/s]
+tip: install termplotlib and gnuplot to plot the metrics
+============ Serving Benchmark Result ============
+Successful requests:                     100       
+Failed requests:                         0         
+Maximum request concurrency:             100       
+Benchmark duration (s):                  19.12     
+Total input tokens:                      102400    
+Total generated tokens:                  102400    
+Request throughput (req/s):              5.23      
+Output token throughput (tok/s):         5355.57   
+Peak output token throughput (tok/s):    7391.00   
+Peak concurrent requests:                100.00    
+Total token throughput (tok/s):          10711.13  
+---------------Time to First Token----------------
+Mean TTFT (ms):                          1036.17   
+Median TTFT (ms):                        1012.32   
+P99 TTFT (ms):                           1911.76   
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          17.42     
+Median TPOT (ms):                        17.48     
+P99 TPOT (ms):                           17.83     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           17.42     
+Median ITL (ms):                         17.10     
+P99 ITL (ms):                            35.95     
+==================================================
+-- result json --
+{"date": "20261127-122344", "endpoint_type": "vllm", "backend": "vllm", "label": null, "model_id": "/model", "tokenizer_id": "/model", "num_prompts": 100, "request_rate": "inf", "burstiness": 1.0, "max_concurrency": 100, "duration": 19.12029439001344, "completed": 100, "failed": 0, "total_input_tokens": 102400, "total_output_tokens": 102400, "request_throughput": 5.2300449961811335, "request_goodput": null, "output_throughput": 5355.566076089481, "total_token_throughput": 10711.132152178961, "max_output_tokens_per_s": 7391.0, "max_concurrent_requests": 100, "rtfx": 0.0, "mean_ttft_ms": 1036.1713810014771, "median_ttft_ms": 1012.3174150066916, "std_ttft_ms": 496.0209213323234, "p99_ttft_ms": 1911.7570168001112, "mean_tpot_ms": 17.424148453077716, "median_tpot_ms": 17.4816316813012, "std_tpot_ms": 0.3085494457048233, "p99_tpot_ms": 17.83134184709344, "mean_itl_ms": 17.424148567449798, "median_itl_ms": 17.099254968343303, "std_itl_ms": 3.5635875277912628, "p99_itl_ms": 35.94737465144135}
+-- server.log 尾部 --
+(APIServer pid=64) INFO:     127.0.0.1:38514 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38526 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38530 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38538 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38550 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38564 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38580 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38590 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38594 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38604 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38608 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38616 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38618 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38632 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38642 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38646 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38656 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38672 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38688 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38694 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38710 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38718 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38730 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38732 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38748 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO:     127.0.0.1:38758 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=64) INFO 11-27 12:23:25 [loggers.py:271] Engine 000: Avg prompt throughput: 5528.8 tokens/s, Avg generation throughput: 1676.3 tokens/s, Running: 41 reqs, Waiting: 59 reqs, GPU KV cache usage: 8.3%, Prefix cache hit rate: 0.0%
+(APIServer pid=64) INFO 11-27 12:23:35 [loggers.py:271] Engine 000: Avg prompt throughput: 6345.8 tokens/s, Avg generation throughput: 5961.9 tokens/s, Running: 100 reqs, Waiting: 0 reqs, GPU KV cache usage: 32.1%, Prefix cache hit rate: 0.0%
+(APIServer pid=64) INFO:     127.0.0.1:34478 - "GET /metrics HTTP/1.1" 200 OK
+(APIServer pid=64) INFO 11-27 12:23:45 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 4237.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
+-- 结束，杀 server --
+done
+docker_rc=0
+
+== 2. 结束后 GPU 状态（只读） ==
+| Process:                                                                        |
+|  GPU                    PID         Process Name                 GPU Memory     |
+|                                                                  Usage(MiB)     |
+|=================================================================================|
+|  no process found                                                               |
++---------------------------------------------------------------------------------+
+
+End of Log
+
+### 完成：in1024/out1024，bs=8 100
