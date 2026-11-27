@@ -19,6 +19,7 @@ URL="https://hf-mirror.com/${MODEL_ID}/resolve/main/${BIG}"
   echo "### server: $SERVER"
   echo "### host:   $(hostname)"
   echo "### time:   $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo "### script: curl-resume-v2（不再有 Fetching 10 files 进度条，看 size= 行）"
   echo
   echo "### 本轮写入：绕开 hf 的 ETag 重下逻辑，用 curl 断点续传 ${BIG}。"
   echo "###           已确认 .cache 里有两个不同 etag 的半成品（268MB / 409MB），"
@@ -96,7 +97,7 @@ PY
       -o "$DEST/$BIG" "$URL" &
   cpid=$!
   while kill -0 "$cpid" 2>/dev/null; do
-      sleep 30
+      sleep 15
       echo "progress $(date -u +%H:%M:%S) size=$(stat -c %s "$DEST/$BIG" 2>/dev/null || echo 0)"
   done
   wait "$cpid"; rc=$?
