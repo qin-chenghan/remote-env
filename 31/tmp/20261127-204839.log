@@ -1,0 +1,178 @@
+### server: 31
+### host:   localhost
+### time:   2026-11-27T12:48:39Z
+### script: vllm-timeline-31-v1（torch profiler timeline，不含 litehost / 不做 H/G 拆分）
+
+### 本轮写入：1) 建 /home/qch/qwen06_profile 存放 trace；
+###           2) 起 --rm 容器，server 带 VLLM_TORCH_PROFILER_DIR=/profile；
+###           3) bench 用 --profile 包住 in1024/out1024 bs=8（prompts=16 warmups=4）；
+###           4) trace 落盘后做流式汇总（GPU busy / stream 空闲 / top CPU op），原文件保留。
+###           不动模型、不改系统。预计 8-15 分钟（服务启动约 255 s）。
+
+== 0. 前置检查（只读） ==
+Fri Nov 27 08:48:39 PM CST 2026
+-- 镜像 --
+local/vllm-metax:0.21.0-arm64-c500-v4-short	13.5GB
+local/vllm-metax:0.21.0-arm64-c500-v4-dg	13.5GB
+local/vllm-metax:0.21.0-arm64-c500	13.5GB
+-- 模型 --
+total 1.5G
+-rw-r--r--. 1 root root  726 Nov 27 19:13 config.json
+-rw-r--r--. 1 root root  239 Nov 27 19:13 generation_config.json
+-rw-r--r--. 1 root root  12K Nov 27 19:13 LICENSE
+-rw-r--r--. 1 root root 1.6M Nov 27 19:13 merges.txt
+-rw-r--r--. 1 root root 1.5G Nov 27 20:03 model.safetensors
+-rw-r--r--. 1 root root  14K Nov 27 19:13 README.md
+-rw-r--r--. 1 root root 9.6K Nov 27 19:13 tokenizer_config.json
+-rw-r--r--. 1 root root  11M Nov 27 19:13 tokenizer.json
+-rw-r--r--. 1 root root 2.7M Nov 27 19:13 vocab.json
+model_size=1503300328
+-- GPU 占用 --
+| Process:                                                                        |
+|  GPU                    PID         Process Name                 GPU Memory     |
+|                                                                  Usage(MiB)     |
+|=================================================================================|
+|  no process found                                                               |
++---------------------------------------------------------------------------------+
+
+End of Log
+-- 磁盘 --
+/dev/mapper/vg_home-lv_home     3520G 1090G     2395G  32% /home
+
+== 1. 准备 trace 目录（写入：新建目录） ==
+profile_host=/home/qch/qwen06_profile
+drwxr-xr-x. 2 root root 4096 Nov 27 20:48 /home/qch/qwen06_profile
+已有 trace 文件：
+
+== 2. 容器内：vLLM server + 带 profiler 的 bench（写入：临时容器 + trace） ==
+-- 容器内版本 --
+vllm 0.21.0
+torch 2.8.0+metax3.7.0.7
+device_count 1
+device MetaX C500 sm 104 mem_MB 65120
+torch.profiler ok True
+-- server/bench CLI 探测 --
+server_extra=--async-scheduling --compilation-config {} --enable-chunked-prefill --no-enable-prefix-caching
+!! bench 无 --profile，将用 HTTP 端点手动开停
+bench_cmd=python3 -m vllm.entrypoints.cli.main bench serve profile_flag=none
+-- 启动 server（VLLM_TORCH_PROFILER_DIR=/profile）：--host 127.0.0.1 --port 8000 --model /model --trust-remote-code --dtype auto --max-model-len 4096 --tensor-parallel-size 1 --gpu-memory-utilization 0.9 --async-scheduling --compilation-config {} --enable-chunked-prefill --no-enable-prefix-caching --
+server healthy
+profile_files_before=0
+
+==== profiled bench: in1024/out1024 prompts=16 warmups=4 bs=8 ====
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/home/z00970444/vllm-arm-build/python-runtime/lib/python3.10/urllib/request.py", line 216, in urlopen
+    return opener.open(url, data, timeout)
+  File "/home/z00970444/vllm-arm-build/python-runtime/lib/python3.10/urllib/request.py", line 525, in open
+    response = meth(req, response)
+  File "/home/z00970444/vllm-arm-build/python-runtime/lib/python3.10/urllib/request.py", line 634, in http_response
+    response = self.parent.error(
+  File "/home/z00970444/vllm-arm-build/python-runtime/lib/python3.10/urllib/request.py", line 563, in error
+    return self._call_chain(*args)
+  File "/home/z00970444/vllm-arm-build/python-runtime/lib/python3.10/urllib/request.py", line 496, in _call_chain
+    result = func(*args)
+  File "/home/z00970444/vllm-arm-build/python-runtime/lib/python3.10/urllib/request.py", line 643, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+bench_rc=0
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/home/z00970444/vllm-arm-build/python-runtime/lib/python3.10/urllib/request.py", line 216, in urlopen
+    return opener.open(url, data, timeout)
+  File "/home/z00970444/vllm-arm-build/python-runtime/lib/python3.10/urllib/request.py", line 525, in open
+    response = meth(req, response)
+  File "/home/z00970444/vllm-arm-build/python-runtime/lib/python3.10/urllib/request.py", line 634, in http_response
+    response = self.parent.error(
+  File "/home/z00970444/vllm-arm-build/python-runtime/lib/python3.10/urllib/request.py", line 563, in error
+    return self._call_chain(*args)
+  File "/home/z00970444/vllm-arm-build/python-runtime/lib/python3.10/urllib/request.py", line 496, in _call_chain
+    result = func(*args)
+  File "/home/z00970444/vllm-arm-build/python-runtime/lib/python3.10/urllib/request.py", line 643, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+Skipping endpoint ready check.
+Warming up with 4 requests...
+  0%|          | 0/4 [00:00<?, ?it/s] 25%|██▌       | 1/4 [00:05<00:16,  5.41s/it]100%|██████████| 4/4 [00:05<00:00,  1.35s/it]
+Warmup run completed.
+Starting main benchmark run...
+Traffic request rate: inf
+Burstiness factor: 1.0 (Poisson process)
+Maximum request concurrency: 8
+  0%|          | 0/16 [00:00<?, ?it/s]  6%|▋         | 1/16 [00:05<01:16,  5.08s/it] 56%|█████▋    | 9/16 [00:10<00:06,  1.01it/s]100%|██████████| 16/16 [00:10<00:00,  1.58it/s]
+tip: install termplotlib and gnuplot to plot the metrics
+============ Serving Benchmark Result ============
+Successful requests:                     16        
+Failed requests:                         0         
+Maximum request concurrency:             8         
+Benchmark duration (s):                  10.14     
+Total input tokens:                      16384     
+Total generated tokens:                  16384     
+Request throughput (req/s):              1.58      
+Output token throughput (tok/s):         1615.10   
+Peak output token throughput (tok/s):    1712.00   
+Peak concurrent requests:                16.00     
+Total token throughput (tok/s):          3230.20   
+---------------Time to First Token----------------
+Mean TTFT (ms):                          111.81    
+Median TTFT (ms):                        111.24    
+P99 TTFT (ms):                           169.31    
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          4.84      
+Median TPOT (ms):                        4.84      
+P99 TPOT (ms):                           4.89      
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           4.84      
+Median ITL (ms):                         4.81      
+P99 ITL (ms):                            5.12      
+==================================================
+-- result json --
+{"date": "20261127-125712", "endpoint_type": "vllm", "backend": "vllm", "label": null, "model_id": "/model", "tokenizer_id": "/model", "num_prompts": 16, "request_rate": "inf", "burstiness": 1.0, "max_concurrency": 8, "duration": 10.14425819000462, "completed": 16, "failed": 0, "total_input_tokens": 16384, "total_output_tokens": 16384, "request_throughput": 1.5772469213929492, "request_goodput": null, "output_throughput": 1615.10084750638, "total_token_throughput": 3230.20169501276, "max_output_tokens_per_s": 1712.0, "max_concurrent_requests": 16, "rtfx": 0.0, "mean_ttft_ms": 111.8143818785029, "median_ttft_ms": 111.23581498395652, "std_ttft_ms": 33.840111364135055, "p99_ttft_ms": 169.3053644936299, "mean_tpot_ms": 4.8447923362679, "median_tpot_ms": 4.840838445729704, "std_tpot_ms": 0.02388178913292623, "p99_tpot_ms": 4.8874498083791496, "mean_itl_ms": 4.844792462733005, "median_itl_ms": 4.806075012311339, "std_itl_ms": 0.8102427702496294, "p99_itl_ms": 5.121056541684084}
+-- 等待 trace 落盘（最多 300 s，要求大小稳定 15 s） --
+等待 trace 超时
+trace_wait_rc=1
+-- /profile 内容 --
+total 0
+
+-- trace 汇总（流式解析，不整体载入内存） --
+没有 trace 文件，跳过汇总
+-- server.log 尾部 --
+(APIServer pid=65) INFO:     127.0.0.1:47050 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=65) INFO:     127.0.0.1:47064 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=65) INFO:     127.0.0.1:47022 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=65) INFO:     127.0.0.1:43950 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=65) INFO:     127.0.0.1:43958 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=65) INFO:     127.0.0.1:43972 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=65) INFO:     127.0.0.1:43980 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=65) INFO 11-27 12:57:06 [loggers.py:271] Engine 000: Avg prompt throughput: 1228.8 tokens/s, Avg generation throughput: 1086.9 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 2.9%, Prefix cache hit rate: 0.0%
+(APIServer pid=65) INFO:     127.0.0.1:47038 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=65) INFO:     127.0.0.1:47050 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=65) INFO:     127.0.0.1:47064 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=65) INFO:     127.0.0.1:47022 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=65) INFO:     127.0.0.1:43950 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=65) INFO:     127.0.0.1:43958 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=65) INFO:     127.0.0.1:43972 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=65) INFO:     127.0.0.1:43980 - "POST /v1/completions HTTP/1.1" 200 OK
+(APIServer pid=65) INFO:     127.0.0.1:47038 - "GET /metrics HTTP/1.1" 200 OK
+(APIServer pid=65) INFO 11-27 12:57:16 [loggers.py:271] Engine 000: Avg prompt throughput: 819.2 tokens/s, Avg generation throughput: 961.1 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=65) INFO:     127.0.0.1:33228 - "POST /stop_profile HTTP/1.1" 404 Not Found
+(APIServer pid=65) INFO 11-27 12:57:26 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
+done
+docker_rc=0
+
+== 3. trace 文件与打包（只读 + 压缩） ==
+total 0
+(打包失败或无文件)
+trace_dir=/home/qch/qwen06_profile
+
+== 4. 结束后 GPU 状态（只读） ==
+| Process:                                                                        |
+|  GPU                    PID         Process Name                 GPU Memory     |
+|                                                                  Usage(MiB)     |
+|=================================================================================|
+|  no process found                                                               |
++---------------------------------------------------------------------------------+
+
+End of Log
+
+### 完成：timeline（in1024/out1024 bs=8），原始 trace 在 /home/qch/qwen06_profile
