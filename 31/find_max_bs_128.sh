@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# 找 31 上 128/128 的最大并发：server 开 max_num_seqs=2000，
-# 按运行时报的 KV 自动生成并发阶梯，各跑一轮，观察 Running/Waiting/KV 与抢占。
+# 找 31 上 128/128 的最大并发：server 开 max_num_seqs=2000，默认只跑 C=2000 一档，
+# 观察 Running/Waiting/KV 与抢占；容量上限由 KV/(in+out) 直接给出。
 # 用法：bash 31/find_max_bs_128.sh
 set -uo pipefail
 
@@ -14,7 +14,7 @@ IMAGE="${IMAGE:-local/vllm-metax:0.21.0-arm64-c500}"
 GPUSEL="${GPUSEL:-7}"
 MODEL_DIR="${MODEL_DIR:-/home/qch/models/Qwen3-0.6B}"
 SERVER_MAX_SEQS="${SERVER_MAX_SEQS:-2000}"
-CONC_LIST="${CONC_LIST:-}"
+CONC_LIST="${CONC_LIST:-2000}"
 WARMUPS="${WARMUPS:-8}"
 IN_LEN="${IN_LEN:-128}"
 OUT_LEN="${OUT_LEN:-128}"
@@ -29,8 +29,8 @@ PORT_IN="${PORT_IN:-8000}"
   echo
   echo "### 本轮写入：起 --rm 临时容器跑 server + 多轮 bench；GPU $GPUSEL；"
   echo "###           不装包、不改系统配置、不留容器。"
-  echo "### 阶梯：未指定则按 KV/(输入+输出) 自动生成（含上限点与 2000）"
-  echo "### 预计：server 启动 ~5-8 分钟 + 每轮 ~20-40 秒"
+  echo "### 单档：C=$CONC_LIST（默认 2000，可用 CONC_LIST 覆盖）"
+  echo "### 预计：server 启动 ~5-8 分钟 + 单轮 ~20-40 秒"
   set +x
 
   echo
@@ -110,12 +110,6 @@ if [[ -n "$KV" ]]; then
     M=$((KV / REQ_TOK))
     echo "expected_max_concurrency(${REQ_TOK} tokens/req)=$M"
 fi
-if [[ -z "$CONC_LIST" && -n "${M:-}" ]]; then
-    C1=$((M * 85 / 100)); C2=$((M * 95 / 100)); C4=$((M + 20))
-    C5=$((M * 110 / 100)); C6=$((M + 400))
-    (( C6 > SERVER_MAX_SEQS )) && C6=$SERVER_MAX_SEQS
-    CONC_LIST="$C1 $C2 $M $C4 $C5 $C6"
-fi
 echo "conc_list=$CONC_LIST"
 
 for C in $CONC_LIST; do
@@ -155,7 +149,7 @@ INNER
   mx-smi 2>&1 | sed -n '/Process:/,/End of Log/p' | head -20 || true
 
   echo
-  echo "### 完成：128/128 并发阶梯"
+  echo "### 完成：128/128 单档 C=$CONC_LIST"
   # ---- 命令结束 ----
 } 2>&1 | tee "$OUT"
 
